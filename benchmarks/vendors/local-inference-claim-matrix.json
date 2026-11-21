@@ -411,7 +411,8 @@
         "manifestVariantId": "gemma-3-1b-it-q4k-ehf16-af32-mv-exec-v1",
         "shardSetHash": "sha256:76ded25226c2ce4ae77229866d3fb8305e033fd0f96a0a0d28febe264ade7b3e",
         "sizeBytes": 1044786820,
-        "compressionRatio": null
+        "compressionRatio": null,
+        "manifestGitRevision": "5ee6c52b7c7f1d157e33374ab4e6f5a26ce18d63"
       },
       "run": {
         "contextLengths": [
@@ -600,7 +601,8 @@
         "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
         "shardSetHash": "sha256:f417b798da84ba5232807dc0a3b664f1a5e20dd9016cf3b7b550c09fce62d987",
         "sizeBytes": 2496068973,
-        "compressionRatio": null
+        "compressionRatio": null,
+        "manifestGitRevision": "a4d4382967ead71ce3f88ec0f8b81cf445935c8b"
       },
       "run": {
         "contextLengths": [
@@ -707,7 +709,8 @@
         "manifestVariantId": "translategemma-4b-it-q4k-ehf16-af32-mv-exec-v1",
         "shardSetHash": "sha256:5975cdd5789c951bd91ec189592fee2bcd2cc92b669a8f6e5c3afe9c7dc73949",
         "sizeBytes": 3167500395,
-        "compressionRatio": null
+        "compressionRatio": null,
+        "manifestGitRevision": "88ce971e8b9cbbb2451690c805b1038bab8321c2"
       },
       "run": {
         "contextLengths": [
@@ -794,7 +797,8 @@
         "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1",
         "shardSetHash": "sha256:87998a5b537e64b8127adbf8909dd9caded5503ee8a424651d5d630dd5a2c268",
         "sizeBytes": 7094076955,
-        "compressionRatio": null
+        "compressionRatio": null,
+        "manifestGitRevision": "5ee6c52b7c7f1d157e33374ab4e6f5a26ce18d63"
       },
       "run": {
         "contextLengths": [

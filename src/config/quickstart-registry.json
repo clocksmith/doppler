@@ -316,7 +316,7 @@
         "revision": "ea7b211b72c4d43687fa72802dee7aba74eca293",
         "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
       },
-      "sizeBytes": 1155348912,
+      "sizeBytes": 1155351431,
       "quickstartRequirements": {
         "vramRequiredBytes": 1610612736,
         "paramCount": "0.8B",
@@ -418,7 +418,7 @@
         "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
-      "sizeBytes": 2496068973,
+      "sizeBytes": 2087407391,
       "quickstartRequirements": {
         "vramRequiredBytes": 2684354560,
         "paramCount": "2B",
