@@ -41,6 +41,11 @@ export interface QuickstartRegistryEntry {
   modes: string[];
   classification?: QuickstartModelClassification;
   typeCluster?: QuickstartModelTypeCluster;
+  hostedSource?: {
+    manifestUrl: string;
+    expectedManifestHash: string;
+    weights: { repoId: string; revision: string; path: string };
+  };
   hf: {
     repoId: string;
     revision: string | null;

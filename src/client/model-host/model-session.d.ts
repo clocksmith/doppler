@@ -66,6 +66,8 @@ export interface DopplerResolvedExecutionIdentity {
 }
 
 export interface DopplerGenerationEvidence {
+  /** Manifest fields from the same artifact digest used to resolve execution. */
+  loadedArtifact?: NonNullable<import('../../inference/pipelines/text/state.js').PipelineState['revocationIdentity']>;
   schema: 'doppler_generation_evidence/v1';
   outputText: string;
   tokenIds: number[];
@@ -157,6 +159,8 @@ export interface DopplerChatResponse {
 
 export interface DopplerModelHandle {
   readonly supportsGenerationContext: boolean;
+  /** Current KV allocation. Recurrent state and token history can require additional bytes. */
+  readonly generationContextMinimumBytes: number | null;
   createGenerationContext(options: { maxBytes: number }): import("../../inference/pipelines/text/generator/session/sequence-state.js").GenerationContext;
   scoreChoices(request: import('../../config/choice-scoring.js').ChoiceScoringRequest,
     control?: { signal?: AbortSignal }): Promise<import('../../config/choice-scoring.js').ChoiceScoringResult>;

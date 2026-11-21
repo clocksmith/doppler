@@ -57,7 +57,7 @@ try {
       file: 'tokenizer.json',
     },
   };
-  const manifestText = JSON.stringify(manifest);
+  const manifestText = JSON.stringify(manifest) + '\n';
   const files = new Map([
     ['shard_00000.bin', shardBytes],
     ['tokenizer.json', tokenizerBytes],
@@ -88,6 +88,7 @@ try {
     assert.ok(storage, 'the runtime storage selector must consume cached file bytes after import');
     assert.equal(Buffer.from(await storage.loadShard(0)).toString(), shardBytes.toString());
     assert.ok(existsSync(path.join(tempRoot, manifest.modelId, 'manifest.json')));
+    assert.equal(readFileSync(path.join(tempRoot, manifest.modelId, 'manifest.json'), 'utf8'), manifestText);
     assert.equal(
       readFileSync(path.join(tempRoot, manifest.modelId, 'shard_00000.bin')).toString(),
       shardBytes.toString()

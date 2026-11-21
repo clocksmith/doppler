@@ -584,15 +584,25 @@ export function buildQuantizationInfo(
 }
 
 
-export function resolveModelId(modelId, baseName, variantTag) {
+// The stored tag may be from an earlier writer and may omit activations equal to the weights.
+export function buildModelNameSuffix(info) {
+  if (!info) return '';
+  const tag = info.weights ? buildVariantTag(info) : info.variantTag;
+  const activation = info.compute ? quantNameToken(info.compute) : null;
+  return variantNameSuffix(tag, activation);
+}
+
+export function resolveModelId(modelId, baseName, variantTag, nameSuffix = variantNameSuffix(variantTag)) {
   const sanitize = (id) => {
     return id.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
   };
 
   const base = modelId ? sanitize(modelId) : sanitize(baseName);
-  if (!variantTag) return base;
-  const tag = variantNameSuffix(variantTag);
-  return base.endsWith(tag) ? base : `${base}-${tag}`;
+  if (!nameSuffix || base.endsWith('-' + nameSuffix)) return base;
+  // A detected name may already end in the older storage tag. Replace that complete suffix once.
+  const priorSuffix = variantTag ? sanitize(quantNameToken(variantTag)) : null;
+  if (priorSuffix && base.endsWith('-' + priorSuffix)) return base.slice(0, -priorSuffix.length) + nameSuffix;
+  return `${base}-${nameSuffix}`;
 }
 
 

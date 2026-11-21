@@ -5,6 +5,7 @@ import {
 } from '../config/schema/index.js';
 import { validateRequiredInferenceFields } from '../inference/pipelines/text/config.js';
 import {
+  buildModelNameSuffix,
   buildQuantizationInfo,
   normalizeQuantTag,
   resolveManifestQuantization,
@@ -291,11 +292,12 @@ export function resolveConvertedModelId(options) {
   // path, before it is written into a manifest and becomes part of an identity. Where the model's format is
   // known the name must also end with the suffix that format generates; only a direct-source runtime label,
   // which names no published identity, is excused from that.
+  const nameSuffix = sanitizeOnly || options?.runtimeLabel === true ? '' : buildModelNameSuffix(quantizationInfo);
   const accept = (modelId) => {
     if (modelId === null) return null;
     assertCanonicalModelId(modelId, 'Converted model ID');
-    if (quantizationInfo?.variantTag && !sanitizeOnly && options?.runtimeLabel !== true) {
-      assertModelIdDescribesFormat(modelId, quantizationInfo.variantTag, 'Converted model ID');
+    if (nameSuffix) {
+      assertModelIdDescribesFormat(modelId, nameSuffix, 'Converted model ID');
     }
     return modelId;
   };
@@ -320,7 +322,7 @@ export function resolveConvertedModelId(options) {
     : (
       hasExplicitBaseModelId
         ? baseModelId
-        : resolveModelId(baseModelId, detectedModelId ?? baseModelId, quantizationInfo?.variantTag)
+        : resolveModelId(baseModelId, detectedModelId ?? baseModelId, quantizationInfo?.variantTag, nameSuffix || undefined)
     );
   return accept(sanitizeModelId(resolved));
 }

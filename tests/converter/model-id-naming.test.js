@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const {
+  buildModelNameSuffix,
   buildQuantizationInfo,
   buildVariantTag,
   normalizeQuantTag,
@@ -57,6 +58,25 @@ for (const tag of ['q4_0-hq8_0-af32', 'q4k-ehf16-af32', 'f16-af32-xq8_0']) asser
 // A tag written before the rule is brought into line when it is joined to a name, and is not appended twice.
 assert.equal(resolveModelId('Qwen-3.6-35B-A3B-text-source', 'unused', 'q4_0-hq6k-af32'), 'qwen-3-6-35b-a3b-text-source-q40-hq6k-af32');
 assert.equal(resolveModelId('qwen-3-5-2b-q4k-ef16-af32', 'unused', 'q4k-ef16-af32'), 'qwen-3-5-2b-q4k-ef16-af32');
+
+// The manifest retains its original tag. Names distinguish activation precision even when weights share it.
+for (const [info, stored, suffix] of [
+  [{ weights: 'q4k', embeddings: 'f16', lmHead: 'f16', compute: 'f16' }, 'q4k-ehaf16', 'q4k-ehf16-af16'],
+  [{ weights: 'q4k', embeddings: 'f16', lmHead: 'q6k', compute: 'f16', layout: 'col' }, 'q4k-col-eaf16-hq6k', 'q4k-col-ef16-hq6k-af16'],
+  [{ weights: 'q4k', embeddings: 'q4k', lmHead: 'f16', compute: 'f16', audio: 'f16' }, 'q4k-haf16-audiof16', 'q4k-hf16-af16-audiof16'],
+  [{ weights: 'f32', compute: 'f32' }, 'f32', 'f32-af32'],
+  [{ weights: 'f16', compute: 'f16', experts: 'mxfp4' }, 'f16-xmxfp4', 'f16-af16-xmxfp4'],
+  [{ weights: 'f32' }, 'f32', 'f32'],
+]) {
+  assert.equal(buildVariantTag(info), stored);
+  assert.equal(buildModelNameSuffix(info), suffix);
+  const actual = resolveConvertedModelId({ detectedModelId: 'test-model', quantizationInfo: { ...info, variantTag: stored } });
+  assert.equal(actual, `test-model-${suffix}`);
+  assert.equal(resolveConvertedModelId({ detectedModelId: `test-model-${stored}`, quantizationInfo: { ...info, variantTag: stored } }), actual);
+}
+assert.equal(variantNameSuffix('q4k-eaf16-hq6k-vf16'), 'q4k-ef16-hq6k-af16-vf16');
+assert.throws(() => resolveConvertedModelId({ explicitModelId: 'new-model-q4k-ehaf16', quantizationInfo: { variantTag: 'q4k-ehaf16' } }), /does not describe/);
+assert.equal(resolveConvertedModelId({ explicitModelId: 'qwen-3-6-27b-q4k-eaf16', quantizationInfo: { variantTag: 'q4k-eaf16' } }), 'qwen-3-6-27b-q4k-eaf16');
 
 for (const good of ['qwen-3-5-2b-q4k-ehf16-af32', 'gemma-3-270m-it-f16-af32', 'a1']) assert.ok(isCanonicalModelId(good), good);
 for (const bad of ['qwen_3', 'Qwen-3', 'qwen--3', '-qwen', 'qwen-', 'qwen 3', 'qwen.3', '', null, 42]) assert.ok(!isCanonicalModelId(bad), String(bad));
@@ -125,7 +145,7 @@ for (const file of walk(path.join(root, 'src', 'config', 'conversion'))) {
   // Whether a vision, audio or projector part is named depends on the tensors, which a config does not list.
   // So this reads the text part, and accepts further parts after it.
   const info = buildQuantizationInfo(config, quantization.weights, quantization.embeddings ?? null, quantization.lmHead ?? null);
-  const text = variantNameSuffix(info.variantTag);
+  const text = buildModelNameSuffix(info);
   const index = modelId.indexOf(`-${text}`);
   const describes = index > 0 && /^(-[a-z0-9]+)*$/.test(modelId.slice(index + text.length + 1));
   if (!describes && !isLegacyModelId(modelId)) disagreeing.push(`${modelId}: its suffix must begin with "-${text}"`);
@@ -134,6 +154,15 @@ assert.deepEqual(disagreeing, [], 'conversion configs whose name does not descri
 for (const legacy of LEGACY_HANDWRITTEN_SUFFIX_MODEL_IDS) {
   assert.ok(isCanonicalModelId(legacy), `${legacy} belongs in LEGACY_NONCANONICAL_MODEL_IDS`);
   assert.ok(names.has(legacy), `${legacy} is listed as an earlier identity but nothing names it; remove it from the list`);
+}
+
+// Check complete format records wherever the catalog retains a source manifest, including multimodal parts.
+for (const { modelId } of catalog.models) {
+  const filename = path.join(root, 'models', 'local', modelId, 'manifest.json');
+  if (!fs.existsSync(filename)) continue;
+  const manifest = JSON.parse(fs.readFileSync(filename, 'utf8'));
+  assert.equal(manifest.modelId, modelId);
+  assert.equal(resolveConvertedModelId({ explicitModelId: modelId, quantizationInfo: manifest.quantizationInfo }), modelId);
 }
 
 // quantizationInfo has to be true for the suffix to be: a config that claims an F16 head over a Q4_K_M tensor

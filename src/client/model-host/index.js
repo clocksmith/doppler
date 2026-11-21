@@ -6,6 +6,7 @@ import { listQuickstartModels } from '../doppler-registry.js';
 import {
   createDefaultNodeLoadProgressLogger,
   fetchManifestPayloadFromBaseUrl,
+  assertRegistryManifest,
   resolveManifestArtifactSource,
   resolveLoadProgressHandlers,
   resolveModelSource,
@@ -125,7 +126,7 @@ export async function resolvePersistentBrowserLoadSource(
     storageModelId,
     storageBaseUrl,
     (event) => emitPersistentCacheProgress(onProgress, event),
-    { expectedManifestHash, signal }
+    { expectedManifestHash, signal, ...(loadSource.manifestUrl ? { manifestUrl: loadSource.manifestUrl } : {}) }
   );
   return {
     ...loadSource,
@@ -257,7 +258,8 @@ export function createDopplerRuntimeService({
         }
         return { text, manifest: resolved.manifest, manifestHash };
       })()
-      : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl, options.signal);
+      : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl, options.signal, resolved.manifestUrl);
+    assertRegistryManifest(resolved, manifestPayload);
     const revocationIdentity = Object.freeze({
       logicalModelId: resolved.logicalModelId,
       modelId: manifestPayload.manifest?.modelId ?? resolved.modelId,
@@ -379,9 +381,17 @@ export function createDopplerRuntimeService({
     return { pipeline, modelHandle };
   }
 
+  function convenienceKey(resolved) {
+    // A pinned registry ID may resolve its manifest and payload from separate
+    // origins or from an explicit local directory.
+    return resolved.expectedManifestHash
+      ? JSON.stringify([resolved.modelId, resolved.baseUrl, resolved.manifestUrl ?? null, resolved.expectedManifestHash])
+      : resolved.modelId;
+  }
+
   async function getCachedModel(model, options = {}) {
     const resolved = await resolveModelSource(model);
-    const cacheKey = resolved.modelId;
+    const cacheKey = convenienceKey(resolved);
     const cached = convenienceModelCache.get(cacheKey);
     if (cached?.loaded) {
       return cached;
@@ -566,12 +576,13 @@ export function createDopplerRuntimeService({
   };
   doppler.evict = async function evict(model) {
     const resolved = await resolveModelSource(model);
-    const cached = convenienceModelCache.get(resolved.modelId);
+    const key = convenienceKey(resolved);
+    const cached = convenienceModelCache.get(key);
     if (!cached) {
       return false;
     }
     await cached.unload();
-    convenienceModelCache.delete(resolved.modelId);
+    convenienceModelCache.delete(key);
     return true;
   };
   doppler.evictAll = async function evictAll() {
@@ -610,6 +621,7 @@ export function createDopplerRuntimeService({
 
   return {
     doppler,
+    getCachedModel,
     load,
     open,
     openCapsule,

@@ -66,6 +66,7 @@ export interface DopplerCallOptions extends DopplerGenerateOptions {
 }
 
 export interface DopplerRuntimeService {
+  getCachedModel(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
   doppler: DopplerNamespace;
   load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
   open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;
@@ -104,7 +105,7 @@ export declare function resolvePersistentBrowserLoadSource(
     modelId: string,
     modelBaseUrl: string,
     onProgress: ((event: Record<string, unknown>) => void) | null,
-    options: { expectedManifestHash: string; signal?: AbortSignal }
+    options: { expectedManifestHash: string; manifestUrl?: string; signal?: AbortSignal }
   ) => Promise<{
     storageContext: Record<string, unknown>;
     storageBackend: 'opfs';

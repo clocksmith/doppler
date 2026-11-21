@@ -458,7 +458,7 @@ await assert.rejects(
         inputDir: fixtureDir,
         converterConfig: {
           output: {
-            modelBaseId: 'gemma2-missing-output-dir-f16',
+            modelBaseId: 'gemma2-missing-output-dir-f16-af16',
           },
           modelType: 'transformer',
           inference: minimalV1Inference,
@@ -547,7 +547,7 @@ await assert.rejects(
           execution: minimalV1Execution,
         },
       }),
-      /Converted model ID "a1" does not describe its model: it must end with "-f16"/
+      /Converted model ID "a1" does not describe its model: it must end with "-f16-af16"/
     );
   } finally {
     rmSync(fixtureDir, { recursive: true, force: true });
@@ -669,7 +669,7 @@ await assert.rejects(
       },
       converterConfig: {
         output: {
-          modelBaseId: 'gemma2-sharded-index-f16',
+          modelBaseId: 'gemma2-sharded-index-f16-af16',
           dir: path.join(fixtureDir, 'out'),
         },
         modelType: 'transformer',
@@ -724,7 +724,7 @@ await assert.rejects(
         },
         converterConfig: {
           output: {
-            modelBaseId: 'gemma2-gpu-cast-f16',
+            modelBaseId: 'gemma2-gpu-cast-f16-af16',
             dir: path.join(fixtureDir, 'out'),
           },
           modelType: 'transformer',

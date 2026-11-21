@@ -63,6 +63,8 @@ export interface DopplerNamespace {
   };
 }
 
+export declare const getCachedModel: typeof load;
+
 export declare function load(
   model: DopplerModelSource,
   options?: DopplerLoadOptions

@@ -227,7 +227,7 @@ const minimalV1Inference = {
       inputDir: fixtureDir,
       converterConfig: {
         output: {
-          modelBaseId: 'gemma2-success-single-f16',
+          modelBaseId: 'gemma2-success-single-f16-af16',
           dir: outputDir,
         },
         modelType: 'transformer',
@@ -275,7 +275,7 @@ const minimalV1Inference = {
 
     const manifest = readManifest(outputDir);
     assert.equal(typeof manifest.modelId, 'string');
-    assert.ok(manifest.modelId.startsWith('gemma2-success-single-f16'));
+    assert.equal(manifest.modelId, 'gemma2-success-single-f16-af16');
     assert.equal(String(manifest.quantization).toUpperCase(), 'F16');
     assert.equal(manifest.tokenizer?.type, 'bundled');
     assert.equal(manifest.tokenizer?.file, 'tokenizer.json');
@@ -314,7 +314,7 @@ const minimalV1Inference = {
       inputDir: fixtureDir,
       converterConfig: {
         output: {
-          modelBaseId: 'gemma2-success-worker-f16',
+          modelBaseId: 'gemma2-success-worker-f16-af16',
           dir: outputDir,
         },
         modelType: 'transformer',
@@ -365,7 +365,7 @@ const minimalV1Inference = {
 
     const manifest = readManifest(outputDir);
     assert.equal(typeof manifest.modelId, 'string');
-    assert.ok(manifest.modelId.startsWith('gemma2-success-worker-f16'));
+    assert.equal(manifest.modelId, 'gemma2-success-worker-f16-af16');
     assert.equal(String(manifest.quantization).toUpperCase(), 'F16');
     assert.equal(manifest.inference?.schema, 'doppler.execution/v1');
 

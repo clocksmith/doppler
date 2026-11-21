@@ -1,10 +1,28 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import type {
+  ServePrefixCache,
+  ServePrefixCachePolicy,
+} from './serve/prefix-cache.js';
+
+export {
+  DEFAULT_PREFIX_CACHE_POLICY,
+  createServePrefixCache,
+  deriveServePrefixKey,
+} from './serve/prefix-cache.js';
+export type {
+  ServePrefixCache,
+  ServePrefixCacheLease,
+  ServePrefixCachePolicy,
+  ServePrefixCacheStats,
+} from './serve/prefix-cache.js';
 
 export interface ServeSettings {
   port: number;
   host: string;
   model: string | null;
   modelUrl: string | null;
+  prefixCache: boolean;
+  prefixCacheBytes: number;
   help: boolean;
 }
 
@@ -53,6 +71,7 @@ export interface ServeReceiptOptions {
   };
   runtimeModel?: unknown;
   generationEvidence?: {
+    loadedArtifact?: import('../client/model-host/model-session.js').DopplerGenerationEvidence['loadedArtifact'];
     resolution: ServeResolutionIdentity;
   } | null;
 }
@@ -75,16 +94,33 @@ export interface ServeFailureReceiptOptions {
 }
 
 export interface ServeDependencies {
+  getCachedModel?(model: unknown): Promise<{
+    supportsGenerationContext?: boolean;
+    generationContextMinimumBytes?: number | null;
+    createGenerationContext?(options: { maxBytes: number }): unknown;
+    chatText?(messages: unknown[], options: Record<string, unknown>): Promise<{
+      content: string;
+      usage: ServeReceiptOptions['usage'];
+      evidence?: {
+        resolution: ServeResolutionIdentity;
+        stats?: { reusedPrefixTokens?: number };
+      };
+    }>;
+    chat?(messages: unknown[], options: Record<string, unknown>): AsyncGenerator<string, void, void>;
+  }>;
   dopplerClient?: {
     chatText(messages: unknown[], options: Record<string, unknown>): Promise<{
       content: string;
       usage: ServeReceiptOptions['usage'];
       evidence?: {
         resolution: ServeResolutionIdentity;
+        stats?: { reusedPrefixTokens?: number };
       };
     }>;
     chat(messages: unknown[], options: Record<string, unknown>): AsyncGenerator<string, void, void>;
   };
+  prefixCache?: ServePrefixCache | null;
+  prefixCachePolicy?: boolean | Partial<ServePrefixCachePolicy>;
   listModels?: () => Promise<ServeRegistryEntry[]>;
   resolveModel?: (model: string) => Promise<ServeRegistryEntry>;
   resolveRuntimeModel?: (registryEntry: ServeRegistryEntry, requestedModel: string) => unknown;
@@ -96,11 +132,13 @@ export declare class ServeRequestError extends Error {
   constructor(message: string, statusCode?: number, type?: string);
 }
 
+export declare function isLoopbackHost(host: string): boolean;
+
 export declare function parseServeArgs(argv: string[]): ServeSettings;
 
 export interface ServeReceiptBase {
-  receiptVersion: 'doppler_serve_receipt_v1';
-  schemaVersion: 1;
+  receiptVersion: 'doppler_serve_receipt_v2';
+  schemaVersion: 2;
   surface: 'serve';
   endpoint: '/v1/chat/completions';
   runtime: 'doppler-gpu';
@@ -120,21 +158,22 @@ export interface ServeReceiptBase {
       modelId: string;
       baseUrl: string | null;
     };
-  modelId: string;
+  catalogModelId: string;
+  modelId: string | null;
   requestedModel: string;
-  resolvedModel: string;
+  resolvedModel: string | null;
   resolutionStatus: 'resolved' | 'unavailable';
   resolution: ServeResolutionIdentity | null;
   resolutionUnavailableReason: string | null;
   artifact: {
     format: 'rdrr';
-    source: 'quickstart-registry';
-    sourceCheckpointId: string;
-    weightCapsuleId: string;
-    manifestVariantId: string;
-    artifactCompleteness: string;
-    runtimePromotionState: string;
-    weightsRefAllowed: boolean;
+    source: 'quickstart-registry' | 'url' | 'inline-manifest' | 'loaded-manifest';
+    sourceCheckpointId: string | null;
+    weightCapsuleId: string | null;
+    manifestVariantId: string | null;
+    artifactCompleteness: string | null;
+    runtimePromotionState: string | null;
+    weightsRefAllowed: boolean | null;
     hf: ServeRegistryEntry['hf'];
   };
   request: {

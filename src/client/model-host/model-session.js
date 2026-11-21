@@ -254,6 +254,10 @@ export function createModelHandle(pipeline, resolved) {
         stats,
         resolutionPolicy,
       });
+      const artifact = pipeline.revocationIdentity;
+      if (artifact?.artifactVariantId === evidence.resolution.resolvedArtifactVariantId) {
+        evidence.loadedArtifact = artifact;
+      }
       return { evidence, inputTokenIds };
     }, executionOptions.signal);
   }
@@ -342,6 +346,10 @@ export function createModelHandle(pipeline, resolved) {
       try { assertRaw('createGenerationContext'); }
       catch { return false; }
       return pipeline.supportsGenerationContext === true;
+    },
+    get generationContextMinimumBytes() {
+      const bytes = pipeline.kvCache?.getMemoryStats().allocated;
+      return Number.isSafeInteger(bytes) && bytes >= 0 ? bytes : null;
     },
     createGenerationContext(options) {
       assertRaw('createGenerationContext');

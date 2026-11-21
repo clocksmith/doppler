@@ -1642,6 +1642,105 @@
       "weightsRefAllowed": false
     },
     {
+      "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+      "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Qwen 3.5 0.8B (Q4K, F32 activations)",
+      "description": "Qwen 3.5 0.8B text model with hybrid linear attention. Q4K weights, F16 embeddings, Q4 tied LM head, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "qwen3-0.8b-af32"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": true,
+      "demoVisible": false,
+      "sizeBytes": 1155350214,
+      "quickstartRequirements": {
+        "vramRequiredBytes": 1610612736,
+        "paramCount": "0.8B",
+        "quantization": "Q4K"
+      },
+      "recommended": false,
+      "sortOrder": 21,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-11-20",
+          "source": "independent-two-host-decode",
+          "notes": "Whole-model and split Node inference matched independent reference sampled token IDs for this manifest. Text only.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "verify": {
+        "workload": "inference",
+        "runtimeConfig": {
+          "inference": {
+            "prompt": "The color of the sky is",
+            "generation": {
+              "maxTokens": 8
+            },
+            "sampling": {
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "repetitionPenalty": 1,
+              "greedyThreshold": 0
+            }
+          }
+        }
+      },
+      "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+      "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-6b21b912ed0b",
+      "manifestVariantId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16-mv-4085b42abdaa",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
+      "hostedSource": {
+        "manifestUrl": "https://raw.githubusercontent.com/clocksmith/reploid/2403bc479210d7fd98a7bc404ec2fc98939996ac/shared/config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json",
+        "expectedManifestHash": "cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d",
+        "weights": {
+          "repoId": "clocksmith/rdrr",
+          "revision": "ea7b211b72c4d43687fa72802dee7aba74eca293",
+          "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
+        }
+      }
+    },
+    {
       "modelId": "qwen-3-5-2b-q4k-ehaf16",
       "family": "qwen3",
       "classification": {
@@ -1729,6 +1828,85 @@
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ef16-af32",
+      "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Qwen 3.5 2B (Q4K, F32 activations)",
+      "description": "Qwen 3.5 2B text model with hybrid linear attention. Q4K weights, F16 embeddings, Q4 tied LM head, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "qwen3-2b-af32"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 2087405138,
+      "quickstartRequirements": {
+        "vramRequiredBytes": 2684354560,
+        "paramCount": "2B",
+        "quantization": "Q4K"
+      },
+      "recommended": false,
+      "sortOrder": 22,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": false
+        },
+        "status": {
+          "runtime": "candidate",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "pending"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [],
+          "result": "pending",
+          "lastVerifiedAt": null,
+          "source": null,
+          "notes": "The public manifest and all 32 shards are pinned. Orin verified the payload. Its software adapter lacks shader-f16 and cannot bind the F32 embedding. A full Node decode on supported hardware is pending.",
+          "contracts": {
+            "executionContractOk": false
+          }
+        }
+      },
+      "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+      "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-cb8b019af965",
+      "manifestVariantId": "qwen-3-5-2b-q4k-ef16-af32-mv-41e532684994",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
+      "hostedSource": {
+        "manifestUrl": "https://raw.githubusercontent.com/clocksmith/reploid/2403bc479210d7fd98a7bc404ec2fc98939996ac/shared/config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json",
+        "expectedManifestHash": "eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541",
+        "weights": {
+          "repoId": "clocksmith/rdrr",
+          "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
+          "path": "models/qwen-3-5-2b-q4k-ehaf16"
+        }
+      }
     },
     {
       "modelId": "qwen-3-6-27b-q4k-ehaf16",

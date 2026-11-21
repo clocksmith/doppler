@@ -69,9 +69,6 @@ function normalizeRuntimeModelSource(runtimeModel, registryEntry) {
   if (typeof runtimeModel === 'string') {
     return { kind: 'quickstart-registry', modelId: runtimeModel };
   }
-  if (runtimeModel && typeof runtimeModel === 'object' && typeof runtimeModel.registryId === 'string') {
-    return { kind: 'quickstart-registry', modelId: runtimeModel.registryId };
-  }
   if (runtimeModel && typeof runtimeModel === 'object' && typeof runtimeModel.url === 'string') {
     return { kind: 'url', url: runtimeModel.url };
   }
@@ -83,6 +80,9 @@ function normalizeRuntimeModelSource(runtimeModel, registryEntry) {
         : registryEntry.modelId,
       baseUrl: typeof runtimeModel.baseUrl === 'string' ? runtimeModel.baseUrl : null,
     };
+  }
+  if (runtimeModel && typeof runtimeModel === 'object' && typeof runtimeModel.registryId === 'string') {
+    return { kind: 'quickstart-registry', modelId: runtimeModel.registryId };
   }
   return { kind: 'quickstart-registry', modelId: registryEntry.modelId };
 }
@@ -107,10 +107,21 @@ function buildServeReceiptBase({
   generationOptions,
   runtimeModel = null,
   resolution = null,
+  loadedArtifact = null,
   resolutionUnavailableReason = null,
 }) {
   const generation = buildGenerationOptionsReceipt(generationOptions);
   const resolvedIdentity = normalizeResolutionIdentity(resolution);
+  const source = normalizeRuntimeModelSource(runtimeModel ?? registryEntry.modelId, registryEntry);
+  if (loadedArtifact && (!resolvedIdentity || loadedArtifact.artifactVariantId !== resolvedIdentity.resolvedArtifactVariantId)) {
+    throw new Error('Loaded manifest identity differs from generation evidence.');
+  }
+  const registrySource = source.kind === 'quickstart-registry' && (!loadedArtifact || (
+    loadedArtifact.modelId === registryEntry.modelId
+    && loadedArtifact.weightCapsuleId === registryEntry.weightCapsuleId
+    && loadedArtifact.manifestVariantId === registryEntry.manifestVariantId
+  ));
+  const modelId = loadedArtifact?.modelId ?? (registrySource ? registryEntry.modelId : null);
   return {
     receiptVersion: 'doppler_serve_receipt_v2',
     schemaVersion: 2,
@@ -119,10 +130,11 @@ function buildServeReceiptBase({
     runtime: 'doppler-gpu',
     runtimeVersion: DOPPLER_VERSION,
     runtimePath: 'doppler-gpu.chatText',
-    runtimeModelSource: normalizeRuntimeModelSource(runtimeModel ?? registryEntry.modelId, registryEntry),
-    modelId: registryEntry.modelId,
+    runtimeModelSource: source,
+    catalogModelId: registryEntry.modelId,
+    modelId,
     requestedModel,
-    resolvedModel: registryEntry.modelId,
+    resolvedModel: modelId,
     resolutionStatus: resolvedIdentity ? 'resolved' : 'unavailable',
     resolution: resolvedIdentity,
     resolutionUnavailableReason: resolvedIdentity
@@ -130,14 +142,14 @@ function buildServeReceiptBase({
       : String(resolutionUnavailableReason || 'not-provided'),
     artifact: {
       format: 'rdrr',
-      source: 'quickstart-registry',
-      sourceCheckpointId: registryEntry.sourceCheckpointId,
-      weightCapsuleId: registryEntry.weightCapsuleId,
-      manifestVariantId: registryEntry.manifestVariantId,
-      artifactCompleteness: registryEntry.artifactCompleteness,
-      runtimePromotionState: registryEntry.runtimePromotionState,
-      weightsRefAllowed: registryEntry.weightsRefAllowed,
-      hf: registryEntry.hf,
+      source: registrySource ? 'quickstart-registry' : (loadedArtifact ? 'loaded-manifest' : source.kind),
+      sourceCheckpointId: loadedArtifact?.sourceCheckpointId ?? (registrySource ? registryEntry.sourceCheckpointId : null),
+      weightCapsuleId: loadedArtifact?.weightCapsuleId ?? (registrySource ? registryEntry.weightCapsuleId : null),
+      manifestVariantId: loadedArtifact?.manifestVariantId ?? (registrySource ? registryEntry.manifestVariantId : null),
+      artifactCompleteness: registrySource ? registryEntry.artifactCompleteness : null,
+      runtimePromotionState: registrySource ? registryEntry.runtimePromotionState : null,
+      weightsRefAllowed: registrySource ? registryEntry.weightsRefAllowed : null,
+      hf: registrySource ? registryEntry.hf : null,
     },
     request: {
       messages: { count: messages.length, digest: buildJsonSha256Evidence(messages) },
@@ -164,6 +176,7 @@ export function buildServeReceipt({
     generationOptions,
     runtimeModel,
     resolution: generationEvidence?.resolution ?? null,
+    loadedArtifact: generationEvidence?.loadedArtifact ?? null,
     resolutionUnavailableReason: 'runtime-result-did-not-expose-generation-evidence',
   });
   const outputText = String(outputContent ?? '');

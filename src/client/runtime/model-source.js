@@ -34,8 +34,7 @@ export function resolveLoadProgressHandlers(options = {}, defaultLoadProgressLog
   };
 }
 
-export async function fetchManifestPayloadFromBaseUrl(baseUrl, signal) {
-  const manifestUrl = getManifestUrl(baseUrl);
+export async function fetchManifestPayloadFromBaseUrl(baseUrl, signal, manifestUrl = getManifestUrl(baseUrl)) {
   if (/^file:\/\//i.test(manifestUrl)) {
     let text;
     try {
@@ -46,7 +45,7 @@ export async function fetchManifestPayloadFromBaseUrl(baseUrl, signal) {
       text = await readFile(fileURLToPath(manifestUrl), { encoding: 'utf8', signal });
     } catch (error) {
       throw new Error(
-        `Failed to read manifest from ${baseUrl}: ${error?.message || String(error)}`
+        `Failed to read manifest from ${manifestUrl}: ${error?.message || String(error)}`
       );
     }
     return {
@@ -57,7 +56,7 @@ export async function fetchManifestPayloadFromBaseUrl(baseUrl, signal) {
   }
   const response = await fetch(manifestUrl, { signal });
   if (!response.ok) {
-    throw new Error(`Failed to fetch manifest from ${baseUrl}: ${response.status}`);
+    throw new Error(`Failed to fetch manifest from ${manifestUrl}: ${response.status}`);
   }
   const text = await response.text();
   return {
@@ -65,6 +64,13 @@ export async function fetchManifestPayloadFromBaseUrl(baseUrl, signal) {
     manifest: parseManifest(text),
     manifestHash: await sha256ManifestText(text),
   };
+}
+
+export function assertRegistryManifest(resolved, payload) {
+  if (!resolved.expectedManifestHash) return;
+  if (payload.manifest?.modelId !== resolved.modelId || payload.manifestHash !== resolved.expectedManifestHash) {
+    throw new Error(`Manifest identity mismatch for ${resolved.modelId}: expected SHA-256 ${resolved.expectedManifestHash}, got ${payload.manifestHash} (${payload.manifest?.modelId}).`);
+  }
 }
 
 function normalizeText(value) {
@@ -212,11 +218,16 @@ export async function resolveModelSource(model) {
       return {
         logicalModelId,
         modelId: entry.modelId,
-        baseUrl: buildQuickstartModelBaseUrl(entry),
+        baseUrl: normalizeText(model?.url) || buildQuickstartModelBaseUrl(entry),
+        ...(entry.hostedSource ? {
+          expectedManifestHash: entry.hostedSource.expectedManifestHash,
+          manifestUrl: normalizeText(model?.url) ? undefined : entry.hostedSource.manifestUrl,
+        } : {}),
         manifest: null,
         trace,
       };
     } catch (registryError) {
+      if (normalizeText(model?.url)) throw registryError;
       if (registryError?.code === 'DOPPLER_REVOKED') throw registryError;
       trace.push({
         source: 'quickstart-registry',
