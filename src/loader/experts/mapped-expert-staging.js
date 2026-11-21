@@ -30,13 +30,13 @@ const MAX_SLOTS = 16;
 /** @type {WeakMap<object, MappedExpertStaging | null>} */
 const stagings = new WeakMap();
 /** One release gate per storage port.
- * @type {WeakMap<object, { depth: number, tasks: Set<Promise<void>>, failure: Error | null, stats: import('./routed-expert-source.js').RoutedExpertCounters | null }>} */
+ * @type {WeakMap<object, { depth: number, tasks: Set<Promise<void>>, abort: AbortController, failure: Error | null, stats: import('./routed-expert-source.js').RoutedExpertCounters | null }>} */
 const gates = new WeakMap();
 
 /** @type {import('./mapped-expert-staging.js').beginStagedRelease} */
 export function beginStagedRelease(port) {
   let gate = gates.get(port);
-  if (!gate) { gate = { depth: 0, tasks: new Set(), failure: null, stats: null }; gates.set(port, gate); }
+  if (!gate) { gate = { depth: 0, tasks: new Set(), abort: new AbortController(), failure: null, stats: null }; gates.set(port, gate); }
   if (gate.failure) throw gate.failure;
   gate.depth++;
 }
@@ -185,7 +185,7 @@ class MappedExpertStaging {
         // else can throw. Every lane job settles before the outcome is decided, and only a failed hash or a
         // failed confirmation fails the gate; counters and trace lines cannot.
         const task = (async () => {
-          const outcomes = await Promise.allSettled(groups.map(group => verifyQueued(group)));
+          const outcomes = await Promise.allSettled(groups.map(group => verifyQueued(group, gate.abort.signal)));
           const failed = outcomes.find(outcome => outcome.status === 'rejected');
           let failure = failed ? /** @type {PromiseRejectedResult} */ (failed).reason : null;
           if (!failure) {
@@ -299,7 +299,13 @@ class MappedExpertStaging {
   async destroy() {
     this.#closed = true;
     const gate = gates.get(this.#port);
-    if (gate) await Promise.allSettled([...gate.tasks]);
+    if (gate) {
+      if (gate.tasks.size > 0) {
+        gate.failure ??= new Error('Staged expert verification aborted during staging teardown.');
+        gate.abort.abort(gate.failure);
+      }
+      await Promise.allSettled([...gate.tasks]);
+    }
     for (const waiter of this.#waiters.splice(0)) waiter(null);
     await Promise.allSettled([...this.#remapping]);
     await this.#device.queue.onSubmittedWorkDone();

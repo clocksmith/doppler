@@ -40,6 +40,7 @@ export async function createVerifiedPieceStorage(options) {
       rawPolicy: nodeGather.verificationCache,
       manifestIdentity: parsedIndex.manifestIdentity,
       indexIdentity: pinned.indexIdentity,
+      manifestBytes: new Uint8Array(manifestBytes),
       index: parsedIndex,
       files: nodeGather.files,
     });

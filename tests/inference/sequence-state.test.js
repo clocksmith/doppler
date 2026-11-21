@@ -7,6 +7,7 @@ import { createLayerPartitionPlan } from '../../src/config/layer-partition-plan.
 import {
   beginGenerationContext,
   createGenerationContext,
+  estimateGenerationContextMinimumBytes,
   finishGenerationContext,
   generationContextInput,
   prepareGenerationContextPrefill,
@@ -355,6 +356,22 @@ try {
 
   context.close();
   assert.equal(context.getStats().allocatedBytes, 0);
+
+  // Hybrid linear-attention models account for lazily created recurrent/conv checkpoints before turn 1.
+  const hybridColdBytes = estimateGenerationContextMinimumBytes({
+    kvCache: { getMemoryStats: () => ({ allocated: 100663296 }) },
+    linearAttentionRuntime: { schemaVersion: 4, layers: new Map() },
+    modelConfig: {
+      layerTypes: Array.from({ length: 24 }, (_, idx) => (idx % 4 === 3 ? 'full_attention' : 'linear_attention')),
+      linearNumKeyHeads: 16,
+      linearNumValueHeads: 16,
+      linearKeyHeadDim: 128,
+      linearValueHeadDim: 128,
+      linearConvKernelDim: 4,
+      sessionSettings: { linearRecurrentStatePrecision: 'f32' },
+    },
+  });
+  assert.ok(hybridColdBytes !== null && hybridColdBytes > 134217728, `Expected hybrid cold estimate > 128 MiB, got ${hybridColdBytes}`);
 } finally {
   destroyBufferPool();
   setDevice(null, { platformConfig: null });

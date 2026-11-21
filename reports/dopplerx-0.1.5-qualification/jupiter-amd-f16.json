@@ -1,0 +1,94 @@
+{
+  "schema": "dopplerx.physical-f16-qualification/v1",
+  "package": {
+    "name": "dopplerx",
+    "version": "0.1.5"
+  },
+  "device": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 64
+  },
+  "features": [
+    "core-features-and-limits",
+    "shader-f16",
+    "subgroups",
+    "timestamp-query"
+  ],
+  "models": [
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestSha256": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+      "layer": 3,
+      "kernel": "fused_matmul_q4_multicol_f16a.wgsl",
+      "entry": "main_multicol_f16a",
+      "shaderSha256": "74c2e546fec046dc034d09459c505132b018e7a2291e68df3c0acdd6fc6a8a79",
+      "outputF16Bits": [
+        23552,
+        24576
+      ]
+    },
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+      "manifestSha256": "cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d",
+      "layer": 3,
+      "kernel": "fused_matmul_q4_multicol_f16a.wgsl",
+      "entry": "main_multicol_f16a",
+      "shaderSha256": "74c2e546fec046dc034d09459c505132b018e7a2291e68df3c0acdd6fc6a8a79",
+      "outputF16Bits": [
+        23552,
+        24576
+      ]
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "manifestSha256": "de880cb8ca348530ef68199eaaddb553195b5f4ed652f0ae0a22420acfc6f26d",
+      "layer": 3,
+      "kernel": "fused_matmul_q4_multicol_f16a.wgsl",
+      "entry": "main_multicol_f16a",
+      "shaderSha256": "74c2e546fec046dc034d09459c505132b018e7a2291e68df3c0acdd6fc6a8a79",
+      "outputF16Bits": [
+        23552,
+        24576
+      ]
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ef16-af32",
+      "manifestSha256": "eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541",
+      "layer": 3,
+      "kernel": "fused_matmul_q4_multicol_f16a.wgsl",
+      "entry": "main_multicol_f16a",
+      "shaderSha256": "74c2e546fec046dc034d09459c505132b018e7a2291e68df3c0acdd6fc6a8a79",
+      "outputF16Bits": [
+        23552,
+        24576
+      ]
+    }
+  ],
+  "failClosedChecks": [
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "rejectedBeforeDispatch": true,
+      "errorMessage": "[ExecutionV1] capability transforms required for \"qwen-3-5-0-8b-q4k-ehaf16\" (GPU lacks shader-f16.) but runtime.inference.kernelPathPolicy is {\"mode\":\"capability-aware\",\"sourceScope\":[\"manifest\"],\"allowSources\":[\"manifest\"],\"onIncompatible\":\"error\"}. Use capability-aware remap for manifest-owned execution graphs or choose a compatible runtime."
+    },
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+      "rejectedBeforeDispatch": true,
+      "errorMessage": "[ExecutionV1] capability transforms required for \"qwen-3-5-0-8b-q4k-ef16-af32-vf16\" (GPU lacks shader-f16.) but runtime.inference.kernelPathPolicy is {\"mode\":\"capability-aware\",\"sourceScope\":[\"manifest\"],\"allowSources\":[\"manifest\"],\"onIncompatible\":\"error\"}. Use capability-aware remap for manifest-owned execution graphs or choose a compatible runtime."
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "rejectedBeforeDispatch": true,
+      "errorMessage": "[ExecutionV1] capability transforms required for \"qwen-3-5-2b-q4k-ehaf16\" (GPU lacks shader-f16.) but runtime.inference.kernelPathPolicy is {\"mode\":\"capability-aware\",\"sourceScope\":[\"manifest\"],\"allowSources\":[\"manifest\"],\"onIncompatible\":\"error\"}. Use capability-aware remap for manifest-owned execution graphs or choose a compatible runtime."
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ef16-af32",
+      "rejectedBeforeDispatch": true,
+      "errorMessage": "[ExecutionV1] capability transforms required for \"qwen-3-5-2b-q4k-ef16-af32\" (GPU lacks shader-f16.) but runtime.inference.kernelPathPolicy is {\"mode\":\"capability-aware\",\"sourceScope\":[\"manifest\"],\"allowSources\":[\"manifest\"],\"onIncompatible\":\"error\"}. Use capability-aware remap for manifest-owned execution graphs or choose a compatible runtime."
+    }
+  ],
+  "checkedUtc": "2026-11-21T15:44:30.180Z"
+}

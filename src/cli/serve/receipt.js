@@ -180,7 +180,15 @@ export function buildServeReceipt({
     resolutionUnavailableReason: 'runtime-result-did-not-expose-generation-evidence',
   });
   const outputText = String(outputContent ?? '');
-  return {
+  const rawStats = generationEvidence?.stats;
+  const timing = rawStats && typeof rawStats === 'object' ? {
+    prefillTimeMs: Number.isFinite(rawStats.prefillTimeMs) ? rawStats.prefillTimeMs : null,
+    decodeTimeMs: Number.isFinite(rawStats.decodeTimeMs) ? rawStats.decodeTimeMs : null,
+    ttftMs: Number.isFinite(rawStats.ttftMs) ? rawStats.ttftMs : null,
+    reusedPrefixTokens: Number.isSafeInteger(rawStats.reusedPrefixTokens) ? rawStats.reusedPrefixTokens : null,
+    prefillComputedTokens: Number.isSafeInteger(rawStats.prefillComputedTokens) ? rawStats.prefillComputedTokens : null,
+  } : null;
+  const receipt = {
     ...baseReceipt,
     status: 'pass',
     output: {
@@ -188,6 +196,7 @@ export function buildServeReceipt({
       digest: buildSha256Evidence(outputText),
       textLength: outputText.length,
       empty: outputText.length === 0,
+      ...(Array.isArray(generationEvidence?.tokenIds) ? { tokenIds: [...generationEvidence.tokenIds] } : {}),
     },
     transcript: {
       digest: buildJsonSha256Evidence({
@@ -199,6 +208,9 @@ export function buildServeReceipt({
     },
     usage,
   };
+  if (timing) receipt.timing = timing;
+  if (generationEvidence?.backendIdentity) receipt.backendIdentity = generationEvidence.backendIdentity;
+  return receipt;
 }
 
 function normalizeWeightLoadFailure(error) {

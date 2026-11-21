@@ -448,12 +448,9 @@ if (stateCacheConfig?.backgroundVerify === true && stateFiles.size > 0) {
   const workerCount = Math.max(1, workerData.workerCount ?? 1);
   let seq = 0;
   for (const [piecePath, entry] of stateFiles) {
-    for (const piece of entry.pieces) {
-      if (seq % workerCount === workerIndex) {
-        bgQueue.push(Object.freeze({ ...piece, path: piecePath }));
-      }
-      seq++;
-    }
+    const prio = new Set(stateCacheConfig.files?.[piecePath]?.priorityPieceIndexes ?? []);
+    const ordered = prio.size ? [...entry.pieces.filter((_, i) => prio.has(i)), ...entry.pieces.filter((_, i) => !prio.has(i))] : entry.pieces;
+    for (const piece of ordered) { if (seq++ % workerCount === workerIndex) bgQueue.push(Object.freeze({ ...piece, path: piecePath })); }
   }
 }
 

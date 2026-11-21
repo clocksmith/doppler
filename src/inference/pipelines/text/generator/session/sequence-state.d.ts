@@ -43,6 +43,7 @@ export interface ContextLease {
   };
 }
 export function supportsGenerationContext(state: ContextPipelineState): boolean;
+export function estimateGenerationContextMinimumBytes(state: Partial<ContextPipelineState> | null | undefined): number | null;
 export function createGenerationContext(state: ContextPipelineState, options: { maxBytes: number }): GenerationContext;
 export function closeGenerationContexts(state: ContextPipelineState): void;
 /** Retire idle pooled memory before a new generation's first prefill when a device budget is set. */

@@ -89,7 +89,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // 3,828,152 packed / 16,112,946 unpacked bytes on Node 22.20.0/npm 10.9.3.
   // The immutable 0.7.5 archive already has 2046 files. The 0.7.7 closure adds the
   // registered gather shader and routed-expert trace, and drops one unused Orin profile.
-  maxEntryCount: 2047,
+  // dopplerx 0.1.5 adds standalone loopback prefix cache, expert-loading stats, HF source
+  // resolution, empirical choice calibration, and NOTICE: measured 2062 entries.
+  maxEntryCount: 2062,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -209,7 +211,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Exact inventory: reports/package-release-0.7.4/package-audit.json.
   // Refreshed main closure (2044 entries): 3,828,152 measured plus 2,158-byte allowance.
   // 0.7.7 measures 3,835,430 packed bytes plus the existing cross-npm allowance.
-  maxPackedSize: 3_837_588,
+  // dopplerx 0.1.5 (2062 entries) measures 3,878,157 packed bytes plus 2,158-byte allowance.
+  maxPackedSize: 3_880_315,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -301,7 +304,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // 2e4ecb2e) plus its changelog section; measured below, no new entries.
   // Refreshed main closure (2044 entries): 16,112,946 unpacked bytes on Node 22.20.0/npm 10.9.3.
   // The same archive measures 16,153,314 unpacked bytes.
-  maxUnpackedSize: 16_153_314,
+  // dopplerx 0.1.5 (2062 entries) measures 16,387,941 unpacked bytes; allow 8 KB for README/receipt updates.
+  maxUnpackedSize: 16_396_133,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

@@ -16,6 +16,7 @@
   },
   "include": [],
   "files": [
+    "src/inference/choice-calibration.js",
     "src/loader/experts/tiered-expert-plan.js",
     "src/memory/buffer-pool/readback.js",
     "src/inference/pipelines/text/expert-loading-stats.js",

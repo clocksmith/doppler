@@ -178,16 +178,47 @@ export function matchesFileStateSnapshot(stat, snapshot) {
  * @type {typeof import('./verified-piece-state-cache.js').prepareVerifiedPieceStateCache}
  */
 export async function prepareVerifiedPieceStateCache(options) {
-  const { rawPolicy, manifestIdentity, indexIdentity, index, files } = options;
+  const { rawPolicy, manifestIdentity, indexIdentity, manifestBytes, index, files } = options;
   if (rawPolicy === undefined) return undefined;
   if (!rawPolicy || typeof rawPolicy !== 'object' || Array.isArray(rawPolicy)) {
     throw new Error('Piece state verification cache policy must be an explicit object.');
   }
   const backgroundVerify = rawPolicy.backgroundVerify === true;
   const backgroundIdleDelayMs = rawPolicy.backgroundIdleDelayMs ?? 50;
+  const rawLayerRange = rawPolicy.priorityLayerRange ?? null;
   if (typeof backgroundVerify !== 'boolean'
-    || !Number.isSafeInteger(backgroundIdleDelayMs) || backgroundIdleDelayMs < 0 || backgroundIdleDelayMs > 60_000) {
-    throw new Error('Piece state verification cache requires valid backgroundVerify and backgroundIdleDelayMs.');
+    || !Number.isSafeInteger(backgroundIdleDelayMs) || backgroundIdleDelayMs < 0 || backgroundIdleDelayMs > 60_000
+    || (rawLayerRange !== null && (!Array.isArray(rawLayerRange) || rawLayerRange.length !== 2
+      || !Number.isSafeInteger(rawLayerRange[0]) || !Number.isSafeInteger(rawLayerRange[1])
+      || rawLayerRange[0] < 0 || rawLayerRange[1] < rawLayerRange[0]))) {
+    throw new Error('Piece state verification cache requires valid backgroundVerify, backgroundIdleDelayMs, and optional priorityLayerRange.');
+  }
+  /** @type {Map<string, Array<[number, number]>>} */
+  const expertRangesByPath = new Map();
+  if (backgroundVerify && manifestBytes instanceof Uint8Array && manifestBytes.byteLength > 0) {
+    try {
+      const manifest = JSON.parse(new TextDecoder().decode(manifestBytes));
+      const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
+      const tensors = manifest?.tensors && typeof manifest.tensors === 'object' ? Object.entries(manifest.tensors) : [];
+      for (const [name, loc] of tensors) {
+        if (!/(?:\.mlp\.experts\.|_exps\.weight$)/u.test(name) || !loc || typeof loc !== 'object') continue;
+        if (rawLayerRange !== null) {
+          const match = /(?:layers|blk)\.(\d+)\./u.exec(name);
+          const layerIdx = match ? Number(match[1]) : -1;
+          if (layerIdx < rawLayerRange[0] || layerIdx >= rawLayerRange[1]) continue;
+        }
+        const spans = Array.isArray(loc.spans) && loc.spans.length > 0
+          ? loc.spans : [{ shard: loc.shard ?? loc.shardIndex, offset: loc.offset, size: loc.size }];
+        for (const span of spans) {
+          const shardIdx = span?.shard ?? span?.shardIndex;
+          const filename = Number.isSafeInteger(shardIdx) && shardIdx >= 0 ? shards[shardIdx]?.filename : null;
+          if (typeof filename !== 'string' || !Number.isSafeInteger(span?.offset) || !Number.isSafeInteger(span?.size) || span.size <= 0) continue;
+          let list = expertRangesByPath.get(filename);
+          if (!list) { list = []; expertRangesByPath.set(filename, list); }
+          list.push([span.offset, span.offset + span.size]);
+        }
+      }
+    } catch { /* Malformed metadata is rejected by the piece reader. */ }
   }
   const expectedUid = typeof process.geteuid === 'function' ? process.geteuid() : null;
   const directory = rawPolicy.directory === undefined
@@ -237,6 +268,10 @@ export async function prepareVerifiedPieceStateCache(options) {
         new Uint8Array(sharedBuffer, 0, wordCount * 4).set(loaded);
       }
     }
+    const spans = expertRangesByPath.get(file.path) ?? null;
+    const priorityPieceIndexes = spans
+      ? file.pieces.flatMap((piece, idx) => spans.some(([s, e]) => piece.offset < e && piece.offset + piece.size > s) ? [idx] : [])
+      : undefined;
     workerFiles[file.path] = {
       canonicalPath: mapped,
       snapshot,
@@ -244,6 +279,7 @@ export async function prepareVerifiedPieceStateCache(options) {
       pieceCount: file.pieces.length,
       sharedBuffer,
       stateFilePath,
+      ...(priorityPieceIndexes?.length ? { priorityPieceIndexes } : {}),
     };
     entries.set(file.path, {
       pieces: file.pieces,

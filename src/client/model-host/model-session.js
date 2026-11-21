@@ -11,6 +11,7 @@ import { createGenerationOutputDecoder, decodeGenerationOutput } from '../../inf
 import { formatChatMessages } from "../../inference/pipelines/text/generator/request/chat-format.js";
 import { applyChatTemplate } from "../../inference/pipelines/text/initialization/init-chat-templates.js";
 import { resolveTextGenerationRequest, generationRequestEvidence } from "../../inference/pipelines/text/generator/request/generation-request.js";
+import { estimateGenerationContextMinimumBytes } from "../../inference/pipelines/text/generator/session/sequence-state.js";
 import { scopePipelineShaders, runPipelineOperation } from '../../inference/pipelines/shader-scoped-pipeline.js';
 import { collectModelRerankScores } from '../runtime/model-rerank.js';
 import { scoreModelChoices } from '../../inference/choice-scoring.js';
@@ -329,8 +330,7 @@ export function createModelHandle(pipeline, resolved) {
       return pipeline.supportsGenerationContext === true;
     },
     get generationContextMinimumBytes() {
-      const bytes = pipeline.kvCache?.getMemoryStats().allocated;
-      return Number.isSafeInteger(bytes) && bytes >= 0 ? bytes : null;
+      return estimateGenerationContextMinimumBytes(pipeline);
     },
     createGenerationContext(options) {
       assertRaw('createGenerationContext');

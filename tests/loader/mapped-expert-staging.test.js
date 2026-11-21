@@ -325,3 +325,20 @@ test('after a failed deferred verification every request for experts on that por
   // A port that never deferred anything is unaffected.
   assertStagedVerification({});
 });
+
+test('destroying mapped staging aborts in-flight deferred verification tasks instead of hanging', async () => {
+  const f = fixture({ verified: false, policy: deferring });
+  let aborted = false;
+  f.port.verifyMany = (_group, signal) => new Promise((_resolve, reject) => {
+    signal?.addEventListener('abort', () => {
+      aborted = true;
+      reject(signal.reason ?? new Error('aborted'));
+    }, { once: true });
+  });
+  const staging = getMappedExpertStaging(f.options, plan);
+  beginStagedRelease(f.port);
+  assert.equal(await stageRoutedExperts(staging, f.stats, plan, [1], f.targetOf, f.signal, null, null), true);
+  await destroyMappedExpertStaging(f.options);
+  assert.equal(aborted, true);
+  assert.throws(() => assertStagedVerification(f.port), /aborted during staging teardown/);
+});

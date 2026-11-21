@@ -11,6 +11,8 @@ export function buildServeReceipt(options: ServeReceiptOptions): ServeReceiptBas
   output: Record<string, unknown>;
   transcript: Record<string, unknown>;
   usage: ServeReceiptOptions['usage'];
+  timing?: Record<string, number | null>;
+  backendIdentity?: unknown;
 };
 export function buildServeFailureReceipt(options: ServeFailureReceiptOptions): ServeReceiptBase & {
   status: 'diagnostic';

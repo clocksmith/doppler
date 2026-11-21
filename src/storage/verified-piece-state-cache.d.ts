@@ -22,6 +22,8 @@ export interface VerifiedPieceStateCacheOptions {
   backgroundVerify?: boolean;
   /** Minimum idle delay in milliseconds before running a background verification step (default 50). */
   backgroundIdleDelayMs?: number;
+  /** Optional inclusive-start, exclusive-end layer range [startLayer, endLayer) to prioritize first during idle background verification. */
+  priorityLayerRange?: readonly [number, number] | null;
 }
 
 export interface WorkerFileStateDescriptor {
@@ -31,6 +33,7 @@ export interface WorkerFileStateDescriptor {
   pieceCount: number;
   sharedBuffer: SharedArrayBuffer;
   stateFilePath: string | null;
+  priorityPieceIndexes?: ReadonlyArray<number>;
 }
 
 export interface WorkerStateCachePayload {
@@ -46,6 +49,7 @@ export function prepareVerifiedPieceStateCache(options: {
   rawPolicy: VerifiedPieceStateCacheOptions | undefined;
   manifestIdentity: string;
   indexIdentity: string;
+  manifestBytes?: Uint8Array;
   index: { files: ReadonlyArray<{ path: string; size: number; pieces: Array<{ offset: number; size: number; identity: string }> }> };
   files: Record<string, string>;
 }): Promise<Readonly<{

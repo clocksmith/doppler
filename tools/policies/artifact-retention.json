@@ -577,6 +577,12 @@
       "bytes": 14878,
       "inventoryHash": "sha256:3bb0adf17ded094967e3331ad8967a945201218d01da00d637167a860e75baa9"
     },
+    "reports/choice-scoring": {
+      "retentionClass": "frozen-evidence",
+      "files": 8,
+      "bytes": 343964,
+      "inventoryHash": "sha256:bc515c98b712b4f31527ce8c6cd50729d8bf6e88ec3d0702212bd8d9753d90bd"
+    },
     "reports/choice-scoring-successor-20261021": {
       "retentionClass": "frozen-evidence",
       "files": 8,
@@ -588,12 +594,6 @@
       "files": 11,
       "bytes": 385211,
       "inventoryHash": "sha256:6fc119f374b550e81189b89c191ba31d469f790cff94946df95535d1de5c9127"
-    },
-    "reports/choice-scoring": {
-      "retentionClass": "frozen-evidence",
-      "files": 8,
-      "bytes": 343964,
-      "inventoryHash": "sha256:bc515c98b712b4f31527ce8c6cd50729d8bf6e88ec3d0702212bd8d9753d90bd"
     },
     "reports/community-lora-20261017": {
       "retentionClass": "frozen-evidence",
@@ -672,6 +672,12 @@
       "files": 10,
       "bytes": 518525,
       "inventoryHash": "sha256:848afa2f5e4fa6b0924dc3e5703b8fb650c2027179fbeaa8f55e87649bab3f3e"
+    },
+    "reports/dopplerx-0.1.5-qualification": {
+      "retentionClass": "frozen-evidence",
+      "files": 6,
+      "bytes": 35257,
+      "inventoryHash": "sha256:e1414250e28177b7415721c116ce4806eba45d4330c87e80d75167ae1b094d84"
     },
     "reports/embedding-generation-repair": {
       "retentionClass": "frozen-evidence",

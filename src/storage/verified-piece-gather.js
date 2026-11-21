@@ -105,6 +105,7 @@ export async function createVerifiedPieceGather(options) {
       rawPolicy: options.verificationCache,
       manifestIdentity: index.manifestIdentity,
       indexIdentity: pinned.indexIdentity,
+      manifestBytes: pinned.manifestBytes,
       index,
       files: pinned.files,
     })

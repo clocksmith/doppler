@@ -258,6 +258,54 @@ function storageBytes(cache, linear, conv, hyper, tokenCount) {
   return bytes;
 }
 
+/** @type {import('./sequence-state.js').estimateGenerationContextMinimumBytes} */
+export function estimateGenerationContextMinimumBytes(state) {
+  if (!state) return null;
+  const kvAllocated = state.kvCache?.getMemoryStats?.()?.allocated;
+  if (typeof kvAllocated !== 'number' || !Number.isSafeInteger(kvAllocated) || kvAllocated < 0) return null;
+  let bytes = kvAllocated;
+  if (state.linearAttentionRuntime?.layers?.size) {
+    for (const layer of state.linearAttentionRuntime.layers.values()) {
+      for (const value of Object.values(layer)) {
+        if (ArrayBuffer.isView(value)) bytes += value.byteLength;
+        else if (value && typeof value.size === 'number' && typeof value.destroy === 'function') bytes += value.size;
+      }
+    }
+  } else {
+    const mc = state.modelConfig;
+    const layerTypes = mc?.layerTypes;
+    if (mc && Array.isArray(layerTypes) && layerTypes.length > 0) {
+      const partition = resolveContextPartition(/** @type {import('./sequence-state.js').ContextPipelineState} */ (state));
+      const [start, end] = partition ? partition.layerRange : [0, layerTypes.length - 1];
+      let linearCount = 0;
+      for (let i = start; i <= end && i < layerTypes.length; i++) {
+        if (layerTypes[i] === 'linear_attention') linearCount++;
+      }
+      if (linearCount > 0) {
+        const numKHeads = Math.max(0, Math.trunc(Number(mc.linearNumKeyHeads) || 0));
+        const numVHeads = Math.max(0, Math.trunc(Number(mc.linearNumValueHeads) || 0));
+        const headKDim = Math.max(0, Math.trunc(Number(mc.linearKeyHeadDim) || 0));
+        const headVDim = Math.max(0, Math.trunc(Number(mc.linearValueHeadDim) || 0));
+        const convKernel = Math.max(1, Math.trunc(Number(mc.linearConvKernelDim) || 4));
+        const components = mc.sessionSettings?.linearRecurrentStatePrecision === 'two-f32' ? 2 : 1;
+        const convDim = numKHeads * headKDim * 2 + numVHeads * headVDim;
+        const floatsPerLayer = numVHeads * headKDim * headVDim * components
+          + convDim * Math.max(1, convKernel - 1) * components
+          + convDim * convKernel + numVHeads * 2 + headVDim;
+        bytes += linearCount * floatsPerLayer * 8;
+      }
+    }
+  }
+  for (const convState of state.convLayerStates?.values() || []) {
+    const buf = getConvStateBuffer(convState);
+    if (buf) bytes += buf.size;
+  }
+  for (const saved of state.hyperConnectionSession?.layers?.values() || []) {
+    if (typeof saved?.conv?.buffer?.size === 'number') bytes += saved.conv.buffer.size;
+  }
+  return bytes;
+}
+
 /** @type {import('./sequence-state.js').createGenerationContext} */
 export function createGenerationContext(state, { maxBytes }) {
   if (!supportsGenerationContext(state)) throw new Error('Complete generation context is unsupported for this decoder.');
@@ -312,7 +360,7 @@ export function beginGenerationContext(state, context, options) {
   });
   if (entry.signature !== signature || (state.lora && !state.lora.identity?.digest && entry.adapter !== state.lora)) release(entry);
   entry.reusedTokens = 0;
-  const estimated = state.kvCache.getMemoryStats().allocated;
+  const estimated = estimateGenerationContextMinimumBytes(state) ?? NaN;
   if (!Number.isFinite(estimated) || estimated > entry.maxBytes) {
     release(entry);
     entry.status = 'budget';

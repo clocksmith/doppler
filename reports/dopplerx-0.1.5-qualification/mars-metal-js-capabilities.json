@@ -1,0 +1,266 @@
+{
+  "schema": "dopplerx.js-capabilities-qualification/v1",
+  "qualifiedUtc": "2026-11-21T16:20:14.920Z",
+  "packageName": "dopplerx",
+  "packageVersion": "0.1.5",
+  "nodeSurface": {
+    "backendIdentity": {
+      "backend": "webgpu",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "apple-m3",
+        "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)"
+      },
+      "hasF16": true,
+      "hasSubgroups": true,
+      "maxBufferSize": 4294967295,
+      "deviceEpoch": 0,
+      "kernelPathId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16-execution-inline",
+      "kernelPathSource": "execution-v1",
+      "executionPlanId": "primary",
+      "activationDtype": "f32"
+    },
+    "generation": {
+      "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+      "coldOpenMs": 1100.76,
+      "firstRequestMs": 445.65,
+      "midStreamAbortChunksObserved": 2,
+      "cancelSettleMs": 747.55,
+      "postCancelRequestMs": 282.08,
+      "postCancelExactMatch": true,
+      "unloadMs": 13.25,
+      "residentMemory": {
+        "rssBytes": 1419034624,
+        "heapUsedBytes": 69844304,
+        "externalBytes": 1100270603,
+        "gpu": {
+          "activeBuffers": 347,
+          "pooledBuffers": 1,
+          "currentBytesAllocated": 938584320,
+          "resources": {
+            "retainedModel": {
+              "bytes": 936486912,
+              "count": 345
+            },
+            "active": {
+              "bytes": 2097152,
+              "count": 2
+            },
+            "reusable": {
+              "bytes": 256,
+              "count": 1
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          }
+        }
+      },
+      "afterUnloadMemory": {
+        "rssBytes": 1525383168,
+        "heapUsedBytes": 127885944,
+        "externalBytes": 1102801569,
+        "gpu": {
+          "activeBuffers": 0,
+          "pooledBuffers": 108,
+          "currentBytesAllocated": 23611392,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 23611392,
+              "count": 108
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          }
+        }
+      }
+    },
+    "embeddingAndDualResidentSearch": {
+      "embeddingModelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "rerankerModelId": "qwen-3-reranker-0-6b-f16-af32",
+      "embeddingColdOpenMs": 597.64,
+      "rerankerColdOpenMs": 1046.81,
+      "indexSixSampleDocsMs": 32450.47,
+      "queriesTested": 6,
+      "exactTop1Matches": 6,
+      "dualResidentMemory": {
+        "rssBytes": 2200354816,
+        "heapUsedBytes": 135385904,
+        "externalBytes": 1125571411,
+        "gpu": {
+          "activeBuffers": 680,
+          "pooledBuffers": 382,
+          "currentBytesAllocated": 2375162368,
+          "resources": {
+            "retainedModel": {
+              "bytes": 1750188032,
+              "count": 676
+            },
+            "active": {
+              "bytes": 8388608,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 616585728,
+              "count": 382
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          }
+        }
+      },
+      "searchResults": [
+        {
+          "expectedDoc": "sourdough.md",
+          "selectedDoc": "sourdough.md",
+          "topCosine": 0.6826,
+          "topRerankScore": 5.0583,
+          "queryMs": 32539.92
+        },
+        {
+          "expectedDoc": "tire.txt",
+          "selectedDoc": "tire.txt",
+          "topCosine": 0.7685,
+          "topRerankScore": 8.247,
+          "queryMs": 32746.21
+        },
+        {
+          "expectedDoc": "eclipse.md",
+          "selectedDoc": "eclipse.md",
+          "topCosine": 0.6068,
+          "topRerankScore": 4.5934,
+          "queryMs": 24444.85
+        },
+        {
+          "expectedDoc": "solar.txt",
+          "selectedDoc": "solar.txt",
+          "topCosine": 0.5851,
+          "topRerankScore": 5.2816,
+          "queryMs": 24551.31
+        },
+        {
+          "expectedDoc": "git.md",
+          "selectedDoc": "git.md",
+          "topCosine": 0.6246,
+          "topRerankScore": 6.7255,
+          "queryMs": 25599.72
+        },
+        {
+          "expectedDoc": "starter-motor.txt",
+          "selectedDoc": "starter-motor.txt",
+          "topCosine": 0.6427,
+          "topRerankScore": 3.9249,
+          "queryMs": 25528.09
+        }
+      ]
+    },
+    "choiceScoringAndCalibration": {
+      "modelId": "qwen-3-reranker-0-6b-f16-af32",
+      "casesEvaluated": 12,
+      "correctSelections": 12,
+      "twelveCasesWallMs": 13779.26,
+      "cancellationVerified": true,
+      "rerankerUnloadMs": 24.33,
+      "afterUnloadMemory": {
+        "rssBytes": 1681965056,
+        "heapUsedBytes": 417099328,
+        "externalBytes": 1077308411,
+        "gpu": {
+          "activeBuffers": 0,
+          "pooledBuffers": 0,
+          "currentBytesAllocated": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 0,
+              "count": 0
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          }
+        }
+      },
+      "temperatureCalibration": {
+        "fitDatasetId": "choice-scoring-relevance-qwen:train-0..5",
+        "fittedTemperature": 0.101957,
+        "trainBeforeLogLoss": 0.008394,
+        "trainAfterLogLoss": 0,
+        "heldOutCount": 6,
+        "heldOutAccuracy": 1,
+        "heldOutUncalibratedLogLoss": 0.004835,
+        "heldOutCalibratedLogLoss": 0,
+        "heldOutUncalibratedBrier": 0.000105,
+        "heldOutCalibratedBrier": 0,
+        "heldOutUncalibratedEce": 0.004809,
+        "heldOutCalibratedEce": 0,
+        "sampleCalibratedSchema": "doppler.calibrated-choice-scoring/v1",
+        "sampleCalibratedProbabilities": [
+          {
+            "id": "relevant",
+            "logit": 19.0403,
+            "probability": 1
+          },
+          {
+            "id": "irrelevant",
+            "logit": 13.6224,
+            "probability": 0
+          }
+        ]
+      }
+    }
+  },
+  "browserSurface": {
+    "available": true,
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "description": "Apple M3"
+    },
+    "generation": {
+      "openMs": 7672.4,
+      "runMs": 769.5,
+      "outputLength": 3,
+      "cancelledCleanly": true,
+      "activeBuffersAfterUnload": 0
+    },
+    "embedding": {
+      "openMs": 4110.9,
+      "dimension": 1024,
+      "positiveCosine": 0.809,
+      "negativeCosine": 0.3817,
+      "positiveExceedsNegative": true,
+      "activeBuffersAfterUnload": 0
+    },
+    "rerankAndChoiceScoring": {
+      "openMs": 8646.4,
+      "topRankedIndex": 1,
+      "choiceSelectedId": "relevant",
+      "calibratedSelectedProbability": 0.991031,
+      "activeBuffersAfterUnload": 0
+    }
+  }
+}
