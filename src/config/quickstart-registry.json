@@ -430,6 +430,55 @@
           "dtype": "q4f16"
         }
       }
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ef16-af32",
+      "label": "Qwen 3.5 2B (Q4K, F32 activations)",
+      "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+      "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-cb8b019af965",
+      "manifestVariantId": "qwen-3-5-2b-q4k-ef16-af32-mv-41e532684994",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false,
+      "aliases": [
+        "qwen3-2b-af32"
+      ],
+      "modes": [
+        "text"
+      ],
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "typeCluster": {
+        "id": "text-generators",
+        "label": "Text generators"
+      },
+      "hostedSource": {
+        "manifestUrl": "https://raw.githubusercontent.com/clocksmith/reploid/2403bc479210d7fd98a7bc404ec2fc98939996ac/shared/config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json",
+        "expectedManifestHash": "eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541",
+        "weights": {
+          "repoId": "clocksmith/rdrr",
+          "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
+          "path": "models/qwen-3-5-2b-q4k-ehaf16"
+        }
+      },
+      "hf": null,
+      "sizeBytes": 2087405138,
+      "quickstartRequirements": {
+        "vramRequiredBytes": 2684354560,
+        "paramCount": "2B",
+        "quantization": "Q4K"
+      }
     }
   ]
 }

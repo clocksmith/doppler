@@ -20,6 +20,7 @@ cli/serve/capsule-handler.d.ts
 cli/serve/capsule-handler.js
 cli/serve/capsule-http.d.ts
 cli/serve/capsule-http.js
+cli/serve/prefix-cache.d.ts
 cli/serve/receipt.d.ts
 client/capsule-host.browser.d.ts
 client/doppler-api.browser.d.ts

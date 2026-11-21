@@ -1698,9 +1698,9 @@
             "node"
           ],
           "result": "pass",
-          "lastVerifiedAt": "2026-11-20",
-          "source": "independent-two-host-decode",
-          "notes": "Whole-model and split Node inference matched independent reference sampled token IDs for this manifest. Text only.",
+          "lastVerifiedAt": "2026-11-21",
+          "source": "local-node-webgpu-verify",
+          "notes": "Node WebGPU Apple Metal verification at reports/release-claims/qwen-3-5-0-8b-q4k-ef16-af32-vf16/2026-11-21T15-24-41.049Z.json; whole-model and split Node inference also matched independent reference sampled token IDs for this manifest. Text only.",
           "contracts": {
             "executionContractOk": true
           }
@@ -1858,7 +1858,7 @@
       },
       "hf": null,
       "baseUrl": null,
-      "quickstart": false,
+      "quickstart": true,
       "demoVisible": false,
       "sizeBytes": 2087405138,
       "quickstartRequirements": {
@@ -1875,20 +1875,22 @@
           "hf": false
         },
         "status": {
-          "runtime": "candidate",
+          "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "pending"
+          "tested": "verified"
         },
         "tested": {
           "suite": "inference",
-          "surface": [],
-          "result": "pending",
-          "lastVerifiedAt": null,
-          "source": null,
-          "notes": "The public manifest and all 32 shards are pinned. Orin verified the payload. Its software adapter lacks shader-f16 and cannot bind the F32 embedding. A full Node decode on supported hardware is pending.",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-11-21",
+          "source": "local-node-webgpu-verify",
+          "notes": "Node WebGPU Apple Metal decode verified at reports/release-claims/qwen-3-5-2b-q4k-ef16-af32/2026-11-21T15-25-19.225Z.json across all 32 pinned shards, plus exact historical token-ID match on the greeting prompt.",
           "contracts": {
-            "executionContractOk": false
+            "executionContractOk": true
           }
         }
       },
