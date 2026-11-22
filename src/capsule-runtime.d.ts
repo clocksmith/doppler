@@ -7,7 +7,9 @@ export { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from './cli
 export type { CapsuleOperationRequest } from "./config/capsule/capsule-operation.js";
 export type { CapsuleOperationEvent } from './client/runtime/capsule-operation-executor.js';
 export type { ChoiceScoringRequest, ChoiceScoringResult } from './config/choice-scoring.js';
+export type { TargetSequenceScoringRequest, TargetSequenceScoreResult, TargetSequenceScoringMessage } from './config/target-sequence-scoring.js';
 export { CHOICE_SCORING_CONTRACT, snapshotChoiceScoringRequest, validateChoiceScoringResult } from './config/choice-scoring.js';
+export { TARGET_SEQUENCE_SCORING_CONTRACT, snapshotTargetSequenceScoringRequest, validateTargetSequenceScoreResult } from './config/target-sequence-scoring.js';
 export { resolveEmbeddingBatchSemantics } from './config/embedding-contract.js';
 export type { EmbeddingBatchSemantics } from './config/embedding-contract.js';
 

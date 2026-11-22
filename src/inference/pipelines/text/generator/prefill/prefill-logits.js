@@ -25,8 +25,10 @@ export async function computePrefillLogits({
       let lastLogits;
       let logitsVocabSize = config.vocabSize;
       const lmHead = state.weights.get('lm_head');
+      const trailingRows = opts._trailingLogitRows ?? null;
       const canRecordLogits = !!currentRecorder
         && opts._returnGpuLogits !== true
+        && trailingRows === null
         && selectedLogitTokenIds === null
         && !!lmHead
         && !isCpuWeightBuffer(lmHead)
@@ -119,11 +121,14 @@ export async function computePrefillLogits({
           undefined,
           debugCheckBuffer,
           state.runtimeConfig.shared.debug.probes,
-          { lastPositionOnly: opts._returnAllLogits !== true, selectedTokenIds: selectedLogitTokenIds, returnGpuBuffer: opts._returnGpuLogits === true },
+          trailingRows === null
+            ? { lastPositionOnly: opts._returnAllLogits !== true, selectedTokenIds: selectedLogitTokenIds, returnGpuBuffer: opts._returnGpuLogits === true }
+            : { trailingRows, selectedTokenIds: selectedLogitTokenIds, returnGpuBuffer: opts._returnGpuLogits === true },
           state.operatorDiagnostics
         );
 
-        if (opts._returnAllLogits === true || opts._returnGpuLogits === true || selectedLogitTokenIds !== null) {
+        if (opts._returnAllLogits === true || opts._returnGpuLogits === true || selectedLogitTokenIds !== null
+          || trailingRows !== null) {
           lastLogits = logits;
         } else {
           lastLogits = logits.length === logitsVocabSize

@@ -13,6 +13,7 @@ The generated export inventory lives under [reference/exports.md](reference/expo
   when supplying explicit execution ports
 - [Compatibility API](compat.md) - `dopplerx/compat`
 - [Choice scoring](choice-scoring.md) - typed, contextual answer scores and operation qualification
+- [Target sequence scoring](target-sequence-scoring.md) - teacher-forced log-probability of an exact target continuation
 
 ### Exported advanced surfaces
 

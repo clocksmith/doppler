@@ -164,6 +164,9 @@ export interface DopplerModelHandle {
   createGenerationContext(options: { maxBytes: number }): import("../../inference/pipelines/text/generator/session/sequence-state.js").GenerationContext;
   scoreChoices(request: import('../../config/choice-scoring.js').ChoiceScoringRequest,
     control?: { signal?: AbortSignal }): Promise<import('../../config/choice-scoring.js').ChoiceScoringResult>;
+  /** Teacher-forced natural-log probability of an exact target continuation; see docs/api/target-sequence-scoring.md. */
+  scoreTargetSequence(request: import('../../config/target-sequence-scoring.js').TargetSequenceScoringRequest,
+    control?: { signal?: AbortSignal }): Promise<import('../../config/target-sequence-scoring.js').TargetSequenceScoreResult>;
   generate(prompt: string, options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
   generateText(prompt: string, options?: DopplerGenerateOptions): Promise<string>;
   generateWithEvidence(

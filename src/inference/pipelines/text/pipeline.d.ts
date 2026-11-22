@@ -165,6 +165,13 @@ export declare class InferencePipeline extends PipelineState {
     phase?: WorkloadPhaseTiming | null;
   }>;
 
+  /**
+   * Teacher-forced target scoring: natural-log probability of each `targetTokenIds[i]` given
+   * `options.inputIds` plus the earlier target tokens, from one prefill whose LM head projects
+   * only the trailing target-predicting rows. Leaves the KV cache advanced; callers reset.
+   */
+  prefillWithTargetTokenLogProbs(prompt: PromptInput, targetTokenIds: readonly number[], options: GenerateOptions & { inputIds: number[] }): Promise<import("./generator/adapters/target-scoring.js").TargetTokenLogProbsResult>;
+
   prefillWithTokenLogitsFromKV(prefix: KVCacheSnapshot, prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
     seqLen: number;
     prefixTokens: number[];

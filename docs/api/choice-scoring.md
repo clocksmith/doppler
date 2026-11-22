@@ -75,6 +75,8 @@ before continuation reset; resident weights are retained for subsequent requests
 
 ## Related surfaces
 
+[Target sequence scoring](target-sequence-scoring.md) scores a multi-token exact
+continuation by teacher-forced log-probability.
 [Signed Run API](root.md), [Compatibility loading](compat.md),
 [Incremental receipts](../capsule-streaming.md). Compatibility manifest loading
 can screen a model; it does not establish signed-release qualification.

@@ -66,6 +66,7 @@ import {
   prefillWithTokenLogitsFromKV as prefillWithTokenLogitsFromKVImpl,
   generateWithPrefixKV as generateWithPrefixKVImpl,
 } from "./adapters/training.js";
+import { prefillWithTargetTokenLogProbs as prefillWithTargetTokenLogProbsImpl } from "./adapters/target-scoring.js";
 import {
   _generateTokensInternal as _generateTokensInternalImpl,
   generateTokenIds as generateTokenIdsImpl,
@@ -576,6 +577,11 @@ export class PipelineGenerator {
   async prefillWithTokenLogits(prompt, tokenIds, options = {}) {
     assertClassicSequenceState(this._state, 'prefillWithTokenLogits');
     return prefillWithTokenLogitsImpl.apply(this, arguments);
+  }
+
+  async prefillWithTargetTokenLogProbs(prompt, targetTokenIds, options = {}) {
+    assertClassicSequenceState(this._state, 'prefillWithTargetTokenLogProbs');
+    return prefillWithTargetTokenLogProbsImpl.apply(this, arguments);
   }
 
   async prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options = {}) {
