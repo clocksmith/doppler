@@ -63,8 +63,10 @@ try {
 For receipt-backed delivery, use `session.executeOperation()` with operation
 `{ name: 'scoreChoices', version: 1 }`, input `{ prompt, choices }`, options
 `{ maxSeqLen }`, explicit assignment and byte/deadline limits. V1 and v2 return
-one completed output without partial scores. Cancellation settles submitted work
-before continuation reset; resident weights are retained for subsequent requests.
+one completed output without partial scores. Scoring starts from a fresh
+sequence (state left by an earlier generation is cleared before the prefill).
+Cancellation settles submitted work before continuation reset; resident weights
+are retained for subsequent requests.
 
 ## Code pointers
 

@@ -29,7 +29,7 @@ assert.equal(result.selectedId, 'reject');
 assert.equal(result.calibration, null);
 assert.equal(result.choices[0].logit, 1000);
 assert.deepEqual(validateChoiceScoringResult(request, result), result);
-assert.equal(resets, 1);
+assert.equal(resets, 2, 'reset before (fresh context) and after (cleanup)');
 const snapshot = snapshotChoiceScoringRequest(request);
 assert(Object.isFrozen(snapshot.choices[0]));
 for (const bad of [
@@ -49,21 +49,30 @@ for (const bad of [
 ]) assert.throws(() => validateChoiceScoringResult(request, bad));
 failure = new Error('device lost');
 await assert.rejects(scoreModelChoices(pipeline, request), /device lost/);
-assert.equal(resets, 2);
+assert.equal(resets, 4);
 failure = null;
 const controller = new AbortController();
 during = () => controller.abort(new Error('cancel during submitted scoring'));
 await assert.rejects(scoreModelChoices(pipeline, request, { signal: controller.signal }), /cancel during submitted scoring/);
-assert.equal(resets, 3);
+assert.equal(resets, 6);
 const before = calls;
 await assert.rejects(scoreModelChoices(pipeline, request, { signal: controller.signal }), /cancel/);
 assert.equal(calls, before);
 during = null;
 assert.equal((await scoreModelChoices(pipeline, request)).selectedId, 'reject', 'failed/cancelled scoring leaves reusable weights');
 failure = new Error('submitted operation failed');
-await assert.rejects(scoreModelChoices({ ...pipeline, resetGenerationState() { throw new Error('cleanup failed'); } }, request),
+// The fresh-context reset before prefill succeeds; only the cleanup reset after it fails.
+const failingCleanup = () => {
+  let count = 0;
+  return { ...pipeline, resetGenerationState() { if (++count > 1) throw new Error('cleanup failed'); } };
+};
+await assert.rejects(scoreModelChoices(failingCleanup(), request),
   error => error instanceof AggregateError && error.errors[0] === failure && /cleanup failed/.test(error.errors[1].message));
 failure = null;
-await assert.rejects(scoreModelChoices({ ...pipeline, resetGenerationState() { throw new Error('cleanup failed'); } }, request), /cleanup failed/);
+await assert.rejects(scoreModelChoices(failingCleanup(), request), /cleanup failed/);
+const callsBeforeBusy = calls;
+await assert.rejects(scoreModelChoices({ ...pipeline, resetGenerationState() { throw new Error('generation in progress'); } }, request),
+  /generation in progress/);
+assert.equal(calls, callsBeforeBusy, 'a pipeline that cannot start a fresh context is never prefilled');
 await assert.rejects(scoreModelChoices({ ...pipeline, resetGenerationState: undefined }, request), /requires/);
 console.log('choice-scoring.test.js passed (injected operands; no model-quality claim)');

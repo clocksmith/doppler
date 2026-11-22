@@ -78,12 +78,12 @@ try {
     linearValueHeadDim: 2, linearConvKernelDim: 4, linearNormMode: 'shared', rmsNormEps: 1e-6,
     rmsNormWeightOffset: false, sessionSettings: { intermediatePrecision: 'f32', linearRecurrentStatePrecision: 'f32' } };
   const runtime = createLinearAttentionRuntime();
-  const attempt = async () => {
+  const attempt = async (currentSeqLen = 0) => {
     const paired = config.sessionSettings.intermediatePrecision === 'two-f32';
     const input = createTensor({ size: paired ? 48 : 24 }, 'f32', [1, 6], 'input',
       paired ? { precision: 'two-f32', components: 2, elementStrideBytes: 8 } : undefined);
     await assert.rejects(runLinearAttentionLayer(input, weights, { layerIdx: 0, numTokens: 1,
-      hiddenSize: 6, currentSeqLen: 0, config, linearRuntime: runtime, activationDtype: 'f32',
+      hiddenSize: 6, currentSeqLen, config, linearRuntime: runtime, activationDtype: 'f32',
       runtimeSession: { useLinearAttentionABProjectionFusion: false, useLinearAttentionQKVZProjectionFusion: false },
       getWeightBuffer: w => w, getNormWeightBuffer: w => w }), /stop after preparation/);
   };
@@ -134,6 +134,22 @@ try {
   assert.equal(released.size, 24);
   failClear = false;
   await attempt();
+  // A recorded seqLen that disagrees with the runtime position (for example after a batched
+  // decode ran past a stop token) clears the dynamic state in place and adopts the position.
+  const mismatched = runtime.layers.get(0);
+  mismatched.seqLen = 60;
+  mismatched.convStateGPU.data = new Float32Array(mismatched.convState.length).fill(7);
+  mismatched.recurrentStateGPU.data = new Float32Array(mismatched.recurrentState.length).fill(9);
+  const clearsBefore = clears.length;
+  await attempt(46);
+  assert.equal(runtime.layers.get(0), mismatched, 'mismatch keeps prepared parameters');
+  assert.equal(creations, 5);
+  assert.equal(mismatched.seqLen, 46);
+  assert.equal(mismatched.warnedSeqMismatch, true);
+  assert.deepEqual(clears.slice(clearsBefore), [2], 'mismatch zeroes both resident state buffers in one submit');
+  for (const field of ['convState', 'recurrentState']) {
+    assert(mismatched[`${field}GPU`].data.every(v => v === 0), `${field} cleared on mismatch`);
+  }
   resetLinearAttentionRuntime(runtime);
   assert.equal(runtime.layers.size, 0, 'full reset still releases prepared capacity');
   assert.equal(released.size, 30);
@@ -141,4 +157,4 @@ try {
   hooks.deregister();
   delete globalThis.linearPreparedTest;
 }
-console.log('linear prepared sequence: reuse, isolation, source/precision invalidation, failed reset and full release passed');
+console.log('linear prepared sequence: reuse, isolation, source/precision invalidation, failed reset, seqLen mismatch clear and full release passed');

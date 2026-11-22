@@ -232,7 +232,7 @@ async function getLayerRuntimeState(runtime, layerIdx, layerWeights, config, cur
         `runtime seqLen=${currentSeqLen}. Resetting recurrent state.`
       );
     }
-    clearDynamicLayerState(layerState);
+    clearLayerRuntimeStates([layerState]);
     layerState.seqLen = currentSeqLen;
   }
   ensureLayerRuntimeGpuBuffers(layerState);

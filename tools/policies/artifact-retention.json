@@ -563,7 +563,7 @@
       "retentionClass": "runtime-source-inventory",
       "files": 3,
       "bytes": 18125,
-      "inventoryHash": "sha256:ee4115ce4cb36fa9c76a6959794bb3cd92ef06053a654bc108782b4847f3504b"
+      "inventoryHash": "sha256:323f0bdb23f80914c32f7bbd3ddc91ce5d466b80186eb7b56919a0f3fd654933"
     },
     "reports/channel-gain-20261112": {
       "retentionClass": "frozen-evidence",
