@@ -122,3 +122,4 @@ playwright-report/
 # Local package tarballs and machine-local runtime caches
 /*.tgz
 /cache/
+.claude/worktrees/
