@@ -4,6 +4,16 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## DopplerX 0.1.7
+
+- Fix `scoreTargetSequence` (and `scoreChoices`) scoring against stale context: the prefill started at the
+  sequence position a previous generation left, so a score taken right after generating was conditioned on
+  that conversation. Scoring now starts from a fresh sequence and is bit-identical across repeats and
+  generations (Qwen 3.5 0.8B: greedy 'Paris' -0.33, previously -2.81 on the first score).
+- Fix a ReferenceError in linear-attention layers when the recorded recurrent-state position disagrees with
+  the runtime position (after a batched decode stopped early on a hybrid model such as Qwen 3.5); the state
+  is cleared on the GPU as intended.
+
 ## DopplerX 0.1.6
 
 - Add `scoreTargetSequence` for teacher-forced log-probability scoring of an exact target continuation:

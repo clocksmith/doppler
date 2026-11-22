@@ -503,7 +503,7 @@ const receipt = {
   schema: 'dopplerx.js-capabilities-qualification/v1',
   qualifiedUtc: new Date().toISOString(),
   packageName: 'dopplerx',
-  packageVersion: '0.1.6',
+  packageVersion: '0.1.7',
   nodeSurface: nodeResult,
   browserSurface: browserResult,
 };
