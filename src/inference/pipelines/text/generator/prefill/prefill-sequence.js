@@ -39,8 +39,16 @@ export async function _prefillInputIdsToLogits(inputIds, opts) {
       return this._prefill(inputIds, opts);
     }
 
-    for (let offset = 0; offset < inputIds.length; offset += chunkSize) {
-      const end = Math.min(offset + chunkSize, inputIds.length);
+    // Only the final chunk reaches the LM head, so it must hold every requested trailing row.
+    const trailingRows = opts?._trailingLogitRows ?? 1;
+    if (trailingRows > chunkSize) {
+      throw new Error(
+        `Prefill needs logits for ${trailingRows} trailing rows but inference.session.prefillTokenChunkSize is ${chunkSize}.`
+      );
+    }
+    for (let offset = 0, end = 0; offset < inputIds.length; offset = end) {
+      end = Math.min(offset + chunkSize, inputIds.length);
+      if (end < inputIds.length && inputIds.length - end < trailingRows) end = inputIds.length - trailingRows;
       const chunk = inputIds.slice(offset, end);
       const isFinalChunk = end === inputIds.length;
       if (isFinalChunk) {

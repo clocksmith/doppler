@@ -890,6 +890,7 @@ inference/pipelines/text/logits/output-transform.d.ts
 inference/pipelines/text/logits/plan.d.ts
 inference/pipelines/text/logits/precision-policy.d.ts
 inference/pipelines/text/logits/scale-policy.d.ts
+inference/pipelines/text/logits/selected-log-softmax.d.ts
 inference/pipelines/text/logits/types.js
 inference/pipelines/text/lora-apply.d.ts
 inference/pipelines/text/modality-token-contract.d.ts
@@ -944,6 +945,7 @@ inference/pipelines/vision/spatial-merge.d.ts
 inference/pipelines/vision/support.d.ts
 inference/pipelines/vision/weight-loading.d.ts
 inference/sampling-rng.d.ts
+inference/target-sequence-scoring.d.ts
 inference/test-harness.d.ts
 inference/test-harness.js
 inference/token-sampling.d.ts

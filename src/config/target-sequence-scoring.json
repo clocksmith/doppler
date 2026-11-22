@@ -1,0 +1,10 @@
+{
+  "schema": "doppler.target-sequence-scoring-contract/v1",
+  "resultSchema": "doppler.target-sequence-score/v1",
+  "interpretation": "teacher-forced-target-log-probability",
+  "logBase": "e",
+  "chatTemplateThinking": false,
+  "messageRoles": ["system", "user"],
+  "maxTargetTokens": 32,
+  "roundingStep": 0.01
+}

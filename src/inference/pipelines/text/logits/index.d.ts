@@ -28,12 +28,16 @@ export { readBufferWithCleanup } from './readback.js';
 
 export interface ComputeLogitsOptions {
   lastPositionOnly?: boolean;
+  /** Project only the final N hidden rows to full-vocabulary logits ([N, vocabSize]). */
+  trailingRows?: number | null;
   selectedTokenIds?: number[] | null;
   returnGpuBuffer?: boolean;
 }
 
 export interface ResolvedLmHeadMatmulConfig {
   lastPositionOnly: boolean;
+  /** Rows sliced from the end of the hidden buffer; null when every row is projected. */
+  trailingRows: number | null;
   matmulRows: number;
   phaseOverride: 'decode' | 'prefill' | null;
 }

@@ -50,8 +50,14 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
   - `snapshotChoiceScoringRequest`
+  - `snapshotTargetSequenceScoringRequest`
+  - `TARGET_SEQUENCE_SCORING_CONTRACT`
+  - `TargetSequenceScoreResult`
+  - `TargetSequenceScoringMessage`
+  - `TargetSequenceScoringRequest`
   - `validateChoiceScoringResult`
   - `validateGenerationInput`
+  - `validateTargetSequenceScoreResult`
 
 ## `doppler-gpu/runtime`
 
@@ -99,8 +105,14 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
   - `snapshotChoiceScoringRequest`
+  - `snapshotTargetSequenceScoringRequest`
+  - `TARGET_SEQUENCE_SCORING_CONTRACT`
+  - `TargetSequenceScoreResult`
+  - `TargetSequenceScoringMessage`
+  - `TargetSequenceScoringRequest`
   - `validateChoiceScoringResult`
   - `validateGenerationInput`
+  - `validateTargetSequenceScoreResult`
 
 ## `doppler-gpu/generation-contract`
 
@@ -165,12 +177,18 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `signCapsuleV2`
   - `signCapsuleV3`
   - `snapshotChoiceScoringRequest`
+  - `snapshotTargetSequenceScoringRequest`
+  - `TARGET_SEQUENCE_SCORING_CONTRACT`
+  - `TargetSequenceScoreResult`
+  - `TargetSequenceScoringMessage`
+  - `TargetSequenceScoringRequest`
   - `validateCapsule`
   - `validateCapsuleReleaseEvent`
   - `validateCapsuleV2`
   - `validateCapsuleV3`
   - `validateChoiceScoringResult`
   - `validateGenerationInput`
+  - `validateTargetSequenceScoreResult`
   - `verifyCapsule`
   - `verifyCapsuleReleaseEvents`
 
@@ -457,12 +475,23 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Implementation: [src/tooling-exports/structured.js](../../../src/tooling-exports/structured.js)
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
+  - `applyChoiceTemperatureCalibration`
+  - `CALIBRATED_CHOICE_RESULT_SCHEMA`
+  - `CalibratedChoiceEntry`
+  - `CalibratedChoiceScoringResult`
+  - `CHOICE_CALIBRATION_SCHEMA`
+  - `ChoiceCalibrationMetrics`
+  - `ChoiceTemperatureCalibration`
+  - `computeChoiceProbabilities`
   - `createDreamStructuredPipeline`
   - `createJsonGrammarMask`
   - `createStructuredJsonHeadPipeline`
   - `DreamStructuredPipeline`
+  - `evaluateChoiceCalibration`
+  - `fitChoiceTemperatureCalibration`
   - `isDreamStructuredModelType`
   - `isStructuredJsonHeadModelType`
+  - `LabeledChoiceScoringExample`
   - `StructuredJsonHeadPipeline`
 
 ## `doppler-gpu/client/model-manager`

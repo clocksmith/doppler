@@ -16,6 +16,7 @@ Primary documentation index.
 - [API index](api/index.md) — public operations and stability boundaries.
 - [Generation API](api/generation.md) — lower-level text generation.
 - [Choice scoring](api/choice-scoring.md) — contextual single-token labels, raw logits, separate qualification.
+- [Target sequence scoring](api/target-sequence-scoring.md) — teacher-forced `log P(target | prompt)`, reproducible per pinned provider.
 - [Model support matrix](model-support-matrix.md) — generated model verification scope.
 - [Model support inventory](model-support-inventory.md) — evidence gaps.
 - [Subsystem support](subsystem-support-matrix.md) — public, experimental, and internal-only status.

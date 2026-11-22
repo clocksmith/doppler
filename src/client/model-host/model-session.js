@@ -16,6 +16,8 @@ import { scopePipelineShaders, runPipelineOperation } from '../../inference/pipe
 import { collectModelRerankScores } from '../runtime/model-rerank.js';
 import { scoreModelChoices } from '../../inference/choice-scoring.js';
 import { snapshotChoiceScoringRequest } from '../../config/choice-scoring.js';
+import { scoreTargetSequence } from '../../inference/target-sequence-scoring.js';
+import { snapshotTargetSequenceScoringRequest } from '../../config/target-sequence-scoring.js';
 import {
   MODEL_INSPECTION_RECEIPT_SCHEMA, aggregateWordPerplexity, buildComparisonFingerprint,
   buildInspectionTokenRecord, buildInspectionTokenRecords, listObservationPolicies, resolveObservationPolicy,
@@ -385,6 +387,16 @@ export function createModelHandle(pipeline, resolved) {
       return runPipelineOperation(pipeline, async current => {
         const activeAdapter = getActiveLoRAIdentityForPipeline(current);
         const result = await scoreModelChoices(current, snapshot, control);
+        assertActiveAdapterUnchanged(current, activeAdapter);
+        return result;
+      }, control.signal);
+    },
+    scoreTargetSequence(request, control = {}) {
+      assertRaw('scoreTargetSequence');
+      const snapshot = snapshotTargetSequenceScoringRequest(request);
+      return runPipelineOperation(pipeline, async current => {
+        const activeAdapter = getActiveLoRAIdentityForPipeline(current);
+        const result = await scoreTargetSequence(current, snapshot, control);
         assertActiveAdapterUnchanged(current, activeAdapter);
         return result;
       }, control.signal);

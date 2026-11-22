@@ -91,7 +91,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // registered gather shader and routed-expert trace, and drops one unused Orin profile.
   // dopplerx 0.1.5 adds standalone loopback prefix cache, expert-loading stats, HF source
   // resolution, empirical choice calibration, and NOTICE: measured 2062 entries.
-  maxEntryCount: 2062,
+  // Target sequence scoring (contract, scorer, adapter, log-softmax) adds 7 entries:
+  // measured 2069 on Node 22.20.0/npm 10.9.3.
+  maxEntryCount: 2069,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -212,7 +214,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Refreshed main closure (2044 entries): 3,828,152 measured plus 2,158-byte allowance.
   // 0.7.7 measures 3,835,430 packed bytes plus the existing cross-npm allowance.
   // dopplerx 0.1.5 (2062 entries) measures 3,878,157 packed bytes plus 2,158-byte allowance.
-  maxPackedSize: 3_880_315,
+  // Target sequence scoring (2069 entries) measures 3,886,419 packed bytes plus the same allowance.
+  maxPackedSize: 3_888_577,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -305,7 +308,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Refreshed main closure (2044 entries): 16,112,946 unpacked bytes on Node 22.20.0/npm 10.9.3.
   // The same archive measures 16,153,314 unpacked bytes.
   // dopplerx 0.1.5 (2062 entries) measures 16,387,941 unpacked bytes; allow 8 KB for README/receipt updates.
-  maxUnpackedSize: 16_396_133,
+  // Target sequence scoring (2069 entries) measures 16,419,257 unpacked bytes; same 8 KB allowance.
+  maxUnpackedSize: 16_427_449,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -330,6 +334,7 @@ const FILE_RULES = [
       './version.js',
       './config/generation-contract.js',
       './config/choice-scoring.js',
+      './config/target-sequence-scoring.js',
       './config/embedding-contract.js',
       './client/runtime/composition-root.js',
       './client/runtime/fetch-capsule-artifact-store.js',
@@ -356,6 +361,7 @@ const FILE_RULES = [
       './version.js',
       './config/generation-contract.js',
       './config/choice-scoring.js',
+      './config/target-sequence-scoring.js',
       './config/embedding-contract.js',
       "./config/capsule/capsule.js",
       "./config/capsule/capsule-operation.js",

@@ -34,6 +34,7 @@ export const PIPELINE_OPERATIONS = Object.freeze({
   projectHiddenStates: 'execution',
   prefillWithEmbedding: 'execution', prefillWithLogits: 'execution',
   prefillWithTokenLogits: 'execution', prefillWithTokenLogitsFromKV: 'execution',
+  prefillWithTargetTokenLogProbs: 'execution',
   embed: 'execution', embedBatch: Object.freeze({ kind: 'execution', context: 'explicit' }), encodeSequence: 'execution',
   embedImage: 'execution', embedAudio: 'execution',
   setLoRAAdapter: 'mutation', setPreloadedWeights: 'mutation', applyKVCacheSnapshot: 'mutation',

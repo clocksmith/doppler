@@ -8,7 +8,7 @@ export function computePrefillLogits(context: {
   config: ParsedModelConfig;
   state: PipelineState;
   currentRecorder: CommandRecorder | null | undefined;
-  opts: GenerateOptions & { _returnGpuLogits?: boolean; _returnAllLogits?: boolean };
+  opts: GenerateOptions & { _returnGpuLogits?: boolean; _returnAllLogits?: boolean; _trailingLogitRows?: number | null };
   selectedLogitTokenIds: readonly number[] | null;
   numTokens: number;
   tracePrefillEnabled: boolean;

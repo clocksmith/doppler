@@ -2,8 +2,8 @@
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
-  "fileCount": 88,
-  "sourceBytes": 1259201,
+  "fileCount": 90,
+  "sourceBytes": 1264795,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -34,8 +34,8 @@
   "files": [
     {
       "path": "src/capsule-runtime.js",
-      "sizeBytes": 1610,
-      "hash": "sha256:3571998d4ee3941101310c8b64bc2c88383aede7b0918778828b581e63d42946"
+      "sizeBytes": 1771,
+      "hash": "sha256:9f423a3fef653096c6407adec321b1d3fddc87e40385fe94e16316922d3ef2ae"
     },
     {
       "path": "src/client/runtime/capsule-acquisition.js",
@@ -331,6 +331,16 @@
       "path": "src/config/target-plan.js",
       "sizeBytes": 24029,
       "hash": "sha256:afe08c8656138e6b422da43d79927cdfa6068b5644b34305299fdd647cdf442e"
+    },
+    {
+      "path": "src/config/target-sequence-scoring.js",
+      "sizeBytes": 5118,
+      "hash": "sha256:29f00c4b7288ff23f29a1446e15342ab080f6679cb9ceb1544487ef535bc6592"
+    },
+    {
+      "path": "src/config/target-sequence-scoring.json",
+      "sizeBytes": 315,
+      "hash": "sha256:f5493e5ccf73fe71320bb358c87e6aba5b79d0dafa7dae3f642e2e9d38761690"
     },
     {
       "path": "src/config/wgsl-language-contract.js",

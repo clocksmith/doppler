@@ -133,9 +133,26 @@ async function traceTensorHealth(label, tensor, elementCount) {
 }
 
 export function resolveLmHeadMatmulConfig(numTokens, options = null) {
+  const trailingRows = options?.trailingRows ?? null;
+  if (trailingRows !== null) {
+    // Teacher-forced scoring projects only the trailing rows it reads back.
+    if (!Number.isSafeInteger(trailingRows) || trailingRows < 1 || trailingRows > numTokens) {
+      throw new Error(`[Logits] trailingRows must be an integer in [1, ${numTokens}], got "${String(trailingRows)}".`);
+    }
+    if (options?.lastPositionOnly === true || options?.selectedTokenIds != null || options?.returnGpuBuffer === true) {
+      throw new Error('[Logits] trailingRows excludes lastPositionOnly, selectedTokenIds and returnGpuBuffer.');
+    }
+    return {
+      lastPositionOnly: false,
+      trailingRows: trailingRows < numTokens ? trailingRows : null,
+      matmulRows: trailingRows,
+      phaseOverride: 'prefill',
+    };
+  }
   const lastPositionOnly = options?.lastPositionOnly === true && numTokens > 1;
   return {
     lastPositionOnly,
+    trailingRows: null,
     matmulRows: lastPositionOnly ? 1 : numTokens,
     phaseOverride: lastPositionOnly ? 'prefill' : null,
   };
@@ -242,6 +259,8 @@ export async function computeLogits(
     }
   }
   const selectedTokenIds = normalizeSelectedLogitTokenIds(options?.selectedTokenIds, matmulVocabSize);
+  // Row selection is validated before any GPU work is recorded.
+  const lastTokenMatmul = resolveLmHeadMatmulConfig(numTokens, options);
   if (options?.returnGpuBuffer === true && selectedTokenIds !== null) {
     throw new Error('[Logits] GPU output requires the complete declared vocabulary.');
   }
@@ -459,23 +478,24 @@ export async function computeLogits(
       resources.release(unscaledFinalNormTensor.buffer);
     }
 
-    const lastTokenMatmul = resolveLmHeadMatmulConfig(numTokens, options);
-    const { lastPositionOnly, matmulRows } = lastTokenMatmul;
+    const { lastPositionOnly, trailingRows, matmulRows } = lastTokenMatmul;
     const matmulPhaseOverride = lastTokenMatmul.phaseOverride;
     const lmHeadPhase = config.executionPhase ?? matmulPhaseOverride ?? (matmulRows === 1 ? 'decode' : 'prefill');
     const lmHeadRole = resolveLmHeadMatmulRole(lmHeadPhase);
 
     let matmulInputTensor = finalNormTensor;
     let matmulInputOwned = false;
-    if (lastPositionOnly) {
+    if (lastPositionOnly || trailingRows !== null) {
+      const copiedRows = lastPositionOnly ? 1 : trailingRows;
       const inputBytes = tensorElementBytes(finalNormTensor.dtype, finalNormTensor);
       const rowSize = hiddenSize * inputBytes;
-      const rowOffset = (numTokens - 1) * rowSize;
-      const lastInputBuffer = acquire(rowSize, undefined, 'logits_input_last');
+      const rowOffset = (numTokens - copiedRows) * rowSize;
+      const label = lastPositionOnly ? 'logits_input_last' : 'logits_input_trailing';
+      const lastInputBuffer = acquire(rowSize * copiedRows, undefined, label);
       const encoder = device.createCommandEncoder();
-      encoder.copyBufferToBuffer(finalNormTensor.buffer, rowOffset, lastInputBuffer, 0, rowSize);
+      encoder.copyBufferToBuffer(finalNormTensor.buffer, rowOffset, lastInputBuffer, 0, rowSize * copiedRows);
       device.queue.submit([encoder.finish()]);
-      matmulInputTensor = createTensor(lastInputBuffer, finalNormTensor.dtype, [1, hiddenSize], 'logits_input_last', finalNormTensor);
+      matmulInputTensor = createTensor(lastInputBuffer, finalNormTensor.dtype, [copiedRows, hiddenSize], label, finalNormTensor);
       matmulInputOwned = true;
     }
 

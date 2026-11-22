@@ -94,6 +94,7 @@ export declare class PipelineGenerator {
     logitsByTokenId: Record<number, number>;
     phase?: WorkloadPhaseTiming | null;
   }>;
+  prefillWithTargetTokenLogProbs(prompt: PromptInput, targetTokenIds: readonly number[], options: GenerateOptions & { inputIds: number[] }): Promise<import("./adapters/target-scoring.js").TargetTokenLogProbsResult>;
   prefillWithTokenLogitsFromKV(prefix: KVCacheSnapshot, prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
     seqLen: number;
     prefixTokens: number[];

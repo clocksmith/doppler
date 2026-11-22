@@ -365,6 +365,11 @@ export class InferencePipeline extends PipelineState {
     return this.generator.prefillWithTokenLogits(prompt, tokenIds, options);
   }
 
+  prefillWithTargetTokenLogProbs(prompt, targetTokenIds, options = {}) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] prefillWithTargetTokenLogProbs requires complete composite-state support and is not supported.');
+    return this.generator.prefillWithTargetTokenLogProbs(prompt, targetTokenIds, options);
+  }
+
   prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options = {}) {
     if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] prefillWithTokenLogitsFromKV requires complete composite-state support and is not supported.');
     return this.generator.prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options);
