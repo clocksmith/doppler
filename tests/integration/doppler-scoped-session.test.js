@@ -262,3 +262,64 @@ test('guided and deep inspection disclose non-representative execution', async (
   });
   assert.equal(deep.policy.id, 'demo/deep-xray');
 });
+
+test('target scoring is capability-gated and returns the handle result unchanged', async () => {
+  const result = Object.freeze({ schema: 'fixture.target-score', totalLogProb: -1.5 });
+  const calls = [];
+  const controller = new AbortController();
+  const session = createScopedModelSession(makeHandle({
+    async scoreTargetSequence(request, control) {
+      calls.push({ request, control });
+      return result;
+    },
+  }));
+  assert.equal(session.supports('targetScoring'), true);
+  assert.equal(session.require('targetScoring'), true);
+  const request = { prompt: 'Q:', target: ' A', maxSeqLen: 64 };
+  assert.equal(await session.scoreTargetSequence(request, { signal: controller.signal, extra: true }), result);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].request, request);
+  assert.deepEqual(Object.keys(calls[0].control), ['signal']);
+  assert.equal(calls[0].control.signal, controller.signal);
+  await session.scoreTargetSequence(request);
+  assert.equal(calls[1].control.signal, undefined);
+});
+
+test('target scoring rejects unsupported and specialized handles with a clear error', async () => {
+  const unsupported = createScopedModelSession(makeHandle());
+  assert.equal(unsupported.supports('targetScoring'), false);
+  await assert.rejects(
+    unsupported.scoreTargetSequence({ prompt: 'Q:', target: ' A', maxSeqLen: 64 }),
+    /Doppler model "fixture-model" does not support "targetScoring"/
+  );
+  const embedding = createScopedModelSession(makeHandle({
+    supportsEmbedding: true,
+    async scoreTargetSequence() { throw new Error('must not run'); },
+  }));
+  assert.equal(embedding.supports('targetScoring'), false);
+  const closed = createScopedModelSession(makeHandle({ async scoreTargetSequence() { return {}; } }));
+  await closed.close();
+  await assert.rejects(closed.scoreTargetSequence({}), /scoped session is closed/);
+});
+
+test('target scoring honors abort before and during the handle operation', async () => {
+  let calls = 0;
+  const session = createScopedModelSession(makeHandle({
+    scoreTargetSequence(_request, { signal }) {
+      calls += 1;
+      return new Promise((_resolve, reject) => {
+        signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+      });
+    },
+  }));
+  const request = { prompt: 'Q:', target: ' A', maxSeqLen: 64 };
+  const aborted = new AbortController();
+  aborted.abort(new Error('caller cancelled'));
+  await assert.rejects(session.scoreTargetSequence(request, { signal: aborted.signal }), /caller cancelled/);
+  assert.equal(calls, 0);
+  const controller = new AbortController();
+  const pending = session.scoreTargetSequence(request, { signal: controller.signal });
+  controller.abort(new Error('cancelled mid-score'));
+  await assert.rejects(pending, /cancelled mid-score/);
+  assert.equal(calls, 1);
+});

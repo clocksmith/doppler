@@ -25,7 +25,10 @@ apply while generating.
 
 ## Stability
 
-New source capability on the compatibility model handle (`model.scoreTargetSequence`).
+New source capability on the compatibility model handle (`model.scoreTargetSequence`)
+and on the scoped session returned by `runtime.open()` (`doppler.scoped-session/v1`),
+which reports it as `supports('targetScoring')` and passes the handle's result through
+unchanged.
 Signed Capsule sessions do not expose it yet: like `scoreChoices`, it would need its
 own operation qualification. It runs on the WebGPU text pipeline for the same
 models that support `prefillWithTokenLogits`; models with hyper-connections or

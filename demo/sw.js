@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:cf9819a03dfc385d3ea3b16af7de5ade8cc2af62844cd890a93cd5b5221fef1e';
-const CACHE_NAME = 'doppler-demo-shell-cf9819a03dfc385d';
+const SHELL_MANIFEST_DIGEST = 'sha256:266dc839a158c38c1d45838c54a14d4dafd67065fae7ee32413e234bde86b659';
+const CACHE_NAME = 'doppler-demo-shell-266dc839a158c38c';
 const APP_SHELL = Object.freeze([
   "/demo/assets/activity-preview-attention-prefill.png",
   "/demo/assets/activity-preview-contributions.png",
@@ -239,6 +239,8 @@ const APP_SHELL = Object.freeze([
   "/src/config/supported-operations.js",
   "/src/config/supported-operations.json",
   "/src/config/target-plan.js",
+  "/src/config/target-sequence-scoring.js",
+  "/src/config/target-sequence-scoring.json",
   "/src/config/transforms/execution-graph-transforms.js",
   "/src/config/transforms/execution-graph/correctness-fallback.js",
   "/src/config/transforms/execution-graph/dtype.js",
@@ -605,6 +607,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/generator/activation/final-layer-replay.js",
   "/src/inference/pipelines/text/generator/adapters/capsule-generation.js",
   "/src/inference/pipelines/text/generator/adapters/diffusion.js",
+  "/src/inference/pipelines/text/generator/adapters/target-scoring.js",
   "/src/inference/pipelines/text/generator/adapters/training.js",
   "/src/inference/pipelines/text/generator/decode/advance-token.js",
   "/src/inference/pipelines/text/generator/decode/batch-generation.js",
@@ -698,6 +701,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/logits/precision-policy.js",
   "/src/inference/pipelines/text/logits/readback.js",
   "/src/inference/pipelines/text/logits/scale-policy.js",
+  "/src/inference/pipelines/text/logits/selected-log-softmax.js",
   "/src/inference/pipelines/text/lora-apply.js",
   "/src/inference/pipelines/text/lora-types.js",
   "/src/inference/pipelines/text/lora.js",
@@ -769,6 +773,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/resource-scope.js",
   "/src/inference/sampling-rng.js",
   "/src/inference/speculative.js",
+  "/src/inference/target-sequence-scoring.js",
   "/src/inference/token-sampling.js",
   "/src/inference/tokenizer.js",
   "/src/inference/tokenizers/base.js",

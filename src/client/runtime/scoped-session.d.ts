@@ -17,6 +17,7 @@ export type DopplerCapability =
   | 'stream'
   | 'embed'
   | 'sequence'
+  | 'targetScoring'
   | 'inspect'
   | 'generationContext'
   | 'lora'
@@ -115,6 +116,11 @@ export interface DopplerScopedModelSession {
   ): Promise<DopplerModelInspectionReceipt>;
   embed(input: string, options?: Record<string, unknown>): Promise<DopplerEmbeddingEvidence>;
   encodeSequence(sequence: string, options?: SequenceEncodeOptions): Promise<SequenceEncodeResult>;
+  /** Requires `supports('targetScoring')`; serialized with generation on the loaded pipeline. */
+  scoreTargetSequence(
+    request: import('../../config/target-sequence-scoring.js').TargetSequenceScoringRequest,
+    options?: { signal?: AbortSignal }
+  ): Promise<import('../../config/target-sequence-scoring.js').TargetSequenceScoreResult>;
   loadLoRA(adapter: unknown, options?: Record<string, unknown>): Promise<void>;
   prepareLoRA(adapter: unknown, options?: Record<string, unknown>): Promise<import('./lora.js').DopplerPreparedLoRA>;
   activatePreparedLoRA(prepared: import('./lora.js').DopplerPreparedLoRA): Promise<void>;

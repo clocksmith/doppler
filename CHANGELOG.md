@@ -4,6 +4,16 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## DopplerX 0.1.6
+
+- Add `scoreTargetSequence` for teacher-forced log-probability scoring of an exact target continuation:
+  one prefill over the prompt plus target, per-token log-softmax over the full vocabulary row, and the
+  total, mean and a 0.01-rounded total. Targets that do not tokenize as a clean continuation of the prompt
+  are rejected before GPU work. Exposed on the compat model handle, with contract helpers exported from the
+  root and host entry points.
+- Expose target scoring on the scoped session (`doppler.scoped-session/v1`) as
+  `supports('targetScoring')` and `scoreTargetSequence(request, { signal })`, serialized with generation.
+
 ## DopplerX 0.1.5
 
 - Publish the Doppler runtime as `dopplerx`, using the paired Reploid 0.1.5 release version.

@@ -43,6 +43,7 @@ function capabilityMap(handle) {
     embed: handle?.supportsEmbedding === true && typeof handle?.embed === 'function',
     sequence: handle?.supportsSequence === true && typeof handle?.encodeSequence === 'function',
     inspect: typeof handle?.inspect?.generate === 'function',
+    targetScoring: !specializedModel && typeof handle?.scoreTargetSequence === 'function',
     lora: typeof handle?.loadLoRA === 'function' && typeof handle?.unloadLoRA === 'function',
     advanced: handle?.advanced && typeof handle.advanced === 'object',
     generationContext: handle?.supportsGenerationContext === true,
@@ -233,6 +234,14 @@ export function createScopedModelSession(handle) {
     async encodeSequence(sequence, options = {}) {
       requireCapability('sequence');
       return handle.encodeSequence(sequence, options);
+    },
+    async scoreTargetSequence(request, options = {}) {
+      requireCapability('targetScoring');
+      // The handle runs scoring as one pipeline operation, serialized with
+      // generation, and returns its validated result; it is passed through unchanged.
+      const signal = options?.signal;
+      signal?.throwIfAborted();
+      return handle.scoreTargetSequence(request, { signal });
     },
     async loadLoRA(adapter, options = {}) {
       requireCapability('lora');
