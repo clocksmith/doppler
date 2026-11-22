@@ -32,6 +32,9 @@ export async function scoreModelChoices(pipeline, input, { signal } = {}) {
     throw new Error('Choice labels must resolve to distinct answer tokens.');
   }
   signal?.throwIfAborted();
+  // Choice logits are a fresh-context quantity, but prefillWithTokenLogits appends at currentSeqLen:
+  // clear whatever an earlier generation left so it cannot condition the answer position.
+  pipeline.resetGenerationState();
   let failed = false;
   /** @type {unknown} */
   let failure;

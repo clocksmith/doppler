@@ -46,7 +46,7 @@ assert.throws(() => selectedTokenLogSoftmax(rows, vocab, [7, 0, 0]), /outside/);
 function adapterContext({ reject = null } = {}) {
   const calls = [];
   const state = {
-    isLoaded: true, isGenerating: false, useGPU: false, currentSeqLen: 0,
+    isLoaded: true, isGenerating: false, useGPU: false, currentSeqLen: 37,
     modelConfig: { vocabSize: vocab, layerTypes: [], chatTemplateEnabled: false },
     manifest: { modelId: 'target-scoring-fixture' },
     runtimeConfig: createDopplerConfig().runtime,
@@ -56,11 +56,12 @@ function adapterContext({ reject = null } = {}) {
   return {
     calls,
     _state: state,
+    _resetReplayPrefillRuntimeState() { calls.push('fresh-sequence'); state.currentSeqLen = 0; },
     _resetDecodeRuntimeState() {},
     _assertTokenIdsInRange(ids) { assert.ok(ids.every(id => id >= 0 && id < vocab)); },
     _closeFinitenessFallbackWindow() {},
     async _prefillPromptToLogits(prompt, opts) {
-      calls.push({ prompt, inputIds: opts.inputIds, trailing: opts._trailingLogitRows });
+      calls.push({ prompt, inputIds: opts.inputIds, trailing: opts._trailingLogitRows, startPos: state.currentSeqLen });
       if (reject) throw reject;
       state.currentSeqLen = opts.inputIds.length;
       return { inputIds: opts.inputIds, logits: rows, phase: {} };
@@ -69,8 +70,8 @@ function adapterContext({ reject = null } = {}) {
 }
 const adapter = adapterContext();
 const adapted = await prefillWithTargetTokenLogProbs.call(adapter, 'p', picks, { inputIds: [4, 5] });
-assert.deepEqual(adapter.calls, [{ prompt: 'p', inputIds: [4, 5, 2, 1], trailing: 3 }],
-  'the last target token is never fed: its logits would predict past the target');
+assert.deepEqual(adapter.calls, ['fresh-sequence', { prompt: 'p', inputIds: [4, 5, 2, 1], trailing: 3, startPos: 0 }],
+  'a stale sequence (currentSeqLen 37) is cleared first; the last target token is never fed');
 assert.deepEqual(adapted.tokens, [4, 5]);
 assert.deepEqual(adapted.targetTokenIds, picks);
 assert.deepEqual(adapted.logProbs, scored.logProbs);

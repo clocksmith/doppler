@@ -23,6 +23,8 @@ export interface TargetScoringGenerator {
     modelConfig: ParsedModelConfig;
     stats: PipelineState['stats'] & { operatorDiagnostics?: unknown };
   };
+  /** Clears KV, linear-attention, conv and hyper-connection sequence state and sets currentSeqLen to 0. */
+  _resetReplayPrefillRuntimeState(): void;
   _resetDecodeRuntimeState(): void;
   _assertTokenIdsInRange(tokenIds: number[], label: string): void;
   _closeFinitenessFallbackWindow(options: unknown): void;
@@ -35,8 +37,9 @@ export interface TargetScoringGenerator {
 
 /**
  * Teacher-forced scoring of `targetTokenIds` as the continuation of `options.inputIds`.
- * Runs one prefill over prompt + target[0..T-2] and projects only the T trailing rows
- * to complete-vocabulary logits.
+ * Starts from a fresh sequence (state left by an earlier generation is cleared), runs one
+ * prefill over prompt + target[0..T-2] and projects only the T trailing rows to
+ * complete-vocabulary logits.
  */
 export declare function prefillWithTargetTokenLogProbs(
   this: TargetScoringGenerator,

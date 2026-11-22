@@ -28,6 +28,9 @@ export async function prefillWithTargetTokenLogProbs(prompt, targetTokenIds, opt
   const promptIds = Array.from(options.inputIds, Number);
   this._assertTokenIdsInRange(promptIds, 'prefillWithTargetTokenLogProbs.inputIds');
   const sequence = [...promptIds, ...targets.slice(0, -1)];
+  // log P(target | prompt) is a fresh-context quantity. _prefill starts at currentSeqLen, so a
+  // finished generation's KV, recurrent and conv state would otherwise condition the score.
+  this._resetReplayPrefillRuntimeState();
   this._resetDecodeRuntimeState();
   this._state.stats.gpuTimePrefillMs = undefined;
   this._state.stats.prefillProfileSteps = [];

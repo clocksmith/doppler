@@ -58,8 +58,11 @@ head projects only the trailing rows that predict target tokens. Each
 vocabulary row (max-subtracted, float64 accumulation in index order).
 `totalLogProb` is their index-order sum, `meanLogProb` divides by `tokenCount`,
 and `roundedTotalLogProb` rounds the total to 0.01 (half toward +Infinity).
-Generation state is reset afterwards on success, failure and cancellation;
-resident weights stay loaded.
+Scoring always starts from a fresh sequence: KV, linear-attention recurrent and
+convolution state left by an earlier generation or score is cleared before the
+prefill, so a score never depends on what ran before it. Generation state is
+reset afterwards on success, failure and cancellation; resident weights stay
+loaded.
 
 **Reproducibility.** Values are reproducible for the same request on the same
 Doppler version, model artifact, runtime profile and GPU/driver. They are not
