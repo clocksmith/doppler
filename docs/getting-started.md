@@ -6,7 +6,11 @@ qualification, and benchmarking are separate engineering workflows.
 
 ## Published first run
 
-This guide pins the published `dopplerx@0.1.5` release. Its quickstart includes the
+This guide pins `dopplerx@0.1.5`, the published revision whose package and model
+artifact endpoints were checked for this example. For newer source revisions and
+published versions, see the [changelog](../CHANGELOG.md) and
+[npm package history](https://www.npmjs.com/package/dopplerx?activeTab=versions).
+The pinned quickstart includes the
 `gemma3-270m` alias for the hosted Gemma 3 270M Q4K model:
 
 ```sh
@@ -51,11 +55,11 @@ try {
 
 This is the published manifest-loading compatibility API. Keep sessions open
 across requests when appropriate and close them at application shutdown.
-The newer [signed Run API](api/root.md), [choice scoring](api/choice-scoring.md),
-and [resident partitions](distribution/resident-partition-execution.md) describe
-source contracts with their own release and qualification status. They ship in
-0.7.0; qualification stays per model and host. Applications own prompts, policy,
-trust, updates, and presentation; Doppler owns loading and execution lifecycle.
+The [signed Run API](api/root.md), [choice scoring](api/choice-scoring.md), and
+[resident partitions](distribution/resident-partition-execution.md) have their
+own version, model, and host qualification boundaries. Consult those contracts
+before using them. Applications own prompts, policy, trust, updates, and
+presentation; Doppler owns loading and execution lifecycle.
 
 ## Retained search starter
 
