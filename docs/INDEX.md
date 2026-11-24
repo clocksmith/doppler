@@ -100,4 +100,4 @@ host qualification, and external adoption are separate.
 - [Inference Guide](../src/inference/GUIDE.md)
 - [Kernel Tests](../tests/kernels/GUIDE.md)
 
-[Execution backend privacy boundary](execution-privacy-contract.md) and [two-server shares research route](../tools/privacy-concrete/SHARES.md) (research only; production cryptographic admission closed).
+[Execution backend privacy boundary](execution-privacy-contract.md) and [two-server shares research route](../tools/privacy-concrete/SHARES.md) (research only; production cryptographic admission closed); [protected backend plan](protected-backend-plan.md) for single-key encrypted generation (research only).
