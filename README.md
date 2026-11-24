@@ -15,7 +15,8 @@ The demo opens with a recorded answer. Select a token to inspect its alternative
 
 ## Get started
 
-Use Node 20+ and a working WebGPU provider. Run from the CLI or import from JavaScript:
+Use Node 20+ and a working WebGPU provider. This tested installation example
+pins the compatibility quickstart; see the changelog for newer source revisions.
 
 ```sh
 npx --package dopplerx@0.1.5 dopplerx --model gemma3-270m --prompt "Describe WebGPU briefly"
@@ -34,7 +35,7 @@ try {
 
 The first run downloads the selected model’s weights, tokenizer, and manifest. See [installation and embedding](docs/getting-started.md) for host requirements and [Signed Run API](docs/api/root.md) for Capsule sessions.
 
-[Published versions](https://www.npmjs.com/package/dopplerx) · [Source changelog](CHANGELOG.md) · [Signed Run API](docs/api/root.md)
+[Published versions](https://www.npmjs.com/package/dopplerx) · [Source changelog](CHANGELOG.md) · [Documentation](docs/INDEX.md)
 
 ## Benchmarks
 
