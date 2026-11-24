@@ -1,6 +1,8 @@
 # Doppler Docs Index
 
-Primary documentation index.
+The [README](../README.md) is the project front door. Use this index to find the
+owner of a contract or the evidence for a claim; package publication, model and
+host qualification, and external adoption are separate.
 
 ## Install and run
 
@@ -76,7 +78,6 @@ Primary documentation index.
 - [Routing-aware acceptance](routing-aware-acceptance.md) - proposed gate for routed-MoE models: near-tie root attribution, forced controls, pre-registered task quality.
 - [Benchmark Methodology](benchmark-methodology.md) - fairness and claim publication policy.
 - [Vendor Registry](../benchmarks/vendors/README.md) - cross-product benchmark contracts and tooling.
-- [Release Matrix](release-matrix.md) - generated model/platform support snapshot.
 
 ## Training and Distillation
 
