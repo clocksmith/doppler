@@ -46,6 +46,7 @@ export class Conn {
     });
     socket.on('end', () => { this.ended = new Error('connection closed'); this.#wake(); });
     socket.on('error', (e) => { this.ended = e; this.#wake(); });
+    socket.on('close', () => { this.ended = this.ended ?? new Error('connection closed'); this.#wake(); });
   }
 
   #wake() {
@@ -81,7 +82,19 @@ export class Conn {
     pre.writeUInt32LE(raw.length);
     const parts = [pre, raw, ...blobs];
     for (const p of parts) {
-      if (!this.socket.write(p)) await new Promise((resolve) => this.socket.once('drain', resolve));
+      if (this.ended) throw this.ended;
+      if (!this.socket.write(p)) {
+        // A peer that refuses a message closes the connection; the write must not wait for a drain that never comes.
+        await new Promise((resolve) => {
+          const done = () => {
+            this.socket.off('drain', done);
+            this.socket.off('close', done);
+            resolve();
+          };
+          this.socket.once('drain', done);
+          this.socket.once('close', done);
+        });
+      }
       this.sent += p.length;
     }
   }

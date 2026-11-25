@@ -23,6 +23,7 @@ import (
 	"math/big"
 	"os"
 	"time"
+	"weak"
 
 	"github.com/tuneinsight/lattigo/v6/circuits/ckks/polynomial"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
@@ -292,7 +293,7 @@ type recorder struct {
 	*ckks.Evaluator
 	params ckks.Parameters
 	x      *rnsExec
-	reg    map[*rlwe.Ciphertext]int
+	reg    map[weak.Pointer[rlwe.Ciphertext]]int // weak: the map must not keep every ciphertext alive
 	prog   *gpuProgram
 	blob   []uint32
 	from   string
@@ -300,7 +301,7 @@ type recorder struct {
 }
 
 func newRecorder(params ckks.Parameters, ev *ckks.Evaluator) *recorder {
-	return &recorder{Evaluator: ev, params: params, x: &rnsExec{params: params, ev: ev}, reg: map[*rlwe.Ciphertext]int{},
+	return &recorder{Evaluator: ev, params: params, x: &rnsExec{params: params, ev: ev}, reg: map[weak.Pointer[rlwe.Ciphertext]]int{},
 		prog: &gpuProgram{Counts: map[string]int{}}, gal: map[uint64]bool{}}
 }
 
@@ -312,27 +313,27 @@ func (r *recorder) newReg(deg, level int) int {
 // input registers an external ciphertext (an encrypted one-hot).
 func (r *recorder) input(ct *rlwe.Ciphertext) int {
 	id := r.newReg(ct.Degree(), ct.Level())
-	r.reg[ct] = id
+	r.reg[weak.Make(ct)] = id
 	return id
 }
 
 // id returns the register of a ciphertext. A ciphertext the recorder has not seen must be a fresh zero
 // ciphertext allocated inside Lattigo (the polynomial evaluator starts its sums from one).
 func (r *recorder) id(ct *rlwe.Ciphertext) int {
-	if id, ok := r.reg[ct]; ok {
+	if id, ok := r.reg[weak.Make(ct)]; ok {
 		return id
 	}
 	if !isZeroCt(ct) {
 		panic(fmt.Sprintf("recorder: %s used a ciphertext that was never recorded", r.from))
 	}
 	id := r.emitOp(rnsOp{Op: "zero", A: -1, B: -1, Level: ct.Level(), Deg: ct.Degree()})
-	r.reg[ct] = id
+	r.reg[weak.Make(ct)] = id
 	return id
 }
 
 func (r *recorder) alias(ct *rlwe.Ciphertext) *rlwe.Ciphertext {
 	cp := ct.CopyNew()
-	r.reg[cp] = r.id(ct)
+	r.reg[weak.Make(cp)] = r.id(ct)
 	return cp
 }
 
@@ -395,7 +396,7 @@ func (r *recorder) bind(res lowered, out *rlwe.Ciphertext) {
 	if err := sameCt(res.ct, out); err != nil {
 		panic(fmt.Sprintf("recorder: lowering of %s differs from Lattigo: %v", r.from, err))
 	}
-	r.reg[out] = res.id
+	r.reg[weak.Make(out)] = res.id
 }
 
 func modInv(a, q uint64) uint64 { return ring.ModExp(a, q-2, q) }

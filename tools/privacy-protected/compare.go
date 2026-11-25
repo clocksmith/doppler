@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"time"
 )
 
 func compareMain(args []string) error {
@@ -78,6 +79,8 @@ func dispatch(cmd string, args []string) error {
 		return requesterMain(args)
 	case "compare":
 		return compareMain(args)
+	case "plain-bench":
+		return plainBenchMain(args)
 	case "gpu-vectors":
 		return gpuVectorsMain(args)
 	case "gpu-compile":
@@ -86,4 +89,42 @@ func dispatch(cmd string, args []string) error {
 		return bootstrapProbeMain(args)
 	}
 	return fmt.Errorf("unknown command %q", cmd)
+}
+
+// plainBenchMain times the plaintext forward pass of the fixture (the float64 model and the approximated circuit)
+// for one token after a prompt: the comparison point for encrypted evaluation when no Doppler pipeline loads the
+// fixture.
+func plainBenchMain(args []string) error {
+	fs := flag.NewFlagSet("plain-bench", flag.ExitOnError)
+	modelPath := fs.String("model", "tiny-model.json", "public model fixture")
+	prompt := fs.String("prompt", "hkn", "prompt text")
+	reps := fs.Int("reps", 20000, "repetitions")
+	fs.Parse(args)
+	m, _, err := loadModel(*modelPath)
+	if err != nil {
+		return err
+	}
+	pl, err := newPlan(m)
+	if err != nil {
+		return err
+	}
+	toks, err := tokenize(*prompt)
+	if err != nil {
+		return err
+	}
+	var sink float64
+	t0 := time.Now()
+	for i := 0; i < *reps; i++ {
+		sink += exactLogits(m, toks)[0]
+	}
+	exact := time.Since(t0).Seconds() / float64(*reps)
+	t1 := time.Now()
+	for i := 0; i < *reps; i++ {
+		sink += approxLogits(pl, toks, nil)[0]
+	}
+	approx := time.Since(t1).Seconds() / float64(*reps)
+	out, _ := json.MarshalIndent(map[string]any{"prompt": *prompt, "token": argmax(exactLogits(m, toks)),
+		"float64ForwardSeconds": exact, "approximateCircuitSeconds": approx, "reps": *reps, "checksum": sink}, "", " ")
+	fmt.Println(string(out))
+	return nil
 }
