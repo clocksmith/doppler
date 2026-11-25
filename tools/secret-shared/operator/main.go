@@ -257,6 +257,7 @@ var gateIn *bufio.Reader
 // stepState tracks the requester's current step and this operator's delivery transcript.
 type stepState struct {
 	step       int64
+	authorized bool
 	rounds     int64
 	columns    int64
 	macs       int64
@@ -264,24 +265,35 @@ type stepState struct {
 	transcript hash.Hash
 }
 
-// finish reports the finished step on stdout and, when gated, waits for the supervisor's decision on the next one.
-func (st *stepState) finish(next int64) error {
+// report prints the finished step on stdout (once) so the supervisor can sign it before its output is acknowledged.
+func (st *stepState) report() {
 	if st.step >= 0 && st.rounds > 0 {
 		line, _ := json.Marshal(map[string]any{"step": st.step, "rounds": st.rounds, "columns": st.columns, "macs": st.macs,
 			"bytesOut": st.bytesOut, "transcript": hex.EncodeToString(st.transcript.Sum(nil))})
 		fmt.Printf("STEP %s\n", line)
 	}
-	if next >= 0 && gateIn != nil {
-		fmt.Printf("WAIT %d\n", next)
-		reply, err := gateIn.ReadString('\n')
-		if err != nil {
-			return err
-		}
-		if reply != fmt.Sprintf("GO %d\n", next) {
-			return errors.New("the supervisor refused step " + fmt.Sprint(next))
-		}
+	st.rounds, st.columns, st.macs, st.bytesOut = 0, 0, 0, 0
+}
+
+// begin moves to step `next`; with --gate the supervisor must answer GO before the step's first computation.
+func (st *stepState) begin(next int64) error {
+	if next != st.step {
+		st.report()
+		st.step, st.authorized = next, false
 	}
-	st.step, st.rounds, st.columns, st.macs, st.bytesOut = next, 0, 0, 0, 0
+	if st.authorized || gateIn == nil {
+		st.authorized = true
+		return nil
+	}
+	fmt.Printf("WAIT %d\n", next)
+	reply, err := gateIn.ReadString('\n')
+	if err != nil {
+		return err
+	}
+	if reply != fmt.Sprintf("GO %d\n", next) {
+		return errors.New("the supervisor refused step " + fmt.Sprint(next))
+	}
+	st.authorized = true
 	return nil
 }
 
@@ -353,12 +365,12 @@ func serve(conn net.Conn, token string, p *plan, stage, share int, groups map[st
 				writeMsg(w, map[string]any{"error": "payload size"}, nil)
 				return false
 			}
-			if v, ok := h["step"].(float64); ok && int64(v) != st.step {
+			if v, ok := h["step"].(float64); ok {
 				if int64(v) < st.step {
 					writeMsg(w, map[string]any{"error": "step went backwards"}, nil)
 					return false
 				}
-				if err := st.finish(int64(v)); err != nil {
+				if err := st.begin(int64(v)); err != nil {
 					writeMsg(w, map[string]any{"error": err.Error()}, nil)
 					return false
 				}
@@ -392,14 +404,20 @@ func serve(conn net.Conn, token string, p *plan, stage, share int, groups map[st
 			s.ComputeNs += ns
 			s.BytesOut += int64(len(out))
 			writeMsg(w, map[string]any{"round": round, "computeNs": ns}, out)
+		case "step":
+			// The requester's end of a step: report it now, before the step's output is acknowledged.
+			if v, ok := h["step"].(float64); ok && int64(v) == st.step {
+				st.report()
+			}
+			writeMsg(w, map[string]any{"ok": true}, nil)
 		case "stats":
 			writeMsg(w, map[string]any{"stats": s, "peakRss": peakRSS(), "weightBytes": weightBytes}, nil)
 		case "close":
-			st.finish(-1)
+			st.report()
 			writeMsg(w, map[string]any{"stats": s, "peakRss": peakRSS()}, nil)
 			return false
 		case "exit":
-			st.finish(-1)
+			st.report()
 			writeMsg(w, map[string]any{"stats": s, "peakRss": peakRSS()}, nil)
 			return true
 		default:
