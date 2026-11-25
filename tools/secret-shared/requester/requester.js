@@ -19,6 +19,9 @@
  *   node requester.js bench-shape --shape 27b --operators NULL_OPS.json --out REPORT.json [--prompt-tokens 146]
  *        [--max-tokens 32] [--embedding-file FILE] [...]   requester-only work at a model's shape, against null-operator.js
  *
+ * --threads N splits the DeltaNet value heads over N worker threads (default 1: everything on the main thread); the
+ * arithmetic per head is the same either way.
+ *
  * Every option that changes the protocol (--return-shift, --prg, --pipeline-steps) is off by default, and is used only
  * with operators that advertise it; the report records what each stage actually used.
  */
@@ -30,6 +33,7 @@ import { Tokenizer } from '../../../src/inference/tokenizer.js';
 import { SharedCluster } from './cluster.js';
 import { QwenRequesterModel, configFrom } from './model.js';
 import { fileSource, nodeEnv, npyWriter } from './node.js';
+import { createHeadPool } from './parallel.js';
 import { PlainLinear } from './plain.js';
 import { syntheticConfig, syntheticPlan, syntheticSource } from './synthetic.js';
 import { argmaxRows, cloneState, speculativeDecode, summarize } from './speculate.js';
@@ -38,13 +42,14 @@ const { positionals, values: args } = parseArgs({ allowPositionals: true, option
   model: { type: 'string' }, plan: { type: 'string' }, operators: { type: 'string' }, prompts: { type: 'string' },
   request: { type: 'string' }, out: { type: 'string' }, forced: { type: 'string' }, 'logits-out': { type: 'string' },
   'max-tokens': { type: 'string', default: '32' }, 'return-shift': { type: 'string', default: '0' }, prg: { type: 'string', default: 'shake256' },
-  'pipeline-steps': { type: 'boolean' }, 'full-digests': { type: 'boolean' }, explicit: { type: 'boolean' }, 'keep-rounds': { type: 'boolean' }, strict: { type: 'boolean' },
+  'pipeline-steps': { type: 'boolean' }, 'full-digests': { type: 'boolean' }, threads: { type: 'string', default: '1' }, explicit: { type: 'boolean' }, 'keep-rounds': { type: 'boolean' }, strict: { type: 'boolean' },
   'source-config': { type: 'string' }, shape: { type: 'string' }, 'embedding-file': { type: 'string' }, 'prompt-tokens': { type: 'string', default: '146' }, 'exit-operators': { type: 'boolean' }, 'prompt-limit': { type: 'string' },
   workloads: { type: 'string' }, ks: { type: 'string', default: '0,1,4,8' }, only: { type: 'string' }, plain: { type: 'boolean' } } });
 const command = positionals[0];
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 const cpuMs = () => { const u = process.cpuUsage(); return (u.user + u.system) / 1e3; };
 const peakRss = () => process.resourceUsage().maxRSS * 1024;
+const pool = Number(args.threads) > 1 ? createHeadPool(Number(args.threads)) : null;
 const template = prompt => `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`;
 /** The same template for a message list (system + user), thinking off. */
 const render = messages => messages.map(m => `<|im_start|>${m.role}\n${m.content}<|im_end|>\n`).join('') + '<|im_start|>assistant\n<think>\n\n</think>\n\n';
@@ -54,7 +59,7 @@ async function openModel(linear) {
   const config = configFrom(source.manifest, readJson(args['source-config'] ?? path.join(args.model, 'source-config.json')));
   const tokenizer = new Tokenizer();
   await tokenizer.initialize(source.manifest, { loadTokenizerJson: async () => readJson(path.join(args.model, 'tokenizer.json')) });
-  return { source, config, tokenizer, model: new QwenRequesterModel(config, source, linear) };
+  return { source, config, tokenizer, model: new QwenRequesterModel(config, source, linear, { parallel: pool }) };
 }
 
 async function openCluster(plan) {
@@ -136,7 +141,7 @@ async function cmdGenerate() {
   const loadS = (performance.now() - t0) / 1e3;
   const results = await runPrompts(model, config, tokenizer, cluster);
   const stats = await cluster.close(args['exit-operators'] ? 'exit' : 'close');
-  const report = { schema: 'doppler.secret-shared-generation/v1', requester: 'javascript', node: process.version, modelId: plan.modelId, fx: plan.fx, fw: plan.fw,
+  const report = { schema: 'doppler.secret-shared-generation/v1', requester: 'javascript', requesterThreads: pool?.threads ?? 1, node: process.version, modelId: plan.modelId, fx: plan.fx, fw: plan.fw,
     seeded: !args.explicit, protocol: { stages: cluster.describe(), pipelineSteps: Boolean(args['pipeline-steps']) }, teacherForced: Boolean(args.forced), loadS,
     requesterHolds: { tensors: source.heldTensors(), bytes: source.heldBytes(), embeddingBytesResident: 0, projectionBytes: 0 },
     results, freshness: freshness(cluster), operatorStats: stats, requesterPeakRss: peakRss(), rounds: args['keep-rounds'] ? cluster.rounds : null };
@@ -197,14 +202,14 @@ async function cmdBenchShape() {
   const plan = syntheticPlan(config, readJson(args.operators).stages.length);
   const cluster = await openCluster(plan);
   const source = syntheticSource(config, args['embedding-file']);
-  const model = new QwenRequesterModel(config, source, cluster);
+  const model = new QwenRequesterModel(config, source, cluster, { parallel: pool });
   const ids = Array.from({ length: Number(args['prompt-tokens']) }, (_, i) => (i * 7919) % config.vocab);
   const forced = Array.from({ length: Number(args['max-tokens']) }, (_, i) => (i * 104729) % config.vocab);
   const { steps } = await greedy(model, config, ids, forced.length, { cluster, forced });
   await cluster.close();
   const decode = steps.slice(1), med = key => decode.map(s => s[key]).sort((a, b) => a - b)[decode.length >> 1];
   const report = { schema: 'doppler.secret-shared-requester-shape/v1', note: 'requester-only work at the shape, against null operators; not a model run',
-    shape: args.shape, config: { ...config, layerTypes: undefined }, protocol: { stages: cluster.describe(), pipelineSteps: Boolean(args['pipeline-steps']) },
+    shape: args.shape, requesterThreads: pool?.threads ?? 1, config: { ...config, layerTypes: undefined }, protocol: { stages: cluster.describe(), pipelineSteps: Boolean(args['pipeline-steps']) },
     prefill: steps[0], decodeMedian: { cpuMs: med('cpuMs'), wallMs: med('wallMs'), up: med('up'), down: med('down'), rounds: med('rounds'), encodeMs: med('encodeMs'), decodeMs: med('decodeMs') },
     steps, requesterPeakRss: peakRss(), node: process.version };
   fs.writeFileSync(args.out, JSON.stringify(report) + '\n');
@@ -261,3 +266,4 @@ if (!commands[command] || (!args.model && command !== 'bench-shape') || (command
   process.exit(2);
 }
 await commands[command]();
+pool?.close();

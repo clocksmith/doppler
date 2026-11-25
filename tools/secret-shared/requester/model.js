@@ -16,6 +16,7 @@
  * `source.embeddingRow(id, dst)`, so a Node file reader and a browser loader can both feed it.
  */
 import { float16ToFloat32, float32ToFloat16 } from '../../../src/formats/float16.js';
+import { deltaRuleHeads } from './delta-rule.js';
 
 const F16 = new Float32Array(65536);
 for (let i = 0; i < 65536; i++) F16[i] = float16ToFloat32(i);
@@ -48,6 +49,9 @@ export function configFrom(manifest, source) {
 export class QwenRequesterModel {
   constructor(config, source, linear, { parallel = null } = {}) {
     this.c = config; this.source = source; this.linear = linear; this.parallel = parallel;
+    // With a worker pool, the DeltaNet state and per-layer inputs live in shared memory and value heads split across threads.
+    this.alloc = parallel ? parallel.alloc : n => new Float32Array(n);
+    this.dims = { dk: config.linDK, dv: config.linDV, VH: config.linVH, KH: config.linKH, eps: config.eps };
     const c = config, p = 'model.language_model.';
     const plusOne = w => { for (let i = 0; i < w.length; i++) w[i] = Math.fround(1 + w[i]); return w; };
     this.layers = c.layerTypes.map((kind, l) => {
@@ -77,7 +81,7 @@ export class QwenRequesterModel {
     return {
       pos: 0,
       conv: this.layers.map(L => (L.kind === 'linear_attention' ? new Float32Array((c.convK - 1) * convDim) : null)),
-      rec: this.layers.map(L => (L.kind === 'linear_attention' ? new Float32Array(c.linVH * c.linDK * c.linDV) : null)),
+      rec: this.layers.map(L => (L.kind === 'linear_attention' ? this.alloc(c.linVH * c.linDK * c.linDV) : null)),
       k: this.layers.map(L => (L.kind === 'linear_attention' ? null : { data: new Uint16Array(0), len: 0 })),
       v: this.layers.map(L => (L.kind === 'linear_attention' ? null : { data: new Uint16Array(0), len: 0 })),
       snapshot: null
@@ -134,7 +138,7 @@ export class QwenRequesterModel {
         state.conv[l].set(s.conv[l]); state.rec[l].set(s.rec[l]);
         for (let t = 0; t < accepted; t++) {
           const st = s.steps[l][t];
-          this.recurrence(state.rec[l], st.q, st.k, st.v, st.g, st.beta, new Float32Array(c.linVH * c.linDV));
+          deltaRuleHeads(state.rec[l], st.q, st.k, st.v, st.g, st.beta, null, null, new Float32Array(c.linVH * c.linDV), 1, this.dims, 0, c.linVH);
           shiftConv(state.conv[l], st.mixed, convDim, c.convK);
         }
       } else {
@@ -148,62 +152,39 @@ export class QwenRequesterModel {
     const c = this.c, kd = c.linKH * c.linDK, vd = c.linVH * c.linDV, convDim = 2 * kd + vd, VH = c.linVH;
     const r = await this.linear.run(`L${l}.in`, h, n);
     const width = convDim + vd + 2 * VH;
-    const core = new Float32Array(n * vd);
+    const alloc = this.alloc;
+    const q = alloc(n * kd), k = alloc(n * kd), v = alloc(n * vd), z = alloc(n * vd), g = alloc(n * VH), beta = alloc(n * VH), core = alloc(n * vd);
     const conv = state.conv[l], K = c.convK;
     const qScale = Math.fround(1 / Math.sqrt(c.linDK));
+    const post = new Float32Array(convDim);
     for (let t = 0; t < n; t++) {
       const row = r.subarray(t * width, (t + 1) * width);
-      const mixed = row.subarray(0, convDim), z = row.subarray(convDim, convDim + vd);
-      const b = row.subarray(convDim + vd, convDim + vd + VH), a = row.subarray(convDim + vd + VH, width);
+      const mixed = row.subarray(0, convDim);
       // Causal depthwise convolution over the last K inputs (K - 1 kept in state), then SiLU.
-      const post = new Float32Array(convDim);
       for (let ch = 0; ch < convDim; ch++) {
         let s = 0;
-        for (let k = 0; k < K - 1; k++) s += L.conv[ch * K + k] * conv[k * convDim + ch];
+        for (let j = 0; j < K - 1; j++) s += L.conv[ch * K + j] * conv[j * convDim + ch];
         s += L.conv[ch * K + K - 1] * mixed[ch];
         post[ch] = silu(Math.fround(s));
       }
       shiftConv(conv, mixed, convDim, K);
-      const q = post.slice(0, kd), k = post.slice(kd, 2 * kd), v = post.slice(2 * kd);
-      l2norm(q, c.linDK, qScale); l2norm(k, c.linDK, 1);
-      const g = new Float32Array(VH), beta = new Float32Array(VH);
+      const qt = q.subarray(t * kd, (t + 1) * kd), kt = k.subarray(t * kd, (t + 1) * kd);
+      qt.set(post.subarray(0, kd)); kt.set(post.subarray(kd, 2 * kd)); v.set(post.subarray(2 * kd), t * vd);
+      l2norm(qt, c.linDK, qScale); l2norm(kt, c.linDK, 1);
+      z.set(row.subarray(convDim, convDim + vd), t * vd);
       for (let hv = 0; hv < VH; hv++) {
-        beta[hv] = sigmoid(b[hv]);
-        g[hv] = L.negA[hv] * Math.fround(softplus(Math.fround(a[hv] + L.dtBias[hv])));
+        beta[t * VH + hv] = sigmoid(row[convDim + vd + hv]);
+        g[t * VH + hv] = L.negA[hv] * Math.fround(softplus(Math.fround(row[convDim + vd + VH + hv] + L.dtBias[hv])));
       }
-      if (state.snapshot) state.snapshot.steps[l].push({ q, k, v, g, beta, mixed: mixed.slice() });
-      const out = core.subarray(t * vd, (t + 1) * vd);
-      this.recurrence(state.rec[l], q, k, v, g, beta, out);
-      // Gated RMSNorm per value head: norm(out) * w * silu(z).
-      for (let hv = 0; hv < VH; hv++) {
-        const o = hv * c.linDV;
-        let s = 0;
-        for (let j = 0; j < c.linDV; j++) s += out[o + j] * out[o + j];
-        const inv = Math.fround(1 / Math.sqrt(Math.fround(Math.fround(s / c.linDV) + c.eps)));
-        for (let j = 0; j < c.linDV; j++) out[o + j] = Math.fround(Math.fround(out[o + j] * inv) * L.gnorm[j]) * Math.fround(silu(z[o + j]));
-      }
+      if (state.snapshot) state.snapshot.steps[l].push({ q: qt.slice(), k: kt.slice(), v: v.slice(t * vd, (t + 1) * vd), g: g.slice(t * VH, (t + 1) * VH), beta: beta.slice(t * VH, (t + 1) * VH), mixed: mixed.slice() });
     }
+    const d = this.dims;
+    // A state copied with slice() (for example to decode several ways from one prefill) is no longer shared memory;
+    // move it back so the workers update the caller's state, not a structured clone of it.
+    if (this.parallel && !(state.rec[l].buffer instanceof SharedArrayBuffer)) { const shared = this.alloc(state.rec[l].length); shared.set(state.rec[l]); state.rec[l] = shared; }
+    if (this.parallel) await this.parallel.deltaRule({ S: state.rec[l], q, k, v, g, beta, z, gnorm: L.gnorm, out: core, n, d });
+    else deltaRuleHeads(state.rec[l], q, k, v, g, beta, z, L.gnorm, core, n, d, 0, VH);
     return this.linear.run(`L${l}.out`, core, n);
-  }
-
-  /** One position of the gated delta rule for every value head; S is [VH][dk][dv]. */
-  recurrence(S, q, k, v, g, beta, out) {
-    const c = this.c, dk = c.linDK, dv = c.linDV, rep = c.linVH / c.linKH;
-    const kv = new Float64Array(dv), delta = new Float64Array(dv), acc = new Float64Array(dv);
-    for (let hv = 0; hv < c.linVH; hv++) {
-      const hk = Math.floor(hv / rep), base = hv * dk * dv, eg = Math.exp(g[hv]), bt = beta[hv];
-      kv.fill(0); acc.fill(0);
-      for (let i = 0; i < dk; i++) {
-        const ki = k[hk * dk + i], o = base + i * dv;
-        for (let j = 0; j < dv; j++) { const s = (S[o + j] = S[o + j] * eg); kv[j] += s * ki; }
-      }
-      for (let j = 0; j < dv; j++) delta[j] = Math.fround((v[hv * dv + j] - Math.fround(kv[j])) * bt);
-      for (let i = 0; i < dk; i++) {
-        const ki = k[hk * dk + i], qi = q[hk * dk + i], o = base + i * dv;
-        for (let j = 0; j < dv; j++) { const s = (S[o + j] = S[o + j] + ki * delta[j]); acc[j] += s * qi; }
-      }
-      for (let j = 0; j < dv; j++) out[hv * dv + j] = acc[j];
-    }
   }
 
   async attention(l, L, h, n, state) {
