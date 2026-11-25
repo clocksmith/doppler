@@ -83,7 +83,7 @@
     "source:unused:check": "node tools/check-unused-locals.js",
     "style:guides:check": "node tools/check-style-guides.js",
     "style:guides:test": "node tests/tooling/style-guide-check.test.js && node tests/config/json-style-check.test.js && node tests/config/wgsl-style-check.test.js",
-    "check:fast": "npm run source:style:check && npm run source:architecture:check && node tools/check-style-guides.js --changed && node tools/check-artifact-retention.js",
+    "check:fast": "npm run source:style:check && npm run source:architecture:check && node tools/check-style-guides.js --changed && node tools/check-artifact-retention.js && node tools/check-kebab-enum-values.js",
     "source:style:check": "node tools/check-unused-locals.js && node tools/check-source-style.js",
     "source:architecture:check": "node tools/check-source-architecture.js",
     "capability-policy:check": "node tools/check-capability-transform-policy.js",
@@ -183,7 +183,8 @@
     "policy:schemas:check": "node tools/check-policy-schema-registry.js",
     "demo:hosting:build": "npm --prefix ../d4da run sync:world:doppler -- --doppler-only && npm --prefix ../d4da run check:world:doppler",
     "demo:hosting:preview": "npm run demo:hosting:build && npm --prefix ../d4da run preview:world",
-    "demo:hosting:deploy": "npm --prefix ../d4da run deploy:world"
+    "demo:hosting:deploy": "npm --prefix ../d4da run deploy:world",
+    "enum-values:check": "node tools/check-kebab-enum-values.js"
   },
   "exports": {
     ".": {

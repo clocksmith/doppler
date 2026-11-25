@@ -1,0 +1,108 @@
+{
+  "schema": "doppler.kebab-enum-values/v1",
+  "jsonScopes": [
+    "src/config",
+    "src/rules",
+    "tools/policies",
+    "benchmarks/vendors"
+  ],
+  "jsScopes": [
+    "src/config",
+    "src/rules",
+    "src/tooling",
+    "src/formats",
+    "src/inference",
+    "src/converter",
+    "src/loader",
+    "src/client"
+  ],
+  "excludeFiles": [
+    "^src/config/legacy-enum-values\\.js$",
+    "^benchmarks/vendors/results/",
+    "^src/config/kernels/registry\\.json$",
+    "^src/rules/generated/",
+    "^src/config/source-packages/litert/gemma-4-(12b|e4b)-it\\.json$"
+  ],
+  "extraEnumFields": [],
+  "externalValues": {
+    "ggufDtypes": [
+      "q4_0",
+      "q4_1",
+      "q5_0",
+      "q8_0",
+      "q4_k_m",
+      "q6_k"
+    ],
+    "huggingFaceModelTypes": [
+      "qwen3_5",
+      "qwen3_5_text",
+      "qwen3_5_moe",
+      "qwen3_5_moe_text",
+      "qwen4_exp",
+      "qwen4_exp_text",
+      "gemma3_text"
+    ],
+    "huggingFaceLayerTypes": [
+      "linear_attention",
+      "full_attention",
+      "sliding_attention",
+      "gated_delta",
+      "gated_delta_net"
+    ],
+    "tensorAndOpProbeStages": [
+      "embed_out",
+      "layer_in",
+      "attn_input",
+      "attn_normed",
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "q_norm",
+      "k_norm",
+      "q_scale",
+      "q_rope",
+      "k_rope",
+      "attn_scores",
+      "attn_out",
+      "post_attn",
+      "ffn_normed",
+      "ffn_in",
+      "ffn_gate",
+      "ffn_up",
+      "ffn_act",
+      "ffn_out",
+      "layer_out",
+      "pre_final_norm",
+      "final_norm",
+      "logits_final",
+      "post_input_norm",
+      "linear_qkv_proj",
+      "linear_z_proj",
+      "linear_a_proj",
+      "linear_b_proj",
+      "linear_core_out"
+    ]
+  },
+  "legacyLiteralAllowedFiles": [
+    "^src/converter/quantization-info\\.js$",
+    "^src/rules/kernels/kv_quantize\\.rules\\.json$"
+  ],
+  "publishedValues": {
+    "structuredHeadModelTypes": [
+      "structured_json_head",
+      "dream_structured",
+      "dream_intent_posterior_head",
+      "dream_d1_to2_bridge",
+      "dream_synthesis",
+      "dream_energy_compose",
+      "energy_row_head",
+      "dream_energy_head"
+    ],
+    "trainerHandoffContract": [
+      "huggingface_safetensors"
+    ],
+    "translationCompetitionReceipt": [
+      "selective_f16"
+    ]
+  }
+}
