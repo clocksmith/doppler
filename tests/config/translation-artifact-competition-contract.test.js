@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
-import { evaluateTranslationArtifactCompetition } from '../../src/tooling/translation-artifact-competition.js';
+import {
+  evaluateTranslationArtifactCompetition,
+  readTranslationArtifactCompetitionReceipt,
+} from '../../src/tooling/translation-artifact-competition.js';
 
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
@@ -14,7 +17,16 @@ const handoffBytes = readFileSync(handoffPath);
 const handoff = JSON.parse(handoffBytes.toString('utf8'));
 const handoffSha256 = createHash('sha256').update(handoffBytes).digest('hex');
 const verification = readJson('docs/status/nativekd2-bf16-baseline-import-receipt-2026-07-13.json');
-const committed = readJson('docs/status/translation-artifact-competition-readiness-2026-07-13.json');
+// The recorded receipt predates the kebab-case lane rename (selective_f16) and is
+// kept byte-for-byte; the reader verifies its hash and canonicalizes lane ids.
+const recorded = readJson('docs/status/translation-artifact-competition-readiness-2026-07-13.json');
+const committed = readTranslationArtifactCompetitionReceipt(recorded);
+assert.equal(recorded.lanes[1].laneId, 'selective_f16');
+assert.equal(committed.lanes[1].laneId, 'selective-f16');
+assert.throws(
+  () => readTranslationArtifactCompetitionReceipt({ ...recorded, decision: 'artifact_generation_allowed' }),
+  /receipt hash does not match/
+);
 
 // The committed readiness receipt is the evaluator's output over the committed inputs.
 const replayed = evaluateTranslationArtifactCompetition({
@@ -23,7 +35,17 @@ const replayed = evaluateTranslationArtifactCompetition({
   handoffSha256,
   verificationReceipt: verification,
 });
-assert.deepEqual(replayed, committed);
+const { receiptHash: _replayedHash, ...replayedCore } = replayed;
+const { receiptHash: _recordedHash, ...committedCore } = committed;
+assert.deepEqual(replayedCore, committedCore);
+
+// A policy still carrying the legacy lane spelling is read in kebab-case.
+const legacyPolicy = structuredClone(policy);
+legacyPolicy.artifactLanes[1].laneId = 'selective_f16';
+assert.deepEqual(
+  evaluateTranslationArtifactCompetition({ policy: legacyPolicy, handoff, handoffSha256, verificationReceipt: verification }),
+  replayed
+);
 
 // The observed source is the handoff the evaluator was given.
 assert.equal(committed.observedSource.artifactRole, handoff.artifactRole);

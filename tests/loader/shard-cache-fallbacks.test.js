@@ -55,7 +55,7 @@ async function collectStream(iterable) {
   assert.deepEqual(Array.from(new Uint8Array(range)), [2, 3, 4]);
   assert.equal(cache.lastSource?.mode, 'range');
   assert.equal(cache.lastSource?.path, 'custom-loader-slice');
-  assert.equal(cache.lastSource?.fallback, 'custom_range_not_supported');
+  assert.equal(cache.lastSource?.fallback, 'custom-range-not-supported');
   assert.deepEqual(cache.customReadStats, { bytesRead: shard.byteLength, shardsRead: 1 });
   cache.resetCustomReadStats();
   assert.deepEqual(cache.customReadStats, { bytesRead: 0, shardsRead: 0 });
@@ -85,7 +85,7 @@ async function collectStream(iterable) {
   assert.deepEqual(bytes, [0, 1, 2, 3, 4, 5]);
   assert.equal(cache.lastSource?.mode, 'stream');
   assert.equal(cache.lastSource?.path, 'custom-range-fallback');
-  assert.equal(cache.lastSource?.fallback, 'custom_stream_interrupted_resume');
+  assert.equal(cache.lastSource?.fallback, 'custom-stream-interrupted-resume');
   assert.deepEqual(cache.customReadStats, { bytesRead: 6, shardsRead: 1 });
 }
 
@@ -115,7 +115,7 @@ async function collectStream(iterable) {
   assert.deepEqual(bytes, [0, 1, 2, 3]);
   assert.equal(cache.lastSource?.mode, 'stream');
   assert.equal(cache.lastSource?.path, 'custom-range');
-  assert.equal(cache.lastSource?.fallback, 'custom_range_partial_retry');
+  assert.equal(cache.lastSource?.fallback, 'custom-range-partial-retry');
   assert.deepEqual(cache.customReadStats, { bytesRead: 4, shardsRead: 1 });
 }
 

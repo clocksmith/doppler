@@ -15,7 +15,6 @@ const policy = {
   jsScopes: ['src/config'],
   excludeFiles: [],
   externalValues: { ggufDtypes: ['q4_0'] },
-  publishedValues: {},
 };
 
 function makeRepo(files) {

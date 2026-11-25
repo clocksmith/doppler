@@ -103,7 +103,7 @@ describe('buildProviderReceiptV1', () => {
       source: 'local',
       policyMode: 'prefer-local',
       failure: {
-        failureClass: 'gpu_oom',
+        failureClass: 'gpu-oom',
         failureCode: 'DOPPLER_GPU_OOM',
         stage: 'prefill',
         surface: 'webgpu',
@@ -117,7 +117,7 @@ describe('buildProviderReceiptV1', () => {
       totalDurationMs: 100,
     });
     assert.ok(receipt.failure);
-    assert.equal(receipt.failure.failureClass, 'gpu_oom');
+    assert.equal(receipt.failure.failureClass, 'gpu-oom');
     assert.equal(receipt.failure.failureCode, 'DOPPLER_GPU_OOM');
     assert.equal(receipt.failure.modelId, 'gemma-3-270m');
     assert.equal(receipt.failure.runtimeProfile, 'approved_discrete');
@@ -131,7 +131,7 @@ describe('buildProviderReceiptV1', () => {
       source: 'local',
       policyMode: 'local-only',
       failure: {
-        failureClass: 'gpu_device_lost',
+        failureClass: 'gpu-device-lost',
         failureCode: 'DOPPLER_GPU_DEVICE_LOST',
         stage: 'decode',
         surface: 'webgpu',

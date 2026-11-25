@@ -12,7 +12,9 @@ const close = (actual, expected, tolerance, label) => assert.ok(
 // shifted(s) = shift * s / (1 + (shift - 1) * s); sigma_min = shifted(1/T);
 // grid = shifted(linspace(1, sigma_min, steps)); the last step integrates to 0.
 {
+  // The legacy flowmatch_euler spelling is read as flowmatch-euler.
   const scheduler = buildScheduler({ type: 'flowmatch_euler', numSteps: 4, numTrainTimesteps: 1000, shift: 1.0 });
+  assert.equal(scheduler.type, 'flowmatch-euler');
   assert.equal(scheduler.steps, 4);
   close(scheduler.sigmas[0], 1.0, 1e-6, 'sigma_max');
   close(scheduler.sigmas[3], 0.001, 1e-6, 'sigma_min at shift 1');
@@ -24,7 +26,7 @@ const close = (actual, expected, tolerance, label) => assert.ok(
 {
   // SD3 ships shift=3. The old formula t / (t + shift (1 - t)) pushed the
   // mid-point to 0.25; the reference pushes it toward 1 (0.751).
-  const scheduler = buildScheduler({ type: 'flowmatch_euler', numSteps: 3, numTrainTimesteps: 1000, shift: 3.0 });
+  const scheduler = buildScheduler({ type: 'flowmatch-euler', numSteps: 3, numTrainTimesteps: 1000, shift: 3.0 });
   const sigmaMinOnce = (3 * 0.001) / (1 + 2 * 0.001);
   const mid = (1 + sigmaMinOnce) / 2;
   close(scheduler.sigmas[0], 1.0, 1e-6, 'shifted sigma_max');
@@ -39,17 +41,18 @@ const close = (actual, expected, tolerance, label) => assert.ok(
   assert.ok(deltas.every((delta) => delta < 0), `all deltas negative: ${deltas.join(', ')}`);
 }
 
-assert.throws(() => buildScheduler({ type: 'flowmatch_euler', numSteps: 2, numTrainTimesteps: 1000, shift: 0 }), /shift must be positive/);
+assert.throws(() => buildScheduler({ type: 'flowmatch-euler', numSteps: 2, numTrainTimesteps: 1000, shift: 0 }), /shift must be positive/);
 
 // Schedulers the GPU loop does not implement are rejected by the builder and by
 // the contract helper, naming what is implemented.
-for (const type of ['euler', 'euler_a', 'dpmpp_2m', 'ddim']) {
+for (const type of ['euler', 'euler-a', 'dpmpp-2m', 'euler_a', 'ddim']) {
   assert.throws(
     () => buildScheduler({ type, numSteps: 4, numTrainTimesteps: 1000 }),
-    /not implemented by the GPU runtime.*flowmatch_euler \(FlowMatchEulerDiscreteScheduler\), scm \(SCMScheduler\)/
+    /not implemented by the GPU runtime.*flowmatch-euler \(FlowMatchEulerDiscreteScheduler\), scm \(SCMScheduler\)/
   );
 }
 assert.equal(assertSupportedDiffusionSchedulerType('scm'), 'scm');
+assert.equal(assertSupportedDiffusionSchedulerType('flowmatch_euler'), 'flowmatch-euler');
 assert.throws(() => assertSupportedDiffusionSchedulerType('euler_a', 'EulerAncestralDiscreteScheduler'), /model scheduler class "EulerAncestralDiscreteScheduler"/);
 
 // Load-time gates: unsupported layouts and scheduler classes fail when the
@@ -74,11 +77,11 @@ function createManifest({ layout = 'sd3', schedulerClass = 'FlowMatchEulerDiscre
 const runtimeConfig = { inference: { diffusion: { backend: { pipeline: 'gpu' } } } };
 {
   const state = initializeDiffusion(createManifest(), runtimeConfig);
-  assert.equal(state.runtime.scheduler.type, 'flowmatch_euler');
+  assert.equal(state.runtime.scheduler.type, 'flowmatch-euler');
   assert.equal(state.runtime.scheduler.shift, 3.0);
 }
 assert.throws(() => initializeDiffusion(createManifest({ layout: 'flux' }), runtimeConfig), /layout "flux".*Supported runtime layouts: sd3\./);
 assert.throws(() => initializeDiffusion(createManifest({ schedulerClass: 'EulerDiscreteScheduler' }), runtimeConfig), /"euler" from model scheduler class "EulerDiscreteScheduler" is not implemented/);
-assert.throws(() => initializeDiffusion(createManifest({ schedulerClass: 'DPMSolverMultistepScheduler' }), runtimeConfig), /"dpmpp_2m"/);
+assert.throws(() => initializeDiffusion(createManifest({ schedulerClass: 'DPMSolverMultistepScheduler' }), runtimeConfig), /"dpmpp-2m"/);
 assert.throws(() => initializeDiffusion(createManifest({ schedulerClass: null }), runtimeConfig), /"ddim" from runtime scheduler default is not implemented/);
 console.log('diffusion flow-match scheduler and runtime gates ok');

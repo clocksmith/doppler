@@ -139,4 +139,49 @@ assert.equal(evidenceResult.text, 'evidence-backed');
 assert.equal(evidenceResult.receipt.resolutionStatus, 'resolved');
 assert.deepEqual(evidenceResult.receipt.resolution, resolution);
 
+// --- fallbackOn failure classes: kebab-case, legacy snake_case still read ---
+
+function oomHandle() {
+  return {
+    loaded: true,
+    modelId: 'fixture-oom',
+    manifest: { modelId: 'fixture-oom' },
+    deviceInfo: null,
+    async generateText() {
+      throw new Error('WebGPU out of memory during prefill');
+    },
+    async unload() {},
+  };
+}
+
+const originalFetch = globalThis.fetch;
+globalThis.fetch = async () => new Response(JSON.stringify({
+  choices: [{ message: { content: 'from-fallback' } }],
+}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+try {
+  for (const fallbackOn of [['gpu-oom'], ['gpu_oom']]) {
+    const provider = createDopplerProvider({
+      local: { handle: oomHandle() },
+      policy: { mode: 'prefer-local', fallbackOn },
+      fallback: { provider: 'openai', model: 'gpt-4o', baseUrl: 'http://127.0.0.1:9' },
+    });
+    const result = await provider.generate('hello');
+    assert.equal(result.inferenceSource, 'fallback', `fallbackOn ${fallbackOn[0]} admits gpu-oom`);
+    assert.equal(result.receipt.failure.failureClass, 'gpu-oom');
+    assert.equal(result.receipt.fallbackDecision.reason, 'gpu-oom');
+  }
+
+  const deniedProvider = createDopplerProvider({
+    local: { handle: oomHandle() },
+    policy: { mode: 'prefer-local', fallbackOn: ['gpu_timeout'] },
+    fallback: { provider: 'openai', model: 'gpt-4o', baseUrl: 'http://127.0.0.1:9' },
+  });
+  await assert.rejects(
+    () => deniedProvider.generate('hello'),
+    (error) => error.code === ERROR_CODES.PROVIDER_POLICY_DENIED && /gpu-oom/.test(error.message)
+  );
+} finally {
+  globalThis.fetch = originalFetch;
+}
+
 console.log('doppler-provider-contract.test: ok');

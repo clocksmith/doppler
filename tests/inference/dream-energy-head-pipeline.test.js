@@ -24,7 +24,7 @@ const { createPipeline } = await import('../../src/inference/pipelines/text.js')
 
 {
   const manifest = {
-    modelType: 'energy_row_head',
+    modelType: 'energy-row-head',
     modelId: 'energy-row-head-test',
     featureIds: ['f0', 'f1'],
     weights: [1, -1],
@@ -144,6 +144,7 @@ const { createPipeline } = await import('../../src/inference/pipelines/text.js')
 
 {
   const manifest = {
+    // Legacy snake_case spelling: still read, logged as dream-energy-head.
     modelType: 'dream_energy_head',
     modelId: 'dream-energy-head-test',
     featureIds: ['f0', 'f1', 'f2'],

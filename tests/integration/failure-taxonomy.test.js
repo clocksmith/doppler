@@ -1,16 +1,16 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyProviderFailure, FAILURE_CLASSES } from '../../src/client/failure-taxonomy.js';
+import { classifyProviderFailure, FAILURE_CLASSES, normalizeFailureClass } from '../../src/client/failure-taxonomy.js';
 import { ERROR_CODES } from '../../src/errors/doppler-error.js';
 
 describe('classifyProviderFailure — fine-grained classes', () => {
-  it('classifies OOM as gpu_oom', () => {
+  it('classifies OOM as gpu-oom', () => {
     const result = classifyProviderFailure(new Error('WebGPU out of memory during inference'));
     assert.equal(result.failureClass, FAILURE_CLASSES.GPU_OOM);
     assert.equal(result.failureCode, ERROR_CODES.GPU_OOM);
   });
 
-  it('classifies device lost as gpu_device_lost', () => {
+  it('classifies device lost as gpu-device-lost', () => {
     const result = classifyProviderFailure(new Error('GPU device lost'));
     assert.equal(result.failureClass, FAILURE_CLASSES.GPU_DEVICE_LOST);
     assert.equal(result.failureCode, ERROR_CODES.GPU_DEVICE_LOST);
@@ -88,7 +88,7 @@ describe('classifyProviderFailure — fine-grained classes', () => {
   it('infers surface from error message', () => {
     assert.equal(classifyProviderFailure(new Error('WebGPU buffer error')).surface, 'webgpu');
     assert.equal(classifyProviderFailure(new Error('GPU memory exhausted')).surface, 'webgpu');
-    assert.equal(classifyProviderFailure(new Error('OpenAI fallback failed')).surface, 'openai_compat');
+    assert.equal(classifyProviderFailure(new Error('OpenAI fallback failed')).surface, 'openai-compat');
     assert.equal(classifyProviderFailure(new Error('completely unrecognizable failure')).surface, 'unknown');
   });
 
@@ -135,5 +135,15 @@ describe('classifyProviderFailure — fine-grained classes', () => {
     assert.equal(result.kernelPathId, null);
     assert.equal(result.device, null);
     assert.equal(result.modelId, null);
+  });
+});
+
+describe('failure class spelling', () => {
+  it('emits kebab-case classes and reads the legacy snake_case spellings', () => {
+    for (const value of Object.values(FAILURE_CLASSES)) assert.match(value, /^[a-z]+(-[a-z]+)*$/);
+    assert.equal(normalizeFailureClass('gpu_oom'), FAILURE_CLASSES.GPU_OOM);
+    assert.equal(normalizeFailureClass('model_load_failed'), FAILURE_CLASSES.MODEL_LOAD_FAILED);
+    assert.equal(normalizeFailureClass('gpu-oom'), FAILURE_CLASSES.GPU_OOM);
+    assert.equal(normalizeFailureClass('unknown'), FAILURE_CLASSES.UNKNOWN);
   });
 });

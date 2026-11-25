@@ -31,6 +31,7 @@ const DREAM_MODEL_TYPES = [
   'structured_json_head',
   'structured-json-head',
   'dream_structured',
+  'dream-structured',
   'dream_intent_posterior_head',
   'dream_d1_to2_bridge',
   'dream_synthesis',

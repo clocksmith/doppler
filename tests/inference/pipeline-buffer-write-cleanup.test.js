@@ -108,7 +108,7 @@ function assertPoolIsClean() {
   const pipeline = new EnergyRowHeadPipeline();
   await pipeline.initialize({ runtimeConfig: {} });
   await pipeline.loadModel({
-    modelType: 'dream_energy_head',
+    modelType: 'dream-energy-head',
     modelId: 'dream-energy-head-test',
     featureIds: ['f0', 'f1'],
     weights: [0.5, -0.25],

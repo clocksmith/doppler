@@ -169,7 +169,7 @@ try {
     artifact: {
       kind: 'full_checkpoint',
       role: 'diagnostic_baseline',
-      format: 'huggingface_safetensors',
+      format: 'huggingface-safetensors',
       repository: 'clocksmith/gamma',
       rootPath: checkpointRoot,
       files: [weights, config, generationConfig],

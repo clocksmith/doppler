@@ -45,8 +45,15 @@ assert.equal(importHash, contract.importVerification.importReceiptHash);
 assert.equal(receipt.importReceipt.identityReceiptHash, verificationHash);
 
 // Admission in the receipts matches what the bridge derives for this descriptor.
+// The recorded receipts predate the kebab-case format rename and are kept as
+// written: the plan reads the Gamma spelling and emits huggingface-safetensors,
+// and the recorded plan hash is the same plan under the spelling it was hashed with.
 const plan = buildTrainerArtifactImportPlan(descriptor, receipt.verification);
-assert.equal(receipt.importReceipt.importPlanHash, plan.planHash);
+assert.equal(contract.sourceCheckpoint.format, 'huggingface_safetensors');
+assert.equal(plan.source.format, 'huggingface-safetensors');
+const { planHash: _planHash, ...planCore } = plan;
+const recordedPlanCore = { ...planCore, source: { ...planCore.source, format: contract.sourceCheckpoint.format } };
+assert.equal(receipt.importReceipt.importPlanHash, hashStableJson(recordedPlanCore));
 for (const admission of [receipt.verification.admission, receipt.importReceipt]) {
   assert.equal(admission.candidateCompetitionAllowed, plan.admission.candidateCompetitionAllowed);
   assert.equal(admission.promotionAllowed, plan.admission.promotionAllowed);
