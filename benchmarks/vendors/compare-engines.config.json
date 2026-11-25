@@ -29,7 +29,7 @@
         "throughput": "profiles/gemma3-270m-q4k-throughput-overlapped-probe",
         "custom": "profiles/gemma3-270m-q4k-throughput-overlapped-probe"
       },
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "compareLaneReason": null
     },
     {
@@ -41,7 +41,7 @@
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",
       "safetensorsSourceId": "google/gemma-3-270m-it",
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "compareLaneReason": null
     },
     {
@@ -53,7 +53,7 @@
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",
       "safetensorsSourceId": "google/gemma-3-1b-it",
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "compareLaneReason": null
     },
     {
@@ -65,7 +65,7 @@
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",
       "safetensorsSourceId": "google/gemma-3-1b-it",
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "compareLaneReason": null
     },
     {
@@ -81,7 +81,7 @@
       "dopplerRuntimeProfileByDecodeProfile": {
         "throughput": "profiles/throughput"
       },
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "compareLaneReason": "Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims.",
       "outputParityPolicy": {
         "schemaVersion": 1,
@@ -103,8 +103,8 @@
       "dopplerRuntimeProfileByDecodeProfile": {
         "throughput": "profiles/throughput"
       },
-      "compareLane": "performance_comparable",
-      "compareLaneReason": "Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful.",
+      "compareLane": "performance-comparable",
+      "compareLaneReason": "Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance-comparable as compute-throughput comparison is meaningful.",
       "outputParityPolicy": {
         "schemaVersion": 1,
         "requireMatch": false,
@@ -127,7 +127,7 @@
       "dopplerRuntimeProfileByDecodeProfile": {
         "throughput": "profiles/throughput"
       },
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "compareLaneReason": "Doppler uses the local AF16 INT4-PLE weights-ref sibling over the Gemma 4 E2B INT4 PLE weight capsule; TJS uses standard ONNX q4f16. This lane is local compute-throughput evidence, not hosted-release evidence.",
       "outputParityPolicy": {
         "schemaVersion": 1,
@@ -145,7 +145,7 @@
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",
       "safetensorsSourceId": "google/translategemma-4b-it",
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "compareLaneReason": null
     },
     {
@@ -157,7 +157,7 @@
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": null,
       "safetensorsSourceId": null,
-      "compareLane": "capability_only",
+      "compareLane": "capability-only",
       "compareLaneReason": "No canonical Transformers.js mapping is configured for this bilingual TranslateGemma artifact."
     },
     {
@@ -169,7 +169,7 @@
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",
       "safetensorsSourceId": "Qwen/Qwen3.5-0.8B",
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "compareLaneReason": null,
       "dopplerRuntimeProfileByDecodeProfile": {
         "throughput": "profiles/throughput"
@@ -208,7 +208,7 @@
           "parity": "profiles/qwen-3-5-2b-vulkan-parity"
         }
       },
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "compareLaneReason": null
     },
     {
@@ -220,7 +220,7 @@
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",
       "safetensorsSourceId": "LiquidAI/LFM2.5-1.2B-Instruct",
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "compareLaneReason": null
     },
     {
@@ -232,7 +232,7 @@
       "defaultDopplerFormat": "rdrr",
       "defaultTjsFormat": "onnx",
       "safetensorsSourceId": "google/embeddinggemma-300m",
-      "compareLane": "capability_only",
+      "compareLane": "capability-only",
       "compareLaneReason": "Embedding models use a separate workload contract and are not part of the text-generation compare lane."
     }
   ]

@@ -268,7 +268,7 @@ converter regressions and fixes, fresh source-pinned Q4K candidates, and another
 physical run of the F16 Capsule. Rejected candidates and failed diagnostic setups
 remain retained; a converter improvement does not by itself establish model quality.
 
-In these checkpoints, the passing candidate is F16 with the declared `true_logit` scoring contract.
+In these checkpoints, the passing candidate is F16 with the declared `true-logit` scoring contract.
 The original historical Q4K comparison remains rejected; its missing immutable source pin
 also prevents attributing the difference solely to quantization. No acceptance
 tolerance was relaxed and no model catalog promotion was performed.

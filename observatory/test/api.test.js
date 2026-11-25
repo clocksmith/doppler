@@ -10,7 +10,7 @@ const protocol = {
   reference: { generatedTokenIds: TOKENS },
   eligibility: { requireVisibleTab: true, requirePolicyPerformanceRepresentative: true, requirePolicyDoesNotModifyExecution: true, requireIdenticalTokensAcrossRuns: true, requireReferenceMatchWhenPinned: true, requirePlainPathCheck: true, maxPlainPathDeviation: 0.15 },
 };
-const run = (tokens = TOKENS) => ({ generatedTokenIds: tokens, wallMs: 500, timeToFirstTokenMs: 40, decodeTokensPerSecond: 30, execution: { decodeMode: 'single_token' } });
+const run = (tokens = TOKENS) => ({ generatedTokenIds: tokens, wallMs: 500, timeToFirstTokenMs: 40, decodeTokensPerSecond: 30, execution: { decodeMode: 'single-token' } });
 const evidence = (overrides = {}) => ({
   schema: 'doppler.observatory.device-benchmark/v1', protocol: { id: 'device-benchmark', version: '0.1.0' },
   failure: null, tabHiddenDuringRun: false, policy: { performanceRepresentative: true, modifiesExecution: false },

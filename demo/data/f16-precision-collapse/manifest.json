@@ -46,11 +46,11 @@
             "winnerText": ":",
             "winnerGap": 0.4292624029392833
           },
-          "f32_forward": {
+          "f32-forward": {
             "winnerText": ":",
             "winnerGap": 0.4292755126953125
           },
-          "f16_forward": {
+          "f16-forward": {
             "winnerText": " ",
             "winnerGap": 1.84375
           }
@@ -72,11 +72,11 @@
             "winnerText": " dangerous",
             "winnerGap": 1.1555051051882224
           },
-          "f32_forward": {
+          "f32-forward": {
             "winnerText": " dangerous",
             "winnerGap": 1.155496597290039
           },
-          "f16_forward": {
+          "f16-forward": {
             "winnerText": " a",
             "winnerGap": 0.390625
           }
@@ -98,11 +98,11 @@
             "winnerText": "  ",
             "winnerGap": 1.3195197184253828
           },
-          "f32_forward": {
+          "f32-forward": {
             "winnerText": "  ",
             "winnerGap": 1.3195171356201172
           },
-          "f16_forward": {
+          "f16-forward": {
             "winnerText": " ",
             "winnerGap": 3.59375
           }
@@ -124,11 +124,11 @@
             "winnerText": " k",
             "winnerGap": 0.10117418843398696
           },
-          "f32_forward": {
+          "f32-forward": {
             "winnerText": " k",
             "winnerGap": 0.10115909576416016
           },
-          "f16_forward": {
+          "f16-forward": {
             "winnerText": " a",
             "winnerGap": 1.296875
           }
@@ -150,11 +150,11 @@
             "winnerText": " a",
             "winnerGap": 0.6180606307766325
           },
-          "f32_forward": {
+          "f32-forward": {
             "winnerText": " a",
             "winnerGap": 0.6180553436279297
           },
-          "f16_forward": {
+          "f16-forward": {
             "winnerText": " clear",
             "winnerGap": 0.28125
           }
@@ -176,11 +176,11 @@
             "winnerText": " confidential",
             "winnerGap": 0.46872571341746294
           },
-          "f32_forward": {
+          "f32-forward": {
             "winnerText": " confidential",
             "winnerGap": 0.46872806549072266
           },
-          "f16_forward": {
+          "f16-forward": {
             "winnerText": " private",
             "winnerGap": 0.3359375
           }

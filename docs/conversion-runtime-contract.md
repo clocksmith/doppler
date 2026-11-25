@@ -59,11 +59,11 @@ Notes:
 - Per-channel, packed LiteRT-LM companion-tensor quantization (for example `*.w` plus `*.w_quantized_scale` / `*.sum_i`), or otherwise unsupported LiteRT/TFLite quantization must fail closed.
 - Runtime overlay for execution is strict: only `runtime.inference.session` is accepted.
 - `session.perLayerInputs` is the contract surface for PLE runtime policy:
-  - `materialization`: `auto | range_backed | cpu_resident | gpu_resident | gpu_split_tables`
+  - `materialization`: `auto | range-backed | cpu-resident | gpu-resident | gpu-split-tables`
   - `rowCache.mode`: `off | lru`
-  - `prefetch.mode`: `off | next_token`
-  - `gpuUpload.mode`: `per_step_slices | per_batch_slices`
-  - `hotCache.mode`: `off | prepared_tokens | tokenizer_scores`
+  - `prefetch.mode`: `off | next-token`
+  - `gpuUpload.mode`: `per-step-slices | per-batch-slices`
+  - `hotCache.mode`: `off | prepared-tokens | tokenizer-scores`
   - Converter authors the baseline policy in the manifest; runtime may override it per run.
 
 ## W8A8 linear projections

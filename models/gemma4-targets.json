@@ -10,7 +10,7 @@
     {
       "targetId": "gemma-4-e2b",
       "officialName": "Gemma 4 E2B",
-      "dopplerStatus": "partially_verified",
+      "dopplerStatus": "partially-verified",
       "surfaceStatus": {
         "browser": "unverified",
         "electron": "unverified",
@@ -125,7 +125,7 @@
         {
           "code": "mtp-lane-not-implemented",
           "surface": "mtp",
-          "state": "not_implemented",
+          "state": "not-implemented",
           "reason": "Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target."
         },
         {
@@ -136,7 +136,7 @@
         }
       ],
       "officialMtp": true,
-      "mtpStatus": "not_implemented"
+      "mtpStatus": "not-implemented"
     },
     {
       "targetId": "gemma-4-e4b",
@@ -230,17 +230,17 @@
         {
           "code": "mtp-lane-not-implemented",
           "surface": "mtp",
-          "state": "not_implemented",
+          "state": "not-implemented",
           "reason": "Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target."
         }
       ],
       "officialMtp": true,
-      "mtpStatus": "not_implemented"
+      "mtpStatus": "not-implemented"
     },
     {
       "targetId": "gemma-4-12b-unified",
       "officialName": "Gemma 4 12B Unified",
-      "dopplerStatus": "partially_verified",
+      "dopplerStatus": "partially-verified",
       "surfaceStatus": {
         "browser": "unsupported",
         "electron": "unsupported",
@@ -325,17 +325,17 @@
         {
           "code": "mtp-lane-not-implemented",
           "surface": "mtp",
-          "state": "not_implemented",
+          "state": "not-implemented",
           "reason": "Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target."
         }
       ],
       "officialMtp": true,
-      "mtpStatus": "not_implemented"
+      "mtpStatus": "not-implemented"
     },
     {
       "targetId": "gemma-4-31b",
       "officialName": "Gemma 4 31B",
-      "dopplerStatus": "partially_verified",
+      "dopplerStatus": "partially-verified",
       "surfaceStatus": {
         "browser": "unverified",
         "electron": "unverified",
@@ -402,7 +402,7 @@
         {
           "code": "mtp-lane-not-implemented",
           "surface": "mtp",
-          "state": "not_implemented",
+          "state": "not-implemented",
           "reason": "Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target."
         },
         {
@@ -413,7 +413,7 @@
         }
       ],
       "officialMtp": true,
-      "mtpStatus": "not_implemented"
+      "mtpStatus": "not-implemented"
     },
     {
       "targetId": "gemma-4-26b-a4b",
@@ -505,7 +505,7 @@
         {
           "code": "mtp-lane-not-implemented",
           "surface": "mtp",
-          "state": "not_implemented",
+          "state": "not-implemented",
           "reason": "Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target."
         }
       ],
@@ -513,7 +513,7 @@
         "diffusiongemma-26b-a4b-it-q4k-ehf16-af16"
       ],
       "officialMtp": true,
-      "mtpStatus": "not_implemented"
+      "mtpStatus": "not-implemented"
     }
   ]
 }

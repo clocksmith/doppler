@@ -258,9 +258,9 @@ async function main() {
     fixture = await createDistillStudentRuntimeModelFixture({}, {
       distillRuntime: {
         studentPipeline: handle.pipeline,
-        studentGraphMode: 'transformer_full',
+        studentGraphMode: 'transformer-full',
       },
-      studentGraphMode: 'transformer_full',
+      studentGraphMode: 'transformer-full',
     });
     handle.pipeline.reset();
     reference = await handle.pipeline.prefillWithLogits(options.prompt, {

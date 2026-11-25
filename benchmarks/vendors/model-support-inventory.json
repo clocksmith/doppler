@@ -561,7 +561,7 @@
               "tjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
               "tjsDtype": null,
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": null
             },
             "benchmarkComparable": true,
@@ -683,7 +683,7 @@
               "tjsModelId": "onnx-community/gemma-3-270m-it-ONNX",
               "tjsDtype": null,
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": null
             },
             "benchmarkComparable": true,
@@ -837,7 +837,7 @@
               "tjsModelId": "onnx-community/embeddinggemma-300m-ONNX",
               "tjsDtype": "q4",
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": "Embedding-specific lane using shared prompt, semantic fixture, and browser WebGPU Transformers.js ONNX baseline."
             },
             "benchmarkComparable": true,
@@ -964,7 +964,7 @@
               "tjsModelId": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
               "tjsDtype": null,
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": null
             },
             "benchmarkComparable": true,
@@ -1230,7 +1230,7 @@
               "tjsModelId": "onnx-community/Qwen3-Reranker-0.6B-ONNX",
               "tjsDtype": "q4",
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": "Hosted clocksmith/rdrr Doppler reranker artifact compared against the browser WebGPU Transformers.js ONNX Qwen3 reranker baseline with identical Qwen yes/no-logit scoring prompts."
             },
             "benchmarkComparable": true,
@@ -1441,7 +1441,7 @@
               "tjsModelId": null,
               "tjsDtype": null,
               "tjsFormat": null,
-              "lane": "capability_only",
+              "lane": "capability-only",
               "laneReason": "No canonical Transformers.js mapping is configured for this bilingual TranslateGemma artifact."
             },
             "benchmarkComparable": false,
@@ -1561,7 +1561,7 @@
               "tjsModelId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
               "tjsDtype": null,
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": null
             },
             "benchmarkComparable": true,
@@ -1714,7 +1714,7 @@
               "tjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX-OPT",
               "tjsDtype": null,
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": null
             },
             "benchmarkComparable": true,
@@ -1866,7 +1866,7 @@
               "tjsModelId": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
               "tjsDtype": "q4f16",
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": "Hosted clocksmith/rdrr Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline with the shared semantic fixture."
             },
             "benchmarkComparable": true,
@@ -2105,7 +2105,7 @@
               "tjsModelId": "onnx-community/Qwen3.5-2B-ONNX-OPT",
               "tjsDtype": null,
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": null
             },
             "benchmarkComparable": true,
@@ -2257,7 +2257,7 @@
               "tjsModelId": "onnx-community/translategemma-text-4b-it-ONNX",
               "tjsDtype": null,
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": null
             },
             "benchmarkComparable": true,
@@ -2412,7 +2412,7 @@
               "tjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
               "tjsDtype": null,
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": "Doppler uses the local AF16 INT4-PLE weights-ref sibling over the Gemma 4 E2B INT4 PLE weight capsule; TJS uses standard ONNX q4f16. This lane is local compute-throughput evidence, not hosted-release evidence."
             },
             "benchmarkComparable": true,
@@ -2541,8 +2541,8 @@
               "tjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
               "tjsDtype": null,
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
-              "laneReason": "Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful."
+              "lane": "performance-comparable",
+              "laneReason": "Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance-comparable as compute-throughput comparison is meaningful."
             },
             "benchmarkComparable": true,
             "benchmarkEvidenceOk": false
@@ -2668,7 +2668,7 @@
               "tjsModelId": "onnx-community/gemma-4-E2B-it-ONNX",
               "tjsDtype": null,
               "tjsFormat": "onnx",
-              "lane": "performance_comparable",
+              "lane": "performance-comparable",
               "laneReason": "Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims."
             },
             "benchmarkComparable": true,

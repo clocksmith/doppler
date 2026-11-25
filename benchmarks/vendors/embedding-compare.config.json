@@ -20,7 +20,7 @@
       "embeddingPooling": "none",
       "embeddingNormalize": true,
       "embeddingStyle": "embeddinggemma",
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "releaseClaimable": true,
       "compareLaneReason": "Embedding-specific lane using shared prompt, semantic fixture, and browser WebGPU Transformers.js ONNX baseline."
     },
@@ -34,7 +34,7 @@
       "embeddingStyle": "qwen3_embedding",
       "dopplerRuntimeProfile": "profiles/qwen-3-embedding-0-6b-metal-throughput",
       "dopplerVerifyRuntimeProfile": "profiles/qwen-3-embedding-0-6b-metal-stability",
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "releaseClaimable": true,
       "compareLaneReason": "Hosted clocksmith/rdrr Doppler artifact compared against the browser WebGPU Transformers.js ONNX embedding baseline with the shared semantic fixture."
     }

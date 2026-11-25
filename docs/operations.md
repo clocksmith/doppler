@@ -776,7 +776,7 @@ Example configs:
 ```json
 {
   "shared": {
-    "tooling": { "diagnostics": "on_failure" },
+    "tooling": { "diagnostics": "on-failure" },
     "debug": { "logLevel": { "defaultLogLevel": "verbose" } },
     "harness": { "mode": "inference", "autorun": true, "modelId": "gemma-3-270m-it-q4k-ehf16-af32" }
   },

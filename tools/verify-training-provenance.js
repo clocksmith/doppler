@@ -149,7 +149,7 @@ function verifyUlRuntimeDump(manifest) {
 
 function isDistillManifest(manifest) {
   const stage = String(manifest?.stage || '').trim();
-  if (stage === 'stage_a' || stage === 'stage_b') return true;
+  if (stage === 'stage-a' || stage === 'stage-b') return true;
   return typeof manifest?.distillContractHash === 'string';
 }
 
@@ -185,7 +185,7 @@ async function verifyUlManifestShape(manifest, baseDir) {
   verifyUlRuntimeDump(manifest);
   verifyMetricsBlock(manifest);
   await verifyManifestMetricsPayload(manifest, baseDir);
-  if (manifest.stage === 'stage1_joint') {
+  if (manifest.stage === 'stage1-joint') {
     assert(manifest.latentDataset && typeof manifest.latentDataset === 'object', 'stage1 latentDataset must exist.');
     assertNonEmptyString(manifest.latentDataset.path, 'latentDataset.path');
     assertNonEmptyString(manifest.latentDataset.hash, 'latentDataset.hash');
@@ -210,8 +210,8 @@ async function verifyDistillManifestShape(manifest, baseDir) {
   verifyMetricsBlock(manifest);
   await verifyManifestMetricsPayload(manifest, baseDir);
 
-  if (manifest.stage === 'stage_b') {
-    assert(manifest.stageADependency && typeof manifest.stageADependency === 'object', 'stage_b stageADependency must exist.');
+  if (manifest.stage === 'stage-b') {
+    assert(manifest.stageADependency && typeof manifest.stageADependency === 'object', 'stage-b stageADependency must exist.');
     assertNonEmptyString(manifest.stageADependency.hash, 'stageADependency.hash');
     assertNonEmptyString(manifest.lineage?.parentManifestHash, 'lineage.parentManifestHash');
     assertNonEmptyString(manifest.lineage?.parentContractHash, 'lineage.parentContractHash');
@@ -375,8 +375,8 @@ async function verifyReportShape(report, options = {}) {
 }
 
 function verifyStage2Dependency(stage2Manifest, stage1Manifest) {
-  assert(stage2Manifest.stage === 'stage2_base', 'stage2 manifest stage must be stage2_base.');
-  assert(stage1Manifest.stage === 'stage1_joint', 'stage1 manifest stage must be stage1_joint.');
+  assert(stage2Manifest.stage === 'stage2-base', 'stage2 manifest stage must be stage2-base.');
+  assert(stage1Manifest.stage === 'stage1-joint', 'stage1 manifest stage must be stage1-joint.');
   const dependency = stage2Manifest.stage1Dependency;
   assert(dependency && typeof dependency === 'object', 'stage2Dependency must exist for stage2.');
   assertNonEmptyString(dependency.hash, 'stage2Dependency.hash');
@@ -402,14 +402,14 @@ async function runSelfTest() {
         enabled: true,
         ul: {
           enabled: true,
-          stage: 'stage1_joint',
+          stage: 'stage1-joint',
           artifactDir: tempDir,
         },
       },
     });
     const stage1Session = await createUlArtifactSession({
       config: stage1Config,
-      stage: 'stage1_joint',
+      stage: 'stage1-joint',
       runOptions: {
         ulArtifactDir: tempDir,
         modelId: 'selftest-model',
@@ -425,7 +425,7 @@ async function runSelfTest() {
       step: 1,
       epoch: 0,
       batch: 1,
-      objective: 'ul_stage1_joint',
+      objective: 'ul-stage1-joint',
       total_loss: 0.1,
       step_time_ms: 1,
       forward_ms: 0.5,
@@ -438,7 +438,7 @@ async function runSelfTest() {
       environment_metadata: { runtime: 'node' },
       memory_stats: null,
       build_provenance: null,
-      ul_stage: 'stage1_joint',
+      ul_stage: 'stage1-joint',
       lambda: 5,
       loss_total: 0.1,
       loss_prior: 0.01,
@@ -474,7 +474,7 @@ async function runSelfTest() {
         enabled: true,
         ul: {
           enabled: true,
-          stage: 'stage2_base',
+          stage: 'stage2-base',
           artifactDir: tempDir,
           stage1Artifact: stage1Path,
           stage1ArtifactHash: stage1Result.manifestHash,
@@ -483,7 +483,7 @@ async function runSelfTest() {
     });
     const stage2Session = await createUlArtifactSession({
       config: stage2Config,
-      stage: 'stage2_base',
+      stage: 'stage2-base',
       runOptions: {
         ulArtifactDir: tempDir,
         modelId: 'selftest-model',
@@ -496,15 +496,15 @@ async function runSelfTest() {
     assert(stage2Session, 'failed to create stage2 session in self-test');
     await stage2Session.appendStep({
       ...stage1Entry,
-      objective: 'ul_stage2_base',
-      ul_stage: 'stage2_base',
+      objective: 'ul-stage2-base',
+      ul_stage: 'stage2-base',
       step: 1,
       stage1_latent_count: 1,
     });
     const stage2Result = await stage2Session.finalize([{
       ...stage1Entry,
-      objective: 'ul_stage2_base',
-      ul_stage: 'stage2_base',
+      objective: 'ul-stage2-base',
+      ul_stage: 'stage2-base',
       step: 1,
       stage1_latent_count: 1,
     }]);
@@ -548,7 +548,7 @@ async function main() {
   const manifestData = await readManifest(args.manifest);
   const manifest = manifestData.parsed;
   await verifyManifestShape(manifest, dirname(manifestData.absolute));
-  if (manifest.stage === 'stage2_base') {
+  if (manifest.stage === 'stage2-base') {
     if (!args.stage1Manifest) {
       throw new Error('stage2 verification requires --stage1-manifest <path>.');
     }

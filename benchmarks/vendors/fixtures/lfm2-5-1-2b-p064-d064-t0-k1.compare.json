@@ -191,8 +191,8 @@
     },
     "promptTokensPerSecToFirstToken": "prompt_tokens / firstTokenMs",
     "prefillPhaseMs": {
-      "doppler": "available inside Doppler payload timing.prefillMs as internal_prefill_phase",
-      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft_proxy"
+      "doppler": "available inside Doppler payload timing.prefillMs as internal-prefill-phase",
+      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft-proxy"
     }
   },
   "sections": {
@@ -324,7 +324,7 @@
               "modelLoadMs": "model initialization/load before generation",
               "firstTokenMs": "ttft from generation start",
               "firstResponseMs": "modelLoadMs + firstTokenMs",
-              "prefillMs": "internal_prefill_phase",
+              "prefillMs": "internal-prefill-phase",
               "decodeMs": "time after first token",
               "totalRunMs": "prefillMs + decodeMs"
             },
@@ -1020,7 +1020,7 @@
             "modelLoadMs": "model initialization/load before generation",
             "firstTokenMs": "ttft from generation start",
             "firstResponseMs": "modelLoadMs + firstTokenMs",
-            "prefillMs": "ttft_proxy",
+            "prefillMs": "ttft-proxy",
             "decodeMs": "time after first token",
             "totalRunMs": "prefillMs + decodeMs"
           },

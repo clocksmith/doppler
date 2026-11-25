@@ -657,7 +657,7 @@ async function buildVariant(model, context) {
   const artifactCompleteness = normalizeText(model?.artifactCompleteness);
   const manifestWeightsOk = artifactCompleteness === 'complete' || artifactCompleteness === 'weights-ref';
   const compareLane = normalizeText(compareProfile?.compareLane || releaseCoverage?.compareLane);
-  const benchmarkComparable = compareLane === 'performance_comparable';
+  const benchmarkComparable = compareLane === 'performance-comparable';
   const benchmarkEvidenceOk = benchmarkComparable && hasText(compareResult) && hasText(summarySvg);
   const missing = [];
 

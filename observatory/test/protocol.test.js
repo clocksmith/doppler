@@ -25,7 +25,7 @@ const protocol = (overrides = {}) => ({
   },
   ...overrides,
 });
-const SETTINGS = { decodeMode: 'single_token', batchSize: 1, disableCommandBatching: false };
+const SETTINGS = { decodeMode: 'single-token', batchSize: 1, disableCommandBatching: false };
 const SAMPLING = { temperature: 0, repetitionPenalty: 1, topK: 1 };
 const run = (wallMs, tokens = TOKENS, execution = SETTINGS, sampling = SAMPLING) => ({ generatedTokenIds: tokens, wallMs, timeToFirstTokenMs: 40, decodeTokensPerSecond: 30, execution, sampling });
 const evidence = (overrides = {}) => ({

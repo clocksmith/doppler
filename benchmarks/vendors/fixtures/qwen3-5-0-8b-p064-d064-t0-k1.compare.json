@@ -131,10 +131,10 @@
     "compareProfileSchemaVersion": 1
   },
   "compareLane": {
-    "declared": "performance_comparable",
+    "declared": "performance-comparable",
     "reason": null,
     "allowNonComparableLane": false,
-    "lane": "performance_comparable",
+    "lane": "performance-comparable",
     "claimGrade": false,
     "claimable": false,
     "releaseClaimable": false,
@@ -286,8 +286,8 @@
   "methodology": {
     "promptTokensPerSecToFirstToken": "prompt_tokens / firstTokenMs",
     "prefillPhaseMs": {
-      "doppler": "available inside Doppler payload timing.prefillMs as internal_prefill_phase",
-      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft_proxy"
+      "doppler": "available inside Doppler payload timing.prefillMs as internal-prefill-phase",
+      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft-proxy"
     },
     "deterministicDecoding": {
       "seed": 0,
@@ -511,7 +511,7 @@
                 "modelLoadMs": "model initialization/load before generation",
                 "firstTokenMs": "ttft from generation start",
                 "firstResponseMs": "modelLoadMs + firstTokenMs",
-                "prefillMs": "internal_prefill_phase",
+                "prefillMs": "internal-prefill-phase",
                 "decodeMs": "time after first token",
                 "totalRunMs": "prefillMs + decodeMs"
               },
@@ -816,8 +816,8 @@
                   "outliersRemoved": 0
                 }
               },
-              "decodeMode": "single_token",
-              "batchGuardReason": "multi_token_decode_disabled",
+              "decodeMode": "single-token",
+              "batchGuardReason": "multi-token-decode-disabled",
               "generatedText": " word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word",
               "promptInput": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
               "schemaVersion": 1,
@@ -1018,7 +1018,7 @@
               "modelLoadMs": "model initialization/load before generation",
               "firstTokenMs": "ttft from generation start",
               "firstResponseMs": "modelLoadMs + firstTokenMs",
-              "prefillMs": "ttft_proxy",
+              "prefillMs": "ttft-proxy",
               "decodeMs": "time after first token",
               "totalRunMs": "prefillMs + decodeMs"
             },
@@ -1163,7 +1163,7 @@
             "executionProviderFallbackUsed": false,
             "ortProxyMode": "off",
             "ortProxyFallbackUsed": false,
-            "runnerKind": "qwen3_5_conditional_generation",
+            "runnerKind": "qwen3-5-conditional-generation",
             "modelArchitecture": "qwen3_5",
             "webgpuBackend": "metal",
             "browserExecutable": null
@@ -1495,7 +1495,7 @@
                 "modelLoadMs": "model initialization/load before generation",
                 "firstTokenMs": "ttft from generation start",
                 "firstResponseMs": "modelLoadMs + firstTokenMs",
-                "prefillMs": "internal_prefill_phase",
+                "prefillMs": "internal-prefill-phase",
                 "decodeMs": "time after first token",
                 "totalRunMs": "prefillMs + decodeMs"
               },
@@ -1800,7 +1800,7 @@
                   "outliersRemoved": 0
                 }
               },
-              "decodeMode": "batched_gpu",
+              "decodeMode": "batched-gpu",
               "batchGuardReason": null,
               "generatedText": " word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word",
               "promptInput": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
@@ -2002,7 +2002,7 @@
               "modelLoadMs": "model initialization/load before generation",
               "firstTokenMs": "ttft from generation start",
               "firstResponseMs": "modelLoadMs + firstTokenMs",
-              "prefillMs": "ttft_proxy",
+              "prefillMs": "ttft-proxy",
               "decodeMs": "time after first token",
               "totalRunMs": "prefillMs + decodeMs"
             },
@@ -2147,7 +2147,7 @@
             "executionProviderFallbackUsed": false,
             "ortProxyMode": "off",
             "ortProxyFallbackUsed": false,
-            "runnerKind": "qwen3_5_conditional_generation",
+            "runnerKind": "qwen3-5-conditional-generation",
             "modelArchitecture": "qwen3_5",
             "webgpuBackend": "metal",
             "browserExecutable": null
@@ -2480,7 +2480,7 @@
               "modelLoadMs": "model initialization/load before generation",
               "firstTokenMs": "ttft from generation start",
               "firstResponseMs": "modelLoadMs + firstTokenMs",
-              "prefillMs": "internal_prefill_phase",
+              "prefillMs": "internal-prefill-phase",
               "decodeMs": "time after first token",
               "totalRunMs": "prefillMs + decodeMs"
             },
@@ -2785,8 +2785,8 @@
                 "outliersRemoved": 0
               }
             },
-            "decodeMode": "single_token",
-            "batchGuardReason": "multi_token_decode_disabled",
+            "decodeMode": "single-token",
+            "batchGuardReason": "multi-token-decode-disabled",
             "generatedText": " word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word",
             "promptInput": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
             "schemaVersion": 1,
@@ -2987,7 +2987,7 @@
             "modelLoadMs": "model initialization/load before generation",
             "firstTokenMs": "ttft from generation start",
             "firstResponseMs": "modelLoadMs + firstTokenMs",
-            "prefillMs": "ttft_proxy",
+            "prefillMs": "ttft-proxy",
             "decodeMs": "time after first token",
             "totalRunMs": "prefillMs + decodeMs"
           },
@@ -3132,7 +3132,7 @@
           "executionProviderFallbackUsed": false,
           "ortProxyMode": "off",
           "ortProxyFallbackUsed": false,
-          "runnerKind": "qwen3_5_conditional_generation",
+          "runnerKind": "qwen3-5-conditional-generation",
           "modelArchitecture": "qwen3_5",
           "webgpuBackend": "metal",
           "browserExecutable": null
@@ -3464,7 +3464,7 @@
               "modelLoadMs": "model initialization/load before generation",
               "firstTokenMs": "ttft from generation start",
               "firstResponseMs": "modelLoadMs + firstTokenMs",
-              "prefillMs": "internal_prefill_phase",
+              "prefillMs": "internal-prefill-phase",
               "decodeMs": "time after first token",
               "totalRunMs": "prefillMs + decodeMs"
             },
@@ -3769,8 +3769,8 @@
                 "outliersRemoved": 0
               }
             },
-            "decodeMode": "single_token",
-            "batchGuardReason": "multi_token_decode_disabled",
+            "decodeMode": "single-token",
+            "batchGuardReason": "multi-token-decode-disabled",
             "generatedText": " word64 word65 word66 word67 word68 word69 word70 word71 word72 word73 word74 word75 word76 word77 word78 word79 word80 word81 word82 word83 word84 word",
             "promptInput": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 word30 word31 word32 word33 word34 word35 word36 word37 word38 word39 word40 word41 word42 word43 word44 word45 word46 word47 word48 word49 word50 word51 word52 word53 word54 word55 word56 word57 word58 word59 word60 word61 word62 word63",
             "schemaVersion": 1,
@@ -3971,7 +3971,7 @@
             "modelLoadMs": "model initialization/load before generation",
             "firstTokenMs": "ttft from generation start",
             "firstResponseMs": "modelLoadMs + firstTokenMs",
-            "prefillMs": "ttft_proxy",
+            "prefillMs": "ttft-proxy",
             "decodeMs": "time after first token",
             "totalRunMs": "prefillMs + decodeMs"
           },
@@ -4116,7 +4116,7 @@
           "executionProviderFallbackUsed": false,
           "ortProxyMode": "off",
           "ortProxyFallbackUsed": false,
-          "runnerKind": "qwen3_5_conditional_generation",
+          "runnerKind": "qwen3-5-conditional-generation",
           "modelArchitecture": "qwen3_5",
           "webgpuBackend": "metal",
           "browserExecutable": null

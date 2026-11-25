@@ -101,7 +101,7 @@ GPU breakdown from the bench:
 
 Conclusion: profiler not enabled in `experiments/bench/gemma4-bench-q4k` profile, so we cannot classify GPU compute vs CPU orchestration from this artifact. **Iter 2 must run a profiler-enabled probe.**
 
-`decodeMode = "batched_gpu_stepwise_ple"` and `decodeBatchSize = 8` per execution contract. PLE prepared-token cache: **35 hits / 28 misses (44% miss rate)** over 63 tokens. PLE prep is a candidate CPU-side overhead.
+`decodeMode = "batched-gpu-stepwise-ple"` and `decodeBatchSize = 8` per execution contract. PLE prepared-token cache: **35 hits / 28 misses (44% miss rate)** over 63 tokens. PLE prep is a candidate CPU-side overhead.
 
 ### Existing assets discovered (do not re-invent)
 

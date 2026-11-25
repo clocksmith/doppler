@@ -41,8 +41,8 @@ Migration summary for the training command surface, workload-capsule schema, and
 Objective-aware metrics schema includes explicit unions for:
 
 - `cross_entropy`
-- `ul_stage1_joint`
-- `ul_stage2_base`
+- `ul-stage1-joint`
+- `ul-stage2-base`
 - `kd`
 - `triplet`
 
@@ -68,7 +68,7 @@ Core replay context fields remain part of the metrics contract:
 
 - browser surfaces still fail closed for `lora` and `distill`
 - `lora run` supports the toy backend, the native `gemma-3-270m-it-f16-af32` causal-LM `text-pairs` runner, and provider-backed q4k Gemma/Qwen causal-LM `text-pairs` workloads
-- distill KD/triplet stage entries resolve to the internal `stage_a` / `stage_b` contract
+- distill KD/triplet stage entries resolve to the internal `stage-a` / `stage-b` contract
 - `sft` distill stages require `distill.sftLora` and route through the causal-LM LoRA `text-pairs` runner/export path
 - teacher-trace and GEPA-frontier import tools preserve source model, student base, task kind, policy, and Pareto candidate metadata before training
 - causal-LM LoRA eval reports now distinguish base-model loss from adapter loss; required improvement is declared per eval dataset and enforced by quality gates

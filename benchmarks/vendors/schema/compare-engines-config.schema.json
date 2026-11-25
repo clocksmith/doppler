@@ -92,7 +92,7 @@
           },
           "compareLane": {
             "type": ["string", "null"],
-            "enum": ["performance_comparable", "capability_only", null]
+            "enum": ["performance-comparable", "capability-only", null]
           },
           "compareLaneReason": {
             "type": ["string", "null"],

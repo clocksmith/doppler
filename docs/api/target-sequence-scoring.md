@@ -32,7 +32,7 @@ unchanged.
 Signed Capsule sessions do not expose it yet: like `scoreChoices`, it would need its
 own operation qualification. It runs on the WebGPU text pipeline for the same
 models that support `prefillWithTokenLogits`; models with hyper-connections or
-replay-prefill decode (`decodeStrategy: "replay_prefill"`) fail fast. Physical
+replay-prefill decode (`decodeStrategy: "replay-prefill"`) fail fast. Physical
 evidence so far: Gemma 3 270M (q4k) on Apple M3 / Metal through Node WebGPU.
 
 ## Primary exports

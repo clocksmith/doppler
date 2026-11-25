@@ -23,17 +23,17 @@ const CATALOG_PATH = path.join(REPO_ROOT, 'models/catalog.json');
 const GEMMA4_TARGETS_PATH = path.join(REPO_ROOT, 'models/gemma4-targets.json');
 const QUICKSTART_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'config', 'quickstart-registry.json');
 const RUNTIME_BLOCKED_MODEL_TYPES = new Set(['mamba', 'rwkv']);
-const GEMMA4_TARGET_STATUS = new Set(['partially_verified', 'gap']);
+const GEMMA4_TARGET_STATUS = new Set(['partially-verified', 'gap']);
 const GEMMA4_SURFACE_STATUS = new Set(['verified', 'unverified', 'unsupported']);
 const GEMMA4_CLAIM_STATUS = new Set(['verified', 'verified-local', 'experimental']);
-const GEMMA4_MTP_STATUS = new Set(['not_implemented']);
+const GEMMA4_MTP_STATUS = new Set(['not-implemented']);
 const GEMMA4_SERVE_STATUS = new Set(['verified', 'unverified', 'unsupported']);
-const GEMMA4_EVIDENCE_STATUS = new Set(['pass', 'performance_evidence', 'diagnostic']);
+const GEMMA4_EVIDENCE_STATUS = new Set(['pass', 'performance-evidence', 'diagnostic']);
 const GEMMA4_EVIDENCE_SURFACE = new Set(['browser', 'electron', 'node']);
 const GEMMA4_SERVE_EVIDENCE_STATUS = new Set(['pass', 'diagnostic']);
 const GEMMA4_PREFLIGHT_EVIDENCE_STATUS = new Set(['pass', 'diagnostic']);
 const GEMMA4_SOURCE_PACKAGE_STATUS = new Set(['blocked', 'unverified', 'verified']);
-const GEMMA4_BLOCKER_STATE = new Set(['missing', 'unsupported', 'unverified', 'diagnostic', 'not_implemented', 'incomplete']);
+const GEMMA4_BLOCKER_STATE = new Set(['missing', 'unsupported', 'unverified', 'diagnostic', 'not-implemented', 'incomplete']);
 const GEMMA4_BLOCKER_SURFACE = new Set(['browser', 'electron', 'node', 'serve', 'mtp', 'model', 'benchmark']);
 const GEMMA4_BLOCKER_CODE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const GEMMA4_REQUIRED_SOURCE_URLS = Object.freeze([
@@ -527,8 +527,8 @@ export function validateGemma4TargetMatrixInputs(payload, catalogModels, quickst
       if (target.serveStatus === 'unsupported' && !hasGemma4Blocker(blockers, { surface: 'serve', state: 'unsupported' })) {
         errors.push(`${targetId}: unsupported serveStatus must have a matching blocker`);
       }
-      if (target.mtpStatus === 'not_implemented' && !hasGemma4Blocker(blockers, { surface: 'mtp', state: 'not_implemented' })) {
-        errors.push(`${targetId}: not_implemented MTP status must have a matching blocker`);
+      if (target.mtpStatus === 'not-implemented' && !hasGemma4Blocker(blockers, { surface: 'mtp', state: 'not-implemented' })) {
+        errors.push(`${targetId}: not-implemented MTP status must have a matching blocker`);
       }
       if (target.dopplerStatus === 'gap' && !blockers.some((blocker) => blocker?.surface === 'model')) {
         errors.push(`${targetId}: gap targets must include at least one model blocker`);
@@ -557,8 +557,8 @@ export function validateGemma4TargetMatrixInputs(payload, catalogModels, quickst
         errors.push(`${targetId}: gap targets must not list preflight receipt evidence`);
       }
     }
-    if (target.mtpStatus === 'not_implemented' && missing && !missing.includes('mtp lane')) {
-      errors.push(`${targetId}: not_implemented MTP status must list missing "mtp lane"`);
+    if (target.mtpStatus === 'not-implemented' && missing && !missing.includes('mtp lane')) {
+      errors.push(`${targetId}: not-implemented MTP status must list missing "mtp lane"`);
     }
     if (target.serveStatus === 'verified' && !hasGemma4VerifiedServeEvidence(serveReceipts)) {
       errors.push(`${targetId}: verified serveStatus must list serve pass receipt evidence`);
@@ -766,7 +766,7 @@ function validateGemma4BenchmarkReceiptPayload(targetId, receipt, payload) {
   if (!hasText(fields.outputText)) {
     errors.push(`${targetId}: benchmark receipt ${receiptPath} missing generated output evidence`);
   }
-  if (receipt?.status === 'performance_evidence') {
+  if (receipt?.status === 'performance-evidence') {
     if (!hasText(fields.correctnessStatus)) {
       errors.push(`${targetId}: benchmark receipt ${receiptPath} performance evidence requires correctness status`);
     }

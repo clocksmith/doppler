@@ -999,7 +999,7 @@ async function assertProteinStaleResultRejection({
     throw new Error(`Protein stale-result scenario did not reject a superseded output: ${rejection || 'no rejection'}`);
   }
   return {
-    mode: 'after_start',
+    mode: 'after-start',
     rejected: true,
     rejection: 'StaleResultError before any sequence result envelope was published.',
   };
@@ -1042,7 +1042,7 @@ async function assertProteinCancellation({
       runtimeProfile,
       proteinFixture,
       hardwareGpu: true,
-      sequenceQualificationAbort: 'after_start',
+      sequenceQualificationAbort: 'after-start',
     });
   } catch (error) {
     rejection = String(error?.message || error);
@@ -1051,7 +1051,7 @@ async function assertProteinCancellation({
     throw new Error(`Protein cancellation scenario did not reject with AbortError: ${rejection || 'no rejection'}`);
   }
   return {
-    mode: 'after_start',
+    mode: 'after-start',
     rejected: true,
     rejection: 'AbortError before any sequence result envelope was published.',
   };

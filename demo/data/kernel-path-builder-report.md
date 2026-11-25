@@ -2758,7 +2758,7 @@ Proposal:
       "primaryPlanId": "primary",
       "primaryKernelPathId": "qwen3-q4k-dequant-f16a-online",
       "primaryActivationDtype": "f16",
-      "fallbackPlanId": "finiteness_fallback",
+      "fallbackPlanId": "finiteness-fallback",
       "fallbackKernelPathId": "qwen3-q4k-dequant-f32a-online"
     }
   }
@@ -3080,7 +3080,7 @@ Proposal:
       "primaryPlanId": "primary",
       "primaryKernelPathId": "qwen3-q4k-dequant-f16a-online",
       "primaryActivationDtype": "f16",
-      "fallbackPlanId": "finiteness_fallback",
+      "fallbackPlanId": "finiteness-fallback",
       "fallbackKernelPathId": "qwen3-q4k-dequant-f32a-online"
     }
   }

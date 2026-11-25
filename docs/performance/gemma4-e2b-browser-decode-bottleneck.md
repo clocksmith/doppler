@@ -7,7 +7,7 @@ shipped (commit `c3e137f`), fires correctly on Apple M3 browser, and
 [Corrected diagnosis](#corrected-diagnosis-2026-04-16) below for the actual
 bottleneck.
 
-**Scope:** why `batched_gpu` decode of Gemma 4 E2B on Apple M3 browser is
+**Scope:** why `batched-gpu` decode of Gemma 4 E2B on Apple M3 browser is
 ~11 tok/s (vs TJS ~28.5 tok/s) regardless of `batchSize` /
 `readbackInterval`, despite the `rollingIds` fix unblocking the batched path
 and the `gpuResidentOverrides` fix moving `embed_tokens.weight` to GPU.
@@ -31,8 +31,8 @@ Workload: `p064-d064-t0-k1`, 2 timed runs, warmup 1, greedy decode.
 
 | Decode profile | batchSize | readbackInterval | decodeMode | decode tok/s |
 | --- | ---: | ---: | --- | ---: |
-| `parity` (warm compute/parity) | 1 | 1 | `single_token` | 10.72 |
-| `throughput` (warm compute/throughput) | 8 | 8 | `batched_gpu` | 11.13 |
+| `parity` (warm compute/parity) | 1 | 1 | `single-token` | 10.72 |
+| `throughput` (warm compute/throughput) | 8 | 8 | `batched-gpu` | 11.13 |
 
 The batched path is demonstrably live —
 `batchedForwardCalls.median: 16` for 64 decode tokens × 2 runs at batch=8,
@@ -74,7 +74,7 @@ submit/readback wait. Same fence, slightly different absolute numbers.
 
 ## Root cause — the embed_tokens fence
 
-Within the `batched_gpu` decode path, every batch must:
+Within the `batched-gpu` decode path, every batch must:
 
 1. Sample 8 tokens on the GPU (`recordArgmax` at
    `src/inference/pipelines/text/generator/generator-steps.js:1478`, already wired).
@@ -136,7 +136,7 @@ the batched `generateNTokensGPU` path. Only 4 bytes of token IDs are read
 back per batch — sampling is not the fence.
 
 **Not** another round of the `generator-steps.js` `rollingIds` path. That
-was a correctness fix that unblocked `batched_gpu` mode; the commit message
+was a correctness fix that unblocked `batched-gpu` mode; the commit message
 already said so.
 
 **Not** switching to a different kernel path for attention/MLP. The compute
@@ -146,10 +146,10 @@ the same 64 tokens.
 
 **Not** a runtime-preset-owned PLE materialization choice. The shipped Gemma
 4 E2B base fast path uses `session.perLayerInputs.materialization:
-"gpu_split_tables"`, but that setting is owned by the conversion config and
+"gpu-split-tables"`, but that setting is owned by the conversion config and
 manifest. Generic runtime profiles should not carry Gemma-specific
 materialization overrides. The receipt confirms the important runtime
-property: `decodeMode: "batched_gpu"`, `batchedForwardCalls=16`,
+property: `decodeMode: "batched-gpu"`, `batchedForwardCalls=16`,
 `unbatchedForwardCalls=0`.
 
 ## The fix that landed (2026-04-15)

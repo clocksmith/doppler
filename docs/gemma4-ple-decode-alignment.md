@@ -12,7 +12,7 @@ Capture the runtime gap between Doppler's current Gemma 4 text decode path and t
 
 ## Current Doppler gap
 
-- `range_backed` PLE works end to end, but the fallback decode lane still serializes on sampled-token CPU readback.
+- `range-backed` PLE works end to end, but the fallback decode lane still serializes on sampled-token CPU readback.
 - Doppler was treating PLE primarily as a row-load and per-step orchestration problem instead of a cacheable prepared-token runtime object.
 
 ## Required direction

@@ -343,7 +343,7 @@ function summarizeWatchPairs(prompt, watchLookup, perModeScores) {
       left,
       right,
       modes,
-      f16VsF32WinnerChanged: modes.f16_forward.winnerTokenId !== modes.f32_forward.winnerTokenId,
+      f16VsF32WinnerChanged: modes['f16-forward'].winnerTokenId !== modes['f32-forward'].winnerTokenId,
     });
   }
   return pairs;
@@ -443,7 +443,7 @@ function buildMarkdownSummary(report) {
     lines.push('No top-1 winner flips were observed in this prompt capsule.');
   } else {
     for (const prompt of report.highlights.flips) {
-      lines.push(`- \`${prompt.id}\`: f32=\`${prompt.modes.f32_forward.winnerText}\`, f16=\`${prompt.modes.f16_forward.winnerText}\`, gap=${prompt.modes.f32_forward.winnerGap?.toFixed(6) ?? 'n/a'}, branchDiffSteps=${prompt.branchComparison?.differingStepCount ?? 0}`);
+      lines.push(`- \`${prompt.id}\`: f32=\`${prompt.modes['f32-forward'].winnerText}\`, f16=\`${prompt.modes['f16-forward'].winnerText}\`, gap=${prompt.modes['f32-forward'].winnerGap?.toFixed(6) ?? 'n/a'}, branchDiffSteps=${prompt.branchComparison?.differingStepCount ?? 0}`);
     }
   }
   lines.push('');
@@ -552,7 +552,7 @@ async function main() {
         : Float32Array.from(embeddingResult.embedding ?? []);
       const rows = await collectCandidateRows(lmHead, hiddenSize, candidateTokenIds, rowCache);
       const perModeScores = buildModeScoreMaps(hidden, rows);
-      const replayValidation = buildReplayValidation(stableTopEntries, perModeScores.f32_forward);
+      const replayValidation = buildReplayValidation(stableTopEntries, perModeScores['f32-forward']);
 
       const modes = {};
       for (const mode of PRECISION_REPLAY_MODES) {
@@ -565,9 +565,9 @@ async function main() {
       }
 
       const watchPairs = summarizeWatchPairs(prompt, watchLookup, perModeScores);
-      const inversionCount = computeInversionCount(candidateTokenIds, perModeScores.f32_forward, perModeScores.f16_forward);
-      const f16Winner = modes.f16_forward.winnerTokenId;
-      const f32Winner = modes.f32_forward.winnerTokenId;
+      const inversionCount = computeInversionCount(candidateTokenIds, perModeScores['f32-forward'], perModeScores['f16-forward']);
+      const f16Winner = modes['f16-forward'].winnerTokenId;
+      const f32Winner = modes['f32-forward'].winnerTokenId;
       let branches = null;
       let branchComparison = null;
       if (f16Winner != null && f32Winner != null && f16Winner !== f32Winner) {
@@ -586,8 +586,8 @@ async function main() {
           args.continuationTokens
         );
         branches = {
-          f32_forward: f32Branch,
-          f16_forward: f16Branch,
+          'f32-forward': f32Branch,
+          'f16-forward': f16Branch,
         };
         branchComparison = compareTokenSequences(f32Branch.tokenIds, f16Branch.tokenIds);
       }
@@ -651,10 +651,10 @@ async function main() {
           promptId: prompt.id,
           left: pair.left.decodedText,
           right: pair.right.decodedText,
-          f32Winner: pair.modes.f32_forward.winnerText,
-          f16Winner: pair.modes.f16_forward.winnerText,
-          f32Gap: pair.modes.f32_forward.gap,
-          f16Gap: pair.modes.f16_forward.gap,
+          f32Winner: pair.modes['f32-forward'].winnerText,
+          f16Winner: pair.modes['f16-forward'].winnerText,
+          f32Gap: pair.modes['f32-forward'].gap,
+          f16Gap: pair.modes['f16-forward'].gap,
         });
       }
     }
@@ -698,8 +698,8 @@ async function main() {
           text: entry.text,
           modes: {
             exact: entry.modes.exact,
-            f32_forward: entry.modes.f32_forward,
-            f16_forward: entry.modes.f16_forward,
+            'f32-forward': entry.modes['f32-forward'],
+            'f16-forward': entry.modes['f16-forward'],
           },
           branchComparison: entry.branchComparison,
           sliceArtifact: entry.sliceArtifact ?? null,

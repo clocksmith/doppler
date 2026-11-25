@@ -940,7 +940,7 @@ resolved from `src/rules/inference/layer-pattern.rules.json`.
 |--------|-------------|---------|
 | `uniform` | none | All layers use the same attention |
 | `alternating` | `globalPattern` (`"odd"` or `"even"`) | Odd layers use global attention |
-| `every_n` | `period`, `offset` | `period: 6, offset: 5`: global attention at layers 5, 11, 17 (Gemma 3) |
+| `every-n` | `period`, `offset` | `period: 6, offset: 5`: global attention at layers 5, 11, 17 (Gemma 3) |
 | `custom` | `layerTypes` | One explicit entry per layer |
 
 **RoPE Theta Sourcing:**

@@ -189,7 +189,7 @@ function normalizeTimingNumber(value, fallback = null, digits = 2) {
 }
 
 function buildTimingDiagnostics(timing = {}, options = {}) {
-  const prefillSemantics = String(options.prefillSemantics || 'ttft_proxy');
+  const prefillSemantics = String(options.prefillSemantics || 'ttft-proxy');
   const source = String(options.source || 'transformers.js');
   const modelLoadMs = normalizeTimingNumber(timing.modelLoadMs);
   const firstTokenMs = normalizeTimingNumber(timing.firstTokenMs);
@@ -381,7 +381,7 @@ async function loadQwen35Generator(modelId, enableOrtProfiling, execution) {
 
   return {
     generator: createQwen35Generator(model, tokenizer),
-    runnerKind: 'qwen3_5_conditional_generation',
+    runnerKind: 'qwen3-5-conditional-generation',
     modelArchitecture: 'qwen3_5',
   };
 }
@@ -408,7 +408,7 @@ async function loadGenerator(modelId, enableOrtProfiling, preferredDtype = 'fp16
     );
     return {
       generator,
-      runnerKind: 'pipeline_text_generation',
+      runnerKind: 'pipeline-text-generation',
       modelArchitecture: null,
       ...execution,
     };
@@ -495,7 +495,7 @@ function assertRerankTokenId(value, label) {
 
 function normalizeRerankScoringConfig(config = {}) {
   const format = assertRerankText(config.format, 'format');
-  if (format !== 'qwen3_yes_no_logit') {
+  if (format !== 'qwen3-yes-no-logit') {
     throw new Error(`unsupported rerank scoring format: ${format}`);
   }
   const trueTokenId = assertRerankTokenId(config.trueTokenId, 'trueTokenId');
@@ -504,7 +504,7 @@ function normalizeRerankScoringConfig(config = {}) {
     throw new Error('rerank scoring config trueTokenId and falseTokenId must differ');
   }
   const score = assertRerankText(config.score, 'score');
-  if (score !== 'true_logit' && score !== 'logit_difference') {
+  if (score !== 'true-logit' && score !== 'logit-difference') {
     throw new Error(`unsupported rerank score policy: ${score}`);
   }
   const probability = assertRerankText(config.probability, 'probability');
@@ -555,7 +555,7 @@ function sigmoid(value) {
 }
 
 function computeRerankScore(scoringConfig, trueLogit, falseLogit) {
-  if (scoringConfig.score === 'logit_difference') {
+  if (scoringConfig.score === 'logit-difference') {
     return trueLogit - falseLogit;
   }
   return trueLogit;
@@ -1081,7 +1081,7 @@ window.__primeBenchModel = async (config = {}) => {
     ortProxyFallbackUsed: load.ortProxyFallbackUsed === true,
     executionProviderMode: load.executionProviderMode || 'webgpu-only',
     executionProviderFallbackUsed: load.executionProviderFallbackUsed === true,
-    runnerKind: load.runnerKind || 'pipeline_text_generation',
+    runnerKind: load.runnerKind || 'pipeline-text-generation',
   };
 };
 
@@ -1149,7 +1149,7 @@ window.__primeRerankModel = async (config = {}) => {
     ortProxyFallbackUsed: runtime.ortProxyFallbackUsed === true,
     executionProviderMode: runtime.executionProviderMode || 'webgpu-only',
     executionProviderFallbackUsed: runtime.executionProviderFallbackUsed === true,
-    runnerKind: 'causal_lm_yes_no_logit',
+    runnerKind: 'causal-lm-yes-no-logit',
   };
 };
 
@@ -1458,7 +1458,7 @@ window.__runRerankBench = async (config = {}) => {
         executionProviderFallbackUsed: runtime.executionProviderFallbackUsed === true,
         ortProxyMode: runtime.effectiveOrtProxy ? 'on' : 'off',
         ortProxyFallbackUsed: runtime.ortProxyFallbackUsed === true,
-        runnerKind: 'causal_lm_yes_no_logit',
+        runnerKind: 'causal-lm-yes-no-logit',
       },
     };
   } finally {
@@ -1777,7 +1777,7 @@ window.__runBench = async (config) => {
       `ortProxy=${load.effectiveOrtProxy ? 'on' : 'off'}`
     );
   }
-  console.log(`[tjs-bench] runner kind: ${load.runnerKind || 'pipeline_text_generation'}`);
+  console.log(`[tjs-bench] runner kind: ${load.runnerKind || 'pipeline-text-generation'}`);
   const modelLoadMs = performance.now() - loadStart;
   console.log(`[tjs-bench] model loaded in ${(modelLoadMs / 1000).toFixed(1)}s`);
   const rawGenerationConfig = (
@@ -1968,7 +1968,7 @@ window.__runBench = async (config) => {
   };
   const timingDiagnostics = buildTimingDiagnostics(timing, {
     source: 'transformers.js',
-    prefillSemantics: 'ttft_proxy',
+    prefillSemantics: 'ttft-proxy',
   });
 
   // Best-effort memory snapshot after inference
@@ -2040,7 +2040,7 @@ window.__runBench = async (config) => {
       executionProviderFallbackUsed: load.executionProviderFallbackUsed === true,
       ortProxyMode: load.effectiveOrtProxy ? 'on' : 'off',
       ortProxyFallbackUsed: load.ortProxyFallbackUsed === true,
-      runnerKind: load.runnerKind || 'pipeline_text_generation',
+      runnerKind: load.runnerKind || 'pipeline-text-generation',
       modelArchitecture: load.modelArchitecture || null,
     },
     profiling: {
@@ -2144,7 +2144,7 @@ window.__runGreedyPromptCapsule = async (config = {}) => {
         executionProviderFallbackUsed: load.executionProviderFallbackUsed === true,
         ortProxyMode: load.effectiveOrtProxy ? 'on' : 'off',
         ortProxyFallbackUsed: load.ortProxyFallbackUsed === true,
-        runnerKind: load.runnerKind || 'pipeline_text_generation',
+        runnerKind: load.runnerKind || 'pipeline-text-generation',
         modelArchitecture: load.modelArchitecture || null,
       },
       results,

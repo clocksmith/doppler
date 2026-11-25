@@ -150,10 +150,10 @@ const DEFAULT_SHARED_SAMPLING = Object.freeze({
   greedyThreshold: 0.01,
 });
 const DOPPLER_MODEL_SOURCES = Object.freeze(['local', 'quickstart-registry']);
-const COMPARE_LANES = Object.freeze(['performance_comparable', 'capability_only']);
+const COMPARE_LANES = Object.freeze(['performance-comparable', 'capability-only']);
 const COMPARE_PROFILE_RUNTIME_DECODE_PROFILES = Object.freeze(['parity', 'throughput', 'custom']);
 const DOPPLER_LOAD_MODES = Object.freeze(['opfs', 'http', 'memory']);
-const DEFAULT_COMPARE_LANE = 'performance_comparable';
+const DEFAULT_COMPARE_LANE = 'performance-comparable';
 const DEFAULT_DOPPLER_MODEL_SOURCE = 'local';
 const DEFAULT_BENCHMARK_POLICY = Object.freeze({
   timeoutsMs: Object.freeze({
@@ -5110,7 +5110,7 @@ function evaluateFairnessSection({
 }) {
   const invalidReasons = [];
   const gates = {
-    performanceComparableLane: compareLane?.declared === 'performance_comparable'
+    performanceComparableLane: compareLane?.declared === 'performance-comparable'
       && compareLane?.allowNonComparableLane !== true,
     sameRuntimeSurface: dopplerExecution?.commandSurface === 'browser',
     tjsModelPinned: tjsModelOverridden !== true,
@@ -5608,7 +5608,7 @@ async function main() {
     );
   }
   const allowNonComparableLane = flags['allow-non-comparable-lane'] === true;
-  if (compareProfile.compareLane !== 'performance_comparable' && !allowNonComparableLane) {
+  if (compareProfile.compareLane !== 'performance-comparable' && !allowNonComparableLane) {
     throw new Error(
       `Model "${dopplerModelId}" is classified as ${compareProfile.compareLane} in compare-engines.config.json. `
       + `${compareProfile.compareLaneReason || 'This lane is not apples-to-apples performance evidence.'} `
@@ -5716,7 +5716,7 @@ async function main() {
       }
     : await resolveDopplerModelSource(compareProfile, dopplerModelId, flags['model-url']);
   const enforceLocalManifestFreshness = dopplerModelSource.manifestSourceType === 'remote'
-    && compareProfile.compareLane === 'performance_comparable'
+    && compareProfile.compareLane === 'performance-comparable'
     && allowNonComparableLane !== true;
   const dopplerManifestPreflight = dopplerFormat === 'safetensors'
     ? null
@@ -6109,7 +6109,7 @@ async function main() {
       id: workloadId,
       prefillTokenTarget: effectivePrefillTokenTarget,
       prefillTokenSource: promptContract?.promptSource ?? (flags.prompt ? 'explicit-prompt' : 'default-prompt'),
-      prefillTokenSemantics: 'model_input_tokens',
+      prefillTokenSemantics: 'model-input-tokens',
       promptTokenizerLocator: promptContract?.tokenizerLocator ?? null,
       promptTokenizerResolutionSource: promptContract?.tokenizerResolutionSource ?? null,
       decodeTokenTarget: maxTokens,
@@ -6147,8 +6147,8 @@ async function main() {
       outlierPolicy: 'none',
       promptTokensPerSecToFirstToken: 'prompt_tokens / firstTokenMs',
       prefillPhaseMs: {
-        doppler: 'available inside Doppler payload timing.prefillMs as internal_prefill_phase',
-        transformersjs: 'excluded from compare contract because runner prefillMs is a ttft_proxy',
+        doppler: 'available inside Doppler payload timing.prefillMs as internal-prefill-phase',
+        transformersjs: 'excluded from compare contract because runner prefillMs is a ttft-proxy',
       },
       deterministicDecoding: {
         seed,

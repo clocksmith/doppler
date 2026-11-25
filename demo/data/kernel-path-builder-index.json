@@ -5079,7 +5079,7 @@
         }
       },
       "layerPattern": {
-        "type": "every_n",
+        "type": "every-n",
         "layerCount": null,
         "layerTypes": null,
         "layerTypeCounts": {}
@@ -7250,7 +7250,7 @@
         }
       },
       "layerPattern": {
-        "type": "all_attention",
+        "type": "all-attention",
         "layerCount": null,
         "layerTypes": null,
         "layerTypeCounts": {}
@@ -10627,7 +10627,7 @@
               "primaryPlanId": "primary",
               "primaryKernelPathId": "qwen3-q4k-dequant-f16a-online",
               "primaryActivationDtype": "f16",
-              "fallbackPlanId": "finiteness_fallback",
+              "fallbackPlanId": "finiteness-fallback",
               "fallbackKernelPathId": "qwen3-q4k-dequant-f32a-online"
             }
           }
@@ -11951,7 +11951,7 @@
               "primaryPlanId": "primary",
               "primaryKernelPathId": "qwen3-q4k-dequant-f16a-online",
               "primaryActivationDtype": "f16",
-              "fallbackPlanId": "finiteness_fallback",
+              "fallbackPlanId": "finiteness-fallback",
               "fallbackKernelPathId": "qwen3-q4k-dequant-f32a-online"
             }
           }

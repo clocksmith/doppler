@@ -992,7 +992,7 @@
       "audio": "f16",
       "projector": "f16",
       "compute": "f16",
-      "perLayerEmbeddings": "int4_per_row",
+      "perLayerEmbeddings": "int4-per-row",
       "layout": "row",
       "variantTag": "q4k-ehf16-af16-vf16-audiof16-pf16-int4ple"
     },
@@ -1074,7 +1074,7 @@
       "audio": "f16",
       "projector": "f16",
       "compute": "f32",
-      "perLayerEmbeddings": "int4_per_row",
+      "perLayerEmbeddings": "int4-per-row",
       "layout": "row",
       "variantTag": "q4k-ehf16-af32-vf16-audiof16-pf16"
     },

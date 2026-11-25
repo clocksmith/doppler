@@ -131,10 +131,10 @@
     "compareProfileSchemaVersion": 1
   },
   "compareLane": {
-    "declared": "performance_comparable",
+    "declared": "performance-comparable",
     "reason": "Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims.",
     "allowNonComparableLane": false,
-    "lane": "performance_comparable",
+    "lane": "performance-comparable",
     "claimGrade": false,
     "claimable": false,
     "releaseClaimable": false,
@@ -283,8 +283,8 @@
   "methodology": {
     "promptTokensPerSecToFirstToken": "prompt_tokens / firstTokenMs",
     "prefillPhaseMs": {
-      "doppler": "available inside Doppler payload timing.prefillMs as internal_prefill_phase",
-      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft_proxy"
+      "doppler": "available inside Doppler payload timing.prefillMs as internal-prefill-phase",
+      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft-proxy"
     },
     "deterministicDecoding": {
       "seed": 0,
@@ -509,7 +509,7 @@
                 "modelLoadMs": "model initialization/load before generation",
                 "firstTokenMs": "ttft from generation start",
                 "firstResponseMs": "modelLoadMs + firstTokenMs",
-                "prefillMs": "internal_prefill_phase",
+                "prefillMs": "internal-prefill-phase",
                 "decodeMs": "time after first token",
                 "totalRunMs": "prefillMs + decodeMs"
               },
@@ -868,8 +868,8 @@
                   "outliersRemoved": 0
                 }
               },
-              "decodeMode": "single_token",
-              "batchGuardReason": "multi_token_decode_disabled",
+              "decodeMode": "single-token",
+              "batchGuardReason": "multi-token-decode-disabled",
               "generatedText": "The color of the sky is **usually blue** during the daytime on a clear day.\n\nHowever, the color of the sky can change depending on several factors",
               "promptInput": "The color of the sky is",
               "schemaVersion": 1,
@@ -1053,7 +1053,7 @@
               "modelLoadMs": "model initialization/load before generation",
               "firstTokenMs": "ttft from generation start",
               "firstResponseMs": "modelLoadMs + firstTokenMs",
-              "prefillMs": "ttft_proxy",
+              "prefillMs": "ttft-proxy",
               "decodeMs": "time after first token",
               "totalRunMs": "prefillMs + decodeMs"
             },
@@ -1256,7 +1256,7 @@
             "executionProviderFallbackUsed": false,
             "ortProxyMode": "off",
             "ortProxyFallbackUsed": false,
-            "runnerKind": "pipeline_text_generation",
+            "runnerKind": "pipeline-text-generation",
             "modelArchitecture": null,
             "webgpuBackend": "vulkan",
             "browserExecutable": null
@@ -1589,7 +1589,7 @@
                 "modelLoadMs": "model initialization/load before generation",
                 "firstTokenMs": "ttft from generation start",
                 "firstResponseMs": "modelLoadMs + firstTokenMs",
-                "prefillMs": "internal_prefill_phase",
+                "prefillMs": "internal-prefill-phase",
                 "decodeMs": "time after first token",
                 "totalRunMs": "prefillMs + decodeMs"
               },
@@ -1948,7 +1948,7 @@
                   "outliersRemoved": 0
                 }
               },
-              "decodeMode": "batched_gpu_stepwise_ple",
+              "decodeMode": "batched-gpu-stepwise-ple",
               "batchGuardReason": null,
               "generatedText": "The color of the sky is **usually blue** during the daytime on a clear day.\n\nHowever, the color of the sky can change depending on several factors",
               "promptInput": "The color of the sky is",
@@ -2133,7 +2133,7 @@
               "modelLoadMs": "model initialization/load before generation",
               "firstTokenMs": "ttft from generation start",
               "firstResponseMs": "modelLoadMs + firstTokenMs",
-              "prefillMs": "ttft_proxy",
+              "prefillMs": "ttft-proxy",
               "decodeMs": "time after first token",
               "totalRunMs": "prefillMs + decodeMs"
             },
@@ -2336,7 +2336,7 @@
             "executionProviderFallbackUsed": false,
             "ortProxyMode": "off",
             "ortProxyFallbackUsed": false,
-            "runnerKind": "pipeline_text_generation",
+            "runnerKind": "pipeline-text-generation",
             "modelArchitecture": null,
             "webgpuBackend": "vulkan",
             "browserExecutable": null

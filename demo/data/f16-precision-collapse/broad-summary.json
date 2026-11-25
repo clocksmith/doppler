@@ -41,11 +41,11 @@
           "winnerText": ":",
           "winnerGap": 0.4292624029392833
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": ":",
           "winnerGap": 0.4292755126953125
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " ",
           "winnerGap": 1.84375
         }
@@ -67,11 +67,11 @@
           "winnerText": " dangerous",
           "winnerGap": 1.1555051051882224
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": " dangerous",
           "winnerGap": 1.155496597290039
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " a",
           "winnerGap": 0.390625
         }
@@ -93,11 +93,11 @@
           "winnerText": "  ",
           "winnerGap": 1.3195197184253828
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": "  ",
           "winnerGap": 1.3195171356201172
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " ",
           "winnerGap": 3.59375
         }
@@ -119,11 +119,11 @@
           "winnerText": " k",
           "winnerGap": 0.10117418843398696
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": " k",
           "winnerGap": 0.10115909576416016
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " a",
           "winnerGap": 1.296875
         }
@@ -145,11 +145,11 @@
           "winnerText": " a",
           "winnerGap": 0.6180606307766325
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": " a",
           "winnerGap": 0.6180553436279297
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " clear",
           "winnerGap": 0.28125
         }
@@ -171,11 +171,11 @@
           "winnerText": " confidential",
           "winnerGap": 0.46872571341746294
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": " confidential",
           "winnerGap": 0.46872806549072266
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " private",
           "winnerGap": 0.3359375
         }
@@ -197,11 +197,11 @@
           "winnerText": "  ",
           "winnerGap": 0.6004947235939042
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": "  ",
           "winnerGap": 0.6005001068115234
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " A",
           "winnerGap": 2.265625
         }
@@ -223,11 +223,11 @@
           "winnerText": " the",
           "winnerGap": 1.566237577557537
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": " the",
           "winnerGap": 1.5662612915039062
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " you",
           "winnerGap": 0.03125
         }
@@ -249,11 +249,11 @@
           "winnerText": " is",
           "winnerGap": 0.6398397656992074
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": " is",
           "winnerGap": 0.6398410797119141
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": "'",
           "winnerGap": 2.5546875
         }
@@ -275,11 +275,11 @@
           "winnerText": " dangerous",
           "winnerGap": 0.008903684768284847
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": " dangerous",
           "winnerGap": 0.008897781372070312
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " a",
           "winnerGap": 0.046875
         }
@@ -301,11 +301,11 @@
           "winnerText": ":",
           "winnerGap": 0.025002211676493857
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": ":",
           "winnerGap": 0.025005340576171875
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " the",
           "winnerGap": 0.015625
         }
@@ -327,11 +327,11 @@
           "winnerText": " not",
           "winnerGap": 1.739895715454793
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": " not",
           "winnerGap": 1.7399005889892578
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " the",
           "winnerGap": 0.1875
         }
@@ -353,11 +353,11 @@
           "winnerText": " a",
           "winnerGap": 0.6618757067012382
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": " a",
           "winnerGap": 0.6618690490722656
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": " not",
           "winnerGap": 0.859375
         }
@@ -379,11 +379,11 @@
           "winnerText": " unsafe",
           "winnerGap": 2.399749821419036
         },
-        "f32_forward": {
+        "f32-forward": {
           "winnerText": " unsafe",
           "winnerGap": 2.3997535705566406
         },
-        "f16_forward": {
+        "f16-forward": {
           "winnerText": "\n",
           "winnerGap": 0.40625
         }

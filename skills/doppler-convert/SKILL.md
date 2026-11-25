@@ -167,7 +167,7 @@ When conversion quality is in question, follow the triage protocol in `docs/agen
 2. Verify manifest `quantization` + `quantizationInfo` + execution-v1/session fields.
 3. Verify shard integrity vs manifest hashes.
 4. Verify sampled tensor numeric sanity source vs converted bytes.
-5. Verify layer pattern semantics (`every_n` behavior).
+5. Verify layer pattern semantics (`every-n` behavior).
 
 ## Canonical Files
 

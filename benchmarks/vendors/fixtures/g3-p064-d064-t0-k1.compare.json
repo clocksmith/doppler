@@ -200,8 +200,8 @@
   "methodology": {
     "promptTokensPerSecToFirstToken": "prompt_tokens / firstTokenMs",
     "prefillPhaseMs": {
-      "doppler": "available inside Doppler payload timing.prefillMs as internal_prefill_phase",
-      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft_proxy"
+      "doppler": "available inside Doppler payload timing.prefillMs as internal-prefill-phase",
+      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft-proxy"
     }
   },
   "fairness": {

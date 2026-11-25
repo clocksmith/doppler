@@ -7,8 +7,8 @@ import { setPromptValue } from '../../input.js';
 const DATA_ROOT = new URL('../../data/f16-precision-collapse/', import.meta.url);
 const DISPLAY_MODES = Object.freeze([
   { id: 'exact', label: 'Exact' },
-  { id: 'f32_forward', label: '32-bit' },
-  { id: 'f16_forward', label: '16-bit' },
+  { id: 'f32-forward', label: '32-bit' },
+  { id: 'f16-forward', label: '16-bit' },
 ]);
 const MAX_TABLE_ROWS = 12;
 
@@ -16,7 +16,7 @@ const replayState = {
   manifest: null,
   curated: null,
   selectedPromptId: null,
-  selectedMode: 'f32_forward',
+  selectedMode: 'f32-forward',
   slices: new Map(),
 };
 
@@ -155,8 +155,8 @@ function renderBroadFlips() {
     <article class="precision-replay-mini-card">
       <div class="precision-replay-mini-id">${escapeHtml(flip.id)}</div>
       <div class="precision-replay-mini-text">${escapeHtml(flip.text)}</div>
-      <div class="precision-replay-mini-line">32-bit picked: <code>${escapeHtml(visibleToken(flip.modes.f32_forward.winnerText))}</code></div>
-      <div class="precision-replay-mini-line">16-bit picked: <code>${escapeHtml(visibleToken(flip.modes.f16_forward.winnerText))}</code></div>
+      <div class="precision-replay-mini-line">32-bit picked: <code>${escapeHtml(visibleToken(flip.modes['f32-forward'].winnerText))}</code></div>
+      <div class="precision-replay-mini-line">16-bit picked: <code>${escapeHtml(visibleToken(flip.modes['f16-forward'].winnerText))}</code></div>
     </article>
   `).join('');
 }
@@ -191,7 +191,7 @@ function visibleToken(text) {
 function renderWinnerCards(prompt) {
   const winnersEl = $('precision-replay-winners');
   if (!winnersEl) return;
-  const same = prompt.modes.f32_forward.winnerTokenId === prompt.modes.f16_forward.winnerTokenId;
+  const same = prompt.modes['f32-forward'].winnerTokenId === prompt.modes['f16-forward'].winnerTokenId;
   const outcome = $('precision-replay-outcome');
   if (outcome) outcome.textContent = same
     ? '32-bit and 16-bit math picked the same next token.'
@@ -223,8 +223,8 @@ function renderWatchPairs(prompt) {
       <div class="type-label">Hand-picked pair</div>
       <div class="precision-replay-watch-title"><code>${escapeHtml(visibleToken(pair.left.decodedText))}</code> vs <code>${escapeHtml(visibleToken(pair.right.decodedText))}</code></div>
       <div class="precision-replay-watch-line">Exact: <code>${escapeHtml(visibleToken(pair.modes.exact.winnerText))}</code> (${escapeHtml(formatFixed(pair.modes.exact.gap))})</div>
-      <div class="precision-replay-watch-line">32-bit: <code>${escapeHtml(visibleToken(pair.modes.f32_forward.winnerText))}</code> (${escapeHtml(formatFixed(pair.modes.f32_forward.gap))})</div>
-      <div class="precision-replay-watch-line">16-bit: <code>${escapeHtml(visibleToken(pair.modes.f16_forward.winnerText))}</code> (${escapeHtml(formatFixed(pair.modes.f16_forward.gap))})</div>
+      <div class="precision-replay-watch-line">32-bit: <code>${escapeHtml(visibleToken(pair.modes['f32-forward'].winnerText))}</code> (${escapeHtml(formatFixed(pair.modes['f32-forward'].gap))})</div>
+      <div class="precision-replay-watch-line">16-bit: <code>${escapeHtml(visibleToken(pair.modes['f16-forward'].winnerText))}</code> (${escapeHtml(formatFixed(pair.modes['f16-forward'].gap))})</div>
     </article>
   `).join('');
 }
@@ -247,11 +247,11 @@ function renderBranch(prompt) {
       <div class="precision-replay-branch-grid">
         <div>
           <div class="type-label">32-bit continues</div>
-          <pre class="precision-replay-branch-text">${escapeHtml(prompt.branches.f32_forward.decodedText ?? '')}</pre>
+          <pre class="precision-replay-branch-text">${escapeHtml(prompt.branches['f32-forward'].decodedText ?? '')}</pre>
         </div>
         <div>
           <div class="type-label">16-bit continues</div>
-          <pre class="precision-replay-branch-text">${escapeHtml(prompt.branches.f16_forward.decodedText ?? '')}</pre>
+          <pre class="precision-replay-branch-text">${escapeHtml(prompt.branches['f16-forward'].decodedText ?? '')}</pre>
         </div>
       </div>
     </article>
@@ -270,8 +270,8 @@ function renderCandidateTable(prompt, slice) {
   const tokenIds = slice.candidateRows.map((entry) => entry.tokenId);
   const ranked = sortTokenIdsByScore(tokenIds, scores[replayState.selectedMode]).slice(0, MAX_TABLE_ROWS);
   const selectedWinnerId = prompt.modes[replayState.selectedMode].winnerTokenId;
-  const f32WinnerId = prompt.modes.f32_forward.winnerTokenId;
-  const f16WinnerId = prompt.modes.f16_forward.winnerTokenId;
+  const f32WinnerId = prompt.modes['f32-forward'].winnerTokenId;
+  const f16WinnerId = prompt.modes['f16-forward'].winnerTokenId;
 
   tableBodyEl.innerHTML = ranked.map((tokenId, index) => {
     const rowClasses = [
@@ -284,9 +284,9 @@ function renderCandidateTable(prompt, slice) {
         <td>${index + 1}</td>
         <td><code>${escapeHtml(visibleToken(decode(tokenId)))}</code></td>
         <td>${escapeHtml(formatFixed(scores.exact.get(tokenId)))}</td>
-        <td>${escapeHtml(formatFixed(scores.f32_forward.get(tokenId)))}</td>
-        <td>${escapeHtml(formatFixed(scores.f16_forward.get(tokenId)))}</td>
-        <td>${escapeHtml(formatFixed((scores.f16_forward.get(tokenId) ?? 0) - (scores.f32_forward.get(tokenId) ?? 0)))}</td>
+        <td>${escapeHtml(formatFixed(scores['f32-forward'].get(tokenId)))}</td>
+        <td>${escapeHtml(formatFixed(scores['f16-forward'].get(tokenId)))}</td>
+        <td>${escapeHtml(formatFixed((scores['f16-forward'].get(tokenId) ?? 0) - (scores['f32-forward'].get(tokenId) ?? 0)))}</td>
       </tr>
     `;
   }).join('');

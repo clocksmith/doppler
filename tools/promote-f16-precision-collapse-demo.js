@@ -32,8 +32,8 @@ function selectPromptSummary(prompt) {
     watchPairs: prompt.watchPairs,
     modes: {
       exact: prompt.modes.exact,
-      f32_forward: prompt.modes.f32_forward,
-      f16_forward: prompt.modes.f16_forward,
+      'f32-forward': prompt.modes['f32-forward'],
+      'f16-forward': prompt.modes['f16-forward'],
     },
     f16VsF32WinnerChanged: prompt.f16VsF32WinnerChanged,
     branchComparison: prompt.branchComparison,
@@ -51,13 +51,13 @@ function selectBroadFlipSummary(flip) {
         winnerText: flip.modes.exact.winnerText,
         winnerGap: flip.modes.exact.winnerGap,
       },
-      f32_forward: {
-        winnerText: flip.modes.f32_forward.winnerText,
-        winnerGap: flip.modes.f32_forward.winnerGap,
+      'f32-forward': {
+        winnerText: flip.modes['f32-forward'].winnerText,
+        winnerGap: flip.modes['f32-forward'].winnerGap,
       },
-      f16_forward: {
-        winnerText: flip.modes.f16_forward.winnerText,
-        winnerGap: flip.modes.f16_forward.winnerGap,
+      'f16-forward': {
+        winnerText: flip.modes['f16-forward'].winnerText,
+        winnerGap: flip.modes['f16-forward'].winnerGap,
       },
     },
     branchComparison: flip.branchComparison,

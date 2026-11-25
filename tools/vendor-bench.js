@@ -4138,7 +4138,7 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
 export function selectReleaseCompareResults(compareResults, coveredModelIdSet) {
   return compareResults.filter((entry) => {
     const modelId = asNonEmptyString(entry?.dopplerModelId);
-    const comparableLane = entry?.compareLane == null || entry.compareLane === 'performance_comparable';
+    const comparableLane = entry?.compareLane == null || entry.compareLane === 'performance-comparable';
     const fairnessAllowsRelease = entry?.fairness?.releaseClaimable === true;
     return modelId != null
       && coveredModelIdSet.has(modelId)
@@ -4250,7 +4250,7 @@ async function doMatrix(flags, timestamp = null) {
       dopplerSource: profile.defaultDopplerSource || 'local',
       defaultTjsModelId: profile.defaultTjsModelId || null,
       defaultDopplerSurface: profile.defaultDopplerSurface || 'auto',
-      compareLane: profile.compareLane || 'performance_comparable',
+      compareLane: profile.compareLane || 'performance-comparable',
       compareLaneReason: profile.compareLaneReason || null,
       inCatalog: Boolean(catalogEntry),
       catalogLabel: catalogEntry?.label || null,

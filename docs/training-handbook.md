@@ -198,9 +198,9 @@ Action requirements:
   `tools/build-gepa-teacher-traces.js`. Doppler treats GEPA as a prompt/policy
   frontier source; the resulting `sourcePolicyId` and `gepaCandidateId` values
   travel with the training rows and adapter lineage.
-- `distill` resolves KD and triplet workload stages into the internal `stage_a` / `stage_b` runner contract.
+- `distill` resolves KD and triplet workload stages into the internal `stage-a` / `stage-b` runner contract.
 - Distillation workloads that declare `objective="sft"` or `trainingStage="sft"` must provide `distill.sftLora`; those stages route through the registered causal-LM LoRA `text-pairs` runner/export path and still write a distill stage manifest under the run root.
-- Distillation translation eval is currently implemented for `studentGraphMode="transformer_full"` only.
+- Distillation translation eval is currently implemented for `studentGraphMode="transformer-full"` only.
 
 ## Verifier-Guided Optimizer Boundary
 

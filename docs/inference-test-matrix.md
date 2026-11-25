@@ -11,7 +11,7 @@ The full Cartesian product of inference dimensions is intractable:
 | Model family | Gemma, Qwen, LFM2, TranslateGemma, ... |
 | Quantization | F16, Q4K, Q6K, ... |
 | Attention mode | full, sliding window, hybrid, linear, gated delta net |
-| KV cache layout | standard, bdpa_paged |
+| KV cache layout | standard, bdpa-paged |
 | Batch size | 1, N (multi-token) |
 | Decode surface | generate (streaming text), generateTokens (streaming ids), generateTokenIds (batch ids), decodeStepLogits (manual) |
 | Readback interval | 1, N, null |
@@ -83,7 +83,7 @@ Example: KV cache layout change
 | --- | --- | --- | --- |
 | standard | full (Gemma3) | Q4K | 1 |
 | standard | linear (Qwen3.5) | Q4K | 1 |
-| bdpa_paged | full (Gemma3) | Q4K | N |
+| bdpa-paged | full (Gemma3) | Q4K | N |
 
 This covers the risk surface (layout × attention mode, layout × batch size) without multiplying by every quant format and model family.
 

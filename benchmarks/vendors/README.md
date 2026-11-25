@@ -73,7 +73,7 @@ Claim format to keep reports auditable:
   - generated outputs under [results/](./results/)
   - committed fixture evidence under [fixtures/](./fixtures/) when publishing stable claims
 - State whether the row is `claimable`, `candidate`, `diagnostic`, or
-  `capability_only` when that status exists in the source artifact or matrix.
+  `capability-only` when that status exists in the source artifact or matrix.
 
 ## Claimable Evidence Rules
 
@@ -253,7 +253,7 @@ the root `defaults` block defines:
 
 each model profile has:
 - `defaultDopplerSource` (`quickstart-registry|local`) so compare runs resolve the same artifact source on every machine
-- `compareLane` (`performance_comparable|capability_only`) so support-only rows do not turn into accidental speed claims
+- `compareLane` (`performance-comparable|capability-only`) so support-only rows do not turn into accidental speed claims
 - `releaseClaimable` (`true|false`) so local passing comparisons do not become
   release claims until the model artifact is promoted
 - `dopplerRuntimeProfileByDecodeProfile` so model-scoped Doppler tuning is explicit for parity/throughput lanes

@@ -246,7 +246,7 @@ function usage() {
     '  --checkpoint-operator <text>',
     '',
     'Bench-mode flags:',
-    '  --training-bench-steps <int>      Applies to stage_a + stage_b bench runs',
+    '  --training-bench-steps <int>      Applies to stage-a + stage-b bench runs',
     '',
     'Train-mode flags:',
     '  --stage-a-steps <int>             Default: trainingBenchSteps',
@@ -318,7 +318,7 @@ function extractStageAArtifact(trainingResult) {
       };
     }
   }
-  throw new Error('Unable to find stage_a artifact in training suite output.');
+  throw new Error('Unable to find stage-a artifact in training suite output.');
 }
 
 export function resolveResumeOverrideFields(args, workloadConfig) {
@@ -390,17 +390,17 @@ function buildRuntimeConfigJson(benchRun) {
 
 export function resolveDistillWorkloadOptions(args, loadedWorkload) {
   const workload = loadedWorkload.workload;
-  const stageAPlan = findStagePlanEntry(workload, 'stage_a');
-  const stageBPlan = findStagePlanEntry(workload, 'stage_b');
+  const stageAPlan = findStagePlanEntry(workload, 'stage-a');
+  const stageBPlan = findStagePlanEntry(workload, 'stage-b');
   if (!stageAPlan || !stageBPlan) {
-    throw new Error(`Distill workload ${loadedWorkload.path} must define both stage_a and stage_b stagePlan entries.`);
+    throw new Error(`Distill workload ${loadedWorkload.path} must define both stage-a and stage-b stagePlan entries.`);
   }
   const inferredBenchSteps = stageAPlan.steps === stageBPlan.steps ? stageAPlan.steps : null;
   const benchSteps = args.trainingBenchSteps
     ?? inferredBenchSteps;
   if (args.mode === 'bench' && benchSteps == null) {
     throw new Error(
-      `Distill workload ${loadedWorkload.path} has divergent stage_a/stage_b steps; pass --training-bench-steps explicitly.`
+      `Distill workload ${loadedWorkload.path} has divergent stage-a/stage_b steps; pass --training-bench-steps explicitly.`
     );
   }
   const distillDatasetPath = args.distillDatasetPath || workload.datasetPath;
@@ -462,10 +462,10 @@ async function runVerifyStage(stage, options) {
       request: {
         suite: 'training',
         trainingStage: stage,
-        trainingTests: [stage === 'stage_b' ? 'distill-stage-b' : 'distill-stage-a'],
+        trainingTests: [stage === 'stage-b' ? 'distill-stage-b' : 'distill-stage-a'],
         trainingBenchSteps: options.trainingBenchSteps,
         ...options.request,
-        ...(stage === 'stage_b'
+        ...(stage === 'stage-b'
           ? {
             stageAArtifact: options.stageAArtifact,
             stageAArtifactHash: options.stageAArtifactHash,
@@ -490,7 +490,7 @@ async function runBenchStage(stage, options) {
         trainingStage: stage,
         trainingBenchSteps: options.trainingBenchSteps,
         ...options.request,
-        ...(stage === 'stage_b'
+        ...(stage === 'stage-b'
           ? {
             stageAArtifact: options.stageAArtifact,
             stageAArtifactHash: options.stageAArtifactHash,
@@ -573,19 +573,19 @@ async function main() {
   await mkdir(outDirAbs, { recursive: true });
 
   if (args.mode === 'bench') {
-    const stageAVerify = await runVerifyStage('stage_a', {
+    const stageAVerify = await runVerifyStage('stage-a', {
       surface: args.surface,
       trainingBenchSteps: null,
       request: baseRequest,
     });
     const stageAArtifact = extractStageAArtifact(stageAVerify);
-    const stageABench = await runBenchStage('stage_a', {
+    const stageABench = await runBenchStage('stage-a', {
       surface: args.surface,
       trainingBenchSteps: benchSteps,
       request: baseRequest,
       runtimeConfigJson,
     });
-    const stageBBench = await runBenchStage('stage_b', {
+    const stageBBench = await runBenchStage('stage-b', {
       surface: args.surface,
       trainingBenchSteps: benchSteps,
       request: baseRequest,
@@ -639,7 +639,7 @@ async function main() {
     }
     : null;
   if (!args.skipStageA) {
-    stageAResult = await runVerifyStage('stage_a', {
+    stageAResult = await runVerifyStage('stage-a', {
       surface: args.surface,
       trainingBenchSteps: stageASteps,
       request: baseRequest,
@@ -650,9 +650,9 @@ async function main() {
   let stageBResult = null;
   if (!args.stageAOnly) {
     if (!stageAArtifact?.stageAArtifact) {
-      throw new Error('stage_b requires stage_a artifact.');
+      throw new Error('stage-b requires stage-a artifact.');
     }
-    stageBResult = await runVerifyStage('stage_b', {
+    stageBResult = await runVerifyStage('stage-b', {
       surface: args.surface,
       trainingBenchSteps: stageBSteps,
       request: baseRequest,

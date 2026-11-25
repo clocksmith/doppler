@@ -157,7 +157,7 @@ async function main() {
         suite: 'training',
         trainingSchemaVersion,
         trainingConfig,
-        trainingStage: 'stage1_joint',
+        trainingStage: 'stage1-joint',
         trainingTests: [stage1TestId],
       },
       run: {
@@ -177,7 +177,7 @@ async function main() {
         trainingBenchSteps,
         trainingConfig,
         workloadType: 'training',
-        trainingStage: 'stage1_joint',
+        trainingStage: 'stage1-joint',
       },
       run: {
         surface: args.surface,
@@ -199,7 +199,7 @@ async function main() {
         trainingBenchSteps,
         trainingConfig,
         workloadType: 'training',
-        trainingStage: 'stage2_base',
+        trainingStage: 'stage2-base',
         stage1Artifact: stage1Artifact.stage1Artifact,
         stage1ArtifactHash: String(stage1Artifact.stage1ArtifactHash || ''),
       },

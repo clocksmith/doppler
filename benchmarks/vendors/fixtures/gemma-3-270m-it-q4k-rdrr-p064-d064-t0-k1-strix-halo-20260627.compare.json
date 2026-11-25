@@ -181,10 +181,10 @@
     "compareProfileSchemaVersion": 1
   },
   "compareLane": {
-    "declared": "performance_comparable",
+    "declared": "performance-comparable",
     "reason": null,
     "allowNonComparableLane": false,
-    "lane": "performance_comparable",
+    "lane": "performance-comparable",
     "claimGrade": true,
     "claimable": true,
     "releaseClaimable": true,
@@ -322,7 +322,7 @@
     "id": "p064-d064-t0-k1",
     "prefillTokenTarget": 64,
     "prefillTokenSource": "tokenizer-accurate-synthetic",
-    "prefillTokenSemantics": "model_input_tokens",
+    "prefillTokenSemantics": "model-input-tokens",
     "promptTokenizerLocator": "onnx-community/gemma-3-270m-it-ONNX",
     "promptTokenizerResolutionSource": "model-id",
     "decodeTokenTarget": 64
@@ -383,8 +383,8 @@
   "methodology": {
     "promptTokensPerSecToFirstToken": "prompt_tokens / firstTokenMs",
     "prefillPhaseMs": {
-      "doppler": "available inside Doppler payload timing.prefillMs as internal_prefill_phase",
-      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft_proxy"
+      "doppler": "available inside Doppler payload timing.prefillMs as internal-prefill-phase",
+      "transformersjs": "excluded from compare contract because runner prefillMs is a ttft-proxy"
     },
     "deterministicDecoding": {
       "seed": 0,
@@ -886,7 +886,7 @@
                 "modelLoadMs": "model initialization/load before generation",
                 "firstTokenMs": "ttft from generation start",
                 "firstResponseMs": "modelLoadMs + firstTokenMs",
-                "prefillMs": "internal_prefill_phase",
+                "prefillMs": "internal-prefill-phase",
                 "decodeMs": "time after first token",
                 "totalRunMs": "prefillMs + decodeMs"
               },
@@ -1798,7 +1798,7 @@
                   "outliersRemoved": 0
                 }
               },
-              "decodeMode": "batched_gpu",
+              "decodeMode": "batched-gpu",
               "batchGuardReason": null,
               "executionPlan": {
                 "primary": {
@@ -2028,7 +2028,7 @@
               "modelLoadMs": "model initialization/load before generation",
               "firstTokenMs": "ttft from generation start",
               "firstResponseMs": "modelLoadMs + firstTokenMs",
-              "prefillMs": "ttft_proxy",
+              "prefillMs": "ttft-proxy",
               "decodeMs": "time after first token",
               "totalRunMs": "prefillMs + decodeMs"
             },
@@ -2327,7 +2327,7 @@
             "executionProviderFallbackUsed": false,
             "ortProxyMode": "off",
             "ortProxyFallbackUsed": false,
-            "runnerKind": "pipeline_text_generation",
+            "runnerKind": "pipeline-text-generation",
             "modelArchitecture": null,
             "webgpuBackend": "vulkan",
             "browserExecutable": null
@@ -2938,7 +2938,7 @@
                 "modelLoadMs": "model initialization/load before generation",
                 "firstTokenMs": "ttft from generation start",
                 "firstResponseMs": "modelLoadMs + firstTokenMs",
-                "prefillMs": "internal_prefill_phase",
+                "prefillMs": "internal-prefill-phase",
                 "decodeMs": "time after first token",
                 "totalRunMs": "prefillMs + decodeMs"
               },
@@ -3850,7 +3850,7 @@
                   "outliersRemoved": 0
                 }
               },
-              "decodeMode": "batched_gpu",
+              "decodeMode": "batched-gpu",
               "batchGuardReason": null,
               "executionPlan": {
                 "primary": {
@@ -4080,7 +4080,7 @@
               "modelLoadMs": "model initialization/load before generation",
               "firstTokenMs": "ttft from generation start",
               "firstResponseMs": "modelLoadMs + firstTokenMs",
-              "prefillMs": "ttft_proxy",
+              "prefillMs": "ttft-proxy",
               "decodeMs": "time after first token",
               "totalRunMs": "prefillMs + decodeMs"
             },
@@ -4379,7 +4379,7 @@
             "executionProviderFallbackUsed": false,
             "ortProxyMode": "off",
             "ortProxyFallbackUsed": false,
-            "runnerKind": "pipeline_text_generation",
+            "runnerKind": "pipeline-text-generation",
             "modelArchitecture": null,
             "webgpuBackend": "vulkan",
             "browserExecutable": null

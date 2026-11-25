@@ -46,7 +46,7 @@
       "defaultTjsFormat": "onnx",
       "dopplerRuntimeProfile": "profiles/qwen-3-reranker-0-6b-metal-throughput",
       "dopplerVerifyRuntimeProfile": "profiles/qwen-3-reranker-0-6b-metal-stability",
-      "compareLane": "performance_comparable",
+      "compareLane": "performance-comparable",
       "releaseClaimable": true,
       "compareLaneReason": "Hosted clocksmith/rdrr Doppler reranker artifact compared against the browser WebGPU Transformers.js ONNX Qwen3 reranker baseline with identical Qwen yes/no-logit scoring prompts."
     }

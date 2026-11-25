@@ -78,14 +78,14 @@ function optionalString(value) {
 
 function validateProfile(profile, modelId) {
   const label = `${CONFIG_PATH} profile "${modelId}"`;
-  if (profile?.compareLane !== 'performance_comparable' && profile?.compareLane !== 'capability_only') {
-    throw new Error(`${label} compareLane must be performance_comparable or capability_only`);
+  if (profile?.compareLane !== 'performance-comparable' && profile?.compareLane !== 'capability-only') {
+    throw new Error(`${label} compareLane must be performance-comparable or capability-only`);
   }
   if (typeof profile.releaseClaimable !== 'boolean') {
     throw new Error(`${label} releaseClaimable must be explicit true or false`);
   }
-  if (profile.releaseClaimable === true && profile.compareLane !== 'performance_comparable') {
-    throw new Error(`${label} releaseClaimable=true requires compareLane=performance_comparable`);
+  if (profile.releaseClaimable === true && profile.compareLane !== 'performance-comparable') {
+    throw new Error(`${label} releaseClaimable=true requires compareLane=performance-comparable`);
   }
 }
 
@@ -320,7 +320,7 @@ function buildSummary(dopplerBench, dopplerVerify, tjsBench) {
 function buildEmbeddingFairnessAudit({ profile, dopplerSource, summary }) {
   const invalidReasons = [];
   const correctnessOk = summary.correctnessOk === true;
-  const performanceComparable = profile.compareLane === 'performance_comparable';
+  const performanceComparable = profile.compareLane === 'performance-comparable';
   const hostedDopplerArtifact = dopplerSource === 'quickstart-registry';
   const releaseConfigured = profile.releaseClaimable === true;
 

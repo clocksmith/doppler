@@ -33,29 +33,29 @@ Release: channel=main-snapshot, version=0.6.0, commit=7451ce780039fb320a6f0798ca
 | `amplify-120m-f16-af32` | yes | embedding |  | auto |  |  |  |
 | `esm2-t12-35m-ur50d-f32-af32` | yes | embedding |  | auto |  |  |  |
 | `esmc-300m-f32-af32` | yes | embedding |  | auto |  |  |  |
-| `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | auto | quickstart-registry | performance_comparable |  |
-| `gemma-3-270m-it-f16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | local | performance_comparable |  |
-| `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | quickstart-registry | performance_comparable |  |
+| `gemma-3-1b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-1b-it-ONNX-GQA` | auto | quickstart-registry | performance-comparable |  |
+| `gemma-3-270m-it-f16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | local | performance-comparable |  |
+| `gemma-3-270m-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-3-270m-it-ONNX` | auto | quickstart-registry | performance-comparable |  |
 | `gemma-4-12b-it-text-q4k-ehf16-af16` | yes | run, translate |  | auto |  |  |  |
 | `gemma-4-12b-it-text-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
 | `gemma-4-12b-it-text-w4a16-ct-ehf16-af16` | yes | run, translate |  | auto |  |  |  |
 | `gemma-4-31b-it-text-q4k-ehf16-af16` | yes | run, translate |  | auto |  |  |  |
 | `gemma-4-31b-it-text-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
-| `gemma-4-e2b-it-q4k-ehf16-af16-int4ple` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler uses the local AF16 INT4-PLE weights-ref sibling over the Gemma 4 E2B INT4 PLE weight capsule; TJS uses standard ONNX q4f16. This lane is local compute-throughput evidence, not hosted-release evidence. |
-| `gemma-4-e2b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims. |
-| `gemma-4-e2b-it-q4k-ehf16-af32-int4ple` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance_comparable | Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance_comparable as compute-throughput comparison is meaningful. |
-| `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` | auto | quickstart-registry | capability_only | Embedding models use a separate workload contract and are not part of the text-generation compare lane. |
+| `gemma-4-e2b-it-q4k-ehf16-af16-int4ple` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance-comparable | Doppler uses the local AF16 INT4-PLE weights-ref sibling over the Gemma 4 E2B INT4 PLE weight capsule; TJS uses standard ONNX q4f16. This lane is local compute-throughput evidence, not hosted-release evidence. |
+| `gemma-4-e2b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance-comparable | Doppler and the paired Transformers.js ONNX q4f16 runner both produce coherent Gemma 4 output, but current greedy text is not exact-match; this lane is claimable for compute-throughput comparisons, not correctness-parity claims. |
+| `gemma-4-e2b-it-q4k-ehf16-af32-int4ple` | yes | run, translate | `onnx-community/gemma-4-E2B-it-ONNX` | browser | local | performance-comparable | Doppler uses INT4 per-row PLE quantization (closer to TFLite shape); TJS uses standard ONNX q4f16. Both produce coherent Gemma 4 output on matching prompts — lane remains performance-comparable as compute-throughput comparison is meaningful. |
+| `google-embeddinggemma-300m-q4k-ehf16-af32` | yes | embedding | `onnx-community/embeddinggemma-300m-ONNX` | auto | quickstart-registry | capability-only | Embedding models use a separate workload contract and are not part of the text-generation compare lane. |
 | `nucleotide-transformer-v2-50m-f32-af32` | yes | embedding |  | auto |  |  |  |
-| `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` | browser | quickstart-registry | performance_comparable |  |
-| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` | browser | local | performance_comparable |  |
+| `qwen-3-5-0-8b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-0.8B-ONNX` | browser | quickstart-registry | performance-comparable |  |
+| `qwen-3-5-2b-q4k-ehaf16` | yes | run, translate | `onnx-community/Qwen3.5-2B-ONNX` | browser | local | performance-comparable |  |
 | `qwen-3-6-27b-q4k-eaf16` | yes | run, translate |  | auto |  |  |  |
 | `qwen-3-6-27b-q4k-ehaf16` | yes | run, translate |  | auto |  |  |  |
 | `qwen-3-embedding-0-6b-q4k-ehf16-af32` | yes | embedding |  | auto |  |  |  |
 | `qwen-3-reranker-0-6b-f16-af32` | yes | run, translate |  | auto |  |  |  |
 | `qwen-3-reranker-0-6b-q4k-ehf16-af32` | yes | run, translate |  | auto |  |  |  |
 | `qwen3-8-27b-text-f16-af32` | yes | run, translate |  | auto |  |  |  |
-| `translategemma-4b-1b-enes-q4k-ehf16-af32` | yes | run, translate |  | auto | local | capability_only | No canonical Transformers.js mapping is configured for this bilingual TranslateGemma artifact. |
-| `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` | auto | local | performance_comparable |  |
+| `translategemma-4b-1b-enes-q4k-ehf16-af32` | yes | run, translate |  | auto | local | capability-only | No canonical Transformers.js mapping is configured for this bilingual TranslateGemma artifact. |
+| `translategemma-4b-it-q4k-ehf16-af32` | yes | run, translate | `onnx-community/translategemma-text-4b-it-ONNX` | auto | local | performance-comparable |  |
 
 ## Workloads
 
