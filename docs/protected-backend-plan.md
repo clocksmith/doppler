@@ -566,3 +566,29 @@ What would change the verdict, and by how much:
 
 Recommended next research step (not started): a 2-4 layer, d = 64-128 encryption-friendly model with bootstrapping on
 the Orin GPU, at minutes per token, so the kernel work has a target that needs it.
+
+## 10. Homomorphic split across two GPU evaluators (2026-11-25)
+
+The fixture's one block split across two WebGPU evaluators on different machines, with ciphertexts only between them.
+Code: `webgpu/split.js`, `evaluator.js --role stage-a|stage-b` (`--next`, `--hop-listen`, `--gate`), requester
+`--stage-a/--stage-b` (any `--evaluator` beside them is a whole-model dual reference) and `--events`.
+
+- **Cut.** Every compiled step is cut at the `ln2` layer. Stage A runs the embedding lookups, the first norm and
+  attention, and keeps the encrypted KV cache; stage B runs the second norm, MLP, final norm and head and keeps no
+  session state. Exactly one register crosses the cut in every step: one degree-1 ciphertext at level 24
+  (13,107,232 bytes at N = 2^16). Both stages run the same compiled program on their own operation ranges, so the
+  split's result is the whole program's result bit for bit. Nothing is refreshed: the block uses 35 of 36 levels.
+- **Flow.** The requester sends each step's input ciphertexts to stage A only; stage A sends the carry to stage B over
+  its own link, admitted by a one-time token the requester gives both stages in `hello`; stage B returns the result to
+  the requester. Both stages hold the same public evaluation keys; neither can decrypt.
+- **Checks.** Development ring on the arm64-host GPU: both stages plus a CPU (Lattigo) whole-model evaluator as the dual
+  reference, 6 of 6 steps byte-identical (`TestWebGPUSplitEqualsCPUEvaluator`). The 121 kernel vectors pass on an Intel
+  Tiger Lake iGPU (Mesa) as well.
+- **N = 2^16, two machines** (stage A on the arm64-host GPU, stage B on an Intel iGPU, requester on a Mac): 6 of 6
+  tokens equal to both references; decode median 6.05 s per token round trip (stage A 2.17 s, stage B 2.57 s); per token
+  19.4 MB to stage A, 13.1 MB across the hop, 1.0 MB back; 550.5 MB of keys per stage; peak GPU buffers 2.54 GB (stage A)
+  and 1.73 GB (stage B); requester peak RSS 407 MB. The split is slower than the whole block on one GPU (3.7 s): the
+  stages run in sequence and the hop adds a transfer.
+- **What it does not change.** Splitting divides weights, constants and the KV cache, not the evaluation keys (each
+  stage key-switches), multiplies key upload by the number of stages, and adds a hop per stage boundary per token. The
+  go/no-go of section 9 stands.
