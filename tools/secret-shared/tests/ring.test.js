@@ -112,3 +112,18 @@ test('the pooled CPU ring (worker threads, reused shared buffers, concurrent cal
     }
   } finally { ring.close(); }
 });
+
+test('the pooled plaintext linears (draft walk) equal the serial ones', async () => {
+  const { PlainLinear } = await import('../requester/plain.js');
+  const rows = 70, cols = 48, n = 3;
+  const w = Float32Array.from({ length: rows * cols }, (_, i) => Math.sin(i) / 7);
+  const source = { raw: () => ({ dtype: 'F32', shape: [rows, cols], bytes: new Uint8Array(w.buffer) }) };
+  const plan = { stages: [{ groups: [{ id: 'g', in: cols, tensors: [{ name: 't', shape: [rows, cols] }] }] }] };
+  const x = Float32Array.from({ length: n * cols }, (_, i) => Math.cos(i));
+  const serial = await new PlainLinear(plan, source).run('g', x, n);
+  const pool = new PlainLinear(plan, source, { threads: 3 });
+  try {
+    const pooled = await pool.run('g', x, n);
+    for (let i = 0; i < serial.length; i++) assert.ok(Math.abs(serial[i] - pooled[i]) <= 1e-6 * (1 + Math.abs(serial[i])), `element ${i}`);
+  } finally { pool.close(); }
+});
