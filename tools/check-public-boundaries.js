@@ -93,7 +93,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // resolution, empirical choice calibration, and NOTICE: measured 2062 entries.
   // Target sequence scoring (contract, scorer, adapter, log-softmax) adds 7 entries:
   // measured 2069 on Node 22.20.0/npm 10.9.3.
-  maxEntryCount: 2069,
+  // The kebab-case enum migration adds src/config/legacy-enum-values.js, imported by
+  // RDRR manifest parsing to read legacy snake_case spellings: measured 2070.
+  maxEntryCount: 2070,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -215,7 +217,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // 0.7.7 measures 3,835,430 packed bytes plus the existing cross-npm allowance.
   // dopplerx 0.1.5 (2062 entries) measures 3,878,157 packed bytes plus 2,158-byte allowance.
   // Target sequence scoring (2069 entries) measures 3,886,419 packed bytes plus the same allowance.
-  maxPackedSize: 3_888_577,
+  // DopplerX 0.1.7 plus the legacy enum alias reader (2070 entries) measures 3,890,514 packed bytes.
+  maxPackedSize: 3_892_672,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -309,7 +312,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The same archive measures 16,153,314 unpacked bytes.
   // dopplerx 0.1.5 (2062 entries) measures 16,387,941 unpacked bytes; allow 8 KB for README/receipt updates.
   // Target sequence scoring (2069 entries) measures 16,419,257 unpacked bytes; same 8 KB allowance.
-  maxUnpackedSize: 16_427_449,
+  // DopplerX 0.1.7 plus the legacy enum alias reader (2070 entries) measures 16,431,211; same 8 KB allowance.
+  maxUnpackedSize: 16_439_403,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
