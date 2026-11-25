@@ -1,4 +1,4 @@
-// Loads compiled GPU session programs (gpu_record.go: <base>.json + <base>.bin) and runs their steps on an HeDevice.
+// Loads compiled session programs (compiler.js: <base>.json + <base>.bin) and runs their steps on an HeDevice.
 // The encrypted KV cache stays on the GPU between steps, in a session state map (name -> ciphertext register).
 
 import { createHash } from 'node:crypto';
@@ -23,6 +23,8 @@ export function loadProgram(base) {
 }
 
 export function uploadProgram(he, program, blob) {
+  // The CPU backend reads canonical words; the GPU kernels read multiplicative constants in Montgomery form.
+  if (he.cpu) return blob;
   return he.upload(prepareProgramBlob(program, blob.slice()), 'program-constants');
 }
 

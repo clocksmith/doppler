@@ -1,4 +1,4 @@
-// The protected-generation framing (protocol.go): u32 header length | header JSON | blobs. Each kind has a size
+// The protected-generation framing: u32 header length | header JSON | blobs. Each kind has a size
 // ceiling checked before any blob byte is read; a kind the receiver is not waiting for ends the session unanswered.
 
 import { createHash } from 'node:crypto';
@@ -18,7 +18,7 @@ export class Refusal extends Error {
   }
 }
 
-// digest(b...) = sha256 over (u64 length || bytes) of each item, as in protocol.go.
+// digest(b...) = sha256 over (u64 length || bytes) of each item.
 export function digest(...items) {
   const h = createHash('sha256');
   for (const x of items) {

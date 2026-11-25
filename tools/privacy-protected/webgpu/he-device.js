@@ -399,7 +399,7 @@ export class HeDevice {
     this.bindGroups.clear();
   }
 
-  // A raw-u32 key (see gpu_codec.go). Residues are checked, uploaded and converted to Montgomery form on the GPU.
+  // A raw-u32 key (see ckks/codec.js). Residues are checked, uploaded and converted to Montgomery form on the GPU.
   loadKey(raw) {
     const v = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
     if (raw.byteLength < RAW_KEY_HEADER || v.getUint32(0, true) !== RAW_KEY_MAGIC) {
@@ -480,7 +480,7 @@ export class HeDevice {
     return out;
   }
 
-  // --- program ops (rnsOp in gpu_record.go) ---
+  // --- program ops (compiler.js; ckks/rns-exec.js is the CPU reference) ---
 
   execOp(op, a, b, out, blobBuf) {
     const l = op.level;

@@ -1,16 +1,16 @@
-// The WebGPU evaluator: the same session protocol as `pp evaluator` (evaluator.go), with every model layer computed
-// on ciphertexts by WGSL kernels. It receives public evaluation keys and ciphertexts only. It has no code path that
+// The protected evaluator: every model layer computed on ciphertexts by WGSL kernels (or, with --backend cpu, by the
+// JavaScript RNS executor that computes the same words). It receives public evaluation keys and ciphertexts only. It has no code path that
 // creates or accepts the requester's private key or turns a ciphertext into a value; it answers nothing but the steps
 // of the pinned schedule; its log and report carry sizes, timings and digests, never values.
 //
 //   node tools/privacy-protected/webgpu/evaluator.js --program <base> [--program <base> ...] [--listen 127.0.0.1:0]
 //        [--ready-file f] [--report r.json] [--state-dir d] [--sessions n] [--timing per-layer|overlap]
-//        [--misbehave ask-decrypt|tamper]
+//        [--misbehave ask-decrypt|tamper|tamper-lane=N] [--max-lanes 8]
 //
-// Each <base>.json/.bin is a session compiled by `pp gpu-compile` from the public fixture: a prefill step and decode
+// Each <base>.json/.bin is a session compiled by `pp.js gpu-compile` (compiler.js) from the public fixture: a prefill step and decode
 // steps. A request needs the prefill of its prompt length and a decode step for every later position it generates.
 // The encrypted KV cache stays on the GPU for the session. Evaluation keys stay resident across sessions of one key
-// epoch, and with --state-dir are kept on disk until the epoch's expiry, in the layout evaluator.go uses.
+// epoch, and with --state-dir are kept on disk until the epoch's expiry.
 
 //
 // Homomorphic split (--role stage-a | stage-b, split.js): every step is cut at a layer boundary. The requester sends
@@ -18,6 +18,10 @@
 // cache, and sends the carry ciphertexts straight to stage B over its own link (--next); stage B (--hop-listen)
 // runs the rest and returns the result ciphertext to the requester. Both stages hold the same public evaluation keys
 // and neither holds the requester's private key. The hop link is admitted with a one-time token the requester gives both stages.
+//
+// Lanes: a session may carry up to --max-lanes independent input streams (the requester mixes secret known-answer
+// trap streams with the real one). Every lane runs the same steps on its own encrypted KV cache; the evaluator cannot
+// tell them apart, and each message carries the lanes' ciphertexts in lane order.
 //
 // --gate (for a supervising agent): before computing step s the evaluator prints `WAIT s` and waits for `GO s` on
 // stdin; after it prints `STEP {json}` (sizes, timings and digests only). `READY address` is printed once listening.
@@ -30,6 +34,7 @@ import { createInterface } from 'node:readline';
 import { parseArgs } from 'node:util';
 import { HeDevice } from './he-device.js';
 import { openDevice } from './gpu.js';
+import { CpuDevice } from './cpu-device.js';
 import { loadProgram, runStep, uploadProgram } from './program-runner.js';
 import { SPLIT_LAYER, SPLIT_ROLES, splitStep } from './split.js';
 import { Conn, digest } from './wire.js';
@@ -54,6 +59,8 @@ const { values } = parseArgs({
     next: { type: 'string' },
     'hop-listen': { type: 'string' },
     gate: { type: 'boolean', default: false },
+    'max-lanes': { type: 'string', default: '8' },
+    backend: { type: 'string', default: 'webgpu' },
   },
 });
 if (!values.program?.length) throw new Error('--program <base> is required');
@@ -62,6 +69,9 @@ if (role !== 'whole' && !SPLIT_ROLES.includes(role)) throw new Error(`--role mus
 if (role === 'stage-a' && !values.next) throw new Error('--role stage-a needs --next <stage B hop address>');
 if (role === 'stage-b' && !values['hop-listen']) throw new Error('--role stage-b needs --hop-listen <address>');
 if (role !== 'whole' && values.misbehave) throw new Error('--misbehave runs only with --role whole');
+const MAX_LANES = Number(values['max-lanes']);
+if (!['webgpu', 'cpu'].includes(values.backend)) throw new Error('--backend must be webgpu or cpu');
+const TAMPER_LANE = /^tamper-lane=(\d+)$/.exec(values.misbehave);
 const TOKEN = /^[a-f0-9]{32}$/;
 
 const log = (msg) => console.error(`[evaluator webgpu ${platform()}/${arch()}${role === 'whole' ? '' : ` ${role}`}] ${msg}`);
@@ -94,7 +104,7 @@ const gate = (() => {
   };
 })();
 
-// --- key epochs on disk (same files as evaluator.go: epoch-<id>.json and epoch-<id>.keys) ---
+// --- key epochs on disk (epoch-<id>.json and epoch-<id>.keys) ---
 
 function epochPath(dir, epoch) {
   return join(dir, `epoch-${epoch}`);
@@ -141,17 +151,21 @@ function writeKeyFile(path, blobs) {
 
 async function main() {
   const t0 = performance.now();
-  const gpu = await openDevice();
+  const loaded = values.program.map((base) => loadProgram(base));
+  // --backend cpu: the JavaScript RNS executor (the dual check's second evaluator, or a host without WebGPU).
+  const gpu = values.backend === 'cpu'
+    ? { provider: 'cpu', adapter: { description: 'javascript rns executor' }, close: async () => {} }
+    : await openDevice();
+  rep.backend = values.backend;
   rep.provider = gpu.provider;
   rep.adapter = gpu.adapter;
-  const loaded = values.program.map((base) => loadProgram(base));
   const first = loaded[0].program;
   for (const { program } of loaded) {
     if (program.profileDigest !== first.profileDigest || program.model !== first.model) {
       throw new Error('programs disagree on profile or model');
     }
   }
-  const he = new HeDevice(gpu.device, first);
+  const he = values.backend === 'cpu' ? new CpuDevice(first) : new HeDevice(gpu.device, first);
   // Step index: kind:first:position -> the step and its program's constants.
   const steps = new Map();
   for (const { program, blob, identity } of loaded) {
@@ -254,6 +268,9 @@ async function session(c, he, first, steps, stateDir, resident, srep, hop) {
   if (!Number.isInteger(n) || !Number.isInteger(g) || n < 1 || g < 1 || missing.length) {
     throw new Error(`no compiled program for ${missing.join(' ') || 'this schedule'}`);
   }
+  const lanes = f.lanes ?? 1;
+  if (!Number.isInteger(lanes) || lanes < 1 || lanes > MAX_LANES) throw new Error(`lanes ${lanes} outside [1, ${MAX_LANES}]`);
+  srep.lanes = lanes;
   const epoch = f.keyEpoch ?? '';
   const expires = f.keyEpochExpires;
   if (!EPOCH.test(epoch) || !(expires > Date.now() / 1000)) throw new Error('key epoch missing or expired');
@@ -270,8 +287,8 @@ async function session(c, he, first, steps, stateDir, resident, srep, hop) {
   }
   await c.send({ kind: 'manifest', session, fields: {
     profile: first.profile, profileDigest: first.profileDigest, model: first.model, rotations: ROTATIONS,
-    inputLevel: first.q.length - 1, logSlots: first.logSlots, heldKeysDigest: held, backend: 'webgpu',
-    role, ...(role === 'whole' ? {} : { cutLayer: SPLIT_LAYER }),
+    inputLevel: first.q.length - 1, logSlots: first.logSlots, heldKeysDigest: held, backend: values.backend,
+    role, ...(role === 'whole' ? {} : { cutLayer: SPLIT_LAYER }), lanes,
   } });
   const tk = performance.now();
   const { header: kh, blobs: firstBlobs } = await c.recv('key', 'keys-held');
@@ -312,9 +329,9 @@ async function session(c, he, first, steps, stateDir, resident, srep, hop) {
   await c.send({ kind: 'ready', session, fields: { keysDigest: resident.digest } });
   log(`ready: keys digest ${resident.digest} (${srep.keysFrom}), ${(he.stats.keyBytes / 2 ** 20).toFixed(1)} MiB of keys resident`);
 
-  if (role === 'stage-a') return stageA(c, he, first, steps, plan, session, f, srep);
-  if (role === 'stage-b') return stageB(c, he, first, steps, plan, session, f, srep, hop);
-  const state = new Map();
+  if (role === 'stage-a') return stageA(c, he, first, steps, plan, session, f, srep, lanes);
+  if (role === 'stage-b') return stageB(c, he, first, steps, plan, session, f, srep, hop, lanes);
+  const states = Array.from({ length: lanes }, () => new Map());
   try {
     for (let seq = 1; ; seq++) {
       const { header: s, blobs } = await c.recv('prefill', 'decode', 'bye');
@@ -324,43 +341,54 @@ async function session(c, he, first, steps, stateDir, resident, srep, hop) {
       }
       if (s.session !== session || s.seq !== seq || seq > plan.length) throw new Error('step binding mismatch');
       const entry = steps.get(plan[seq - 1]);
-      if (s.kind !== entry.step.kind || blobs.length !== entry.step.inputs.length) {
+      const per = entry.step.inputs.length;
+      if (s.kind !== entry.step.kind || blobs.length !== per * lanes) {
         throw new Error(`unexpected ${s.kind} with ${blobs.length} inputs at step ${seq}`);
       }
       const ts = performance.now();
-      const inputs = blobs.map((b) => {
-        const ct = he.uploadCt(b, { degree: 1, level: first.q.length - 1 });
-        if (ct.scale !== first.inputScale) throw new Error('input ciphertext does not have the pinned scale');
-        return ct;
-      });
       const overlap = values.timing === 'overlap';
-      const run = await runStep(he, entry.program, entry.step, entry.blobBuf, inputs, state,
-        { timeLayers: !overlap, flushEvery: overlap ? 256 : 0 });
-      let out = Buffer.from(await he.readCt(run.output, entry.step.outputScale));
+      const outs = [];
+      let run = null;
+      let gpuMs = 0;
+      for (let l = 0; l < lanes; l++) {
+        const inputs = blobs.slice(l * per, (l + 1) * per).map((b) => {
+          const ct = he.uploadCt(b, { degree: 1, level: first.q.length - 1 });
+          if (ct.scale !== first.inputScale) throw new Error('input ciphertext does not have the pinned scale');
+          return ct;
+        });
+        run = await runStep(he, entry.program, entry.step, entry.blobBuf, inputs, states[l],
+          { timeLayers: !overlap && lanes === 1, flushEvery: overlap ? 256 : 0 });
+        gpuMs += run.ms;
+        outs.push(Buffer.from(await he.readCt(run.output, entry.step.outputScale)));
+        for (const x of inputs) he.freeCt(x);
+        he.freeCt(run.output);
+      }
       const compute = (performance.now() - ts) / 1000;
-      for (const x of inputs) he.freeCt(x);
-      he.freeCt(run.output);
-      srep.steps.push({ seq, kind: s.kind, position: entry.step.position, computeSeconds: compute, gpuProgramMs: run.ms,
-        hostMs: run.hostMs, gpuWaitMs: run.gpuWaitMs, dispatches: run.dispatches, kvEntries: state.size,
-        liveBufferBytes: he.stats.liveBytes, layers: run.layers, resultDigest: digest(out), resultBytes: out.length });
+      let out = outs[0];
+      srep.steps.push({ seq, kind: s.kind, position: entry.step.position, lanes, computeSeconds: compute, gpuProgramMs: gpuMs,
+        hostMs: run.hostMs, gpuWaitMs: run.gpuWaitMs, dispatches: run.dispatches, kvEntries: states[0].size,
+        liveBufferBytes: he.stats.liveBytes, layers: run.layers, resultDigest: digest(...outs), resultBytes: outs.reduce((a, b) => a + b.length, 0) });
       if (values.misbehave === 'ask-decrypt') {
         log(`misbehave: sending a forged decrypt-request at step ${seq}`);
         await c.send({ kind: 'decrypt-request', session, seq }, blobs[0]);
         return;
       }
-      if (values.misbehave === 'tamper') {
-        out = Buffer.from(out);
+      if (values.misbehave === 'tamper' || TAMPER_LANE) {
+        const l = TAMPER_LANE ? Number(TAMPER_LANE[1]) : 0;
+        if (l >= lanes) throw new Error('tamper-lane outside the session\'s lanes');
+        out = Buffer.from(outs[l]);
         out[out.length >> 1] ^= 1;
-        log(`misbehave: flipped one bit of the result at step ${seq}`);
+        outs[l] = out;
+        log(`misbehave: flipped one bit of lane ${l}'s result at step ${seq}`);
       }
       await c.send({ kind: 'result', session, seq, fields: {
-        computeSeconds: compute, outputLevel: entry.step.outputLevel, position: entry.step.position,
-      } }, out);
-      log(`step ${seq} (${s.kind}, position ${entry.step.position}): ${compute.toFixed(3)} s, program ${run.ms.toFixed(1)} ms, `
-        + `${run.dispatches} dispatches, KV entries ${state.size}`);
+        computeSeconds: compute, outputLevel: entry.step.outputLevel, position: entry.step.position, lanes,
+      } }, ...outs);
+      log(`step ${seq} (${s.kind}, position ${entry.step.position}, ${lanes} lane(s)): ${compute.toFixed(3)} s, program ${gpuMs.toFixed(1)} ms, `
+        + `${run.dispatches} dispatches, KV entries ${states[0].size}`);
     }
   } finally {
-    for (const ct of state.values()) he.freeCt(ct);
+    for (const st of states) for (const ct of st.values()) he.freeCt(ct);
     srep.peakBufferBytes = he.stats.peakBytes;
   }
 }
@@ -375,7 +403,7 @@ function stepRow(srep, row) {
 }
 
 // Stage A: the requester's step ciphertexts in, the carry ciphertexts out to stage B. Holds the KV cache.
-async function stageA(c, he, first, steps, plan, session, f, srep) {
+async function stageA(c, he, first, steps, plan, session, f, srep, lanes) {
   const socket = await new Promise((resolve, reject) => {
     const [host, port] = values.next.split(/:(?=[^:]*$)/);
     const s = connect(Number(port), host, () => resolve(s));
@@ -383,9 +411,9 @@ async function stageA(c, he, first, steps, plan, session, f, srep) {
   });
   const link = new Conn(socket, first.protocol);
   srep.hop = { to: 'stage-b' };
-  const state = new Map();
+  const states = Array.from({ length: lanes }, () => new Map());
   try {
-    await link.send({ kind: 'hop-hello', session, fields: { hopToken: f.hopToken, promptTokens: f.promptTokens, generatedTokens: f.generatedTokens } });
+    await link.send({ kind: 'hop-hello', session, fields: { hopToken: f.hopToken, promptTokens: f.promptTokens, generatedTokens: f.generatedTokens, lanes } });
     await link.recv('hop-ready');
     for (let seq = 1; ; seq++) {
       const { header: s, blobs } = await c.recv('prefill', 'decode', 'bye');
@@ -396,36 +424,42 @@ async function stageA(c, he, first, steps, plan, session, f, srep) {
       }
       if (s.session !== session || s.seq !== seq || seq > plan.length) throw new Error('step binding mismatch');
       const entry = steps.get(plan[seq - 1]);
-      if (s.kind !== entry.step.kind || blobs.length !== entry.step.inputs.length) {
+      const per = entry.step.inputs.length;
+      if (s.kind !== entry.step.kind || blobs.length !== per * lanes) {
         throw new Error(`unexpected ${s.kind} with ${blobs.length} inputs at step ${seq}`);
       }
       await gate?.wait(seq);
       const ts = performance.now();
-      const inputs = blobs.map((b) => {
-        const ct = he.uploadCt(b, { degree: 1, level: first.q.length - 1 });
-        if (ct.scale !== first.inputScale) throw new Error('input ciphertext does not have the pinned scale');
-        return ct;
-      });
       const overlap = values.timing === 'overlap';
-      const run = await runStep(he, entry.program, entry.step, entry.blobBuf, inputs, state,
-        { timeLayers: !overlap, flushEvery: overlap ? 256 : 0, part: 'a', split: entry.split });
-      // The hop carries ciphertexts only; their scale field is not used by stage B's program and is sent as 0.
+      // The hop carries ciphertexts only, lane after lane; their scale field is not used by stage B and is sent as 0.
       const carry = [];
-      for (const ct of run.carry) carry.push(Buffer.from(await he.readCt(ct, 0)));
+      let run = null;
+      let gpuMs = 0;
+      for (let l = 0; l < lanes; l++) {
+        const inputs = blobs.slice(l * per, (l + 1) * per).map((b) => {
+          const ct = he.uploadCt(b, { degree: 1, level: first.q.length - 1 });
+          if (ct.scale !== first.inputScale) throw new Error('input ciphertext does not have the pinned scale');
+          return ct;
+        });
+        run = await runStep(he, entry.program, entry.step, entry.blobBuf, inputs, states[l],
+          { timeLayers: !overlap && lanes === 1, flushEvery: overlap ? 256 : 0, part: 'a', split: entry.split });
+        gpuMs += run.ms;
+        for (const ct of run.carry) carry.push(Buffer.from(await he.readCt(ct, 0)));
+        for (const x of [...inputs, ...run.carry]) he.freeCt(x);
+      }
       const compute = (performance.now() - ts) / 1000;
-      for (const x of [...inputs, ...run.carry]) he.freeCt(x);
       const bytesOut = carry.reduce((a, b) => a + b.length, 0);
       await link.send({ kind: 'hop', session, seq, fields: { kind: s.kind, position: entry.step.position, stageASeconds: compute,
-        carry: entry.split.carry.map((x) => ({ deg: x.deg, level: x.level })) } }, ...carry);
-      stepRow(srep, { seq, kind: s.kind, position: entry.step.position, columns: blobs.length, computeSeconds: compute, gpuProgramMs: run.ms,
-        hostMs: run.hostMs, gpuWaitMs: run.gpuWaitMs, dispatches: run.dispatches, kvEntries: state.size, liveBufferBytes: he.stats.liveBytes,
+        lanes, carry: entry.split.carry.map((x) => ({ deg: x.deg, level: x.level })) } }, ...carry);
+      stepRow(srep, { seq, kind: s.kind, position: entry.step.position, columns: per, lanes, computeSeconds: compute, gpuProgramMs: gpuMs,
+        hostMs: run.hostMs, gpuWaitMs: run.gpuWaitMs, dispatches: run.dispatches, kvEntries: states[0].size, liveBufferBytes: he.stats.liveBytes,
         layers: run.layers, inputDigest: digest(...blobs), bytesIn: blobs.reduce((a, b) => a + b.length, 0),
         resultDigest: digest(...carry), resultBytes: bytesOut, carryLevels: entry.split.carry.map((x) => x.level) });
-      log(`step ${seq} (${s.kind}, position ${entry.step.position}) stage A: ${compute.toFixed(3)} s, program ${run.ms.toFixed(1)} ms, `
-        + `${run.dispatches} dispatches, ${bytesOut} bytes to stage B, KV entries ${state.size}`);
+      log(`step ${seq} (${s.kind}, position ${entry.step.position}, ${lanes} lane(s)) stage A: ${compute.toFixed(3)} s, program ${gpuMs.toFixed(1)} ms, `
+        + `${run.dispatches} dispatches, ${bytesOut} bytes to stage B, KV entries ${states[0].size}`);
     }
   } finally {
-    for (const ct of state.values()) he.freeCt(ct);
+    for (const st of states) for (const ct of st.values()) he.freeCt(ct);
     srep.peakBufferBytes = he.stats.peakBytes;
     srep.hop.bytesSent = link.sent;
     srep.hop.bytesReceived = link.received;
@@ -434,14 +468,15 @@ async function stageA(c, he, first, steps, plan, session, f, srep) {
 }
 
 // Stage B: the carry ciphertexts in from stage A, the result ciphertext out to the requester. Holds no session state.
-async function stageB(c, he, first, steps, plan, session, f, srep, hop) {
+async function stageB(c, he, first, steps, plan, session, f, srep, hop, lanes) {
   const socket = await hop.next();
   const link = new Conn(socket, first.protocol);
   srep.hop = { from: 'stage-a' };
   try {
     const { header: hh } = await link.recv('hop-hello');
     const hf = hh.fields ?? {};
-    if (hh.session !== session || hf.hopToken !== f.hopToken || hf.promptTokens !== f.promptTokens || hf.generatedTokens !== f.generatedTokens) {
+    if (hh.session !== session || hf.hopToken !== f.hopToken || hf.promptTokens !== f.promptTokens || hf.generatedTokens !== f.generatedTokens
+      || (hf.lanes ?? 1) !== lanes) {
       throw new Error('the hop link is not bound to this session');
     }
     await link.send({ kind: 'hop-ready', session });
@@ -454,27 +489,34 @@ async function stageB(c, he, first, steps, plan, session, f, srep, hop) {
       if (s.session !== session || s.seq !== seq || seq > plan.length) throw new Error('hop binding mismatch');
       const entry = steps.get(plan[seq - 1]);
       const carryShape = entry.split.carry;
-      if (s.fields?.kind !== entry.step.kind || blobs.length !== carryShape.length) throw new Error(`unexpected hop at step ${seq}`);
+      const per = carryShape.length;
+      if (s.fields?.kind !== entry.step.kind || blobs.length !== per * lanes) throw new Error(`unexpected hop at step ${seq}`);
       await gate?.wait(seq);
       const ts = performance.now();
-      const inputs = blobs.map((b, i) => he.uploadCt(b, { degree: carryShape[i].deg, level: carryShape[i].level }));
       const overlap = values.timing === 'overlap';
-      const run = await runStep(he, entry.program, entry.step, entry.blobBuf, inputs, null,
-        { timeLayers: !overlap, flushEvery: overlap ? 256 : 0, part: 'b', split: entry.split });
-      const out = Buffer.from(await he.readCt(run.output, entry.step.outputScale));
+      const outs = [];
+      let run = null;
+      let gpuMs = 0;
+      for (let l = 0; l < lanes; l++) {
+        const inputs = blobs.slice(l * per, (l + 1) * per).map((b, i) => he.uploadCt(b, { degree: carryShape[i].deg, level: carryShape[i].level }));
+        run = await runStep(he, entry.program, entry.step, entry.blobBuf, inputs, null,
+          { timeLayers: !overlap && lanes === 1, flushEvery: overlap ? 256 : 0, part: 'b', split: entry.split });
+        gpuMs += run.ms;
+        outs.push(Buffer.from(await he.readCt(run.output, entry.step.outputScale)));
+        for (const x of inputs) he.freeCt(x);
+        he.freeCt(run.output);
+      }
       const compute = (performance.now() - ts) / 1000;
-      for (const x of inputs) he.freeCt(x);
-      he.freeCt(run.output);
       const stageASeconds = Number(s.fields?.stageASeconds) || 0;
       const hopBytes = blobs.reduce((a, b) => a + b.length, 0);
       await c.send({ kind: 'result', session, seq, fields: {
-        computeSeconds: compute, stageASeconds, hopBytes, outputLevel: entry.step.outputLevel, position: entry.step.position, role,
-      } }, out);
+        computeSeconds: compute, stageASeconds, hopBytes, outputLevel: entry.step.outputLevel, position: entry.step.position, role, lanes,
+      } }, ...outs);
       stepRow(srep, { seq, kind: entry.step.kind, position: entry.step.position, columns: entry.step.kind === 'prefill' ? f.promptTokens : 1,
-        computeSeconds: compute, gpuProgramMs: run.ms, hostMs: run.hostMs, gpuWaitMs: run.gpuWaitMs, dispatches: run.dispatches,
+        lanes, computeSeconds: compute, gpuProgramMs: gpuMs, hostMs: run.hostMs, gpuWaitMs: run.gpuWaitMs, dispatches: run.dispatches,
         liveBufferBytes: he.stats.liveBytes, layers: run.layers, inputDigest: digest(...blobs), bytesIn: hopBytes,
-        resultDigest: digest(out), resultBytes: out.length });
-      log(`step ${seq} (${entry.step.kind}, position ${entry.step.position}) stage B: ${compute.toFixed(3)} s, program ${run.ms.toFixed(1)} ms, `
+        resultDigest: digest(...outs), resultBytes: outs.reduce((a, b) => a + b.length, 0) });
+      log(`step ${seq} (${entry.step.kind}, position ${entry.step.position}, ${lanes} lane(s)) stage B: ${compute.toFixed(3)} s, program ${gpuMs.toFixed(1)} ms, `
         + `${run.dispatches} dispatches, ${hopBytes} bytes from stage A`);
     }
   } finally {
