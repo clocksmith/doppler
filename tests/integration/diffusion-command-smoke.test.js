@@ -290,7 +290,7 @@ function assertDiffusionArtifacts(result, expectedSuite) {
   assert.ok(result.timingDiagnostics && typeof result.timingDiagnostics === 'object');
   assert.equal(result.timingDiagnostics.schemaVersion, 1);
   assert.equal(result.timingDiagnostics.source, 'doppler');
-  assert.equal(result.timingDiagnostics.semantics.prefillMs, 'internal_prefill_phase');
+  assert.equal(result.timingDiagnostics.semantics.prefillMs, 'internal-prefill-phase');
 }
 
 function assertDiffusionGemmaArtifacts(result, expectedSuite) {

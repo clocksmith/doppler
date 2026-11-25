@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
+import { canonicalizeLegacyEnumValues } from '../../src/config/legacy-enum-values.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 
 const archive = 'tests/fixtures/pre-capsule';
@@ -23,7 +24,7 @@ for (const entry of manifest.files) {
   assert.equal(createHash('sha256').update(bytes).digest('hex'), entry.sha256, entry.source);
   if (!entry.source.startsWith('src/config/conversion/')) continue;
   const current = JSON.parse(await fs.readFile(entry.source, 'utf8'));
-  const expected = renameIdentityFields(JSON.parse(bytes));
+  const expected = canonicalizeLegacyEnumValues(renameIdentityFields(JSON.parse(bytes)));
   // Later shader changes and the recorded stale-digest repair have exact
   // identity mappings. Every other field still matches the frozen archive.
   const shaderChanges = {

@@ -307,7 +307,7 @@ if (gpuProbe.ready) {
         embeddingPostprocessor: null,
       },
       layerPattern: {
-        type: 'every_n',
+        type: 'every-n',
         globalPattern: null,
         period: 5,
         offset: 4,

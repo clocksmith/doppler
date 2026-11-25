@@ -30,7 +30,7 @@ const transformContext = {
     embeddings: 'f16',
     lmHead: 'f16',
     compute: 'f16',
-    perLayerEmbeddings: 'int4_per_row',
+    perLayerEmbeddings: 'int4-per-row',
     layout: 'row',
     variantTag: 'q4k-ehaf16',
   },

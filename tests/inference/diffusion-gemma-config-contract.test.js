@@ -12,7 +12,7 @@ const {
 } = await import("../../src/config/schema/execution/execution-v1.schema.js");
 const { resolvePrefixEmbeddingOverrideTransitionDeclaredBy } = await import("../../src/inference/pipelines/text/generator/prefill/prefix-embedding.js");
 
-function createDiffusionGemmaManifest(branchMode = 'dense_plus_moe') {
+function createDiffusionGemmaManifest(branchMode = 'dense-plus-moe') {
   return {
     modelId: 'diffusiongemma-config-contract',
     modelType: 'diffusion_gemma',
@@ -115,14 +115,14 @@ function createDiffusionGemmaManifest(branchMode = 'dense_plus_moe') {
   };
 }
 
-test('DiffusionGemma dense_plus_moe branch keeps dense intermediate width unchanged', () => {
+test('DiffusionGemma dense-plus-moe branch keeps dense intermediate width unchanged', () => {
   const manifest = createDiffusionGemmaManifest();
   manifest.inference.diffusionGemma = {
     decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
   };
   const parsed = parseModelConfigFromManifest(manifest);
 
-  assert.equal(parsed.ffnBranchMode, 'dense_plus_moe');
+  assert.equal(parsed.ffnBranchMode, 'dense-plus-moe');
   assert.equal(parsed.useDoubleWideMlp, false);
   assert.equal(parsed.intermediateSize, 2112);
   assert.equal(parsed.maxIntermediateSize, 2112);
@@ -137,7 +137,7 @@ test('invalid FFN branch mode fails manifest inference validation', () => {
 
   assert.throws(
     () => validateRequiredInferenceFields(manifest.inference, manifest.modelId),
-    /ffn\.branchMode must be one of: auto, dense, moe, dense_plus_moe/
+    /ffn\.branchMode must be one of: auto, dense, moe, dense-plus-moe/
   );
 });
 
@@ -149,7 +149,7 @@ test('DiffusionGemma f16-activation lane declares the prefill override f32 to f1
 
   assert.equal(
     resolvePrefixEmbeddingOverrideTransitionDeclaredBy({ resolvedSteps: { all: expanded } }),
-    'explicit_cast_step'
+    'explicit-cast-step'
   );
   const withoutPreLayerCast = expanded.filter((step) => !(step.section === 'preLayer' && step.op === 'cast'));
   assert.ok(withoutPreLayerCast.length < expanded.length, 'expected a pre-layer cast step to remove');

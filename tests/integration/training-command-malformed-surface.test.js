@@ -19,7 +19,7 @@ await assertRejectsOnBothSurfaces({
   workload: 'training',
   modelId: null,
   trainingStage: 'stage3_unknown',
-}, /trainingStage must be one of stage1_joint, stage2_base, stage_a, stage_b/);
+}, /trainingStage must be one of stage1-joint, stage2-base, stage-a, stage-b/);
 
 await assertRejectsOnBothSurfaces({
   command: 'verify',
@@ -33,7 +33,7 @@ await assertRejectsOnBothSurfaces({
   workload: 'training',
   workloadType: 'training',
   modelId: null,
-  trainingStage: 'stage1_joint',
+  trainingStage: 'stage1-joint',
   trainingSchemaVersion: 2,
 }, /trainingSchemaVersion must be 1/);
 
@@ -42,7 +42,7 @@ await assertRejectsOnBothSurfaces({
   workload: 'training',
   workloadType: 'training',
   modelId: null,
-  trainingStage: 'stage1_joint',
+  trainingStage: 'stage1-joint',
   trainingBenchSteps: 0,
 }, /trainingBenchSteps must be a positive integer/);
 
@@ -50,7 +50,7 @@ await assertRejectsOnBothSurfaces({
   command: 'verify',
   workload: 'training',
   modelId: null,
-  trainingStage: 'stage_a',
+  trainingStage: 'stage-a',
   forceResumeReason: 'missing flag',
 }, /forceResumeReason requires forceResume=true/);
 

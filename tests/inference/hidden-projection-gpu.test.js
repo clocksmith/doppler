@@ -29,7 +29,7 @@ const probe = await probeNodeGPU({ installFileFetchShim: true });
 if (probe.ready) {
   const device = getDevice();
   const norm = acquireBuffer(16, undefined, 'projection_norm');
-  const head = acquireBuffer(32, undefined, 'projection_head');
+  const head = acquireBuffer(32, undefined, 'projection-head');
   device.queue.writeBuffer(norm, 0, new Float32Array(4).fill(1));
   // Exact binary16 identity: each logit row equals its normalized hidden state.
   device.queue.writeBuffer(head, 0, Uint16Array.from([0x3c00, 0, 0, 0, 0, 0x3c00, 0, 0, 0, 0, 0x3c00, 0, 0, 0, 0, 0x3c00]));

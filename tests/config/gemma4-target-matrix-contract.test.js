@@ -5,17 +5,17 @@ const matrix = JSON.parse(readFileSync('models/gemma4-targets.json', 'utf8'));
 const catalog = JSON.parse(readFileSync('models/catalog.json', 'utf8'));
 const quickstartRegistry = JSON.parse(readFileSync('src/config/quickstart-registry.json', 'utf8'));
 
-const TARGET_STATUS = new Set(['partially_verified', 'gap']);
+const TARGET_STATUS = new Set(['partially-verified', 'gap']);
 const SURFACE_STATUS = new Set(['verified', 'unverified', 'unsupported']);
 const CLAIM_STATUS = new Set(['verified', 'verified-local', 'experimental']);
-const MTP_STATUS = new Set(['not_implemented']);
+const MTP_STATUS = new Set(['not-implemented']);
 const SERVE_STATUS = new Set(['verified', 'unverified', 'unsupported']);
-const EVIDENCE_STATUS = new Set(['pass', 'performance_evidence', 'diagnostic']);
+const EVIDENCE_STATUS = new Set(['pass', 'performance-evidence', 'diagnostic']);
 const EVIDENCE_SURFACE = new Set(['browser', 'electron', 'node']);
 const SERVE_EVIDENCE_STATUS = new Set(['pass', 'diagnostic']);
 const PREFLIGHT_EVIDENCE_STATUS = new Set(['pass', 'diagnostic']);
 const SOURCE_PACKAGE_STATUS = new Set(['blocked', 'unverified', 'verified']);
-const BLOCKER_STATE = new Set(['missing', 'unsupported', 'unverified', 'diagnostic', 'not_implemented', 'incomplete']);
+const BLOCKER_STATE = new Set(['missing', 'unsupported', 'unverified', 'diagnostic', 'not-implemented', 'incomplete']);
 const BLOCKER_SURFACE = new Set(['browser', 'electron', 'node', 'serve', 'mtp', 'model', 'benchmark']);
 const BLOCKER_CODE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 

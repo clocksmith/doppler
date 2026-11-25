@@ -17,7 +17,7 @@ const input = {
     activationDtype: 'f16',
   },
   observationContext: {
-    diagnostics: 'on_failure',
+    diagnostics: 'on-failure',
   },
   operationPlan: {
     contract: {
@@ -30,7 +30,7 @@ const input = {
     { id: 'attention', order: 1 },
   ],
   dtypeTransitions: [
-    { from: 'f16', to: 'f32', declaredBy: 'step_precision' },
+    { from: 'f16', to: 'f32', declaredBy: 'step-precision' },
   ],
   resourceEvents: [
     { resourceId: 'q', event: 'acquire', owner: 'scope' },
@@ -125,10 +125,10 @@ console.log('refactor-receipt.test: ok');
         workload: 'inference',
         intent: 'verify',
       },
-      diagnostics: 'on_failure',
+      diagnostics: 'on-failure',
       probes: [],
       tracing: {},
-      receiptPolicy: 'on_failure',
+      receiptPolicy: 'on-failure',
     },
     stats: {},
   };

@@ -7,12 +7,12 @@ import { createTrainingConfig } from '../../src/config/training-defaults.js';
       enabled: true,
       ul: {
         enabled: true,
-        stage: 'stage1_joint',
+        stage: 'stage1-joint',
       },
     },
   });
   assert.equal(config.training.ul.enabled, true);
-  assert.equal(config.training.ul.stage, 'stage1_joint');
+  assert.equal(config.training.ul.stage, 'stage1-joint');
 }
 
 {
@@ -25,7 +25,7 @@ import { createTrainingConfig } from '../../src/config/training-defaults.js';
         },
       },
     }),
-    /UL config: stage must be one of stage1_joint, stage2_base/
+    /UL config: stage must be one of stage1-joint, stage2-base/
   );
 }
 
@@ -35,12 +35,12 @@ import { createTrainingConfig } from '../../src/config/training-defaults.js';
       training: {
         ul: {
           enabled: true,
-          stage: 'stage2_base',
+          stage: 'stage2-base',
           stage1Artifact: null,
         },
       },
     }),
-    /UL config: stage2_base requires stage1Artifact/
+    /UL config: stage2-base requires stage1Artifact/
   );
 }
 

@@ -8,11 +8,11 @@ import { watchFinalizedCheckpoints } from '../../src/experimental/training/check
 const tempDir = mkdtempSync(path.join(tmpdir(), 'doppler-checkpoint-watch-'));
 try {
   const checkpointsDir = path.join(tempDir, 'checkpoints');
-  const nestedCheckpointDir = path.join(checkpointsDir, 'stage_a', 'checkpoint-000001');
+  const nestedCheckpointDir = path.join(checkpointsDir, 'stage-a', 'checkpoint-000001');
   mkdirSync(nestedCheckpointDir, { recursive: true });
   writeFileSync(
     path.join(nestedCheckpointDir, 'checkpoint.complete.json'),
-    `${JSON.stringify({ checkpointId: 'checkpoint-000001', stage: 'stage_a' })}\n`,
+    `${JSON.stringify({ checkpointId: 'checkpoint-000001', stage: 'stage-a' })}\n`,
     'utf8'
   );
 
@@ -29,7 +29,7 @@ try {
 
   assert.equal(result.ok, true);
   assert.equal(seen.length, 1);
-  assert.equal(seen[0].endsWith(path.join('stage_a', 'checkpoint-000001', 'checkpoint.complete.json')), true);
+  assert.equal(seen[0].endsWith(path.join('stage-a', 'checkpoint-000001', 'checkpoint.complete.json')), true);
 
   const controller = new AbortController();
   const abortedSeen = [];

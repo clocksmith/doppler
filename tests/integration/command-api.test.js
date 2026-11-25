@@ -10,14 +10,14 @@ import {
     workload: 'training',
     modelId: 'gemma-3-1b-it-f16-af32',
     trainingTests: ['runner-smoke', 'train-step-metrics'],
-    trainingStage: 'stage1_joint',
+    trainingStage: 'stage1-joint',
   });
   assert.equal(request.command, 'verify');
   assert.equal(request.workload, 'training');
   assert.equal(request.intent, 'verify');
   assert.equal(request.modelId, 'gemma-3-1b-it-f16-af32');
   assert.deepEqual(request.trainingTests, ['runner-smoke', 'train-step-metrics']);
-  assert.equal(request.trainingStage, 'stage1_joint');
+  assert.equal(request.trainingStage, 'stage1-joint');
   assert.equal(request.trainingSchemaVersion, 1);
 }
 
@@ -26,7 +26,7 @@ import {
     command: 'verify',
     workload: 'training',
     modelId: null,
-    trainingStage: 'stage_a',
+    trainingStage: 'stage-a',
     forceResume: true,
     forceResumeReason: 'intentional schema transition',
     forceResumeSource: 'verify:node',
@@ -43,10 +43,10 @@ import {
     command: 'verify',
     workload: 'training',
     modelId: null,
-    trainingStage: 'stage1_joint',
+    trainingStage: 'stage1-joint',
   });
   assert.equal(request.modelId, null);
-  assert.equal(request.trainingStage, 'stage1_joint');
+  assert.equal(request.trainingStage, 'stage1-joint');
   assert.equal(request.trainingSchemaVersion, 1);
 }
 
@@ -139,21 +139,21 @@ import {
     modelId: 'esm2-t12-35m-ur50d-f32-af32',
     inferenceInput: {
       sequence: 'MKTIIALSYIFCLVFADYKDDDDK',
-      sequenceAlphabet: 'amino_acid',
+      sequenceAlphabet: 'amino-acid',
       includeTokenEmbeddings: true,
       includeLogits: false,
       probePositions: [0, 1, 8, 1],
-      sequenceQualificationAbort: 'after_start',
+      sequenceQualificationAbort: 'after-start',
       sequenceQualificationStaleAfterStart: true,
     },
   });
   assert.deepEqual(request.inferenceInput, {
     sequence: 'MKTIIALSYIFCLVFADYKDDDDK',
-    sequenceAlphabet: 'amino_acid',
+    sequenceAlphabet: 'amino-acid',
     includeTokenEmbeddings: true,
     includeLogits: false,
     probePositions: [0, 1, 8],
-    sequenceQualificationAbort: 'after_start',
+    sequenceQualificationAbort: 'after-start',
     sequenceQualificationStaleAfterStart: true,
   });
 }
@@ -169,7 +169,7 @@ import {
         sequenceQualificationAbort: 'eventually',
       },
     }),
-    /sequenceQualificationAbort must be "before_execution" or "after_start"/
+    /sequenceQualificationAbort must be "before-execution" or "after-start"/
   );
 }
 
@@ -252,7 +252,7 @@ import {
     workload: 'training',
     modelId: null,
     workloadType: 'training',
-    trainingStage: 'stage1_joint',
+    trainingStage: 'stage1-joint',
     trainingTests: ['ul-stage1'],
   });
   assert.equal(request.command, 'bench');
@@ -260,7 +260,7 @@ import {
   assert.equal(request.intent, 'calibrate');
   assert.equal(request.workloadType, 'training');
   assert.equal(request.modelId, null);
-  assert.equal(request.trainingStage, 'stage1_joint');
+  assert.equal(request.trainingStage, 'stage1-joint');
   assert.deepEqual(request.trainingTests, ['ul-stage1']);
   assert.equal(request.trainingSchemaVersion, 1);
 }
@@ -281,7 +281,7 @@ import {
     workload: 'training',
     modelId: null,
     workloadType: 'training',
-    trainingStage: 'stage1_joint',
+    trainingStage: 'stage1-joint',
     trainingSchemaVersion: 1,
     trainingBenchSteps: 5,
     checkpointEvery: 25,
@@ -316,7 +316,7 @@ import {
       command: 'verify',
       workload: 'training',
       modelId: null,
-      trainingStage: 'stage1_joint',
+      trainingStage: 'stage1-joint',
       trainingSchemaVersion: 2,
     }),
     /trainingSchemaVersion must be 1/
@@ -329,7 +329,7 @@ import {
       command: 'verify',
       workload: 'training',
       modelId: null,
-      trainingStage: 'stage_a',
+      trainingStage: 'stage-a',
       checkpointEvery: 0,
     }),
     /checkpointEvery must be a positive integer/
@@ -342,7 +342,7 @@ import {
       command: 'verify',
       workload: 'training',
       modelId: null,
-      trainingStage: 'stage_a',
+      trainingStage: 'stage-a',
       distillSourceLangs: 'en,es',
     }),
     /distillSourceLangs must be an array of strings/
@@ -356,7 +356,7 @@ import {
       workload: 'inference',
       modelId: null,
       workloadType: 'inference',
-      trainingStage: 'stage1_joint',
+      trainingStage: 'stage1-joint',
     }),
     /training-only fields require workload="training"/
   );
@@ -368,7 +368,7 @@ import {
       command: 'verify',
       workload: 'training',
       modelId: null,
-      trainingStage: 'stage_a',
+      trainingStage: 'stage-a',
       forceResumeReason: 'missing flag',
     }),
     /forceResumeReason requires forceResume=true/
@@ -381,7 +381,7 @@ import {
       command: 'verify',
       workload: 'training',
       modelId: null,
-      trainingStage: 'stage_a',
+      trainingStage: 'stage-a',
       forceResumeSource: 'verify:node',
     }),
     /forceResumeSource requires forceResume=true/
@@ -394,7 +394,7 @@ import {
       command: 'verify',
       workload: 'training',
       modelId: null,
-      trainingStage: 'stage_a',
+      trainingStage: 'stage-a',
       checkpointOperator: 'release-engineer',
     }),
     /checkpointOperator requires forceResume=true/
@@ -409,7 +409,7 @@ import {
       modelId: null,
       trainingStage: 'stage3_unknown',
     }),
-    /trainingStage must be one of stage1_joint, stage2_base, stage_a, stage_b/
+    /trainingStage must be one of stage1-joint, stage2-base, stage-a, stage-b/
   );
 }
 
@@ -418,7 +418,7 @@ import {
     command: 'verify',
     workload: 'training',
     modelId: null,
-    trainingStage: 'stage_a',
+    trainingStage: 'stage-a',
     teacherModelId: 'translategemma-4b-it-q4k-ehf16-af32',
     studentModelId: 'translategemma-270m-it-f16-af32',
     distillDatasetId: 'en-es',
@@ -428,7 +428,7 @@ import {
     distillShardCount: 5,
     resumeFrom: '/tmp/checkpoint-latest.json',
   });
-  assert.equal(request.trainingStage, 'stage_a');
+  assert.equal(request.trainingStage, 'stage-a');
   assert.equal(request.teacherModelId, 'translategemma-4b-it-q4k-ehf16-af32');
   assert.equal(request.studentModelId, 'translategemma-270m-it-f16-af32');
   assert.equal(request.distillDatasetId, 'en-es');
@@ -445,7 +445,7 @@ import {
       command: 'bench',
       workload: 'training',
       workloadType: 'training',
-      trainingStage: 'stage_a',
+      trainingStage: 'stage-a',
       distillShardIndex: 6,
       distillShardCount: 5,
     }),
@@ -749,7 +749,7 @@ import {
       command: 'bench',
       workload: 'training',
       workloadType: 'training',
-      trainingStage: 'stage1_joint',
+      trainingStage: 'stage1-joint',
       trainingTests: 'runner-smoke',
     }),
     /trainingTests must be an array of strings/
@@ -764,7 +764,7 @@ import {
       workloadType: 'training',
       modelId: null,
       trainingTests: ['runner-smoke', 7],
-      trainingStage: 'stage1_joint',
+      trainingStage: 'stage1-joint',
     }),
     /trainingTests\[1\] must be a string/
   );
@@ -778,7 +778,7 @@ import {
       workloadType: 'training',
       modelId: null,
       trainingTests: ['runner-smoke', ''],
-      trainingStage: 'stage1_joint',
+      trainingStage: 'stage1-joint',
     }),
     /trainingTests\[1\] must not be empty/
   );

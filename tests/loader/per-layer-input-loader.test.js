@@ -121,7 +121,7 @@ const loadCalls = [];
 const weights = await loadPerLayerInputWeights({
   modelId: 'gemma4-e2b-test',
   perLayerInputSession: {
-    materialization: 'cpu_resident',
+    materialization: 'cpu-resident',
   },
   tensorLocations,
   async loadTensor(name, toGPU) {
@@ -179,7 +179,7 @@ const scalarLoadCalls = [];
 const scalarWeights = await loadPerLayerInputWeights({
   modelId: 'gemma4-e2b-static-scale-test',
   perLayerInputSession: {
-    materialization: 'cpu_resident',
+    materialization: 'cpu-resident',
   },
   tensorLocations: scalarTensorLocations,
   async loadTensor(name, toGPU) {
@@ -237,7 +237,7 @@ await assert.rejects(
   () => loadPerLayerInputWeights({
     modelId: 'gemma4-e2b-static-scale-missing-pair-test',
     perLayerInputSession: {
-      materialization: 'cpu_resident',
+      materialization: 'cpu-resident',
     },
     tensorLocations: new Map([
       ...tensorLocations,
@@ -595,7 +595,7 @@ const splitLoadCalls = [];
 const splitWeights = await loadPerLayerInputWeights({
   modelId: 'gemma4-e2b-split-test',
   perLayerInputSession: {
-    materialization: 'gpu_split_tables',
+    materialization: 'gpu-split-tables',
   },
   tensorLocations: splitTensorLocations,
   async loadTensor(name, toGPU) {

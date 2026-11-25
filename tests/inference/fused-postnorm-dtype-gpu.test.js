@@ -54,7 +54,7 @@ try {
     phase: 'decode', config: { hiddenSize: H, intermediateSize: I, hiddenActivation: 'gelu', swigluLimit: null,
       useDoubleWideMlp: false, gatedActivation: true, rmsNormWeightOffset: false },
     ffnStepPrecision: { inputDtype: 'f16', outputDtype: 'f16' },
-    executionPolicies: { dtypeTransition: 'require_cast_step' },
+    executionPolicies: { dtypeTransition: 'require-cast-step' },
   };
   const active = getBufferPool().getStats().activeBuffers;
   for (const recorded of [false, true]) {

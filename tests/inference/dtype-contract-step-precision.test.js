@@ -4,17 +4,17 @@ import { assertImplicitDtypeTransitionAllowed } from "../../src/inference/pipeli
 
 assert.doesNotThrow(() => {
   assertImplicitDtypeTransitionAllowed({
-    executionPolicies: { dtypeTransition: 'require_cast_step' },
+    executionPolicies: { dtypeTransition: 'require-cast-step' },
     fromDtype: 'f16',
     toDtype: 'f32',
     op: 'final_norm',
-    transitionDeclaredBy: 'step_precision',
+    transitionDeclaredBy: 'step-precision',
   });
-}, 'explicit step precision should satisfy require_cast_step');
+}, 'explicit step precision should satisfy require-cast-step');
 
 assert.throws(() => {
   assertImplicitDtypeTransitionAllowed({
-    executionPolicies: { dtypeTransition: 'require_cast_step' },
+    executionPolicies: { dtypeTransition: 'require-cast-step' },
     fromDtype: 'f16',
     toDtype: 'f32',
     op: 'final_norm',

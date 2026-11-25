@@ -6,7 +6,7 @@ pipeline.manifest = {
   inference: {
     supportsSequence: true,
     sequence: {
-      alphabet: 'amino_acid',
+      alphabet: 'amino-acid',
       tokenEmbeddings: true,
       pooledEmbedding: {
         mode: 'mean',
@@ -43,7 +43,7 @@ assert.equal(resets, 2);
 assert.equal(receivedOptions.__skipStateSnapshot, true);
 assert.equal(receivedOptions.__returnTokenEmbeddings, true);
 assert.equal(receivedOptions.__returnSequenceLogits, true);
-assert.equal(result.alphabet, 'amino_acid');
+assert.equal(result.alphabet, 'amino-acid');
 assert.deepEqual(Array.from(result.tokenMask), [0, 1, 1, 0]);
 assert.equal(result.includedTokenCount, 2);
 assert.deepEqual(Array.from(result.pooledEmbedding), [4, 6]);

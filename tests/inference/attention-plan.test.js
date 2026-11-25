@@ -229,7 +229,7 @@ test('characterization matrix covers phase, dtype, capability, KV, fusion, LoRA,
         dtypes: input.dtypes,
       },
       observationContext: {
-        diagnostics: input.diagnosticsEligible ? 'always' : 'on_failure',
+        diagnostics: input.diagnosticsEligible ? 'always' : 'on-failure',
         receiptPolicy: 'always',
       },
       operationPlan: plan,

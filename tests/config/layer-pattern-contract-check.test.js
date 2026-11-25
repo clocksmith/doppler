@@ -50,7 +50,7 @@ assertRejected(
 // computeGlobalLayers normalizes layer pattern offsets.
 assert.deepEqual(computeGlobalLayers({ type: 'alternating', globalPattern: 'even' }, 6), [0, 2, 4]);
 assert.deepEqual(computeGlobalLayers({ type: 'alternating', globalPattern: 'odd' }, 6), [1, 3, 5]);
-assert.deepEqual(computeGlobalLayers({ type: 'every_n', period: 6, offset: 5 }, 12), [5, 11]);
-assert.deepEqual(computeGlobalLayers({ type: 'every_n', period: 6, offset: -1 }, 12), [5, 11]);
+assert.deepEqual(computeGlobalLayers({ type: 'every-n', period: 6, offset: 5 }, 12), [5, 11]);
+assert.deepEqual(computeGlobalLayers({ type: 'every-n', period: 6, offset: -1 }, 12), [5, 11]);
 
 console.log('layer-pattern-contract-check.test: ok');

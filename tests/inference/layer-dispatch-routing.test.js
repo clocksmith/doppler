@@ -335,7 +335,7 @@ function resolveAttentionKVSharing(config, layerIdx, layerType) {
 {
   const layerTypes = Array.from({ length: 35 }, (_, index) => index % 5 === 4 ? 'full_attention' : 'sliding_attention');
   const replayConfig = {
-    decodeStrategy: 'replay_prefill',
+    decodeStrategy: 'replay-prefill',
     layerTypes,
     numKvSharedLayers: 20,
   };
@@ -358,7 +358,7 @@ function resolveAttentionKVSharing(config, layerIdx, layerType) {
     { sharedKVSourceLayerIdx: 13, storeSharedKV: false }
   );
   assert.deepEqual(
-    resolveAttentionKVSharing({ decodeStrategy: 'replay_prefill', layerTypes, numKvSharedLayers: 0 }, 19, 'full_attention'),
+    resolveAttentionKVSharing({ decodeStrategy: 'replay-prefill', layerTypes, numKvSharedLayers: 0 }, 19, 'full_attention'),
     { sharedKVSourceLayerIdx: null, storeSharedKV: false }
   );
   assert.deepEqual(

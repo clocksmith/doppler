@@ -18,7 +18,7 @@ const config = {
   training: {
     distill: {
       enabled: true,
-      stage: 'stage_b',
+      stage: 'stage-b',
       stageAArtifact: '/tmp/distill_stage_a_manifest.json',
       tripletMargin: 0.2,
       allowHintFallback: true,
@@ -93,7 +93,7 @@ const lossResult = await objective.computeLoss({
 
 assert.ok(lossResult && typeof lossResult === 'object');
 assert.ok(lossResult.components && typeof lossResult.components === 'object');
-assert.equal(lossResult.components.distill_stage, 'stage_b');
+assert.equal(lossResult.components.distill_stage, 'stage-b');
 assert.equal(lossResult.components.loss_triplet, 0.5);
 
 console.log('distill-stage-b-objective.test: ok');

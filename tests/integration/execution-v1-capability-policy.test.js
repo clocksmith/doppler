@@ -88,7 +88,7 @@ const SUBGROUP_MANIFEST = {
     postLayer: [],
     policies: {
       unsupportedPrecision: 'error',
-      dtypeTransition: 'require_cast_step',
+      dtypeTransition: 'require-cast-step',
       unresolvedKernel: 'error',
     },
   },
@@ -466,7 +466,7 @@ const F16_MANIFEST = {
     postLayer: [],
     policies: {
       unsupportedPrecision: 'error',
-      dtypeTransition: 'require_cast_step',
+      dtypeTransition: 'require-cast-step',
       unresolvedKernel: 'error',
     },
   },

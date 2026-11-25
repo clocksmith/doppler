@@ -218,7 +218,7 @@ function buildF16SubgroupGraph() {
       ['lm_head_prefill', 'tiled', 'lm_head'],
       ['sample', 'sample'],
     ],
-    policies: { unsupportedPrecision: 'error', dtypeTransition: 'require_cast_step', unresolvedKernel: 'error' },
+    policies: { unsupportedPrecision: 'error', dtypeTransition: 'require-cast-step', unresolvedKernel: 'error' },
   };
 }
 

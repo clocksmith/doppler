@@ -51,9 +51,9 @@ const executionPlan = {
 };
 
 const basePerLayerInputsSession = {
-  materialization: 'range_backed',
+  materialization: 'range-backed',
   rowCache: {
-    mode: 'prepared_tokens',
+    mode: 'prepared-tokens',
     maxRows: 8,
     maxBytes: 1000,
     decodedDtype: 'f16',
@@ -68,7 +68,7 @@ const basePerLayerInputsSession = {
     stagingRows: 1,
   },
   hotCache: {
-    mode: 'prepared_tokens',
+    mode: 'prepared-tokens',
     maxTokens: 16,
     maxBytes: 1024,
     outputDtype: 'f16',
@@ -99,23 +99,23 @@ const basePerLayerInputsSession = {
   state.modelConfig.perLayerInputsSession = basePerLayerInputsSession;
   state.runtimeConfig.inference.session = state.runtimeConfig.inference.session ?? {};
   state.runtimeConfig.inference.session.perLayerInputs = {
-    materialization: 'gpu_split_tables',
+    materialization: 'gpu-split-tables',
   };
   const context = buildLayerContext(state, null, false, undefined, undefined, executionPlan);
 
-  assert.equal(context.perLayerInputsSession?.materialization, 'gpu_split_tables');
-  assert.equal(context.perLayerInputsSession?.rowCache?.mode, 'prepared_tokens');
+  assert.equal(context.perLayerInputsSession?.materialization, 'gpu-split-tables');
+  assert.equal(context.perLayerInputsSession?.rowCache?.mode, 'prepared-tokens');
   assert.equal(context.perLayerInputsSession?.prefetch?.mode, 'none');
 }
 
 {
   const manifestSession = basePerLayerInputsSession;
   const runtimeSession = {
-    materialization: 'gpu_split_tables',
+    materialization: 'gpu-split-tables',
   };
   const resolved = resolvePerLayerInputsSession(manifestSession, runtimeSession);
 
-  assert.equal(resolved?.materialization, 'gpu_split_tables');
+  assert.equal(resolved?.materialization, 'gpu-split-tables');
   assert.equal(resolved?.rowCache?.maxRows, 8);
   assert.equal(resolved?.hotCache?.maxTokens, 16);
 }

@@ -12,7 +12,7 @@ const reference = {
   schema: 'doppler.sequenceModelReference.v1',
   modelId: 'sequence-test',
   source: { checkpointId: 'source@test' },
-  input: { alphabet: 'amino_acid', sequence: 'AC', tokenIds: [3, 5, 6, 4] },
+  input: { alphabet: 'amino-acid', sequence: 'AC', tokenIds: [3, 5, 6, 4] },
   probes: {
     pooledEmbedding: { indices: [0, 1], values: [4, 6] },
     tokenEmbeddings: [
@@ -36,7 +36,7 @@ validateSequenceReference(reference);
 const manifest = {
   modelId: 'sequence-test',
   artifactIdentity: { sourceCheckpointId: 'source@test' },
-  inference: { supportsSequence: true, sequence: { alphabet: 'amino_acid' } },
+  inference: { supportsSequence: true, sequence: { alphabet: 'amino-acid' } },
 };
 const result = {
   tokens: [3, 5, 6, 4],

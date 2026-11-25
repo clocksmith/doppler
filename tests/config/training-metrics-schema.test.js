@@ -10,7 +10,7 @@ function makeBaseEntry(overrides = {}) {
     step: 1,
     epoch: 0,
     batch: 1,
-    objective: 'cross_entropy',
+    objective: 'cross-entropy',
     total_loss: 0.42,
     step_time_ms: 1.2,
     forward_ms: 0.6,
@@ -29,7 +29,7 @@ function makeBaseEntry(overrides = {}) {
 
 {
   const entry = validateTrainingMetricsEntry(makeBaseEntry());
-  assert.equal(entry.objective, 'cross_entropy');
+  assert.equal(entry.objective, 'cross-entropy');
 }
 
 {
@@ -44,22 +44,22 @@ function makeBaseEntry(overrides = {}) {
 
 {
   assert.throws(
-    () => validateTrainingMetricsEntry(makeBaseEntry({ ul_stage: 'stage1_joint' })),
+    () => validateTrainingMetricsEntry(makeBaseEntry({ ul_stage: 'stage1-joint' })),
     /cross-entropy objectives must not set ul_stage/
   );
 }
 
 {
   const entry = validateTrainingMetricsEntry(makeBaseEntry({
-    objective: 'causal_lm_cross_entropy',
+    objective: 'causal-lm-cross-entropy',
   }));
-  assert.equal(entry.objective, 'causal_lm_cross_entropy');
+  assert.equal(entry.objective, 'causal-lm-cross-entropy');
 }
 
 {
   const ulStage1 = validateTrainingMetricsEntry(makeBaseEntry({
-    objective: 'ul_stage1_joint',
-    ul_stage: 'stage1_joint',
+    objective: 'ul-stage1-joint',
+    ul_stage: 'stage1-joint',
     lambda: 5,
     loss_total: 0.31,
     loss_prior: 0.11,
@@ -78,14 +78,14 @@ function makeBaseEntry(overrides = {}) {
     latent_noisy_mean: 0.05,
     latent_noisy_std: 0.22,
   }));
-  assert.equal(ulStage1.objective, 'ul_stage1_joint');
+  assert.equal(ulStage1.objective, 'ul-stage1-joint');
 }
 
 {
   assert.throws(
     () => validateTrainingMetricsEntry(makeBaseEntry({
-      objective: 'ul_stage2_base',
-      ul_stage: 'stage2_base',
+      objective: 'ul-stage2-base',
+      ul_stage: 'stage2-base',
       lambda: 5,
       loss_total: 0.2,
       loss_prior: 0,
@@ -103,8 +103,8 @@ function makeBaseEntry(overrides = {}) {
 {
   assert.throws(
     () => validateTrainingMetricsEntry(makeBaseEntry({
-      objective: 'ul_stage2_base',
-      ul_stage: 'stage2_base',
+      objective: 'ul-stage2-base',
+      ul_stage: 'stage2-base',
       lambda: 5,
       loss_total: 0.2,
       loss_prior: 0,
@@ -126,7 +126,7 @@ function makeBaseEntry(overrides = {}) {
     () => validateTrainingMetricsEntry(makeBaseEntry({
       objective: 'kd',
       loss_kd: 0.12,
-      distill_stage: 'stage_a',
+      distill_stage: 'stage-a',
     })),
     /distill_temperature must be a finite number/
   );
@@ -137,7 +137,7 @@ function makeBaseEntry(overrides = {}) {
     () => validateTrainingMetricsEntry(makeBaseEntry({
       objective: 'triplet',
       loss_triplet: 0.21,
-      distill_stage: 'stage_b',
+      distill_stage: 'stage-b',
     })),
     /distill_triplet_margin must be a finite number/
   );
@@ -147,24 +147,24 @@ function makeBaseEntry(overrides = {}) {
   const kd = validateTrainingMetricsEntry(makeBaseEntry({
     objective: 'kd',
     loss_kd: 0.12,
-    distill_stage: 'stage_a',
+    distill_stage: 'stage-a',
     distill_temperature: 1,
     distill_alpha_kd: 1,
     distill_alpha_ce: 0,
     distill_loss_total: 0.12,
   }));
-  assert.equal(kd.distill_stage, 'stage_a');
+  assert.equal(kd.distill_stage, 'stage-a');
 }
 
 {
   const triplet = validateTrainingMetricsEntry(makeBaseEntry({
     objective: 'triplet',
     loss_triplet: 0.21,
-    distill_stage: 'stage_b',
+    distill_stage: 'stage-b',
     distill_triplet_margin: 0.2,
     distill_triplet_active_count: 1,
   }));
-  assert.equal(triplet.distill_stage, 'stage_b');
+  assert.equal(triplet.distill_stage, 'stage-b');
 }
 
 {
@@ -224,8 +224,8 @@ function makeBaseEntry(overrides = {}) {
     makeBaseEntry(),
     makeBaseEntry({
       step: 2,
-      objective: 'ul_stage2_base',
-      ul_stage: 'stage2_base',
+      objective: 'ul-stage2-base',
+      ul_stage: 'stage2-base',
       lambda: 4.5,
       loss_total: 0.15,
       loss_prior: 0,

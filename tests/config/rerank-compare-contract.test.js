@@ -56,7 +56,7 @@ for (const profile of config.modelProfiles) {
     `${modelId}: rerank compare profiles must target rerank catalog entries`
   );
   assert.ok(
-    ['performance_comparable', 'capability_only'].includes(profile.compareLane),
+    ['performance-comparable', 'capability-only'].includes(profile.compareLane),
     `${modelId}: rerank compare lane must be a lane the compare tool accepts`
   );
   assert.equal(typeof profile.releaseClaimable, 'boolean', `${modelId}: releaseClaimable must be explicit`);
@@ -84,7 +84,7 @@ for (const profile of config.modelProfiles) {
   if (profile.releaseClaimable === true) {
     assert.equal(
       profile.compareLane,
-      'performance_comparable',
+      'performance-comparable',
       `${modelId}: release-claimable rerank compares must be performance comparable`
     );
     assert.equal(

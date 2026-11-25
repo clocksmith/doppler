@@ -18,7 +18,7 @@ for (const prefill of [false, true]) {
 }
 const dense = { ...state, dopplerLoader: { getRoutedExpertPolicy: () => ({ enabled: false }) } };
 assert.equal(shouldRecordPartitionLayers(dense, false, true, true), true);
-assert.equal(shouldRecordPartitionLayers({ ...dense, kvCache: { layout: 'bdpa_paged' } }, false, true, true), false);
+assert.equal(shouldRecordPartitionLayers({ ...dense, kvCache: { layout: 'bdpa-paged' } }, false, true, true), false);
 const chunked = { ...dense, runtimeConfig: { inference: { session: { prefillTokenChunkSize: 16 } } } };
 assert.equal(shouldRecordPartitionLayers(chunked, false, true, false), false);
 assert.equal(shouldRecordPartitionLayers({ ...chunked, currentSeqLen: 16 }, false, true, true), false);

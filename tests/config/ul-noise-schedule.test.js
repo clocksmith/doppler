@@ -7,7 +7,7 @@ import { resolveUlScheduledLambda } from '../../src/experimental/training/ul_sch
     training: {
       ul: {
         enabled: true,
-        stage: 'stage1_joint',
+        stage: 'stage1-joint',
         lambda0: 5,
         noiseSchedule: {
           type: 'log_snr_linear',
@@ -28,7 +28,7 @@ import { resolveUlScheduledLambda } from '../../src/experimental/training/ul_sch
     training: {
       ul: {
         enabled: true,
-        stage: 'stage1_joint',
+        stage: 'stage1-joint',
         lambda0: 5,
         noiseSchedule: {
           type: 'log_snr_cosine',

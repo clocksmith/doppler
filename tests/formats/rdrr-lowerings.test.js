@@ -21,8 +21,8 @@ function successEntry(overrides = {}) {
     emitterDigest: 'emit',
     compilerVersion: 'doe-0.1.0',
     exactness: {
-      algorithmExactInvariants: ['reduction_order'],
-      class: 'algorithm_exact',
+      algorithmExactInvariants: ['reduction-order'],
+      class: 'algorithm-exact',
       toleranceEpsilon: 0,
       toleranceMetric: '',
     },
@@ -301,7 +301,7 @@ function baseManifest(integrityExtensionsOverrides = {}) {
     lowerings: { contractVersion: 1, entries: [successEntry()] },
   });
   const entry = findLoweringOrThrow(manifest, 'fused_gemv', 'webgpu-generic');
-  assert.equal(entry.exactness.class, 'algorithm_exact');
+  assert.equal(entry.exactness.class, 'algorithm-exact');
 }
 
 // =========================================================================

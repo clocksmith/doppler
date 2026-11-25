@@ -17,7 +17,7 @@ for (const surface of ['generateTokenIds', 'generateTokens']) {
     isLoaded: true, isGenerating: false, currentSeqLen: 0, stats: {},
     runtimeConfig: createDopplerConfig().runtime,
     executionPlanState: { activePlanId: 'primary', primaryPlan: plan('primary'),
-      fallbackPlan: plan('finiteness_fallback') },
+      fallbackPlan: plan('finiteness-fallback') },
   };
   const generator = new PipelineGenerator(state);
   generator._sampleNextTokenFromLogits = () => 2;
@@ -25,8 +25,8 @@ for (const surface of ['generateTokenIds', 'generateTokens']) {
   let failure = null;
   generator._prefillPromptToLogits = async () => {
     if (fallback) {
-      state.executionPlanState.activePlanId = 'finiteness_fallback';
-      state.stats.kernelPathId = 'finiteness_fallback-path';
+      state.executionPlanState.activePlanId = 'finiteness-fallback';
+      state.stats.kernelPathId = 'finiteness-fallback-path';
     }
     if (failure) throw failure;
     return { inputIds: [0], logits: new Float32Array([0, 1, 2]) };
@@ -55,10 +55,10 @@ for (const surface of ['generateTokenIds', 'generateTokens']) {
   };
   check(await run(), 'primary');
   fallback = true;
-  check(await run(), 'finiteness_fallback');
+  check(await run(), 'finiteness-fallback');
   failure = new Error('controlled prefill failure');
   await assert.rejects(run, error => error === failure);
-  check(state.stats, 'finiteness_fallback');
+  check(state.stats, 'finiteness-fallback');
   failure = null;
   fallback = false;
   check(await run(), 'primary');

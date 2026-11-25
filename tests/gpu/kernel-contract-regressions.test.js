@@ -323,7 +323,7 @@ try {
         numHeads: 1,
         headDim: 8,
         rotaryDim: 4,
-        executionPolicies: { dtypeTransition: 'require_cast_step' },
+        executionPolicies: { dtypeTransition: 'require-cast-step' },
       })
     );
     resetRuntime();

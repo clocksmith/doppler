@@ -675,7 +675,7 @@ await assert.rejects(
       request: {
         workload: 'training',
         workloadType: 'training',
-        trainingStage: 'stage1_joint',
+        trainingStage: 'stage1-joint',
       },
     }),
   ], {

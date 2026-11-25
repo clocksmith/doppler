@@ -209,7 +209,7 @@ function createGemma4EveryNManifest() {
         embeddingPostprocessor: null,
       },
       layerPattern: {
-        type: 'every_n',
+        type: 'every-n',
         globalPattern: null,
         period: 5,
         offset: 4,

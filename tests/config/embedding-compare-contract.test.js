@@ -28,7 +28,7 @@ for (const profile of config.modelProfiles) {
     `${modelId}: embedding compare profiles must target embedding catalog entries`
   );
   assert.ok(
-    ['performance_comparable', 'capability_only'].includes(profile.compareLane),
+    ['performance-comparable', 'capability-only'].includes(profile.compareLane),
     `${modelId}: embedding compare lane must be a lane the compare tool accepts`
   );
   assert.equal(typeof profile.releaseClaimable, 'boolean', `${modelId}: releaseClaimable must be explicit`);
@@ -46,7 +46,7 @@ for (const profile of config.modelProfiles) {
   if (profile.releaseClaimable === true) {
     assert.equal(
       profile.compareLane,
-      'performance_comparable',
+      'performance-comparable',
       `${modelId}: release-claimable embedding compares must be performance comparable`
     );
     assert.equal(

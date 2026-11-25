@@ -9,11 +9,11 @@ const raw = {
   workloadType: 'training',
   modelId: null,
   trainingTests: ['distill-stage-b'],
-  trainingStage: 'stage_b',
+  trainingStage: 'stage-b',
   trainingConfig: {
     distill: {
       enabled: true,
-      stage: 'stage_b',
+      stage: 'stage-b',
       teacherModelId: 'translategemma-4b-it-q4k-ehf16-af32',
       studentModelId: 'translategemma-270m-it-f16-af32',
       datasetId: 'en-es',
@@ -41,7 +41,7 @@ assert.equal(nodeRequest.workload, 'training');
 assert.equal(nodeRequest.workloadType, 'training');
 assert.equal(nodeRequest.trainingSchemaVersion, 1);
 assert.equal(nodeRequest.trainingBenchSteps, 7);
-assert.equal(nodeRequest.trainingStage, 'stage_b');
+assert.equal(nodeRequest.trainingStage, 'stage-b');
 assert.equal(nodeRequest.stageAArtifact, '/tmp/distill_stage_a_manifest.json');
 assert.equal(nodeRequest.stageAArtifactHash, 'abc123');
 assert.equal(nodeRequest.distillArtifactDir, '/tmp/distill');

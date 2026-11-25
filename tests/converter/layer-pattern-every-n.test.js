@@ -80,7 +80,7 @@ const manifest = {
       embeddingPostprocessor: null,
     },
     layerPattern: {
-      type: 'every_n',
+      type: 'every-n',
       globalPattern: null,
       period: 6,
       offset: 5,

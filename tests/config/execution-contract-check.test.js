@@ -120,7 +120,7 @@ function buildExecutionContractFixtureManifest() {
         embeddingPostprocessor: null,
       },
       layerPattern: {
-        type: 'every_n',
+        type: 'every-n',
         globalPattern: null,
         period: 6,
         offset: 0,
@@ -183,7 +183,7 @@ function buildExecutionContractFixtureManifest() {
         postLayer: [],
         policies: {
           unsupportedPrecision: 'error',
-          dtypeTransition: 'require_cast_step',
+          dtypeTransition: 'require-cast-step',
           unresolvedKernel: 'error',
         },
       },
@@ -306,7 +306,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
       mode: 'off',
     },
     quantization: {
-      mode: 'turboquant_outlier',
+      mode: 'turboquant-outlier',
       bitWidth: 4,
       prodMode: false,
     },
@@ -314,8 +314,8 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
 
   assert.throws(
     () => validateManifestExecutionContract(unsupportedOutlierManifest),
-    /turboquant_outlier.*not supported/,
-    'turboquant_outlier must fail closed during execution-contract extraction'
+    /turboquant-outlier.*not supported/,
+    'turboquant-outlier must fail closed during execution-contract extraction'
   );
 }
 
@@ -337,7 +337,7 @@ const translateGemmaManifest = buildExecutionContractFixtureManifest();
         prodMode: false,
       },
       gating: {
-        mode: 'force_on',
+        mode: 'force-on',
       },
     },
   });

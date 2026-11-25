@@ -7,7 +7,7 @@ const scalar = { activationDtype: 'f32' };
 const state = { executionPlanState: { activePlanId: 'primary', primaryPlan: paired, fallbackPlan: scalar } };
 assert.equal(tensorElementBytes('f32', getActivationRepresentation(state)), 8);
 assert.equal(tensorElementBytes('f32', getActivationRepresentation(state, scalar)), 4, 'explicit session wins over ambient plan');
-state.executionPlanState.activePlanId = 'finiteness_fallback';
+state.executionPlanState.activePlanId = 'finiteness-fallback';
 assert.equal(tensorElementBytes('f32', getActivationRepresentation(state)), 4, 'fallback changes storage');
 assert.equal(tensorElementBytes('f32', getActivationRepresentation(state, paired)), 8);
 assert.equal(tensorElementBytes('f16', getActivationRepresentation({})), 2, 'legacy scalar path');

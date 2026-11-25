@@ -25,7 +25,7 @@ if (!gpuProbe.ready) {
       surface: 'node',
       trainingSchemaVersion: 1,
       trainingTests: ['ul-stage1'],
-      trainingStage: 'stage1_joint',
+      trainingStage: 'stage1-joint',
       ulArtifactDir: stage1Dir,
     });
 
@@ -45,7 +45,7 @@ if (!gpuProbe.ready) {
         surface: 'browser',
         trainingSchemaVersion: 1,
         trainingTests: ['ul-stage2'],
-        trainingStage: 'stage2_base',
+        trainingStage: 'stage2-base',
         stage1Artifact: stage1Result.artifact.manifestPath,
         stage1ArtifactHash: stage1Result.artifact.manifestFileHash || stage1Result.artifact.manifestHash,
         ulArtifactDir: stage2Dir,
@@ -67,7 +67,7 @@ if (!gpuProbe.ready) {
           surface: 'browser',
           trainingSchemaVersion: 1,
         trainingTests: ['ul-stage2'],
-        trainingStage: 'stage2_base',
+        trainingStage: 'stage2-base',
         stage1Artifact: stage1Result.artifact.manifestPath,
         stage1ArtifactHash: 'deadbeef',
         ulArtifactDir: stage2MismatchDir,

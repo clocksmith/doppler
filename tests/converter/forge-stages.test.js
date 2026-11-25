@@ -34,7 +34,7 @@ const manifest = {
     ffn: { activation: 'gelu', gatedActivation: true },
     rope: { ropeTheta: 10000, ropeLocalTheta: 10000 },
     output: { tieWordEmbeddings: false },
-    layerPattern: { type: 'every_n', period: 1, offset: 0 },
+    layerPattern: { type: 'every-n', period: 1, offset: 0 },
     session: {
       compute: { defaults: { activationDtype: 'f32' } },
       kvcache: { kvDtype: 'f32', layout: 'contiguous' },
@@ -502,7 +502,7 @@ assert.throws(
 const sequenceManifest = structuredClone(manifest);
 sequenceManifest.modelType = 'embedding';
 Object.assign(sequenceManifest.inference, { supportsEmbedding: true, supportsSequence: true,
-  sequence: { alphabet: 'amino_acid', tokenEmbeddings: true,
+  sequence: { alphabet: 'amino-acid', tokenEmbeddings: true,
     pooledEmbedding: { mode: 'mean', excludeTokenIds: [0, 1, 2] }, logits: false } });
 sequenceManifest.inference.output.embeddingPostprocessor = null;
 const sequenceSource = { manifest: sequenceManifest,

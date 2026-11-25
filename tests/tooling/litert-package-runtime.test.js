@@ -14,17 +14,17 @@ assert.deepEqual(
 
 assert.deepEqual(
   inferLiteRTRowwiseLayout({ dtypeId: 17, size: 4, name: 'int4-rowwise' }, [2, 4]),
-  { sourceDtype: 'INT4', storageEncoding: 'offset_binary' }
+  { sourceDtype: 'INT4', storageEncoding: 'offset-binary' }
 );
 
 assert.deepEqual(
   inferLiteRTRowwiseLayout({ dtypeId: 9, size: 2, name: 'int2-packed-in-int8' }, [2, 4]),
-  { sourceDtype: 'INT2', storageEncoding: 'offset_binary' }
+  { sourceDtype: 'INT2', storageEncoding: 'offset-binary' }
 );
 
 assert.deepEqual(
   inferLiteRTRowwiseLayout({ dtypeId: 3, size: 8, name: 'uint8-packed-int4' }, [2, 8]),
-  { sourceDtype: 'INT4', storageEncoding: 'offset_binary' }
+  { sourceDtype: 'INT4', storageEncoding: 'offset-binary' }
 );
 
 assert.deepEqual(
@@ -49,7 +49,7 @@ const gemma4RuntimeProfile = {
   },
   manifestInference: {
     layerPattern: {
-      type: 'every_n',
+      type: 'every-n',
       period: 5,
       offset: 4,
     },

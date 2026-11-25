@@ -18,7 +18,7 @@ function buildDistillConfig(overrides = {}) {
       enabled: true,
       distill: {
         enabled: true,
-        stage: 'stage_a',
+        stage: 'stage-a',
         teacherModelId: 'translategemma-4b-it-q4k-ehf16-af32',
         studentModelId: 'translategemma-270m-it-f16-af32',
         datasetId: 'en-es',
@@ -31,12 +31,12 @@ function buildDistillConfig(overrides = {}) {
 
 try {
   const stageAConfig = buildDistillConfig({
-    stage: 'stage_a',
+    stage: 'stage-a',
     artifactDir: TEMP_ROOT,
   });
   const stageASession = await createDistillArtifactSession({
     config: stageAConfig,
-    stage: 'stage_a',
+    stage: 'stage-a',
     runOptions: {
       distillArtifactDir: TEMP_ROOT,
       modelId: 'toy-model',
@@ -46,7 +46,7 @@ try {
       maxSteps: 1,
     },
   });
-  assert(stageASession, 'stage_a session should be created');
+  assert(stageASession, 'stage-a session should be created');
 
   const stageAEntry = {
     schemaVersion: 1,
@@ -58,7 +58,7 @@ try {
     step_time_ms: 1,
     forward_ms: 0.5,
     backward_ms: 0.4,
-    distill_stage: 'stage_a',
+    distill_stage: 'stage-a',
     loss_kd: 0.07,
   };
   await stageASession.appendStep(stageAEntry);
@@ -69,34 +69,34 @@ try {
   const stageAFileHash = sha256Hex(stageAManifestRaw);
 
   const stageBConfig = buildDistillConfig({
-    stage: 'stage_b',
+    stage: 'stage-b',
     artifactDir: TEMP_ROOT,
     stageAArtifact: stageAManifestPath,
     stageAArtifactHash: stageAFileHash,
   });
   const stageAContext = await resolveStageAArtifactContext(stageBConfig);
-  assert(stageAContext, 'stage_a context should resolve');
+  assert(stageAContext, 'stage-a context should resolve');
   assert.equal(stageAContext.metrics.count, 1);
 
   const stageBSession = await createDistillArtifactSession({
     config: stageBConfig,
-    stage: 'stage_b',
+    stage: 'stage-b',
     runOptions: {
       distillArtifactDir: TEMP_ROOT,
       timestamp: '2026-03-01T00:00:01.000Z',
     },
   });
-  assert(stageBSession, 'stage_b session should be created');
+  assert(stageBSession, 'stage-b session should be created');
 
   await assert.rejects(
     () => createDistillArtifactSession({
       config: buildDistillConfig({
-        stage: 'stage_b',
+        stage: 'stage-b',
         artifactDir: TEMP_ROOT,
         stageAArtifact: stageAManifestPath,
         stageAArtifactHash: 'deadbeef',
       }),
-      stage: 'stage_b',
+      stage: 'stage-b',
       runOptions: {
         distillArtifactDir: TEMP_ROOT,
         timestamp: '2026-03-01T00:00:02.000Z',

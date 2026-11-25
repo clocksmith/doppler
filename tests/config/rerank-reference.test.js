@@ -13,7 +13,7 @@ for (const change of [
   (v) => { v.observation.outputs[0].index = 1; },
   (v) => { v.observation.outputs.pop(); },
   (v) => { v.observation.input.documents[0] = 'changed'; },
-  (v) => { v.observation.scoringConfig.score = 'logit_difference'; },
+  (v) => { v.observation.scoringConfig.score = 'logit-difference'; },
   (v) => { v.reference.tolerances.logitMaxAbs = 10; },
   (v) => { v.generationConfig = { temperature: 0 }; },
 ]) {

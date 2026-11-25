@@ -140,7 +140,7 @@ test('observation context keeps command intent out of numeric runtime policy', (
     runtimeConfig: {
       shared: {
         tooling: {
-          diagnostics: 'on_failure',
+          diagnostics: 'on-failure',
           refactorReceipts: 'always',
         },
         debug: {

@@ -39,7 +39,7 @@ function createExecutionV1ContractManifest(overrides = {}) {
         postLayer: [],
         policies: {
           unsupportedPrecision: 'error',
-          dtypeTransition: 'require_cast_step',
+          dtypeTransition: 'require-cast-step',
           unresolvedKernel: 'error',
         },
         ...(overrides.execution ?? {}),

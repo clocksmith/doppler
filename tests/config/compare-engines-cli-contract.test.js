@@ -724,7 +724,7 @@ function assertCommandOutputMatches(result, pattern) {
         },
       },
       compareLane: {
-        declared: 'performance_comparable',
+        declared: 'performance-comparable',
         allowNonComparableLane: false,
       },
       dopplerExecution: {
@@ -755,7 +755,7 @@ function assertCommandOutputMatches(result, pattern) {
         },
       },
       compareLane: {
-        declared: 'performance_comparable',
+        declared: 'performance-comparable',
         allowNonComparableLane: false,
       },
       dopplerExecution: {
@@ -782,7 +782,7 @@ function assertCommandOutputMatches(result, pattern) {
         },
       },
       compareLane: {
-        declared: 'performance_comparable',
+        declared: 'performance-comparable',
         allowNonComparableLane: false,
       },
       dopplerExecution: {
@@ -808,7 +808,7 @@ function assertCommandOutputMatches(result, pattern) {
         },
       },
       compareLane: {
-        declared: 'performance_comparable',
+        declared: 'performance-comparable',
         allowNonComparableLane: false,
       },
       dopplerExecution: {
@@ -837,7 +837,7 @@ function assertCommandOutputMatches(result, pattern) {
         },
       },
       compareLane: {
-        declared: 'performance_comparable',
+        declared: 'performance-comparable',
         allowNonComparableLane: false,
       },
       dopplerExecution: {
@@ -1159,8 +1159,8 @@ function assertCommandOutputMatches(result, pattern) {
   assert.equal(gemma4Catalog?.vendorBenchmark?.transformersjs?.repoId, gemma4Profile.defaultTjsModelId);
 
   for (const profile of compareConfig.modelProfiles) {
-    assert.ok(['performance_comparable', 'capability_only'].includes(profile.compareLane));
-    if (profile.compareLane === 'capability_only') {
+    assert.ok(['performance-comparable', 'capability-only'].includes(profile.compareLane));
+    if (profile.compareLane === 'capability-only') {
       assert.equal(typeof profile.compareLaneReason, 'string');
       assert.ok(profile.compareLaneReason.length > 0);
     }
@@ -2086,7 +2086,7 @@ function assertCommandOutputMatches(result, pattern) {
             readbackInterval: 99,
           },
           perLayerInputs: {
-            materialization: 'gpu_split_tables',
+            materialization: 'gpu-split-tables',
           },
         },
       },
@@ -2119,7 +2119,7 @@ function assertCommandOutputMatches(result, pattern) {
   assert.equal(runtimeConfig.inference.batching.readbackInterval, 4);
   assert.equal(runtimeConfig.inference.session.decodeLoop.batchSize, 4);
   assert.equal(runtimeConfig.inference.session.decodeLoop.readbackInterval, 4);
-  assert.equal(runtimeConfig.inference.session.perLayerInputs.materialization, 'gpu_split_tables');
+  assert.equal(runtimeConfig.inference.session.perLayerInputs.materialization, 'gpu-split-tables');
   assert.equal(runtimeConfig.shared.bufferPool.budget.maxTotalBytes, 1234);
 }
 
@@ -2330,7 +2330,7 @@ function assertCommandOutputMatches(result, pattern) {
         defaultDopplerFormat: 'rdrr',
         defaultTjsFormat: null,
         safetensorsSourceId: null,
-        compareLane: 'capability_only',
+        compareLane: 'capability-only',
         compareLaneReason: 'unit-test bun surface schema coverage',
       },
     ],
@@ -2414,7 +2414,7 @@ function assertCommandOutputMatches(result, pattern) {
         defaultDopplerSource: 'local',
         modelBaseDir: 'local',
         defaultDopplerSurface: 'unsupported',
-        compareLane: 'performance_comparable',
+        compareLane: 'performance-comparable',
       },
     ],
   };
@@ -2443,7 +2443,7 @@ function assertCommandOutputMatches(result, pattern) {
         defaultDopplerSource: 'local',
         modelBaseDir: 'local',
         defaultDopplerSurface: 'browser',
-        compareLane: 'performance_comparable',
+        compareLane: 'performance-comparable',
         dopplerRuntimeProfileByDecodeProfile: {
           throughput: true,
         },
@@ -2478,7 +2478,7 @@ function assertCommandOutputMatches(result, pattern) {
         defaultDopplerSource: 'local',
         modelBaseDir: 'local',
         defaultDopplerSurface: 'browser',
-        compareLane: 'performance_comparable',
+        compareLane: 'performance-comparable',
         dopplerRuntimeProfileByDecodeProfileByPlatform: {
           darwin: {
             throughput: true,
@@ -2516,7 +2516,7 @@ function assertCommandOutputMatches(result, pattern) {
         modelBaseDir: 'local',
         defaultDopplerSurface: 'browser',
         defaultUseChatTemplate: 'yes',
-        compareLane: 'capability_only',
+        compareLane: 'capability-only',
         compareLaneReason: 'unit-test invalid chat template default',
       },
     ],
@@ -2551,7 +2551,7 @@ function assertCommandOutputMatches(result, pattern) {
         modelBaseDir: null,
         defaultDopplerSurface: 'browser',
         defaultLoadMode: 'http',
-        compareLane: 'performance_comparable',
+        compareLane: 'performance-comparable',
       },
     ],
   };
@@ -2585,7 +2585,7 @@ function assertCommandOutputMatches(result, pattern) {
         defaultDopplerFormat: 'rdrr',
         defaultTjsFormat: null,
         safetensorsSourceId: null,
-        compareLane: 'capability_only',
+        compareLane: 'capability-only',
         compareLaneReason: 'unit-test support-only lane',
       },
     ],
@@ -2613,7 +2613,7 @@ function assertCommandOutputMatches(result, pattern) {
         defaultDopplerSource: 'local',
         modelBaseDir: 'local',
         defaultDopplerSurface: 'auto',
-        compareLane: 'performance_comparable',
+        compareLane: 'performance-comparable',
       },
     ],
   };

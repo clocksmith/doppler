@@ -27,7 +27,7 @@ for (const filePath of collectJsonFiles(conversionRoot)) {
   const activationDtype = config.session?.compute?.defaults?.activationDtype;
   const kvDtype = config.session?.kvcache?.kvDtype;
   const dtypeTransition = config.execution?.policies?.dtypeTransition;
-  if (activationDtype !== 'f32' || kvDtype !== 'f16' || dtypeTransition !== 'require_cast_step') {
+  if (activationDtype !== 'f32' || kvDtype !== 'f16' || dtypeTransition !== 'require-cast-step') {
     continue;
   }
 

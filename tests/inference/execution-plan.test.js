@@ -157,13 +157,13 @@ const container = { executionPlanState: planState };
 {
   const fallback = activateFallbackExecutionPlan(container);
   assert.ok(fallback);
-  assert.equal(fallback.id, 'finiteness_fallback');
+  assert.equal(fallback.id, 'finiteness-fallback');
   assert.equal(fallback.activationDtype, 'f32');
   assert.equal(fallback.kernelPathId, 'gemma3-f16-fused-f32a-online');
   const active = resolveActiveExecutionPlan(container);
-  assert.equal(active.id, 'finiteness_fallback');
+  assert.equal(active.id, 'finiteness-fallback');
   const activeFromPlanState = resolveActiveExecutionPlan(planState);
-  assert.equal(activeFromPlanState.id, 'finiteness_fallback');
+  assert.equal(activeFromPlanState.id, 'finiteness-fallback');
 }
 
 {
@@ -378,12 +378,12 @@ const container = { executionPlanState: planState };
   };
 
   assert.equal(isDecodeRecorderEnabled(enabledConfig), true);
-  assert.equal(isDecodeRecorderEnabled({ ...enabledConfig, kvLayout: 'bdpa_paged' }), false);
+  assert.equal(isDecodeRecorderEnabled({ ...enabledConfig, kvLayout: 'bdpa-paged' }), false);
   assert.equal(isDecodeRecorderEnabled({ ...enabledConfig, debug: true }), false);
   assert.equal(isDecodeRecorderEnabled({ ...enabledConfig, disableCommandBatching: true }), false);
   assert.equal(isDecodeRecorderEnabled({ ...enabledConfig, hasDevice: false }), false);
   assert.equal(isProfileDecodeRecorderEnabled(enabledConfig), true);
-  assert.equal(isProfileDecodeRecorderEnabled({ ...enabledConfig, kvLayout: 'bdpa_paged' }), false);
+  assert.equal(isProfileDecodeRecorderEnabled({ ...enabledConfig, kvLayout: 'bdpa-paged' }), false);
   assert.equal(isProfileDecodeRecorderEnabled({ ...enabledConfig, debug: true }), false);
   assert.equal(isProfileDecodeRecorderEnabled({ ...enabledConfig, disableCommandBatching: true }), true);
   assert.equal(isProfileDecodeRecorderEnabled({ ...enabledConfig, hasDevice: false }), false);

@@ -60,7 +60,7 @@ assert.notEqual(
   'INT4 PLE must be opt-in through conversion quantization config'
 );
 
-const int4PleOptions = { targetQuant: 'q4k', perLayerEmbeddings: 'int4_per_row' };
+const int4PleOptions = { targetQuant: 'q4k', perLayerEmbeddings: 'int4-per-row' };
 const result = transformTensorBytes(tensor, srcBytes, int4PleOptions);
 
 // Logical (post-dequant) dtype is F16; INT4 is the storage form carried in
@@ -80,7 +80,7 @@ assert.equal(st.kind, 'litert_axis_dequant');
 assert.equal(st.scheme, 'per_axis_affine');
 assert.equal(st.sourceDtype, 'INT4');
 assert.equal(st.targetDtype, 'F16');
-assert.equal(st.storageEncoding, 'offset_binary');
+assert.equal(st.storageEncoding, 'offset-binary');
 assert.equal(st.scaleSemantics, 'step');
 assert.deepEqual(st.storageShape, [rows, cols]);
 assert.equal(st.quantAxis, 1, 'quantAxis=1 keeps storage matching logical shape');

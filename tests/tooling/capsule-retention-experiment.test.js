@@ -14,7 +14,7 @@ for (const retentionBytes of [[1], [null], [null, null], [null, -1], [null, NaN]
   assert.throws(() => generateRetentionCandidates({ ...scope, retentionBytes }));
 }
 const row = (id, query) => ({ id, reference: { input: { query, documents: ['fixed document'] },
-  source: { files: [{ path: 'weights', hash: digest('d') }] }, scoringConfig: { score: 'true_logit' },
+  source: { files: [{ path: 'weights', hash: digest('d') }] }, scoringConfig: { score: 'true-logit' },
   tolerances: { scoreMaxAbs: 1 } } });
 const tuning = [row('tune', 'tuning input')], heldout = [row('heldout', 'unseen input')];
 validateExperimentSplit(tuning, heldout);
@@ -24,7 +24,7 @@ assert.throws(() => validateExperimentSplit([], heldout), /Both/);
 for (const change of [
   value => { value.reference.tolerances.scoreMaxAbs = 2; },
   value => { value.reference.source.files[0].hash = digest('e'); },
-  value => { value.reference.scoringConfig.score = 'logit_difference'; },
+  value => { value.reference.scoringConfig.score = 'logit-difference'; },
 ]) {
   const changed = structuredClone(heldout); change(changed[0]);
   assert.throws(() => validateExperimentSplit(tuning, changed), /unchanged|must match/);

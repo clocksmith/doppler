@@ -136,7 +136,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
       {
         targetId: 'gemma-4-e2b',
         officialName: 'Gemma 4 E2B',
-        dopplerStatus: 'partially_verified',
+        dopplerStatus: 'partially-verified',
         surfaceStatus: {
           browser: 'unverified',
           electron: 'unverified',
@@ -166,7 +166,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
             {
               modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
               surface: 'browser',
-              status: 'performance_evidence',
+              status: 'performance-evidence',
               path: 'benchmarks/vendors/results/compare_20260421T001902.json',
             },
           ],
@@ -200,12 +200,12 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
           {
             code: 'mtp-lane-not-implemented',
             surface: 'mtp',
-            state: 'not_implemented',
+            state: 'not-implemented',
             reason: 'Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target.',
           },
         ],
         officialMtp: true,
-        mtpStatus: 'not_implemented',
+        mtpStatus: 'not-implemented',
       },
       {
         targetId: 'gemma-4-e4b',
@@ -263,12 +263,12 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
           {
             code: 'mtp-lane-not-implemented',
             surface: 'mtp',
-            state: 'not_implemented',
+            state: 'not-implemented',
             reason: 'Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target.',
           },
         ],
         officialMtp: true,
-        mtpStatus: 'not_implemented',
+        mtpStatus: 'not-implemented',
       },
       {
         targetId: 'gemma-4-12b-unified',
@@ -326,12 +326,12 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
           {
             code: 'mtp-lane-not-implemented',
             surface: 'mtp',
-            state: 'not_implemented',
+            state: 'not-implemented',
             reason: 'Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target.',
           },
         ],
         officialMtp: true,
-        mtpStatus: 'not_implemented',
+        mtpStatus: 'not-implemented',
       },
       {
         targetId: 'gemma-4-31b',
@@ -389,12 +389,12 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
           {
             code: 'mtp-lane-not-implemented',
             surface: 'mtp',
-            state: 'not_implemented',
+            state: 'not-implemented',
             reason: 'Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target.',
           },
         ],
         officialMtp: true,
-        mtpStatus: 'not_implemented',
+        mtpStatus: 'not-implemented',
       },
       {
         targetId: 'gemma-4-26b-a4b',
@@ -452,12 +452,12 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
           {
             code: 'mtp-lane-not-implemented',
             surface: 'mtp',
-            state: 'not_implemented',
+            state: 'not-implemented',
             reason: 'Official Gemma 4 MTP exists, but Doppler has no MTP execution lane or receipt for this target.',
           },
         ],
         officialMtp: true,
-        mtpStatus: 'not_implemented',
+        mtpStatus: 'not-implemented',
       },
     ],
   }, catalogModels, quickstartModels), []);
@@ -529,7 +529,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
           benchmarkReceipts: [
             {
               modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
-              status: 'performance_evidence',
+              status: 'performance-evidence',
               path: 'package.json',
             },
           ],

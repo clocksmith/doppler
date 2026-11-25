@@ -146,9 +146,9 @@ function baseRuntimeKV(overrides = {}) {
 // Full quantization override replaces all fields
 {
   const base = { ...DEFAULT_KVCACHE_CONFIG };
-  const override = { quantization: { mode: 'turboquant_prod', bitWidth: 3, prodMode: true } };
+  const override = { quantization: { mode: 'turboquant-prod', bitWidth: 3, prodMode: true } };
   const merged = mergeRuntimeValues(base, override);
-  assert.equal(merged.quantization.mode, 'turboquant_prod');
+  assert.equal(merged.quantization.mode, 'turboquant-prod');
   assert.equal(merged.quantization.bitWidth, 3);
   assert.equal(merged.quantization.prodMode, true);
 }
@@ -227,10 +227,10 @@ assert.throws(
 );
 
 // ===========================================================================
-// Part 2: createKVCache layout resolution for contiguous_quantized
+// Part 2: createKVCache layout resolution for contiguous-quantized
 // ===========================================================================
 
-// Full-attention model + quantization.mode='turboquant' auto-resolves to contiguous_quantized
+// Full-attention model + quantization.mode='turboquant' auto-resolves to contiguous-quantized
 setDevice(createGPUDevice(), { platformConfig: null });
 try {
   {
@@ -249,7 +249,7 @@ try {
       cache instanceof QuantizedKVCache,
       'Full-attention + turboquant should create QuantizedKVCache'
     );
-    assert.equal(cache.layout, 'contiguous_quantized');
+    assert.equal(cache.layout, 'contiguous-quantized');
     assert.equal(cache.quantMode, 'turboquant');
     assert.equal(cache.bitWidth, 4);
     assert.equal(cache.prodMode, false);
@@ -277,7 +277,7 @@ try {
       cache instanceof QuantizedKVCache,
       'Null layerTypes with slidingWindow=null should still create QuantizedKVCache for full-attention-compatible manifests'
     );
-    assert.equal(cache.layout, 'contiguous_quantized');
+    assert.equal(cache.layout, 'contiguous-quantized');
     cache.destroy();
   }
 
@@ -360,7 +360,7 @@ try {
     assert.equal(sharedRotation.destroyed, true, 'shared rotation buffer must release after final cache destroy');
   }
 
-  // Full-attention + turboquant_prod creates QuantizedKVCache with QJL buffer
+  // Full-attention + turboquant-prod creates QuantizedKVCache with QJL buffer
   {
     const cache = createKVCache(
       baseModelConfig({
@@ -370,12 +370,12 @@ try {
       false,
       baseRuntimeKV({
         kvDtype: 'f16',
-        quantization: { mode: 'turboquant_prod', bitWidth: 4, prodMode: true },
+        quantization: { mode: 'turboquant-prod', bitWidth: 4, prodMode: true },
       })
     );
     assert.ok(cache instanceof QuantizedKVCache);
-    assert.equal(cache.layout, 'contiguous_quantized');
-    assert.equal(cache.quantMode, 'turboquant_prod');
+    assert.equal(cache.layout, 'contiguous-quantized');
+    assert.equal(cache.quantMode, 'turboquant-prod');
     assert.equal(cache.prodMode, true);
     assert.ok(cache.qjlMatrixBuffer, 'Prod mode should have QJL buffer');
     cache.destroy();
@@ -391,7 +391,7 @@ try {
       false,
       baseRuntimeKV({
         kvDtype: 'f16',
-        quantization: { mode: 'turboquant_prod', bitWidth: 4, prodMode: true },
+        quantization: { mode: 'turboquant-prod', bitWidth: 4, prodMode: true },
       })
     );
     const cacheB = createKVCache(
@@ -402,7 +402,7 @@ try {
       false,
       baseRuntimeKV({
         kvDtype: 'f16',
-        quantization: { mode: 'turboquant_prod', bitWidth: 4, prodMode: true },
+        quantization: { mode: 'turboquant-prod', bitWidth: 4, prodMode: true },
       })
     );
 
@@ -431,7 +431,7 @@ try {
     assert.ok(!(cache instanceof QuantizedKVCache));
   }
 
-  // Mixed attention (full + sliding) + turboquant should also resolve to contiguous_quantized
+  // Mixed attention (full + sliding) + turboquant should also resolve to contiguous-quantized
   {
     const cache = createKVCache(
       baseModelConfig({
@@ -446,11 +446,11 @@ try {
       })
     );
     assert.ok(cache instanceof QuantizedKVCache);
-    assert.equal(cache.layout, 'contiguous_quantized');
+    assert.equal(cache.layout, 'contiguous-quantized');
     cache.destroy();
   }
 
-  // Sliding-window-only model + turboquant should NOT get contiguous_quantized
+  // Sliding-window-only model + turboquant should NOT get contiguous-quantized
   // (forceContiguousKVCache = false, so paged upgrade fires first if maxSeqLen >= threshold)
   {
     const cache = createKVCache(
@@ -466,14 +466,14 @@ try {
       })
     );
     // Sliding-only below threshold stays contiguous (quantization.mode is set but
-    // forceContiguousKVCache is false, so the contiguous_quantized auto-resolve doesn't fire).
+    // forceContiguousKVCache is false, so the contiguous-quantized auto-resolve doesn't fire).
     assert.equal(cache.layout, 'contiguous',
-      'Sliding-only model should not auto-resolve to contiguous_quantized'
+      'Sliding-only model should not auto-resolve to contiguous-quantized'
     );
     assert.ok(!(cache instanceof QuantizedKVCache));
   }
 
-  // contiguous_quantized requires f16
+  // contiguous-quantized requires f16
   {
     assert.throws(
       () => createKVCache(
@@ -488,13 +488,13 @@ try {
         })
       ),
       /Contiguous quantized KV cache requires kvDtype="f16"/,
-      'contiguous_quantized with f32 kvDtype must throw'
+      'contiguous-quantized with f32 kvDtype must throw'
     );
   }
 
-  // contiguous_quantized requires GPU — when useGPU=false, kvDtype resolves to f32
+  // contiguous-quantized requires GPU — when useGPU=false, kvDtype resolves to f32
   // (no shader-f16 capability), so the f16 gate fires first. Either error is acceptable
-  // since both guard the contiguous_quantized path.
+  // since both guard the contiguous-quantized path.
   {
     assert.throws(
       () => createKVCache(
@@ -509,7 +509,7 @@ try {
         })
       ),
       /Contiguous quantized KV cache requires/,
-      'contiguous_quantized without GPU must throw'
+      'contiguous-quantized without GPU must throw'
     );
   }
 
@@ -530,7 +530,7 @@ try {
         })
       ),
       /Contiguous quantized KV cache requires maxSeqLen <= 2048/,
-      'contiguous_quantized must fail fast when maxSeqLen exceeds kernel limits'
+      'contiguous-quantized must fail fast when maxSeqLen exceeds kernel limits'
     );
   }
 
@@ -544,11 +544,11 @@ try {
         false,
         baseRuntimeKV({
           kvDtype: 'f16',
-          quantization: { mode: 'turboquant_outlier', bitWidth: 4, prodMode: false },
+          quantization: { mode: 'turboquant-outlier', bitWidth: 4, prodMode: false },
         })
       ),
-      /turboquant_outlier.*not supported/,
-      'contiguous turboquant_outlier must fail closed until outlier buffers and decode kernels are wired'
+      /turboquant-outlier.*not supported/,
+      'contiguous turboquant-outlier must fail closed until outlier buffers and decode kernels are wired'
     );
   }
 
@@ -570,7 +570,7 @@ try {
             hotWindow: 256,
             coldPageSize: 64,
             compression: { mode: 'turboquant', blockSize: 1, bitWidth: 4, prodMode: false },
-            gating: { mode: 'force_on', minAluBwRatio: 0 },
+            gating: { mode: 'force-on', minAluBwRatio: 0 },
           },
         })
       ),
@@ -591,16 +591,16 @@ try {
           kvDtype: 'f16',
           tiering: {
             ...DEFAULT_KVCACHE_CONFIG.tiering,
-            mode: 'turboquant_outlier',
+            mode: 'turboquant-outlier',
             hotWindow: 256,
             coldPageSize: 64,
-            compression: { mode: 'turboquant_outlier', blockSize: 1, bitWidth: 4, prodMode: false },
-            gating: { mode: 'force_on', minAluBwRatio: 0 },
+            compression: { mode: 'turboquant-outlier', blockSize: 1, bitWidth: 4, prodMode: false },
+            gating: { mode: 'force-on', minAluBwRatio: 0 },
           },
         })
       ),
-      /turboquant_outlier.*not supported/,
-      'tiered turboquant_outlier must fail closed until outlier buffers and decode kernels are wired'
+      /turboquant-outlier.*not supported/,
+      'tiered turboquant-outlier must fail closed until outlier buffers and decode kernels are wired'
     );
   }
 
@@ -645,13 +645,13 @@ try {
   const profile = {
     layout: 'contiguous',
     quantization: {
-      mode: 'turboquant_prod',
+      mode: 'turboquant-prod',
       bitWidth: 4,
       prodMode: true,
     },
   };
   const merged = mergeRuntimeValues(DEFAULT_KVCACHE_CONFIG, profile);
-  assert.equal(merged.quantization.mode, 'turboquant_prod');
+  assert.equal(merged.quantization.mode, 'turboquant-prod');
   assert.equal(merged.quantization.prodMode, true);
   assert.equal(merged.tiering.mode, 'off', 'tiering.mode preserved after prod profile merge');
 }

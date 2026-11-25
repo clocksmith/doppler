@@ -9,11 +9,11 @@ const raw = {
   workloadType: 'training',
   modelId: null,
   trainingTests: ['ul-stage2'],
-  trainingStage: 'stage2_base',
+  trainingStage: 'stage2-base',
   trainingConfig: {
     ul: {
       enabled: true,
-      stage: 'stage2_base',
+      stage: 'stage2-base',
     },
   },
   stage1Artifact: '/tmp/ul_stage1_manifest.json',
@@ -32,7 +32,7 @@ assert.equal(nodeRequest.workload, 'training');
 assert.equal(nodeRequest.workloadType, 'training');
 assert.equal(nodeRequest.trainingSchemaVersion, 1);
 assert.equal(nodeRequest.trainingBenchSteps, 7);
-assert.equal(nodeRequest.trainingStage, 'stage2_base');
+assert.equal(nodeRequest.trainingStage, 'stage2-base');
 assert.equal(nodeRequest.stage1Artifact, '/tmp/ul_stage1_manifest.json');
 assert.equal(nodeRequest.stage1ArtifactHash, 'abc123');
 assert.equal(nodeRequest.ulArtifactDir, '/tmp/ul');

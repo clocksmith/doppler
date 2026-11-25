@@ -89,7 +89,7 @@ const SINGLE_CALL = { startPos: 0, returnHidden: false };
   const disabled = shouldDisablePrefillCommandBatching(
     {
       kvCache: {
-        layout: 'bdpa_paged',
+        layout: 'bdpa-paged',
         hasGPUCache: () => true,
       },
     },
@@ -101,7 +101,7 @@ const SINGLE_CALL = { startPos: 0, returnHidden: false };
   assert.equal(
     disabled,
     true,
-    'bdpa_paged prefill must continue to disable command batching regardless of modality'
+    'bdpa-paged prefill must continue to disable command batching regardless of modality'
   );
 }
 

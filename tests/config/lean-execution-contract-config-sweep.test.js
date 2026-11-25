@@ -50,7 +50,7 @@ try {
     },
     output: { scaleEmbeddings: true, embeddingScale: null, logitInputScale: 1, tieWordEmbeddings: false, embeddingTranspose: false, embeddingVocabSize: null, finalLogitSoftcapping: null, embeddingPostprocessor: null },
     chatTemplate: { type: 'gemma', enabled: true },
-    layerPattern: { type: 'every_n', globalPattern: null, period: 6, offset: 0, residualBranchScale: 1 },
+    layerPattern: { type: 'every-n', globalPattern: null, period: 6, offset: 0, residualBranchScale: 1 },
   };
   const v1Session = {
     compute: { defaults: { activationDtype: 'f16', mathDtype: 'f16', accumDtype: 'f32', outputDtype: 'f16' } },
@@ -76,7 +76,7 @@ try {
     decode: [],
     prefill: [],
     postLayer: [],
-    policies: { unsupportedPrecision: 'error', dtypeTransition: 'require_cast_step', unresolvedKernel: 'error' },
+    policies: { unsupportedPrecision: 'error', dtypeTransition: 'require-cast-step', unresolvedKernel: 'error' },
   };
   writeFileSync(path.join(configDir, 'unit-model.json'), JSON.stringify({
     modelType: 'transformer',
@@ -115,7 +115,7 @@ try {
     },
     inference: {
       layerPattern: {
-        type: 'every_n',
+        type: 'every-n',
         period: 6,
         offset: 0,
       },
@@ -177,7 +177,7 @@ try {
     },
     inference: {
       layerPattern: {
-        type: 'every_n',
+        type: 'every-n',
         period: 6,
         offset: 0,
       },
@@ -239,7 +239,7 @@ try {
     },
     inference: {
       layerPattern: {
-        type: 'every_n',
+        type: 'every-n',
         period: 6,
         offset: 0,
       },

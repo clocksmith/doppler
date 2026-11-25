@@ -21,7 +21,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
         decodeTimeMs: 4,
         prefillTokens: 5,
         decodeTokens: 6,
-        decodeMode: 'batched_gpu_stepwise_ple',
+        decodeMode: 'batched-gpu-stepwise-ple',
         batchGuardReason: null,
         singleTokenReadbackWaitMs: 7,
         singleTokenReadbackMapWaitMs: 1,
@@ -85,7 +85,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
     },
   });
 
-  assert.equal(result.phase.decodeMode, 'batched_gpu_stepwise_ple');
+  assert.equal(result.phase.decodeMode, 'batched-gpu-stepwise-ple');
   assert.equal(result.phase.batching?.batchedForwardCalls, 9);
   assert.equal(result.phase.batching?.unbatchedForwardCalls, 10);
   assert.equal(result.phase.batching?.totalBatchedTimeMs, 11);
@@ -290,7 +290,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
               decodeTimeMs: 10,
               prefillTokens: 7,
               decodeTokens: 1,
-              decodeMode: 'batched_gpu_stepwise_ple',
+              decodeMode: 'batched-gpu-stepwise-ple',
               batchGuardReason: null,
               singleTokenReadbackWaitMs: 4,
               singleTokenReadbackMapWaitMs: 1,
@@ -367,7 +367,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
   assert.equal(result.results[0]?.passed, true);
   assert.ok(benchGenerateBenchmarkFlags.length > 0);
   assert.equal(benchGenerateBenchmarkFlags.every((value) => value === true), true);
-  assert.equal(result.metrics.decodeMode, 'batched_gpu_stepwise_ple');
+  assert.equal(result.metrics.decodeMode, 'batched-gpu-stepwise-ple');
   assert.deepEqual(result.metrics.decodeCadence, {
     batchSize: 8,
     readbackInterval: 4,

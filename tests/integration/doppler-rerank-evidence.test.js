@@ -6,7 +6,7 @@ import { normalizeCapsuleObservation } from "../../src/config/capsule/capsule-op
 import { snapshotModelEvidenceStats } from '../../src/client/model-host/model-evidence.js';
 
 const scoring = {
-  format: 'qwen3_yes_no_logit',
+  format: 'qwen3-yes-no-logit',
   instruction: 'Find relevant documents',
   inputTemplate: 'Instruction: {instruction}\nQuery: {query}\nDocument: {document}',
   prefix: '<start>',
@@ -15,7 +15,7 @@ const scoring = {
   trueTokenId: 7,
   falseToken: 'no',
   falseTokenId: 9,
-  score: 'logit_difference',
+  score: 'logit-difference',
   probability: 'sigmoid',
 };
 

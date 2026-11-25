@@ -111,7 +111,7 @@ const minimalV1Execution = {
   ],
   policies: {
     unsupportedPrecision: 'error',
-    dtypeTransition: 'require_cast_step',
+    dtypeTransition: 'require-cast-step',
     unresolvedKernel: 'error',
   },
 };

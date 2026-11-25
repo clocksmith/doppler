@@ -1,5 +1,5 @@
 // Promotion rule for Qwen 3.5 compare lanes: a profile may declare
-// performance_comparable only with a committed compare fixture for the same
+// performance-comparable only with a committed compare fixture for the same
 // model that is correctness-clean on the parity decode profile and whose
 // fairness verdict is consistent with its own measurements. Values are checked
 // against the compare config, the claim matrix and the fixture's own fields,
@@ -77,11 +77,11 @@ assert.ok(qwenProfiles.length > 0, 'compare config must include Qwen 3.5 profile
 
 let promoted = 0;
 for (const profile of qwenProfiles) {
-  if (profile.compareLane !== 'performance_comparable') continue;
+  if (profile.compareLane !== 'performance-comparable') continue;
   promoted += 1;
-  assert.equal(profile.compareLaneReason, null, `${profile.dopplerModelId}: performance_comparable lanes carry no blocking reason`);
+  assert.equal(profile.compareLaneReason, null, `${profile.dopplerModelId}: performance-comparable lanes carry no blocking reason`);
   const candidates = fixtures.filter(({ evidence }) => evidence.dopplerModelId === profile.dopplerModelId);
-  assert.ok(candidates.length > 0, `${profile.dopplerModelId}: performance_comparable requires a committed compare fixture`);
+  assert.ok(candidates.length > 0, `${profile.dopplerModelId}: performance-comparable requires a committed compare fixture`);
   const clean = candidates.filter(({ evidence }) => promotionViolations(profile, evidence).length === 0);
   assert.ok(
     clean.length > 0,
@@ -106,7 +106,7 @@ assert.ok(promoted > 0, 'at least one Qwen lane is promoted; otherwise this cont
 
 // The rule rejects the failure modes it exists to catch.
 {
-  const profile = qwenProfiles.find((entry) => entry.compareLane === 'performance_comparable');
+  const profile = qwenProfiles.find((entry) => entry.compareLane === 'performance-comparable');
   const { evidence } = fixtures.find(({ evidence: e }) => e.dopplerModelId === profile.dopplerModelId
     && promotionViolations(profile, e).length === 0);
   const mismatch = structuredClone(evidence);

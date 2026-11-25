@@ -18,14 +18,14 @@ function turboQuantMode(kvcache) {
   if (kvcache.layout === 'tiered') {
     const compression = kvcache.tiering?.compression;
     if (!String(compression?.mode ?? '').startsWith('turboquant')) return null;
-    return compression.prodMode === true ? 'turboquant_prod' : 'turboquant';
+    return compression.prodMode === true ? 'turboquant-prod' : 'turboquant';
   }
   const mode = kvcache.quantization?.mode;
   return String(mode ?? '').startsWith('turboquant') ? mode : null;
 }
 
 function decodeKernelCeiling(layout, mode) {
-  const file = `attention_decode_${layout}_${mode}_f16kv.wgsl`;
+  const file = `attention_decode_${layout}_${mode.replace(/-/g, '_')}_f16kv.wgsl`;
   const kernelPath = path.join(KERNELS_DIR, file);
   assert.ok(fs.existsSync(kernelPath), `no TurboQuant decode kernel for layout=${layout} mode=${mode} (${file})`);
   const match = /const MAX_KV_LEN: u32 = (\d+)u;/.exec(fs.readFileSync(kernelPath, 'utf8'));
@@ -60,7 +60,7 @@ for (const { name, profile } of profiles) {
     `${name}: maxSeqLen ${kvcache.maxSeqLen} exceeds ${file} MAX_KV_LEN ${maxKvLen}`
   );
   if (kvcache.layout === 'contiguous') {
-    assert.equal(kvcache.quantization.prodMode, mode === 'turboquant_prod', `${name}: prodMode must agree with quantization mode`);
+    assert.equal(kvcache.quantization.prodMode, mode === 'turboquant-prod', `${name}: prodMode must agree with quantization mode`);
   }
 }
 

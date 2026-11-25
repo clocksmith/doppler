@@ -10,7 +10,7 @@ const config = {
   training: {
     ul: {
       enabled: true,
-      stage: 'stage2_base',
+      stage: 'stage2-base',
       stage1Artifact: '/tmp/stage1.json',
       lambda0: 5,
       decoderSigmoidWeight: {

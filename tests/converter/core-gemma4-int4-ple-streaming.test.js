@@ -42,7 +42,7 @@ const baseOptions = {
   modelType: 'transformer',
   quantization: 'F16',
   quantizationInfo: {
-    weights: 'f16', embeddings: 'f16', compute: 'f16', perLayerEmbeddings: 'int4_per_row', variantTag: 'f16',
+    weights: 'f16', embeddings: 'f16', compute: 'f16', perLayerEmbeddings: 'int4-per-row', variantTag: 'f16',
   },
   architecture: {
     numLayers: 35, hiddenSize: 2, intermediateSize: 8, numAttentionHeads: 1,
@@ -85,7 +85,7 @@ const sharedSourceTransform = {
   scheme: 'per_axis_affine',
   sourceDtype: 'INT4',
   targetDtype: 'F16',
-  storageEncoding: 'offset_binary',
+  storageEncoding: 'offset-binary',
   scaleSemantics: 'step',
   storageShape: [PLE_ROWS, PLE_COLS],
   quantAxis: 1,
@@ -150,7 +150,7 @@ assert.equal(totalWritten, EXPECTED_INT4_BYTES + EXPECTED_SCALE_BYTES, 'shard by
 const gpuSplitInference = JSON.parse(JSON.stringify(DEFAULT_MANIFEST_INFERENCE));
 gpuSplitInference.session = gpuSplitInference.session ?? {};
 gpuSplitInference.session.perLayerInputs = gpuSplitInference.session.perLayerInputs ?? {};
-gpuSplitInference.session.perLayerInputs.materialization = 'gpu_split_tables';
+gpuSplitInference.session.perLayerInputs.materialization = 'gpu-split-tables';
 const smallWords = new Uint16Array(8 * 4);
 for (let i = 0; i < smallWords.length; i++) {
   smallWords[i] = i + 1;
@@ -187,8 +187,8 @@ await assert.rejects(
     inference: gpuSplitInference,
     shardSize: 4096,
   }),
-  /INT4 PLE tensor .*materialization="gpu_split_tables"/,
-  'INT4 PLE conversion must reject gpu_split_tables materialization'
+  /INT4 PLE tensor .*materialization="gpu-split-tables"/,
+  'INT4 PLE conversion must reject gpu-split-tables materialization'
 );
 
 console.log('core-gemma4-int4-ple-streaming.test: ok');

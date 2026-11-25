@@ -1,4 +1,5 @@
 // tools/refresh-converted-manifest.js --rename-only reissues a manifest under a new name without the weights.
+import { canonicalizeLegacyEnumValues } from '../../src/config/legacy-enum-values.js';
 // A manifest's identity is its hash, so the tool must change the name and the provenance and nothing else,
 // and must refuse a config or a name that does not describe the manifest (docs/style/model-naming.md).
 import assert from 'node:assert/strict';
@@ -38,7 +39,8 @@ try {
   assert.equal(renamed.status, 0, renamed.output);
   assert.equal(renamed.written.modelId, newName);
   // Only the name and the provenance change. How the model is stored and run is carried over untouched.
-  assert.deepEqual(differingLeaves(normal, renamed.written).sort(), [
+  // Legacy snake_case enum spellings are rewritten to kebab-case on refresh.
+  assert.deepEqual(differingLeaves(canonicalizeLegacyEnumValues(normal), renamed.written).sort(), [
     '/artifactIdentity/conversionConfigDigest',
     '/artifactIdentity/conversionConfigPath',
     '/artifactIdentity/manifestVariantId',
@@ -47,7 +49,7 @@ try {
     '/modelId',
   ]);
   for (const key of ['shards', 'tensors', 'integrityExtensions', 'tokenizer', 'quantizationInfo', 'inference', 'architecture']) {
-    assert.deepEqual(renamed.written[key], normal[key], `${key} changed`);
+    assert.deepEqual(renamed.written[key], canonicalizeLegacyEnumValues(normal)[key], `${key} changed`);
   }
   assert.equal(renamed.written.artifactIdentity.conversionConfigPath, `src/config/conversion/qwen3/${newName}.json`);
   assert.equal(renamed.written.artifactIdentity.weightCapsuleId, normal.artifactIdentity.weightCapsuleId, 'the weights are the same weights');

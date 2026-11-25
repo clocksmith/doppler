@@ -10,7 +10,7 @@ import {
 } from '../../src/tooling/browser-harness-text-helpers.js';
 
 const scoringConfig = {
-  format: 'qwen3_yes_no_logit',
+  format: 'qwen3-yes-no-logit',
   instruction: 'Given a web search query, retrieve relevant passages that answer the query',
   inputTemplate: '<Instruct>: {instruction}\n<Query>: {query}\n<Document>: {document}',
   prefix: '<|im_start|>system\nJudge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the answer can only be "yes" or "no".<|im_end|>\n<|im_start|>user\n',
@@ -19,7 +19,7 @@ const scoringConfig = {
   trueTokenId: 2,
   falseToken: 'no',
   falseTokenId: 3,
-  score: 'logit_difference',
+  score: 'logit-difference',
   probability: 'sigmoid',
 };
 
@@ -215,7 +215,7 @@ assert.ok(prefixPipeline.currentSeqLen < prefixRun.ranking[0].tokenCount);
 
 const trueLogitScoringConfig = {
   ...scoringConfig,
-  score: 'true_logit',
+  score: 'true-logit',
 };
 const trueLogitPipeline = {
   manifest: {
@@ -237,7 +237,7 @@ const trueLogitPipeline = {
   },
 };
 const trueLogitResolvedConfig = resolveRerankScoringConfig(trueLogitPipeline);
-assert.equal(trueLogitResolvedConfig.score, 'true_logit');
+assert.equal(trueLogitResolvedConfig.score, 'true-logit');
 const trueLogitScore = await scoreRerankDocument(
   trueLogitPipeline,
   'q',

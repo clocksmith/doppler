@@ -39,7 +39,7 @@ try {
         finalLogitSoftcapping: null,
       },
       chatTemplate: { type: 'gemma' },
-      layerPattern: { type: 'every_n', period: 6, offset: 0 },
+      layerPattern: { type: 'every-n', period: 6, offset: 0 },
       session: {
         compute: {
           defaults: {
@@ -70,7 +70,7 @@ try {
       decode: [],
       prefill: [],
       postLayer: [],
-      policies: { unsupportedPrecision: 'error', dtypeTransition: 'require_cast_step', unresolvedKernel: 'error' },
+      policies: { unsupportedPrecision: 'error', dtypeTransition: 'require-cast-step', unresolvedKernel: 'error' },
     },
   };
   writeFileSync(path.join(configDir, 'unit-model.json'), JSON.stringify(minimalV1Config, null, 2), 'utf8');
@@ -95,7 +95,7 @@ try {
     },
     inference: {
       layerPattern: {
-        type: 'every_n',
+        type: 'every-n',
         period: 6,
         offset: 0,
       },

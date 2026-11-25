@@ -199,12 +199,12 @@ assert.strictEqual(
 // The manifest wraps the sum companion as `sumSource: { shard, offset, size }` (see
 // `buildTransformCompanionSource` in src/tooling/source-runtime-bundle.js). Its
 // presence is the signal `inferLiteRTBlockedAxisLayout` uses to pick
-// `offset_binary` vs `signed` packing, so the two fields must correspond.
+// `offset-binary` vs `signed` packing, so the two fields must correspond.
 const embedHasSumCompanion = Boolean(
   embedTensor.sourceTransform?.sumSource
   && typeof embedTensor.sourceTransform.sumSource === 'object'
 );
-const embedExpectedEncoding = embedHasSumCompanion ? 'offset_binary' : 'signed';
+const embedExpectedEncoding = embedHasSumCompanion ? 'offset-binary' : 'signed';
 assert.strictEqual(
   embedTensor.sourceTransform?.storageEncoding,
   embedExpectedEncoding,

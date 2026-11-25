@@ -7,7 +7,7 @@ export function createRerankReferenceFixture() {
     schema: 'doppler.rerank-source-reference/v1',
     source: { checkpointId: 'fixture/model', repository: 'fixture/model', revision: '1'.repeat(40),
       engine: 'synthetic-test', files: [{ path: 'weights.fixture', hash: digest }] },
-    input: { query: 'query', documents: ['one', 'two'] }, scoringConfig: { score: 'true_logit' },
+    input: { query: 'query', documents: ['one', 'two'] }, scoringConfig: { score: 'true-logit' },
     tolerances: { logitMaxAbs: 0.1, scoreMaxAbs: 0.1, probabilityMaxAbs: 0.01, ranking: 'exact' },
     outputs: [
       { index: 0, document: 'one', tokenIds: [1, 2], trueLogit: 1, falseLogit: 0, score: 1, probability: 0.7310585786300049 },

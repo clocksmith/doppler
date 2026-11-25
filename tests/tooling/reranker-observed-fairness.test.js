@@ -9,7 +9,7 @@ const metrics = { warmupRuns: 1, timedRuns: 3, validRuns: 3, invalidRuns: 0,
   semanticPassed: true, topDocumentIndex: 0, nonFiniteScores: 0 };
 const dopplerBench = { env, deviceInfo: { adapterInfo: hardware }, cacheMode: 'warm', loadMode: 'http', metrics };
 const tjsBench = { ...dopplerBench, deviceInfo: hardware, warmupRuns: 1, timedRuns: 3 };
-const inputs = { profile: { compareLane: 'performance_comparable', releaseClaimable: true },
+const inputs = { profile: { compareLane: 'performance-comparable', releaseClaimable: true },
   dopplerSource: 'quickstart-registry', dopplerBench, dopplerVerify: dopplerBench, tjsBench };
 const audit = value => buildRerankFairnessAudit({ ...value,
   summary: buildSummary(value.dopplerBench, value.dopplerVerify, value.tjsBench, 0) });

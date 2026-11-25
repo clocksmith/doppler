@@ -24,7 +24,7 @@ function createHarnessOverride(calls) {
           decodeTimeMs: 15,
           prefillTokens: 6,
           decodeTokens: 3,
-          decodeMode: 'replay_prefill',
+          decodeMode: 'replay-prefill',
           kernelPathId: 'vision-smoke',
           kernelPathSource: 'model',
         };

@@ -19,7 +19,7 @@ function runVendorBench(args) {
 
 {
   const eligible = {
-    dopplerModelId: 'test-model', compareLane: 'performance_comparable',
+    dopplerModelId: 'test-model', compareLane: 'performance-comparable',
     fairness: { releaseClaimable: true }, pairedComparable: true,
   };
   const legacyLane = { ...eligible, compareLane: null };

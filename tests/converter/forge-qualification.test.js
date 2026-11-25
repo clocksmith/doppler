@@ -38,7 +38,7 @@ const sequence = mutate(generation, (v) => {
     source: { path: 'fixture.json', hash: digest },
     reference: {
       digest, source: { checkpointId: 'fixture', repository: 'fixture/model', revision: 'fixture-revision' },
-      input: { sequence: 'M', alphabet: 'amino_acid', tokenIds: [1] },
+      input: { sequence: 'M', alphabet: 'amino-acid', tokenIds: [1] },
       tolerances: { pooledEmbeddingMaxAbs: 0, tokenEmbeddingMaxAbs: 0 },
     },
     options: { includeTokenEmbeddings: true, includeLogits: false },
@@ -46,7 +46,7 @@ const sequence = mutate(generation, (v) => {
     checks: [
       { id: 'model.identity', passed: true, actualModelId: 'fixture', expectedModelId: 'fixture',
         actualCheckpointId: 'fixture', expectedCheckpointId: 'fixture' },
-      { id: 'sequence.contract', passed: true, actualAlphabet: 'amino_acid', expectedAlphabet: 'amino_acid' },
+      { id: 'sequence.contract', passed: true, actualAlphabet: 'amino-acid', expectedAlphabet: 'amino-acid' },
       { id: 'tokenizer.ids', passed: true, expectedCount: 1, actualCount: 1, mismatchCount: 0, mismatches: [] },
       { id: 'pooledEmbedding.finite', passed: true, valueCount: 1, nonFiniteCount: 0 },
       { id: 'tokenEmbeddings.finite', passed: true, valueCount: 1, nonFiniteCount: 0 },

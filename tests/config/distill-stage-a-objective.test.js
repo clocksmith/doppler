@@ -18,7 +18,7 @@ const config = {
   training: {
     distill: {
       enabled: true,
-      stage: 'stage_a',
+      stage: 'stage-a',
       temperature: 1,
       alphaKd: 1,
       alphaCe: 0.5,
@@ -47,7 +47,7 @@ const lossResult = await objective.computeLoss({
 
 assert.ok(lossResult && typeof lossResult === 'object');
 assert.ok(lossResult.components && typeof lossResult.components === 'object');
-assert.equal(lossResult.components.distill_stage, 'stage_a');
+assert.equal(lossResult.components.distill_stage, 'stage-a');
 assert.ok(Math.abs(lossResult.components.loss_kd - Math.log(2)) < 1e-6);
 assert.ok(Math.abs(lossResult.components.distill_loss_ce_aux - (0.5 * Math.log(2))) < 1e-6);
 

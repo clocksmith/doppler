@@ -51,7 +51,7 @@ assert.equal(
       tokenId: 3,
     }),
     true,
-    'current hot token should keep tokenizer_scores batch decode enabled'
+    'current hot token should keep tokenizer-scores batch decode enabled'
   );
 
   assert.equal(
@@ -64,7 +64,7 @@ assert.equal(
       tokenId: 4,
     }),
     false,
-    'current non-hot token must disable tokenizer_scores batch decode regardless of earlier hits'
+    'current non-hot token must disable tokenizer-scores batch decode regardless of earlier hits'
   );
 }
 

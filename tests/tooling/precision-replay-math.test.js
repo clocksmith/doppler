@@ -32,8 +32,8 @@ function createRowDecoder(rows) {
   assert.equal(typeof yesTokenId, 'number');
   assert.equal(typeof noTokenId, 'number');
   assert.ok(scores.exact.get(yesTokenId) > scores.exact.get(noTokenId));
-  assert.ok(scores.f32_forward.get(yesTokenId) > scores.f32_forward.get(noTokenId));
-  assert.ok(scores.f16_forward.get(yesTokenId) < scores.f16_forward.get(noTokenId));
+  assert.ok(scores['f32-forward'].get(yesTokenId) > scores['f32-forward'].get(noTokenId));
+  assert.ok(scores['f16-forward'].get(yesTokenId) < scores['f16-forward'].get(noTokenId));
 }
 
 // === Ranking + inversion helpers stay deterministic on a toy score set ===
@@ -79,8 +79,8 @@ function createRowDecoder(rows) {
   const tokenIds = slice.candidateRows.map((entry) => entry.tokenId);
   const decode = createRowDecoder(slice.candidateRows);
   const scores = buildModeScoreMaps(hidden, candidateRows);
-  const f32 = summarizeRanking(tokenIds, scores.f32_forward, decode, 8);
-  const f16 = summarizeRanking(tokenIds, scores.f16_forward, decode, 8);
+  const f32 = summarizeRanking(tokenIds, scores['f32-forward'], decode, 8);
+  const f16 = summarizeRanking(tokenIds, scores['f16-forward'], decode, 8);
 
   assert.equal(f32.winnerText, ':');
   assert.equal(f16.winnerText, ' ');

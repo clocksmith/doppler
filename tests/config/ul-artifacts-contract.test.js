@@ -15,7 +15,7 @@ function buildUlConfig(overrides = {}) {
       enabled: true,
       ul: {
         enabled: true,
-        stage: 'stage1_joint',
+        stage: 'stage1-joint',
         ...overrides,
       },
     },
@@ -24,12 +24,12 @@ function buildUlConfig(overrides = {}) {
 
 try {
   const stage1Config = buildUlConfig({
-    stage: 'stage1_joint',
+    stage: 'stage1-joint',
     artifactDir: TEMP_ROOT,
   });
   const stage1Session = await createUlArtifactSession({
     config: stage1Config,
-    stage: 'stage1_joint',
+    stage: 'stage1-joint',
     runOptions: {
       ulArtifactDir: TEMP_ROOT,
       modelId: 'toy-model',
@@ -46,12 +46,12 @@ try {
     step: 1,
     epoch: 0,
     batch: 1,
-    objective: 'ul_stage1_joint',
+    objective: 'ul-stage1-joint',
     total_loss: 0.1,
     step_time_ms: 1,
     forward_ms: 0.5,
     backward_ms: 0.4,
-    ul_stage: 'stage1_joint',
+    ul_stage: 'stage1-joint',
     lambda: 5,
     loss_total: 0.1,
     loss_prior: 0.01,
@@ -84,7 +84,7 @@ try {
   {
     const stage1SessionRepeat = await createUlArtifactSession({
       config: stage1Config,
-      stage: 'stage1_joint',
+      stage: 'stage1-joint',
       runOptions: {
         ulArtifactDir: TEMP_ROOT,
         modelId: 'toy-model',
@@ -110,7 +110,7 @@ try {
     await writeFile(noLatentsPath, JSON.stringify(withoutLatents, null, 2), 'utf8');
     const noLatentsHash = sha256Hex(await readFile(noLatentsPath, 'utf8'));
     const stage2Config = buildUlConfig({
-      stage: 'stage2_base',
+      stage: 'stage2-base',
       artifactDir: TEMP_ROOT,
       stage1Artifact: noLatentsPath,
       stage1ArtifactHash: noLatentsHash,
@@ -118,7 +118,7 @@ try {
     await assert.rejects(
       () => createUlArtifactSession({
         config: stage2Config,
-        stage: 'stage2_base',
+        stage: 'stage2-base',
         runOptions: { ulArtifactDir: TEMP_ROOT, timestamp: '2026-03-01T00:00:00.500Z' },
       }),
       /requires stage1 latentDataset metadata/
@@ -127,7 +127,7 @@ try {
 
   {
     const stage2Config = buildUlConfig({
-      stage: 'stage2_base',
+      stage: 'stage2-base',
       artifactDir: TEMP_ROOT,
       stage1Artifact: stage1ManifestPath,
       stage1ArtifactHash: stage1FileHash,
@@ -137,7 +137,7 @@ try {
     assert.equal(stage2Context.latentDataset.count, 1);
     const stage2Session = await createUlArtifactSession({
       config: stage2Config,
-      stage: 'stage2_base',
+      stage: 'stage2-base',
       runOptions: {
         ulArtifactDir: TEMP_ROOT,
         timestamp: '2026-03-01T00:00:01.000Z',
@@ -148,14 +148,14 @@ try {
 
   {
     const stage2Config = buildUlConfig({
-      stage: 'stage2_base',
+      stage: 'stage2-base',
       artifactDir: TEMP_ROOT,
       stage1Artifact: stage1ManifestPath,
       stage1ArtifactHash: stage1Manifest.manifestHash,
     });
     const stage2Session = await createUlArtifactSession({
       config: stage2Config,
-      stage: 'stage2_base',
+      stage: 'stage2-base',
       runOptions: {
         ulArtifactDir: TEMP_ROOT,
         timestamp: '2026-03-01T00:00:02.000Z',
@@ -166,7 +166,7 @@ try {
 
   {
     const stage2Config = buildUlConfig({
-      stage: 'stage2_base',
+      stage: 'stage2-base',
       artifactDir: TEMP_ROOT,
       stage1Artifact: stage1ManifestPath,
       stage1ArtifactHash: 'deadbeef',
@@ -174,7 +174,7 @@ try {
     await assert.rejects(
       () => createUlArtifactSession({
         config: stage2Config,
-        stage: 'stage2_base',
+        stage: 'stage2-base',
         runOptions: { ulArtifactDir: TEMP_ROOT, timestamp: '2026-03-01T00:00:03.000Z' },
       }),
       /artifact hash mismatch/
@@ -185,11 +185,11 @@ try {
     const stageMismatchPath = join(TEMP_ROOT, 'stage-mismatch-manifest.json');
     await writeFile(stageMismatchPath, JSON.stringify({
       ...stage1Manifest,
-      stage: 'stage2_base',
+      stage: 'stage2-base',
     }, null, 2), 'utf8');
     const stageMismatchHash = sha256Hex(await readFile(stageMismatchPath, 'utf8'));
     const stage2Config = buildUlConfig({
-      stage: 'stage2_base',
+      stage: 'stage2-base',
       artifactDir: TEMP_ROOT,
       stage1Artifact: stageMismatchPath,
       stage1ArtifactHash: stageMismatchHash,
@@ -197,10 +197,10 @@ try {
     await assert.rejects(
       () => createUlArtifactSession({
         config: stage2Config,
-        stage: 'stage2_base',
+        stage: 'stage2-base',
         runOptions: { ulArtifactDir: TEMP_ROOT, timestamp: '2026-03-01T00:00:04.000Z' },
       }),
-      /requires stage1_joint artifact/
+      /requires stage1-joint artifact/
     );
   }
 
@@ -212,7 +212,7 @@ try {
     }, null, 2), 'utf8');
     const contractMismatchHash = sha256Hex(await readFile(contractMismatchPath, 'utf8'));
     const stage2Config = buildUlConfig({
-      stage: 'stage2_base',
+      stage: 'stage2-base',
       artifactDir: TEMP_ROOT,
       stage1Artifact: contractMismatchPath,
       stage1ArtifactHash: contractMismatchHash,
@@ -220,7 +220,7 @@ try {
     await assert.rejects(
       () => createUlArtifactSession({
         config: stage2Config,
-        stage: 'stage2_base',
+        stage: 'stage2-base',
         runOptions: { ulArtifactDir: TEMP_ROOT, timestamp: '2026-03-01T00:00:05.000Z' },
       }),
       /contract mismatch/

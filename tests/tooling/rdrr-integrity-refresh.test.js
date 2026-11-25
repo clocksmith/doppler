@@ -22,8 +22,8 @@ try {
     compilerVersion: 'doe-tsir-bootstrap-2026-04-24',
     emitterDigest: '3'.repeat(64),
     exactness: {
-      algorithmExactInvariants: ['reduction_order', 'accum_dtype'],
-      class: 'algorithm_exact',
+      algorithmExactInvariants: ['reduction-order', 'accum-dtype'],
+      class: 'algorithm-exact',
       toleranceEpsilon: 0,
       toleranceMetric: '',
     },
@@ -87,7 +87,7 @@ try {
   );
   assert.equal(
     dryRun.manifest.integrityExtensions.lowerings.entries[0].exactness.class,
-    'algorithm_exact'
+    'algorithm-exact'
   );
 
   const written = await refreshManifestIntegrity({

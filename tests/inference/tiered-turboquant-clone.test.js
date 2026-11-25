@@ -109,18 +109,18 @@ try {
     kvDtype: 'f16',
     pageSize: 4,
     tiering: {
-      mode: 'turboquant_prod',
+      mode: 'turboquant-prod',
       hotWindow: 4,
       coldPageSize: 4,
       coldDtype: 'f16',
       compression: {
-        mode: 'turboquant_prod',
+        mode: 'turboquant-prod',
         blockSize: 1,
         bitWidth: 4,
         prodMode: true,
       },
       gating: {
-        mode: 'force_on',
+        mode: 'force-on',
         minAluBwRatio: 0,
       },
     },

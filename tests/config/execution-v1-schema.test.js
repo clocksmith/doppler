@@ -789,7 +789,7 @@ const compiledTieredTurboQuant = compileExecutionV1({
             prodMode: false,
           },
           gating: {
-            mode: 'force_on',
+            mode: 'force-on',
           },
         },
       },

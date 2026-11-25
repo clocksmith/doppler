@@ -23,7 +23,7 @@ if (!gpuProbe.ready) {
       surface: 'node',
       trainingSchemaVersion: 1,
       trainingTests: ['ul-stage1'],
-      trainingStage: 'stage1_joint',
+      trainingStage: 'stage1-joint',
       ulArtifactDir: tempDir,
     });
 

@@ -135,7 +135,7 @@ const litertRowwiseLocation = {
     scheme: 'per_row_affine',
     sourceDtype: 'INT4',
     targetDtype: 'F16',
-    storageEncoding: 'offset_binary',
+    storageEncoding: 'offset-binary',
     scaleSemantics: 'step',
     scaleSource: {
       shard: 1,
@@ -300,7 +300,7 @@ const litertInt2Location = {
     scheme: 'per_row_affine',
     sourceDtype: 'INT2',
     targetDtype: 'F16',
-    storageEncoding: 'offset_binary',
+    storageEncoding: 'offset-binary',
     scaleSemantics: 'step',
     scaleSource: {
       shard: 1,
@@ -344,8 +344,8 @@ const litertQmaxAbsLocation = {
     scheme: 'per_row_affine',
     sourceDtype: 'INT4',
     targetDtype: 'F16',
-    storageEncoding: 'offset_binary',
-    scaleSemantics: 'qmax_abs',
+    storageEncoding: 'offset-binary',
+    scaleSemantics: 'qmax-abs',
     scaleDivisor: 8,
     scaleSource: {
       shard: 1,
@@ -389,7 +389,7 @@ const litertBlockedAxisLocation = {
     scheme: 'per_axis_affine',
     sourceDtype: 'INT2',
     targetDtype: 'F16',
-    storageEncoding: 'offset_binary',
+    storageEncoding: 'offset-binary',
     scaleSemantics: 'step',
     storageShape: [2, 2],
     quantAxis: 0,
@@ -452,7 +452,7 @@ const litertBlockedAxisQmaxAbsLocation = {
   ...litertBlockedAxisLocation,
   sourceTransform: {
     ...litertBlockedAxisLocation.sourceTransform,
-    scaleSemantics: 'qmax_abs',
+    scaleSemantics: 'qmax-abs',
     scaleDivisor: 3,
   },
 };

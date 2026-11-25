@@ -21,7 +21,7 @@ const prodKvState = {
   hotWindow: 256,
   hotStart: 128,
   coldPackedStride: 16,
-  coldQuantMode: 'turboquant_prod',
+  coldQuantMode: 'turboquant-prod',
   prodMode: true,
   residualPackedStride: 8,
   rotationMatrixBuffer: buffers.rotation,
@@ -44,7 +44,7 @@ const prodKvState = {
     scale: 0.125,
   });
 
-  assert.equal(tiered.mode, 'turboquant_prod');
+  assert.equal(tiered.mode, 'turboquant-prod');
   assert.equal(tiered.rotationMatrixBuffer, buffers.rotation);
   assert.equal(tiered.codebookCentroidsBuffer, buffers.codebook);
   assert.equal(tiered.residualKBuffer, buffers.residualK);
@@ -64,7 +64,7 @@ const prodKvState = {
     scale: 0.125,
   });
 
-  assert.equal(contiguous.mode, 'turboquant_prod');
+  assert.equal(contiguous.mode, 'turboquant-prod');
   assert.equal(contiguous.rotationMatrixBuffer, buffers.rotation);
   assert.equal(contiguous.codebookCentroidsBuffer, buffers.codebook);
   assert.equal(contiguous.residualVBuffer, buffers.residualV);

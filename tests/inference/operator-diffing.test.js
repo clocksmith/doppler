@@ -226,7 +226,7 @@ import assert from 'node:assert/strict';
     { opId: 'layer.0.ffn.out', opType: 'ffn', dtype: 'f16', captureArtifactIds: [] },
   ];
   const div = findFirstDivergence(baseline, observed);
-  assert.equal(div.type, 'sequence_mismatch');
+  assert.equal(div.type, 'sequence-mismatch');
   assert.equal(div.index, 1);
 
   const matching = [
@@ -242,7 +242,7 @@ import assert from 'node:assert/strict';
     { opId: 'layer.0.attn.q_proj', opType: 'projection', dtype: 'f16', captureArtifactIds: [] },
   ];
   const lenDiv = findFirstDivergence(shorter, longer);
-  assert.equal(lenDiv.type, 'length_mismatch');
+  assert.equal(lenDiv.type, 'length-mismatch');
   assert.equal(lenDiv.baselineLength, 1);
   assert.equal(lenDiv.observedLength, 2);
 

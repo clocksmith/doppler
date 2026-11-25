@@ -1,4 +1,5 @@
 // Retained artifact identity is checked against the recipe that produced it.
+import { canonicalizeLegacyEnumValues } from '../../src/config/legacy-enum-values.js';
 // Current candidate recipes have separate kernel identities and require qualification.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -48,7 +49,7 @@ const af32ManifestPath = path.join('models', 'local', AF32_MODEL_ID, 'manifest.j
 const af16ManifestPath = path.join('models', 'local', AF16_MODEL_ID, 'manifest.json');
 const af32ManifestText = fs.readFileSync(af32ManifestPath, 'utf8');
 const af32Manifest = JSON.parse(af32ManifestText);
-const af16Manifest = readJson(af16ManifestPath);
+const af16Manifest = canonicalizeLegacyEnumValues(readJson(af16ManifestPath));
 const af32Entry = catalogEntry(catalog, AF32_MODEL_ID);
 const af16Entry = catalogEntry(catalog, AF16_MODEL_ID);
 
@@ -139,8 +140,8 @@ currentWithRetainedKernel.manifest.weightsRef.manifestDigest = retainedConfig.ma
 delete currentWithRetainedKernel.manifest.audioConfig.feature_extractor;
 assert.equal(currentWithRetainedKernel.modelType, 'gemma4');
 delete currentWithRetainedKernel.modelType;
-assert.deepEqual(currentWithRetainedKernel, retainedConfig,
-  'Only the GELU identity, explicit RMS, WideTile, RoPE and attention arithmetic changes, gather/split dispatch geometry, explicit runtime pipeline, and recorded digest repairs may differ.');
+assert.deepEqual(currentWithRetainedKernel, canonicalizeLegacyEnumValues(retainedConfig),
+  'Only the kebab-case enum spellings, the GELU identity, explicit RMS, WideTile, RoPE and attention arithmetic changes, gather/split dispatch geometry, explicit runtime pipeline, and recorded digest repairs may differ.');
 
 assert.deepEqual(
   af16Manifest.inference?.session?.compute?.defaults,
@@ -152,7 +153,7 @@ assert.deepEqual(
   },
   'af16 INT4-PLE session defaults must make the f16 lane explicit'
 );
-assert.equal(af16Manifest.inference?.session?.perLayerInputs?.materialization, 'range_backed');
+assert.equal(af16Manifest.inference?.session?.perLayerInputs?.materialization, 'range-backed');
 assert.equal(af16Manifest.inference?.session?.perLayerInputs?.hotCache?.outputDtype, 'f16');
 assert.equal(af16Config.execution?.kernels?.embed?.kernel, 'gather_split8_f16_vec4_f16_out.wgsl');
 assert.equal(af16Config.execution?.kernels?.embed?.entry, 'gather_vec4_f16_out');

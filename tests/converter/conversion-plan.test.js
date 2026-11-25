@@ -248,7 +248,7 @@ const converterConfig = createConverterConfig();
         embeddingPostprocessor: null,
       },
       layerPattern: {
-        type: 'every_n',
+        type: 'every-n',
         globalPattern: null,
         period: 5,
         offset: 4,
@@ -282,7 +282,7 @@ const converterConfig = createConverterConfig();
       postLayer: [],
       policies: {
         unsupportedPrecision: 'error',
-        dtypeTransition: 'require_cast_step',
+        dtypeTransition: 'require-cast-step',
         unresolvedKernel: 'error',
       },
     },
