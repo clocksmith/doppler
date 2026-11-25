@@ -104,8 +104,8 @@ export class Modulus {
     if (powmod(psi, n, q) !== q - 1) throw new Error(`psi ${psi} is not a primitive 2N-th root modulo ${q}`);
     this.psi = psi;
     const psiInv = invmod(psi, q);
-    this.fwd = new Float64Array(n);
-    this.inv = new Float64Array(n);
+    this.fwd = new Uint32Array(n);
+    this.inv = new Uint32Array(n);
     let w = 1;
     let wi = 1;
     for (let j = 0; j < n; j++) {

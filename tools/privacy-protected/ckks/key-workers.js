@@ -27,7 +27,9 @@ if (!isMainThread && workerData?.role === 'protected-key-worker') {
 }
 
 export class KeyWorkers {
-  constructor(sk, size = Math.max(1, Math.min(8, availableParallelism() - 1))) {
+  // size: at most 4 workers by default. Each holds NTT tables and the secret in the NTT domain (about 80 MB at N = 2^16)
+  // besides the key it is making, so 4 keeps the requester near 1 GB.
+  constructor(sk, size = Math.max(1, Math.min(Number(process.env.PROTECTED_KEY_WORKERS) || 4, availableParallelism() - 1))) {
     this.sk = sk;
     this.next = 0;
     this.pending = new Map();
@@ -58,10 +60,21 @@ export class KeyWorkers {
     });
   }
 
-  // Every evaluation key (relinearization, then one Galois key per pinned rotation), generated concurrently and
-  // returned in that order as promises of raw keys.
-  evaluationKeys() {
-    return [0, ...this.sk.p.galois].map((gal) => this.call({ kind: 'key', gal }).then((m) => Buffer.from(m.raw)));
+  // Every evaluation key (relinearization, then one Galois key per pinned rotation), in that order. At most one key
+  // per worker is in flight, so finished keys do not pile up (each is about 79 MB at N = 2^16).
+  async *evaluationKeys() {
+    const gals = [0, ...this.sk.p.galois];
+    const inFlight = [];
+    let next = 0;
+    const start = () => {
+      if (next < gals.length) inFlight.push(this.call({ kind: 'key', gal: gals[next++] }).then((m) => Buffer.from(m.raw)));
+    };
+    for (let i = 0; i < this.workers.length; i++) start();
+    while (inFlight.length) {
+      const key = await inFlight.shift();
+      start();
+      yield key;
+    }
   }
 
   async encrypt(compact, level, scale) {

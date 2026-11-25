@@ -118,6 +118,9 @@ The smallest design that honestly meets `requester-only` for a small model gener
 
 ## 3. Prototype (`tools/privacy-protected/`)
 
+> **2026-11-25: the Go binary described in sections 3-10 was replaced by JavaScript (section 11).** Commands in those
+> sections are historical; section 11 lists the current ones.
+
 `requester`, `evaluator`, `audit`, `compare` and `bootstrap-probe` are subcommands of one Go binary; the requester and each evaluator
 run as separate processes over TCP. `evaluator.go` never constructs a secret key, encryptor, decryptor or key
 generator, and `requester.go` never loads a model; `TestSourceBoundaries` checks both, and that the requester only

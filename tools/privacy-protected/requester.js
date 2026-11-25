@@ -170,11 +170,12 @@ export async function runRequester(o, rep, start) {
       // Keys are generated concurrently on worker threads; each is sent as soon as it and its predecessors are ready.
       const kd = [];
       const g0 = performance.now();
-      const pending = workers.evaluationKeys();
-      for (const next of pending) {
+      const keys = workers.evaluationKeys();
+      for (;;) {
         const w0 = performance.now();
-        const key = await next;
+        const { value: key, done } = await keys.next();
         genMs += performance.now() - w0;
+        if (done) break;
         rep.evaluationKeyBytesPerEvaluator += key.length;
         kd.push(digest(key));
         for (const c of peers) await c.send({ kind: 'key', session, seq: 0 }, key);
