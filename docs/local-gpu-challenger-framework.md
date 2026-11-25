@@ -76,7 +76,7 @@ they do not yet measure text-output parity, so they are not claim-grade
 comparison evidence. ONNX Runtime WebGPU direct is the next runner to add because
 the ONNX package is installed and the Qwen ONNX artifacts exist.
 
-The default `python3` PyTorch environment is not currently usable for challenger
+As recorded before the JavaScript-only change, the default `python3` PyTorch environment was not usable for challenger
 claims on this host: the installed torch build is CUDA,
 `torch.cuda.is_available()` is false, and `torch.version.hip` is unset. Two
 ROCm-enabled interpreters are present: `<rocm7-python-interpreter>`
@@ -143,6 +143,7 @@ node tools/local-gpu-challengers.js --json
 node tools/local-gpu-challengers.js --probe-local --json
 ```
 
-`--probe-local` reports host runner availability, including the Python torch
-build and GPU backend state. The default check validates only checked-in
+`--probe-local` reports host runner availability (GPU driver tools, vendor
+CLIs and Node packages). Doppler is JavaScript-only and no longer probes a
+Python torch install; check a PyTorch baseline in its own environment. The default check validates only checked-in
 contracts, so CI does not depend on local GPU tools.

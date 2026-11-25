@@ -16,14 +16,8 @@ const CATALOG_PATH = path.join(ROOT_DIR, 'models', 'catalog.json');
 const SEMANTIC_FIXTURE_PATH = path.join(ROOT_DIR, 'src', 'inference', 'fixtures', 'rerank-semantic-fixtures.json');
 const RESULTS_DIR = path.join(ROOT_DIR, 'benchmarks', 'vendors', 'results');
 const DOPPLER_CLI_PATH = path.join(ROOT_DIR, 'src', 'cli', 'doppler-cli.js');
-const HF_BENCH_PATH = path.join(ROOT_DIR, 'benchmarks', 'runners', 'hf-transformers-reranker-bench.py');
 const DEFAULT_TIMEOUT_MS = 900_000;
-const DEFAULT_HF_DEVICE = 'cpu';
-const DEFAULT_HF_DTYPE = 'auto';
-const DEFAULT_HF_BATCH_SIZE = 1;
 const DOPPLER_SOURCES = Object.freeze(['local', 'quickstart-registry']);
-const HF_DEVICES = Object.freeze(['cpu', 'cuda', 'auto']);
-const HF_DTYPES = Object.freeze(['auto', 'float32', 'float16', 'bfloat16']);
 
 function usage() {
   return [
@@ -39,11 +33,8 @@ function usage() {
     '  --runs <n>                  Timed runs per engine (default from rerank compare config)',
     '  --doppler-source <source>   local|quickstart-registry',
     '  --doppler-surface <surface> auto|node|browser',
+    '  --hf-result <path>          HF Transformers result JSON produced outside Doppler (required)',
     '  --hf-model <id>             HF Transformers model ID/path (default: catalog sourceCheckpointId)',
-    '  --hf-device <device>        cpu|cuda|auto (default: cpu)',
-    '  --hf-dtype <dtype>          auto|float32|float16|bfloat16',
-    '  --hf-batch-size <n>         HF scoring batch size',
-    '  --hf-allow-download         Allow HF runner to download missing files',
     '  --cache-mode <mode>         warm|cold',
     '  --load-mode <mode>          http|opfs|memory',
     '  --timeout-ms <ms>           Per-engine command timeout',
@@ -65,7 +56,7 @@ function parseArgs(argv) {
     }
     if (!token.startsWith('--')) continue;
     const key = token.slice(2);
-    if (key === 'help' || key === 'h' || key === 'json' || key === 'save' || key === 'hf-allow-download') {
+    if (key === 'help' || key === 'h' || key === 'json' || key === 'save') {
       flags[key] = true;
       continue;
     }
@@ -163,6 +154,23 @@ async function readJsonWithHash(filePath) {
     source: filePath,
     sourceSha256: hashText(raw),
   };
+}
+
+// The HF baseline runs outside Doppler; reject a result that measured a different
+// model, workload or run count than this comparison declares.
+function assertHfRerankResult(result, expected) {
+  if (result?.kind !== 'hf-transformers-reranker-bench' || result?.task !== 'rerank') {
+    throw new Error('--hf-result must be an hf-transformers-reranker-bench rerank result.');
+  }
+  if (result.modelId !== expected.hfModelId) {
+    throw new Error(`--hf-result measured ${result.modelId}, expected ${expected.hfModelId}.`);
+  }
+  if (result.query !== expected.query || JSON.stringify(result.documents) !== JSON.stringify(expected.documents)) {
+    throw new Error('--hf-result query or documents differ from this comparison workload.');
+  }
+  if (result.warmupRuns !== expected.warmupRuns || result.timedRuns !== expected.timedRuns) {
+    throw new Error('--hf-result warmup or timed run counts differ from this comparison.');
+  }
 }
 
 function optionalString(value) {
@@ -483,9 +491,11 @@ async function runOne({ flags, configBundle, catalogBundle, timestamp }) {
   }
   const hfModelId = optionalString(flags['hf-model']) ?? optionalString(catalogEntry.sourceCheckpointId);
   if (!hfModelId) throw new Error(`${modelId}: --hf-model or catalog sourceCheckpointId is required`);
-  const hfDevice = parseChoice(flags['hf-device'], HF_DEVICES, DEFAULT_HF_DEVICE, '--hf-device');
-  const hfDtype = parseChoice(flags['hf-dtype'], HF_DTYPES, DEFAULT_HF_DTYPE, '--hf-dtype');
-  const hfBatchSize = parsePositiveInteger(flags['hf-batch-size'], DEFAULT_HF_BATCH_SIZE, '--hf-batch-size');
+  const hfResultPath = optionalString(flags['hf-result']);
+  if (!hfResultPath) {
+    throw new Error('--hf-result is required. Doppler is JavaScript-only and does not run the HF Transformers baseline; '
+      + 'run it outside Doppler (see benchmarks/vendors/README.md) and pass its hf-transformers-reranker-bench JSON.');
+  }
   const timeoutMs = parsePositiveInteger(flags['timeout-ms'], DEFAULT_TIMEOUT_MS, '--timeout-ms');
   const dopplerLocator = resolveDopplerModelUrl(modelId, dopplerSource, catalogEntry);
   const dopplerRuntimeProfile = Object.prototype.hasOwnProperty.call(profile, 'dopplerRuntimeProfile')
@@ -537,38 +547,15 @@ async function runOne({ flags, configBundle, catalogBundle, timestamp }) {
     JSON.stringify(dopplerVerifyConfig),
     '--json',
   ];
-  const hfArgs = [
-    HF_BENCH_PATH,
-    '--model',
-    hfModelId,
-    '--query',
-    query,
-    '--documents-json',
-    JSON.stringify(documents),
-    '--rerank-config',
-    JSON.stringify(scoring.config),
-    '--semantic-fixture',
-    SEMANTIC_FIXTURE_PATH,
-    '--warmup',
-    String(warmupRuns),
-    '--runs',
-    String(timedRuns),
-    '--batch-size',
-    String(hfBatchSize),
-    '--device',
-    hfDevice,
-    '--dtype',
-    hfDtype,
-    '--timestamp',
-    timestamp,
-    '--json',
-  ];
-  if (flags['hf-allow-download']) hfArgs.push('--allow-download');
 
-  const python = process.env.PYTHON || 'python3';
   const dopplerBench = unwrapToolingResult(await runJson(process.execPath, dopplerBenchArgs, `${modelId} Doppler rerank bench`, timeoutMs));
   const dopplerVerify = unwrapToolingResult(await runJson(process.execPath, dopplerVerifyArgs, `${modelId} Doppler rerank verify`, timeoutMs));
-  const hfBench = await runJson(python, hfArgs, `${modelId} HF PyTorch rerank bench`, timeoutMs);
+  const hfBenchBundle = await readJsonWithHash(path.resolve(process.cwd(), hfResultPath));
+  const hfBench = hfBenchBundle.payload;
+  assertHfRerankResult(hfBench, { hfModelId, query, documents, warmupRuns, timedRuns });
+  const hfDevice = hfBench.environment?.runtime?.device ?? null;
+  const hfDtype = hfBench.environment?.runtime?.dtype ?? null;
+  const hfBatchSize = hfBench.batchSize ?? null;
   const summary = buildSummary(dopplerBench, dopplerVerify, hfBench, expectedTopDocumentIndex);
   const fairness = buildFairnessAudit({ summary });
 
@@ -625,7 +612,11 @@ async function runOne({ flags, configBundle, catalogBundle, timestamp }) {
     commands: {
       dopplerBench: [process.execPath, ...dopplerBenchArgs],
       dopplerVerify: [process.execPath, ...dopplerVerifyArgs],
-      hfPytorchBench: [python, ...hfArgs],
+      hfPytorchBench: {
+        external: true,
+        source: hfBenchBundle.source,
+        sourceSha256: hfBenchBundle.sourceSha256,
+      },
     },
     summary,
     raw: {
@@ -667,6 +658,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 
 export {
+  assertHfRerankResult,
   buildFairnessAudit,
   buildSummary,
   parseArgs,

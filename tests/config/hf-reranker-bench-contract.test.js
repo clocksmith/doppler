@@ -1,41 +1,43 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import fs from 'node:fs';
-import path from 'node:path';
 
-const repoRoot = process.cwd();
+import { assertHfRerankResult } from '../../tools/compare-rerankers-hf.js';
 
-function run(command, args) {
-  const result = spawnSync(command, args, {
-    cwd: repoRoot,
-    encoding: 'utf8',
-  });
-  assert.equal(
-    result.status,
-    0,
-    `${command} ${args.join(' ')} failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`
-  );
-  return result;
-}
+// The HF Transformers reranker baseline runs outside Doppler (JavaScript-only);
+// compare-rerankers-hf.js imports its JSON and must reject a mismatched run.
+const help = spawnSync(process.execPath, ['tools/compare-rerankers-hf.js', '--help'], { encoding: 'utf8' });
+assert.equal(help.status, 0, help.stderr);
+assert.match(help.stdout, /--hf-result <path>/);
+assert.match(help.stdout, /HF Transformers model/);
+assert.doesNotMatch(help.stdout, /--hf-device|--hf-allow-download/);
 
-run(process.execPath, ['--check', 'tools/compare-rerankers-hf.js']);
-run('python3', [
-  '-c',
-  [
-    'from pathlib import Path',
-    "path = Path('benchmarks/runners/hf-transformers-reranker-bench.py')",
-    "compile(path.read_text(), str(path), 'exec')",
-  ].join('; '),
-]);
+const expected = {
+  hfModelId: 'Qwen/Qwen3-Reranker-0.6B',
+  query: 'Which document mentions WebGPU?',
+  documents: ['WebGPU runs in the browser.', 'A note about bread.'],
+  warmupRuns: 1,
+  timedRuns: 3,
+};
+const result = {
+  schemaVersion: 1,
+  kind: 'hf-transformers-reranker-bench',
+  task: 'rerank',
+  modelId: expected.hfModelId,
+  query: expected.query,
+  documents: [...expected.documents],
+  warmupRuns: 1,
+  timedRuns: 3,
+  batchSize: 1,
+  environment: { runtime: { library: 'transformers', device: 'cpu', dtype: 'float32' } },
+};
+assertHfRerankResult(result, expected);
+assert.throws(() => assertHfRerankResult({ ...result, kind: 'other' }, expected), /hf-transformers-reranker-bench/);
+assert.throws(() => assertHfRerankResult({ ...result, modelId: 'other/model' }, expected), /expected Qwen/);
+assert.throws(() => assertHfRerankResult({ ...result, documents: ['A note about bread.'] }, expected), /query or documents/);
+assert.throws(() => assertHfRerankResult({ ...result, timedRuns: 5 }, expected), /run counts/);
 
-const help = run(process.execPath, ['tools/compare-rerankers-hf.js', '--help']).stdout;
-assert.match(help, /--hf-device <device>/);
-assert.match(help, /local_non_webgpu_baseline|HF Transformers model/);
-
-const runnerText = fs.readFileSync(
-  path.join(repoRoot, 'benchmarks/runners/hf-transformers-reranker-bench.py'),
-  'utf8'
-);
-assert.match(runnerText, /local_files_only/);
+const missing = spawnSync(process.execPath, ['tools/compare-rerankers-hf.js'], { encoding: 'utf8' });
+assert.notEqual(missing.status, 0);
+assert.match(missing.stderr, /--hf-result is required/);
 
 console.log('hf-reranker-bench-contract.test: ok');

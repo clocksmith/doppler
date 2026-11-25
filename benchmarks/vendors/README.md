@@ -42,6 +42,22 @@ substitute for frozen source-logit equivalence, startup/memory definitions, or
 cancellation/recovery evidence when a broader comparison requires those checks.
 Historical receipts retain their original contract and are not rewritten.
 
+## Python-only vendor baselines
+
+Doppler is JavaScript-only, so it does not ship or spawn Python drivers for
+vendor runtimes. Lanes that only Python can drive (HF Transformers/PyTorch,
+for example) are run outside the repository and imported as JSON:
+
+- Reranker baseline: run HF Transformers in your own environment, emit an
+  `hf-transformers-reranker-bench` result (the retired driver,
+  [hf-transformers-reranker-bench.py at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/benchmarks/runners/hf-transformers-reranker-bench.py),
+  shows the expected fields), then run
+  `node tools/compare-rerankers-hf.js --hf-result <result.json> ...`. The tool
+  rejects a result whose model, query, documents or run counts differ from the
+  comparison it declares, and records the result's path and sha256.
+- Other runtimes with a JavaScript or CLI entry point continue to run through
+  `tools/vendor-bench.js run` or `import`.
+
 ## Purpose
 
 - Track vendor targets in one machine-readable registry.

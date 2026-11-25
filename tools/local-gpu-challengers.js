@@ -496,77 +496,13 @@ function probeNodeImport(specifier) {
   };
 }
 
-function probePythonTorch() {
-  const script = [
-    'import json',
-    'try:',
-    '    import torch',
-    '    cuda_available = bool(torch.cuda.is_available())',
-    '    hip_version = getattr(torch.version, "hip", None)',
-    '    cuda_version = getattr(torch.version, "cuda", None)',
-    '    if hip_version:',
-    '        backend = "rocm" if cuda_available else "rocm-build-no-device"',
-    '    elif cuda_version:',
-    '        backend = "cuda" if cuda_available else "cuda-build-no-device"',
-    '    else:',
-    '        backend = "cpu-only"',
-    '    print(json.dumps({',
-    '        "available": True,',
-    '        "version": getattr(torch, "__version__", None),',
-    '        "cudaAvailable": cuda_available,',
-    '        "cudaVersion": cuda_version,',
-    '        "hipVersion": hip_version,',
-    '        "backend": backend,',
-    '        "gpuUsable": bool(cuda_available and (hip_version or cuda_version)),',
-    '        "importError": None',
-    '    }, sort_keys=True))',
-    'except Exception as exc:',
-    '    print(json.dumps({',
-    '        "available": False,',
-    '        "version": None,',
-    '        "cudaAvailable": False,',
-    '        "cudaVersion": None,',
-    '        "hipVersion": None,',
-    '        "backend": "unavailable",',
-    '        "gpuUsable": False,',
-    '        "importError": f"{type(exc).__name__}: {exc}"',
-    '    }, sort_keys=True))',
-  ].join('\n');
-  const result = spawnSync('python3', ['-c', script], {
-    cwd: REPO_ROOT,
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  const output = `${result.stdout || ''}${result.stderr || ''}`.trim().slice(0, 4000);
-  let details = null;
-  try {
-    details = JSON.parse((result.stdout || '').trim());
-  } catch {
-    details = null;
-  }
-  return {
-    command: 'python3 -c <torch probe>',
-    available: !result.error && result.status === 0 && details?.available === true,
-    status: result.status,
-    output,
-    error: result.error?.code || null,
-    version: details?.version || null,
-    cudaAvailable: details?.cudaAvailable === true,
-    cudaVersion: details?.cudaVersion || null,
-    hipVersion: details?.hipVersion || null,
-    backend: details?.backend || 'unavailable',
-    gpuUsable: details?.gpuUsable === true,
-    importError: details?.importError || null,
-  };
-}
-
-function inferLocalProbePlatformTarget(hostPlatform, commands, pythonTorch) {
+function inferLocalProbePlatformTarget(hostPlatform, commands) {
   if (hostPlatform === 'darwin') return 'apple-metal';
   if (hostPlatform === 'linux') {
-    if (commands.rocminfo?.available === true || commands.rocmSmi?.available === true || pythonTorch?.backend === 'rocm') {
+    if (commands.rocminfo?.available === true || commands.rocmSmi?.available === true) {
       return 'linux-amd-vulkan-rocm';
     }
-    if (commands.nvidiaSmi?.available === true || pythonTorch?.backend === 'cuda') {
+    if (commands.nvidiaSmi?.available === true) {
       return 'linux-nvidia-vulkan-cuda';
     }
     return null;
@@ -586,22 +522,18 @@ export function probeLocalHost() {
     llamaCli: probeCommand('llama-cli', ['--help']),
     ollama: probeCommand('ollama', ['--version']),
   };
-  const pythonTorch = probePythonTorch();
   return {
     host: {
       platform: process.platform,
       arch: process.arch,
       nodeVersion: process.version,
-      inferredPlatformTargetId: inferLocalProbePlatformTarget(process.platform, commands, pythonTorch),
+      inferredPlatformTargetId: inferLocalProbePlatformTarget(process.platform, commands),
     },
     commands,
     nodePackages: {
       transformersjs: probeNodeImport('@huggingface/transformers'),
       onnxruntimeWeb: probeNodeImport('onnxruntime-web'),
       onnxruntimeNode: probeNodeImport('onnxruntime-node'),
-    },
-    python: {
-      torch: pythonTorch,
     },
   };
 }
@@ -657,17 +589,6 @@ function formatReport(report) {
     }
     for (const [id, probe] of Object.entries(report.localProbe.nodePackages)) {
       lines.push(`- ${id}: ${probe.available ? 'available' : 'unavailable'}`);
-    }
-    if (report.localProbe.python?.torch) {
-      const torch = report.localProbe.python.torch;
-      lines.push([
-        `- python.torch: ${torch.available ? 'available' : 'unavailable'}`,
-        `backend=${formatOptional(torch.backend)}`,
-        `gpuUsable=${torch.gpuUsable === true ? 'true' : 'false'}`,
-        `cudaAvailable=${torch.cudaAvailable === true ? 'true' : 'false'}`,
-        `cuda=${formatOptional(torch.cudaVersion)}`,
-        `hip=${formatOptional(torch.hipVersion)}`,
-      ].join('; '));
     }
   }
   return lines.join('\n');
