@@ -220,6 +220,11 @@ class SharedCluster:
                             'down': [pair[i].received - recv_before[i] for i in range(2)]})
         return torch.from_numpy(out.astype(np.float32))
 
+    def end_step(self, step):
+        """Tells every operator that `step` ended, so each signs it before its output is acknowledged."""
+        ops = [op for pair in self.pairs for op in pair]
+        list(concurrent.futures.ThreadPoolExecutor(max_workers=len(ops)).map(lambda op: op.call({'op': 'step', 'step': step}), ops))
+
     def close(self, op='close'):
         return [[o.close(op) for o in pair] for pair in self.pairs]
 
@@ -284,9 +289,15 @@ def load_model(root, source_config, plan=None, cluster=None, layers=None):
         data = read_tensor_bytes(root, manifest, entry)
         if entry['dtype'] == 'Q4_K_M':
             array = dequantize(np.frombuffer(data, dtype=np.uint8).copy(), GGMLQuantizationType.Q4_K)
+        elif key == 'model.embed_tokens.weight' and cluster is not None:
+            # The requester keeps the embedding in its stored F16 form and widens only the rows it looks up.
+            embedding_f16 = torch.from_numpy(np.frombuffer(data, dtype='<f2').copy().reshape(wanted[key].shape))
+            del data
+            continue
         else:
             array = np.frombuffer(data, dtype='<f2' if entry['dtype'] == 'F16' else '<f4').astype(np.float32)
         weights[key] = torch.from_numpy(array.copy().reshape(wanted[key].shape))
+        del data, array
     if cluster is not None:
         for name, (gid, start, end) in shared.items():
             key = name.replace('model.language_model.', 'model.', 1).removesuffix('.weight')
@@ -298,21 +309,43 @@ def load_model(root, source_config, plan=None, cluster=None, layers=None):
     missing = [k for k in wanted if k not in weights and not any(
         k.removesuffix('.weight') == n.replace('model.language_model.', 'model.', 1).removesuffix('.weight')
         .replace('model.lm_head', 'lm_head') for n in shared)]
+    if cluster is not None:
+        missing = [k for k in missing if k != 'model.embed_tokens.weight']
     if layers:
         missing = [k for k in missing if k != 'lm_head.weight']
     assert not missing, missing[:5]
+    if cluster is not None:
+        model.model.embed_tokens = HalfEmbedding(embedding_f16)
     model.load_state_dict(weights, strict=False, assign=True)
+    held = {key: int(value.numel() * value.element_size()) for key, value in model.state_dict().items() if value.device.type != 'meta'}
+    model.requester_holds = {'tensors': len(held), 'bytes': sum(held.values()),
+                             'embeddingBytes': held.get('model.embed_tokens.weight', 0),
+                             'projectionBytes': sum(v for k, v in held.items() if k.endswith('proj.weight') or 'proj_' in k or k == 'lm_head.weight')}
     if layers and 'lm_head.weight' not in weights and cluster is None:
         model.lm_head = nn.Identity()
     model.eval()
     return model, config, manifest
 
 
+class HalfEmbedding(nn.Module):
+    """Embedding lookup over the stored F16 table; rows are widened to F32 after the lookup, as Doppler's F16 embedding."""
+
+    def __init__(self, weight):
+        super().__init__()
+        self.weight = nn.Parameter(weight, requires_grad=False)
+
+    def forward(self, ids):
+        return self.weight[ids].float()
+
+
 def half_cache(config):
     """The deployed F16 KV storage with F32 attention arithmetic (as in qwen35-deployed-reference.py)."""
-    from transformers.models.qwen3_5.modeling_qwen3_5 import DynamicCache
+    try:  # transformers >= 5.6 routes Qwen 3.5 through the generic cache; 5.3 has its own hybrid cache class
+        from transformers.models.qwen3_5.modeling_qwen3_5 import DynamicCache as Base
+    except ImportError:
+        from transformers.models.qwen3_5.modeling_qwen3_5 import Qwen3_5DynamicCache as Base
 
-    class StoredHalfCache(DynamicCache):
+    class StoredHalfCache(Base):
         def update(self, key_states, value_states, layer_idx, *args, **kwargs):
             keys, values = super().update(key_states.half(), value_states.half(), layer_idx, *args, **kwargs)
             return keys.float(), values.float()
@@ -362,6 +395,8 @@ def greedy(model, config, manifest, ids, max_tokens, cluster=None, forced=None, 
         tokens.append(token)
         nxt = forced[step] if forced is not None else token
         done = forced is None and (token in eos or step + 1 == max_tokens)
+        if cluster:
+            cluster.end_step(step)
         if on_token:
             on_token(step, token, row, done)
         if forced is None and token in eos:
@@ -518,6 +553,7 @@ def cmd_run(args):
         freshness = {'rounds': len(digests), 'distinctShareBDigests': len(set(digests)),
                      'countersStrictlyIncreasing': all(b > a for a, b in zip(counters, counters[1:]))}
         report = {'schema': 'doppler.secret-shared-run/v1', 'modelId': plan['modelId'], 'fx': plan['fx'], 'fw': plan['fw'],
+                  'requesterHolds': model.requester_holds,
                   'promptTokens': len(ids), 'tokens': tokens, 'text': text, 'steps': steps, 'freshness': freshness,
                   'operatorStats': stats, 'requesterPeakRss': peak_rss(), 'wallS': time.perf_counter() - t0}
         Path(args.out).write_text(json.dumps(report) + '\n')
