@@ -6,6 +6,11 @@ import { spawn } from 'node:child_process';
 // and IPv6 connections fail; filesystem Unix sockets and GPU device nodes still
 // work. `unshare` and unprivileged user namespaces are probe prerequisites, not
 // application dependencies. A self-test proves isolation before the script runs.
+// No uid/gid map is written: Ubuntu 23.10+ (kernel.apparmor_restrict_unprivileged_userns=1)
+// refuses an unprivileged uid_map write, but still lets the caller create the
+// network namespace together with the user namespace. Inside, the script runs as
+// the overflow user (nobody), while the kernel keeps checking file and device
+// access against the caller's real uid and groups.
 if (!process.argv[2]) throw new Error('Usage: node tools/run-node-without-network.js <node-script> [...args]');
 if (process.platform !== 'linux') throw new Error('run-node-without-network requires Linux network namespaces.');
 
@@ -28,6 +33,6 @@ for (const host of ['192.0.2.1', '2001:db8::1']) {
 }
 `;
 
-const child = spawn('unshare', ['--user', '--map-current-user', '--net', '--', process.execPath, '-e', ISOLATED_ENTRY, '--', ...process.argv.slice(2)], { stdio: 'inherit' });
+const child = spawn('unshare', ['--user', '--net', '--', process.execPath, '-e', ISOLATED_ENTRY, '--', ...process.argv.slice(2)], { stdio: 'inherit' });
 child.on('error', error => { console.error(`unshare: ${error.message}`); process.exitCode = 1; });
 child.on('exit', (code, signal) => { process.exitCode = signal ? 1 : code; });
