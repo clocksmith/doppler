@@ -23,6 +23,9 @@ const REMOTE_ONLY_DECLARED = new Map([
   ['esm2-t12-35m-ur50d-f32-af32', 1026],
   ['esmc-300m-f32-af32', 2048],
   ['nucleotide-transformer-v2-50m-f32-af32', 2050],
+  // Quickstart hostedSource manifests pinned at clocksmith/reploid@2403bc479 (sha256 cdda7ddc…, eb2a4840…).
+  ['qwen-3-5-0-8b-q4k-ef16-af32-vf16', 8192],
+  ['qwen-3-5-2b-q4k-ef16-af32', 8192],
 ]);
 
 const manifestFiles = execFileSync('git', ['ls-files', 'models/local/*/manifest.json'], { encoding: 'utf8' })
