@@ -8,6 +8,11 @@
  *        [--max-tokens 32] [--forced REPORT.json] [--logits-out PREFIX] [--return-shift 24] [--prg aes256-ctr]
  *        [--pipeline-steps] [--explicit] [--keep-rounds]
  *   node requester.js control --model DIR --plan PLAN.json --prompts PROMPTS.json --out REPORT.json [...]   plaintext linears
+ *   node requester.js speculate --model DIR --plan PLAN.json (--operators OPS.json | --plain) --workloads W.json --out REPORT.json
+ *        [--ks 0,1,4,8] [--only id,id] [--max-tokens 32]
+ *        Speculative verification (speculate.js): each prompt is prefilled once, then every k decodes from a copy of that
+ *        state with exactly k + 1 columns per pass (prompt-lookup drafts, padded). W.json: [{id, workload, messages}].
+ *        --plain uses the plaintext linears (development correctness only).
  *   node requester.js run --model DIR --plan PLAN.json --operators OPS.json --request REQUEST.json --out REPORT.json [...]
  *        One request for a supervisor: a JSON event per line on stdout (ready, token, end or failed); `stop` on stdin
  *        stops after the token in progress. REQUEST.json: {"messages": [{"role": "user", "content": ...}], "maxTokens": N}.
@@ -27,18 +32,22 @@ import { QwenRequesterModel, configFrom } from './model.js';
 import { fileSource, nodeEnv, npyWriter } from './node.js';
 import { PlainLinear } from './plain.js';
 import { syntheticConfig, syntheticPlan, syntheticSource } from './synthetic.js';
+import { argmaxRows, cloneState, speculativeDecode, summarize } from './speculate.js';
 
 const { positionals, values: args } = parseArgs({ allowPositionals: true, options: {
   model: { type: 'string' }, plan: { type: 'string' }, operators: { type: 'string' }, prompts: { type: 'string' },
   request: { type: 'string' }, out: { type: 'string' }, forced: { type: 'string' }, 'logits-out': { type: 'string' },
   'max-tokens': { type: 'string', default: '32' }, 'return-shift': { type: 'string', default: '0' }, prg: { type: 'string', default: 'shake256' },
   'pipeline-steps': { type: 'boolean' }, 'full-digests': { type: 'boolean' }, explicit: { type: 'boolean' }, 'keep-rounds': { type: 'boolean' }, strict: { type: 'boolean' },
-  'source-config': { type: 'string' }, shape: { type: 'string' }, 'embedding-file': { type: 'string' }, 'prompt-tokens': { type: 'string', default: '146' }, 'exit-operators': { type: 'boolean' }, 'prompt-limit': { type: 'string' } } });
+  'source-config': { type: 'string' }, shape: { type: 'string' }, 'embedding-file': { type: 'string' }, 'prompt-tokens': { type: 'string', default: '146' }, 'exit-operators': { type: 'boolean' }, 'prompt-limit': { type: 'string' },
+  workloads: { type: 'string' }, ks: { type: 'string', default: '0,1,4,8' }, only: { type: 'string' }, plain: { type: 'boolean' } } });
 const command = positionals[0];
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 const cpuMs = () => { const u = process.cpuUsage(); return (u.user + u.system) / 1e3; };
 const peakRss = () => process.resourceUsage().maxRSS * 1024;
 const template = prompt => `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`;
+/** The same template for a message list (system + user), thinking off. */
+const render = messages => messages.map(m => `<|im_start|>${m.role}\n${m.content}<|im_end|>\n`).join('') + '<|im_start|>assistant\n<think>\n\n</think>\n\n';
 
 async function openModel(linear) {
   const source = fileSource(args.model);
@@ -202,7 +211,51 @@ async function cmdBenchShape() {
   console.error(JSON.stringify({ prefill: { columns: steps[0].columns, cpuMs: Math.round(steps[0].cpuMs), wallMs: Math.round(steps[0].wallMs) }, decodeMedian: report.decodeMedian, requesterPeakRss: report.requesterPeakRss }));
 }
 
-const commands = { generate: cmdGenerate, control: cmdControl, run: cmdRun, 'bench-shape': cmdBenchShape };
+async function cmdSpeculate() {
+  const plan = readJson(args.plan);
+  const ks = args.ks.split(',').map(Number);
+  const cluster = args.plain ? null : await openCluster(plan);
+  const { model, config, tokenizer, source } = await openModel(cluster ?? new PlainLinear(plan, fileSource(args.model)));
+  let rows = readJson(args.workloads);
+  if (args.only) rows = rows.filter(r => args.only.split(',').includes(r.id));
+  const maxTokens = Number(args['max-tokens']);
+  const meta = { schema: 'doppler.secret-shared-speculation/v1', requester: 'javascript', node: process.version, modelId: plan.modelId,
+    fx: plan.fx, fw: plan.fw, linears: args.plain ? 'plaintext (development)' : 'secret-shared', ks,
+    protocol: cluster ? { stages: cluster.describe() } : null, draft: 'prompt lookup (3-gram to 1-gram), padded to k' };
+  const results = [];
+  for (const row of rows) {
+    const ids = tokenizer.encode(render(row.messages));
+    const state = model.newState();
+    const before = cluster ? cluster.rounds.length : 0, bytes0 = cluster?.bytes();
+    const t0 = performance.now(), c0 = cpuMs();
+    const first = argmaxRows(await model.forward(state, ids, { keep: 1 }), 1, config.vocab)[0];
+    const prefill = { columns: ids.length, wallMs: performance.now() - t0, cpuMs: cpuMs() - c0 };
+    if (cluster) {
+      const rounds = cluster.rounds.slice(before), bytes1 = cluster.bytes();
+      Object.assign(prefill, { rounds: rounds.length, up: bytes1.sent - bytes0.sent, down: bytes1.received - bytes0.received,
+        wireMs: rounds.reduce((s, r) => s + r.wireMs, 0), operatorMs: rounds.reduce((s, r) => s + Math.max(...r.operatorMs), 0) });
+    }
+    const result = { id: row.id, workload: row.workload, promptTokens: ids.length, prefill, byK: {} };
+    for (const k of ks) {
+      const { tokens, passes } = await speculativeDecode(model, cloneState(state), { promptIds: ids, first, k, eos: config.eos, maxTokens, cluster, cpuMs });
+      const summary = summarize(tokens, passes);
+      result.byK[k] = { tokens, text: tokenizer.decode(tokens, false, false), passes, summary };
+      console.error(JSON.stringify({ id: row.id, k, tokens: tokens.length, passes: passes.length, sPerToken: summary && +summary.sPerToken.toFixed(3),
+        hist: summary?.acceptedHistogram, same: tokens.join() === result.byK[ks[0]].tokens.join() }));
+    }
+    results.push(result);
+    fs.writeFileSync(args.out, JSON.stringify({ ...meta, partial: true, results }) + '\n');
+  }
+  const mismatches = results.flatMap(r => ks.filter(k => r.byK[k].tokens.join() !== r.byK[ks[0]].tokens.join()).map(k => ({ id: r.id, k })));
+  const stats = cluster ? await cluster.close(args['exit-operators'] ? 'exit' : 'close') : null;
+  const report = { ...meta, results, correctness: { prompts: results.length, identicalAcrossK: mismatches.length === 0, mismatches },
+    freshness: cluster ? freshness(cluster) : null, operatorStats: stats, requesterPeakRss: peakRss(),
+    requesterHolds: { tensors: source.heldTensors(), bytes: source.heldBytes() } };
+  fs.writeFileSync(args.out, JSON.stringify(report) + '\n');
+  console.error(JSON.stringify({ correctness: report.correctness, freshness: report.freshness }));
+}
+
+const commands = { generate: cmdGenerate, control: cmdControl, run: cmdRun, 'bench-shape': cmdBenchShape, speculate: cmdSpeculate };
 if (!commands[command] || (!args.model && command !== 'bench-shape') || (command !== 'run' && !args.out)) {
   console.error('usage: requester.js generate|control|run --model DIR --plan PLAN ... (see the header)');
   process.exit(2);
