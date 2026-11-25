@@ -7,11 +7,12 @@ import { f16ToF32Array, f32ToF16Array } from '../../inference/kv-cache/types.js'
 import { registerPipeline } from '../../inference/pipelines/registry.js';
 import { applyPipelineContexts, restorePipelineContexts } from '../../inference/pipelines/context.js';
 import { createInitializedPipeline } from '../../inference/pipelines/factory.js';
+import { canonicalizeLegacyEnumValue } from '../../config/legacy-enum-values.js';
 
+// Legacy snake_case spellings (energy_row_head, dream_energy_head) are read
+// through the legacy enum table.
 const ENERGY_ROW_HEAD_MODEL_TYPES = Object.freeze([
-  'energy_row_head',
   'energy-row-head',
-  'dream_energy_head',
   'dream-energy-head',
   'd1-to2-bridge-diffusion',
   'synthesis-mixer-diffusion',
@@ -83,7 +84,7 @@ function normalizeAuxHead(head) {
 }
 
 function normalizeModelManifest(manifest) {
-  const modelType = String(manifest?.modelType || '');
+  const modelType = String(canonicalizeLegacyEnumValue(String(manifest?.modelType || '')));
   if (!ENERGY_ROW_HEAD_MODEL_TYPES.includes(modelType)) {
     throw new Error(`EnergyRowHeadPipeline.loadModel: unsupported modelType "${modelType}".`);
   }
@@ -438,7 +439,7 @@ export class EnergyRowHeadPipeline {
 
         if (this._onProgress) {
           this._onProgress({
-            stage: 'energy_row_head',
+            stage: 'energy-row-head',
             percent: (i + 1) / rows.length,
             message: `Scored ${i + 1} / ${rows.length}`,
           });

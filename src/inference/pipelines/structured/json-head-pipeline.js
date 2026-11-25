@@ -1,15 +1,13 @@
 import { InferencePipeline } from '../text/pipeline.js';
 import { registerPipeline } from '../registry.js';
 import { createInitializedPipeline } from '../factory.js';
+import { canonicalizeLegacyEnumValue } from '../../../config/legacy-enum-values.js';
 
+// Legacy snake_case spellings (structured_json_head, dream_*) are read through
+// the legacy enum table by the pipeline registry and the type check below.
 const STRUCTURED_JSON_HEAD_MODEL_TYPES = Object.freeze([
-  'structured_json_head',
   'structured-json-head',
-  'dream_structured',
-  'dream_intent_posterior_head',
-  'dream_d1_to2_bridge',
-  'dream_synthesis',
-  'dream_energy_compose',
+  'dream-structured',
   'dream-intent-posterior-head',
   'dream-d1-to2-bridge',
   'dream-synthesis',
@@ -177,8 +175,7 @@ export class StructuredJsonHeadPipeline extends InferencePipeline {
 }
 
 export function isStructuredJsonHeadModelType(modelType) {
-  const value = String(modelType || '');
-  return STRUCTURED_JSON_HEAD_MODEL_TYPES.includes(value);
+  return STRUCTURED_JSON_HEAD_MODEL_TYPES.includes(String(canonicalizeLegacyEnumValue(String(modelType || ''))));
 }
 
 export async function createStructuredJsonHeadPipeline(manifest, contexts = {}) {

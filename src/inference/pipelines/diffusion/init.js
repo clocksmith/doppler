@@ -1,5 +1,6 @@
 import { DEFAULT_DIFFUSION_CONFIG } from '../../../config/schema/index.js';
 import { assertSupportedDiffusionSchedulerType } from './scheduler-contract.js';
+import { canonicalizeLegacyEnumValue } from '../../../config/legacy-enum-values.js';
 
 // Only the SD3 (MMDiT) transformer has a GPU execution path. "flux" manifests
 // were accepted here and then ran through the SD3 transformer, so the layout
@@ -42,7 +43,7 @@ export function mergeDiffusionConfig(baseConfig, overrideConfig) {
 function resolveSchedulerType(modelScheduler, runtimeScheduler) {
   const modelClass = modelScheduler?._class_name;
   if (modelClass === 'FlowMatchEulerDiscreteScheduler') {
-    return 'flowmatch_euler';
+    return 'flowmatch-euler';
   }
   if (modelClass === 'SCMScheduler') {
     return 'scm';
@@ -51,12 +52,12 @@ function resolveSchedulerType(modelScheduler, runtimeScheduler) {
     return 'euler';
   }
   if (modelClass === 'EulerAncestralDiscreteScheduler') {
-    return 'euler_a';
+    return 'euler-a';
   }
   if (modelClass === 'DPMSolverMultistepScheduler') {
-    return 'dpmpp_2m';
+    return 'dpmpp-2m';
   }
-  return runtimeScheduler?.type;
+  return canonicalizeLegacyEnumValue(runtimeScheduler?.type);
 }
 
 function mergeSchedulerConfig(modelConfig, runtimeScheduler) {

@@ -1,18 +1,21 @@
 import { ERROR_CODES } from '../errors/doppler-error.js';
+import { canonicalizeLegacyEnumValue } from '../config/legacy-enum-values.js';
 
 // Canonical fine-grained failure class vocabulary. Single taxonomy shared
 // between the classifier, the receipt, and the policy fallbackOn list.
-// Standardized across governed diagnose routing and error receipts.
+// Standardized across governed diagnose routing and error receipts. Values
+// are kebab-case; snake_case spellings from before the rename are read through
+// normalizeFailureClass (for example in a policy fallbackOn list).
 export const FAILURE_CLASSES = Object.freeze({
-  GPU_DEVICE_LOST: 'gpu_device_lost',
-  GPU_OOM: 'gpu_oom',
-  GPU_TIMEOUT: 'gpu_timeout',
-  GPU_UNSUPPORTED: 'gpu_unsupported',
-  GPU_UNAVAILABLE: 'gpu_unavailable',
-  MODEL_LOAD_FAILED: 'model_load_failed',
-  POLICY_DENIED: 'policy_denied',
-  RUNTIME_INTERNAL: 'runtime_internal',
-  FALLBACK_FAILED: 'fallback_failed',
+  GPU_DEVICE_LOST: 'gpu-device-lost',
+  GPU_OOM: 'gpu-oom',
+  GPU_TIMEOUT: 'gpu-timeout',
+  GPU_UNSUPPORTED: 'gpu-unsupported',
+  GPU_UNAVAILABLE: 'gpu-unavailable',
+  MODEL_LOAD_FAILED: 'model-load-failed',
+  POLICY_DENIED: 'policy-denied',
+  RUNTIME_INTERNAL: 'runtime-internal',
+  FALLBACK_FAILED: 'fallback-failed',
   UNKNOWN: 'unknown',
 });
 
@@ -45,6 +48,10 @@ const MESSAGE_PATTERNS = [
   { pattern: /policy.?denied|not permitted/i, cls: FAILURE_CLASSES.POLICY_DENIED, code: ERROR_CODES.PROVIDER_POLICY_DENIED },
 ];
 
+export function normalizeFailureClass(value) {
+  return canonicalizeLegacyEnumValue(value);
+}
+
 function classifyFromCode(errorCode) {
   if (!errorCode) return null;
   return ERROR_CODE_TO_CLASS[errorCode] || null;
@@ -73,7 +80,7 @@ function inferSurface(message, providedSurface) {
   if (providedSurface) return providedSurface;
   const lower = message.toLowerCase();
   if (lower.includes('webgpu') || lower.includes('gpu') || lower.includes('adapter')) return 'webgpu';
-  if (lower.includes('openai') || lower.includes('fallback') || lower.includes('fetch')) return 'openai_compat';
+  if (lower.includes('openai') || lower.includes('fallback') || lower.includes('fetch')) return 'openai-compat';
   return 'unknown';
 }
 

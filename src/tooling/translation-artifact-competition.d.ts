@@ -22,3 +22,4 @@ export function evaluateTranslationArtifactCompetition(options?: {}): {
     blockers: any[];
 };
 export const TRANSLATION_ARTIFACT_COMPETITION_SCHEMA_ID: "doppler.translation-artifact-competition-readiness/v1";
+export function readTranslationArtifactCompetitionReceipt<T extends { receiptHash: string }>(recorded: T): T;

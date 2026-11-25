@@ -13,7 +13,8 @@ export type InferenceSource = 'local' | 'fallback';
  * Fine-grained failure class vocabulary. Single taxonomy shared between
  * the failure classifier, receipt payloads, and the `fallbackOn` policy list.
  */
-export type FailureClass =
+/** Spellings accepted in fallbackOn before the kebab-case rename; never emitted. */
+export type LegacyFailureClass =
   | 'gpu_device_lost'
   | 'gpu_oom'
   | 'gpu_timeout'
@@ -22,7 +23,18 @@ export type FailureClass =
   | 'model_load_failed'
   | 'policy_denied'
   | 'runtime_internal'
-  | 'fallback_failed'
+  | 'fallback_failed';
+
+export type FailureClass =
+  | 'gpu-device-lost'
+  | 'gpu-oom'
+  | 'gpu-timeout'
+  | 'gpu-unsupported'
+  | 'gpu-unavailable'
+  | 'model-load-failed'
+  | 'policy-denied'
+  | 'runtime-internal'
+  | 'fallback-failed'
   | 'unknown';
 
 export interface ModelHandle {
@@ -58,7 +70,7 @@ export interface ProviderFallbackConfig {
 export interface ProviderPolicyConfig {
   mode?: PolicyMode;
   id?: string | null;
-  fallbackOn?: FailureClass[] | null;
+  fallbackOn?: Array<FailureClass | LegacyFailureClass> | null;
 }
 
 export interface FaultInjectionConfig {

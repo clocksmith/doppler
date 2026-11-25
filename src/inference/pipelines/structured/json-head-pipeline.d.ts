@@ -1,14 +1,18 @@
 import { InferencePipeline } from '../text.js';
 import type { GenerateOptions } from '../text/types.js';
 
-export type StructuredJsonHeadModelType =
+/** Accepted on read before the kebab-case rename; never emitted. */
+export type LegacyStructuredJsonHeadModelType =
   | 'structured_json_head'
-  | 'structured-json-head'
   | 'dream_structured'
   | 'dream_intent_posterior_head'
   | 'dream_d1_to2_bridge'
   | 'dream_synthesis'
-  | 'dream_energy_compose'
+  | 'dream_energy_compose';
+
+export type StructuredJsonHeadModelType =
+  | 'structured-json-head'
+  | 'dream-structured'
   | 'dream-intent-posterior-head'
   | 'dream-d1-to2-bridge'
   | 'dream-synthesis'

@@ -1,7 +1,7 @@
 import { InferencePipeline, EmbeddingPipeline } from './text/pipeline.js';
 export * from './text/pipeline.js';
 import { createInitializedPipeline } from './factory.js';
-import { registerPipeline, getPipelineFactory } from './registry.js';
+import { registerPipeline, getPipelineFactory, normalizeModelType } from './registry.js';
 import { resolvePipelineRegistries } from './shader-scoped-pipeline.js';
 
 /** @param {import('../../config/schema/index.js').ManifestSchema} manifest
@@ -28,7 +28,7 @@ registerPipeline('embedding', createEmbeddingPipeline);
 function resolveLazyPipelineModules(modelType, ruleRegistry) {
   const modules = ruleRegistry.selectRuleValue('inference', 'config', 'pipelineModules', {
     modelType,
-    modelTypeLower: String(modelType).toLowerCase(),
+    modelTypeLower: normalizeModelType(modelType),
   });
   if (!Array.isArray(modules)) return [];
   return modules.filter((entry) => typeof entry === 'string' && entry.length > 0);

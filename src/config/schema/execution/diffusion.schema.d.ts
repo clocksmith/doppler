@@ -6,7 +6,8 @@
  * @module config/schema/diffusion
  */
 
-export type DiffusionSchedulerType = 'ddim' | 'euler' | 'euler_a' | 'dpmpp_2m' | 'flowmatch_euler';
+/** Kebab-case scheduler types; euler_a, dpmpp_2m and flowmatch_euler are read as their kebab-case forms. */
+export type DiffusionSchedulerType = 'ddim' | 'euler' | 'euler-a' | 'dpmpp-2m' | 'flowmatch-euler' | 'scm';
 
 export type DiffusionDtype = 'f16' | 'f32';
 

@@ -2,6 +2,7 @@ import {
   assertTrainerArtifactCandidateEntry,
   normalizeGammaTrainerArtifactHandoff,
 } from '../experimental/bridge/trainer-artifact-bridge.js';
+import { canonicalizeLegacyEnumValue } from '../config/legacy-enum-values.js';
 import { isPlainObject } from '../formats/plain-object.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
@@ -10,7 +11,7 @@ export const TRANSLATION_ARTIFACT_COMPETITION_SCHEMA_ID =
   'doppler.translation-artifact-competition-readiness/v1';
 
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
-const REQUIRED_LANES = Object.freeze(['q4k', 'selective_f16', 'qat']);
+const REQUIRED_LANES = Object.freeze(['q4k', 'selective-f16', 'qat']);
 
 function stableJson(value) {
   return JSON.stringify(stableSortObject(value));
@@ -20,10 +21,21 @@ function hashStableJson(value) {
   return sha256Hex(stableJson(value));
 }
 
-function requirePolicy(policy) {
-  if (!isPlainObject(policy)) {
+// Lane ids written before the kebab-case rename (selective_f16) are read as
+// their kebab-case form; receipts emit only the kebab-case form.
+function canonicalizeLanes(lanes) {
+  return lanes.map((lane) => (
+    isPlainObject(lane) ? { ...lane, laneId: canonicalizeLegacyEnumValue(lane.laneId) } : lane
+  ));
+}
+
+function requirePolicy(rawPolicy) {
+  if (!isPlainObject(rawPolicy)) {
     throw new Error('translation artifact competition: policy must be an object.');
   }
+  const policy = Array.isArray(rawPolicy.artifactLanes)
+    ? { ...rawPolicy, artifactLanes: canonicalizeLanes(rawPolicy.artifactLanes) }
+    : rawPolicy;
   if (policy.schemaVersion !== 1) {
     throw new Error('translation artifact competition: policy schemaVersion must be 1.');
   }
@@ -161,4 +173,21 @@ export function evaluateTranslationArtifactCompetition(options = {}) {
     blockers: [...blockers].sort(),
   };
   return { ...receiptCore, receiptHash: hashStableJson(receiptCore) };
+}
+
+// Reads a recorded readiness receipt. The recorded receiptHash covers the
+// receipt exactly as written, so it is verified before lane ids are
+// canonicalized; the returned receipt keeps the recorded hash as its
+// attestation of the original bytes.
+export function readTranslationArtifactCompetitionReceipt(recorded) {
+  if (!isPlainObject(recorded)) {
+    throw new Error('translation artifact competition: receipt must be an object.');
+  }
+  const { receiptHash, ...core } = recorded;
+  if (!SHA256_PATTERN.test(String(receiptHash || '')) || hashStableJson(core) !== receiptHash) {
+    throw new Error('translation artifact competition: receipt hash does not match the recorded receipt.');
+  }
+  return Array.isArray(recorded.lanes)
+    ? { ...recorded, lanes: canonicalizeLanes(recorded.lanes) }
+    : recorded;
 }

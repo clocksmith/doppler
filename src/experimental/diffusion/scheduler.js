@@ -1,4 +1,5 @@
 import { assertSupportedDiffusionSchedulerType } from '../../inference/pipelines/diffusion/scheduler-contract.js';
+import { canonicalizeLegacyEnumValue } from '../../config/legacy-enum-values.js';
 
 function resolveStepCount(config, stepsOverride) {
   const stepCount = Number.isFinite(stepsOverride) && stepsOverride > 0
@@ -131,7 +132,7 @@ export function buildScheduler(config, stepsOverride = null) {
     throw new Error('Scheduler config is required');
   }
   const steps = resolveStepCount(config, stepsOverride);
-  const type = config.type;
+  const type = canonicalizeLegacyEnumValue(config.type);
   if (typeof type !== 'string' || !type) {
     throw new Error('Diffusion scheduler requires a scheduler type.');
   }

@@ -1,7 +1,8 @@
+/** Accepted on read before the kebab-case rename; never emitted. */
+export type LegacyEnergyRowHeadModelType = 'energy_row_head' | 'dream_energy_head';
+
 export type EnergyRowHeadModelType =
-  | 'energy_row_head'
   | 'energy-row-head'
-  | 'dream_energy_head'
   | 'dream-energy-head'
   | 'd1-to2-bridge-diffusion'
   | 'synthesis-mixer-diffusion'

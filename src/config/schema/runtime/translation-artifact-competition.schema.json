@@ -137,7 +137,7 @@
           "laneId": {
             "enum": [
               "q4k",
-              "selective_f16",
+              "selective-f16",
               "qat"
             ]
           },

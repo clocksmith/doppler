@@ -1,3 +1,5 @@
+import { canonicalizeLegacyEnumValue } from '../../config/legacy-enum-values.js';
+
 const registry = new Map();
 
 export function registerPipeline(
@@ -14,9 +16,10 @@ export function registerPipeline(
 }
 
 // Model types are case-insensitive identifiers: lazy module rules already
-// match on the lower-cased type, so the registry keys the same way.
+// match on the lower-cased type, so the registry keys the same way. Legacy
+// snake_case spellings of Doppler-owned types resolve to their kebab-case form.
 export function normalizeModelType(modelType) {
-  return String(modelType).trim().toLowerCase();
+  return String(canonicalizeLegacyEnumValue(String(modelType).trim().toLowerCase()));
 }
 
 export function getPipelineFactory(modelType) {

@@ -172,7 +172,7 @@ async function readTensorToFloat32(tensor) {
 }
 
 async function applySchedulerStep(latentsTensor, scheduler, stepIndex, timestep, predictionTensor, runtime, options = {}) {
-  if (scheduler.type === 'flowmatch_euler') {
+  if (scheduler.type === 'flowmatch-euler') {
     const sigma = scheduler.sigmas[stepIndex];
     const sigmaNext = stepIndex + 1 < scheduler.steps ? scheduler.sigmas[stepIndex + 1] : 0;
     const delta = sigmaNext - sigma;

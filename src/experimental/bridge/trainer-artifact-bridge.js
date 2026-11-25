@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue } from '../../config/legacy-enum-values.js';
 import { isPlainObject } from '../../formats/plain-object.js';
 import { sha256Hex } from '../../formats/sha256.js';
 import { stableSortObject } from '../../formats/stable-sort-object.js';
@@ -256,7 +257,9 @@ function normalizeDescriptor(descriptor) {
   const artifact = {
     kind,
     role,
-    format: requireText(descriptor.artifact?.format, 'artifact.format'),
+    // Gamma handoffs may still spell the format huggingface_safetensors; both
+    // spellings are read and only huggingface-safetensors is written.
+    format: canonicalizeLegacyEnumValue(requireText(descriptor.artifact?.format, 'artifact.format')),
     repository: requireText(descriptor.artifact?.repository, 'artifact.repository'),
     rootPath: assertRepoRelativePath(descriptor.artifact?.rootPath, 'artifact.rootPath', true),
     files: normalizeFileList(descriptor.artifact?.files, 'artifact.files'),

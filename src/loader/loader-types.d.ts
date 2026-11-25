@@ -348,12 +348,12 @@ export interface ShardSourceInfo {
     | 'backend-stream';
   fallback?:
     | 'none'
-    | 'custom_range_unavailable'
-    | 'custom_range_not_supported'
-    | 'custom_stream_not_supported'
-    | 'custom_stream_not_supported_resume'
-    | 'custom_stream_interrupted'
-    | 'custom_stream_interrupted_resume'
-    | 'custom_stream_partial_resume'
-    | 'custom_range_partial_retry';
+    | 'custom-range-unavailable'
+    | 'custom-range-not-supported'
+    | 'custom-stream-not-supported'
+    | 'custom-stream-not-supported-resume'
+    | 'custom-stream-interrupted'
+    | 'custom-stream-interrupted-resume'
+    | 'custom-stream-partial-resume'
+    | 'custom-range-partial-retry';
 }

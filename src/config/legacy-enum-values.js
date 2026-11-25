@@ -115,6 +115,33 @@ export const LEGACY_ENUM_VALUE_ALIASES = Object.freeze({
   sequence_mismatch: 'sequence-mismatch',
   drift_check_needed: 'drift-check-needed',
   length_mismatch: 'length-mismatch',
+  // translation-artifact-lane
+  selective_f16: 'selective-f16',
+  // structured-head-model-type
+  structured_json_head: 'structured-json-head',
+  dream_structured: 'dream-structured',
+  dream_intent_posterior_head: 'dream-intent-posterior-head',
+  dream_d1_to2_bridge: 'dream-d1-to2-bridge',
+  dream_synthesis: 'dream-synthesis',
+  dream_energy_compose: 'dream-energy-compose',
+  energy_row_head: 'energy-row-head',
+  dream_energy_head: 'dream-energy-head',
+  // trainer-artifact-format (shared with Gamma handoffs)
+  huggingface_safetensors: 'huggingface-safetensors',
+  // provider-failure-class
+  gpu_device_lost: 'gpu-device-lost',
+  gpu_oom: 'gpu-oom',
+  gpu_timeout: 'gpu-timeout',
+  gpu_unsupported: 'gpu-unsupported',
+  gpu_unavailable: 'gpu-unavailable',
+  model_load_failed: 'model-load-failed',
+  policy_denied: 'policy-denied',
+  runtime_internal: 'runtime-internal',
+  fallback_failed: 'fallback-failed',
+  // diffusion-scheduler-type
+  euler_a: 'euler-a',
+  dpmpp_2m: 'dpmpp-2m',
+  flowmatch_euler: 'flowmatch-euler',
 });
 
 // Object keys whose string values (or string-array members) belong to the
@@ -156,6 +183,10 @@ export const LEGACY_ENUM_VALUE_FIELDS = Object.freeze(new Set([
   'compareLane',
   'lane',
   'declared',
+  'laneId',
+  'modelType',
+  'failureClass',
+  'fallbackOn',
 ]));
 
 /**

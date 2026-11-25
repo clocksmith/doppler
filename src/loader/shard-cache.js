@@ -329,7 +329,7 @@ export class ShardCache {
             elapsed,
             'range',
             'backend-range',
-            'custom_range_not_supported'
+            'custom-range-not-supported'
           );
           return data;
         }
@@ -345,8 +345,8 @@ export class ShardCache {
       const view = new Uint8Array(full);
       const end = want == null ? view.length : Math.min(view.length, start + want);
       const fallbackTag = this.#customRangeLoader
-        ? 'custom_range_not_supported'
-        : 'custom_range_unavailable';
+        ? 'custom-range-not-supported'
+        : 'custom-range-unavailable';
       this.#setLastSource('custom', this.lastSource?.elapsed ?? 0, 'range', 'custom-loader-slice', fallbackTag);
       return view.slice(start, end).buffer;
     }
@@ -405,7 +405,7 @@ export class ShardCache {
         if (!this.#customRangeLoader || (!unsupported && produced <= 0)) {
           throw error;
         }
-        const fallbackReason = unsupported ? 'custom_stream_not_supported' : 'custom_stream_interrupted';
+        const fallbackReason = unsupported ? 'custom-stream-not-supported' : 'custom-stream-interrupted';
         let resumed = 0;
         let emptyRetries = 0;
         while (true) {
@@ -445,7 +445,7 @@ export class ShardCache {
           elapsed,
           'stream',
           'custom-range-fallback',
-          `${fallbackReason}${resumed > 0 ? '_resume' : ''}`
+          `${fallbackReason}${resumed > 0 ? '-resume' : ''}`
         );
         return;
       }
@@ -490,7 +490,7 @@ export class ShardCache {
           elapsed,
           'stream',
           'custom-range-fallback',
-          'custom_stream_partial_resume'
+          'custom-stream-partial-resume'
         );
         return;
       }
@@ -541,7 +541,7 @@ export class ShardCache {
         (performance.now() - rangeStart) / 1000,
         'stream',
         'custom-range',
-        partialRetryUsed ? 'custom_range_partial_retry' : 'none'
+        partialRetryUsed ? 'custom-range-partial-retry' : 'none'
       );
       return;
     }

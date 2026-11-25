@@ -56,7 +56,7 @@
       "properties": {
         "repository": { "const": "clocksmith/gamma" },
         "path": { "type": "string", "minLength": 1 },
-        "format": { "const": "huggingface_safetensors" },
+        "format": { "enum": ["huggingface-safetensors", "huggingface_safetensors"] },
         "weights": { "$ref": "#/$defs/fileIdentity" },
         "config": { "$ref": "#/$defs/fileIdentity" },
         "generationConfig": { "$ref": "#/$defs/fileIdentity" }

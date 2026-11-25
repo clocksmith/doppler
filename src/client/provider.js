@@ -1,7 +1,7 @@
 import { log } from '../debug/index.js';
 import { ERROR_CODES, createDopplerError } from '../errors/doppler-error.js';
 import { createDopplerRuntimeService } from './model-host/index.js';
-import { classifyProviderFailure } from './failure-taxonomy.js';
+import { classifyProviderFailure, normalizeFailureClass } from './failure-taxonomy.js';
 import { buildProviderReceiptV1 } from './receipt.js';
 import { createFaultInjector } from './fault-injection.js';
 import { isNodeRuntime } from '../storage/runtime-env.js';
@@ -138,7 +138,9 @@ export function createDopplerProvider(config) {
 
   const policyMode = config.policy?.mode || 'prefer-local';
   const policyId = config.policy?.id || null;
-  const fallbackOn = config.policy?.fallbackOn || null;
+  const fallbackOn = Array.isArray(config.policy?.fallbackOn)
+    ? config.policy.fallbackOn.map(normalizeFailureClass)
+    : null;
   const emitReceipts = config.diagnostics?.receipts !== false;
   const injector = createFaultInjector(config);
 
@@ -224,7 +226,7 @@ export function createDopplerProvider(config) {
         source: 'fallback',
         model: { id: config.fallback.model, fallbackId: config.fallback.model },
         resolutionUnavailableReason: 'external-provider-resolution-is-opaque',
-        fallbackDecision: { reason: 'policy_cloud_only', eligible: true, executed: true, deniedReason: null },
+        fallbackDecision: { reason: 'policy-cloud-only', eligible: true, executed: true, deniedReason: null },
         fallbackDurationMs: Date.now() - fallbackStart,
         totalDurationMs: Date.now() - startTime,
       });
@@ -243,13 +245,13 @@ export function createDopplerProvider(config) {
           source: 'fallback',
           model: { id: config.fallback.model, fallbackId: config.fallback.model },
           resolutionUnavailableReason: 'external-provider-resolution-is-opaque',
-          fallbackDecision: { reason: 'policy_prefer_cloud', eligible: true, executed: true, deniedReason: null },
+          fallbackDecision: { reason: 'policy-prefer-cloud', eligible: true, executed: true, deniedReason: null },
           fallbackDurationMs: Date.now() - cloudStart,
           totalDurationMs: Date.now() - startTime,
         });
         return { text, inferenceSource: 'fallback', receipt };
       } catch (cloudError) {
-        const cloudFailure = classifyProviderFailure(cloudError, { surface: 'openai_compat' });
+        const cloudFailure = classifyProviderFailure(cloudError, { surface: 'openai-compat' });
         log.debug('provider', `Cloud inference failed: [${cloudFailure.failureClass}] ${cloudError instanceof Error ? cloudError.message : String(cloudError)}`);
         // Fall through to local.
         const localStart = Date.now();
@@ -326,7 +328,7 @@ export function createDopplerProvider(config) {
         model: { id: config.local?.model || localModelHandle?.modelId || '' },
         resolutionUnavailableReason: 'local-execution-failed-before-resolution',
         failure,
-        fallbackDecision: { reason: 'policy_local_only', eligible: false, executed: false, deniedReason: 'local-only policy' },
+        fallbackDecision: { reason: 'policy-local-only', eligible: false, executed: false, deniedReason: 'local-only policy' },
         localDurationMs,
         totalDurationMs: Date.now() - startTime,
       });
@@ -341,7 +343,7 @@ export function createDopplerProvider(config) {
         model: { id: config.local?.model || localModelHandle?.modelId || '' },
         resolutionUnavailableReason: 'local-execution-failed-before-resolution',
         failure,
-        fallbackDecision: { reason: 'no_fallback_configured', eligible: false, executed: false, deniedReason: 'no fallback configured' },
+        fallbackDecision: { reason: 'no-fallback-configured', eligible: false, executed: false, deniedReason: 'no fallback configured' },
         localDurationMs,
         totalDurationMs: Date.now() - startTime,
       });

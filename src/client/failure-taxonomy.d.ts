@@ -44,15 +44,17 @@ export function classifyProviderFailure(error: Error | unknown, context?: {
     isSimulated: boolean;
     message: string;
 };
+/** Maps a legacy snake_case failure class (gpu_oom) to its kebab-case form; other values pass through. */
+export function normalizeFailureClass<T>(value: T): T | string;
 export const FAILURE_CLASSES: Readonly<{
-    GPU_DEVICE_LOST: "gpu_device_lost";
-    GPU_OOM: "gpu_oom";
-    GPU_TIMEOUT: "gpu_timeout";
-    GPU_UNSUPPORTED: "gpu_unsupported";
-    GPU_UNAVAILABLE: "gpu_unavailable";
-    MODEL_LOAD_FAILED: "model_load_failed";
-    POLICY_DENIED: "policy_denied";
-    RUNTIME_INTERNAL: "runtime_internal";
-    FALLBACK_FAILED: "fallback_failed";
+    GPU_DEVICE_LOST: "gpu-device-lost";
+    GPU_OOM: "gpu-oom";
+    GPU_TIMEOUT: "gpu-timeout";
+    GPU_UNSUPPORTED: "gpu-unsupported";
+    GPU_UNAVAILABLE: "gpu-unavailable";
+    MODEL_LOAD_FAILED: "model-load-failed";
+    POLICY_DENIED: "policy-denied";
+    RUNTIME_INTERNAL: "runtime-internal";
+    FALLBACK_FAILED: "fallback-failed";
     UNKNOWN: "unknown";
 }>;

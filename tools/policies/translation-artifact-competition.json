@@ -25,7 +25,7 @@
       "artifactReceipt": null
     },
     {
-      "laneId": "selective_f16",
+      "laneId": "selective-f16",
       "derivation": "Retain declared tensors at F16 while deriving all remaining tensors from the same selected checkpoint identity.",
       "status": "unmaterialized",
       "artifactReceipt": null
