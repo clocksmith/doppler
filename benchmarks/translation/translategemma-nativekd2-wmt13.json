@@ -50,8 +50,5 @@
       }
     }
   ],
-  "metrics": {
-    "sacrebleuPython": "../../../gamma/.venv_rocm/bin/python"
-  },
   "outputDir": "../vendors/results/translategemma-nativekd2/quality-wmt13"
 }

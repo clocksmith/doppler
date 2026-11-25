@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -21,26 +20,12 @@ import { parseJsonl } from '../src/experimental/training/datasets/jsonl.js';
 import { applyRuntimeProfile } from '../src/tooling/browser-harness/runtime-config.js';
 import { applyRuntimeInputs } from '../src/tooling/command-runtime-execution.js';
 import { runNodeCommand } from '../src/tooling/node-command-runner.js';
-
-const SACREBLEU_PROGRAM = [
-  'import json, sys',
-  'import sacrebleu',
-  'payload = json.load(sys.stdin)',
-  'results = {}',
-  'for group_id, group in payload["groups"].items():',
-  '    bleu_metric = sacrebleu.metrics.BLEU()',
-  '    chrf_metric = sacrebleu.metrics.CHRF()',
-  '    bleu = bleu_metric.corpus_score(group["hypotheses"], [group["references"]])',
-  '    chrf = chrf_metric.corpus_score(group["hypotheses"], [group["references"]])',
-  '    results[group_id] = {',
-  '        "bleu": float(bleu.score),',
-  '        "bleuSignature": str(bleu_metric.get_signature()),',
-  '        "chrf": float(chrf.score),',
-  '        "chrfSignature": str(chrf_metric.get_signature()),',
-  '        "count": len(group["hypotheses"]),',
-  '    }',
-  'json.dump({"sacrebleuVersion": sacrebleu.__version__, "groups": results}, sys.stdout, sort_keys=True)',
-].join('\n');
+import {
+  SACREBLEU_COMPATIBLE_IMPLEMENTATION,
+  SACREBLEU_COMPATIBLE_VERSION,
+  corpusBleu,
+  corpusChrf,
+} from './lib/sacrebleu-compatible-metrics.js';
 
 function parseArgs(argv) {
   let configPath = null;
@@ -151,7 +136,12 @@ async function loadConfig(configPath) {
   }
   const model = requireObject(config.model, 'model');
   const sharedContract = requireObject(config.sharedContract, 'sharedContract');
-  const metrics = requireObject(config.metrics, 'metrics');
+  if (config.metrics !== undefined) {
+    throw new Error(
+      'config.metrics is no longer accepted: BLEU and chrF are computed in-process by '
+      + `${SACREBLEU_COMPATIBLE_IMPLEMENTATION}. Remove the metrics block.`
+    );
+  }
   const engineLanes = Array.isArray(config.engineLanes)
     ? config.engineLanes.map(validateEngineLane)
     : null;
@@ -199,13 +189,6 @@ async function loadConfig(configPath) {
     },
     runtimeProfile: requireString(config.runtimeProfile, 'runtimeProfile'),
     engineLanes,
-    metrics: {
-      sacrebleuPython: resolveConfigPath(
-        configDir,
-        metrics.sacrebleuPython,
-        'metrics.sacrebleuPython'
-      ),
-    },
     outputDir: resolveConfigPath(configDir, config.outputDir, 'outputDir'),
   };
 }
@@ -467,31 +450,25 @@ function buildMetricGroups(datasetRows, baselinePredictions, lanes) {
   return groups;
 }
 
-function runPythonJson(pythonPath, program, payload) {
-  return new Promise((resolvePromise, reject) => {
-    const child = spawn(pythonPath, ['-c', program], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    const stdout = [];
-    const stderr = [];
-    child.stdout.on('data', (chunk) => stdout.push(chunk));
-    child.stderr.on('data', (chunk) => stderr.push(chunk));
-    child.on('error', reject);
-    child.on('close', (code) => {
-      if (code !== 0) {
-        reject(new Error(
-          `Metric process exited with code ${code}: ${Buffer.concat(stderr).toString('utf8').trim()}`
-        ));
-        return;
-      }
-      try {
-        resolvePromise(JSON.parse(Buffer.concat(stdout).toString('utf8')));
-      } catch (error) {
-        reject(new Error(`Metric process returned invalid JSON: ${error.message}`));
-      }
-    });
-    child.stdin.end(JSON.stringify(payload));
-  });
+function computeCorpusMetrics(groups) {
+  const results = {};
+  for (const groupId of Object.keys(groups).sort()) {
+    const { hypotheses, references } = groups[groupId];
+    const bleu = corpusBleu(hypotheses, references);
+    const chrf = corpusChrf(hypotheses, references);
+    results[groupId] = {
+      bleu: bleu.score,
+      bleuSignature: bleu.signature,
+      chrf: chrf.score,
+      chrfSignature: chrf.signature,
+      count: hypotheses.length,
+    };
+  }
+  return {
+    implementation: SACREBLEU_COMPATIBLE_IMPLEMENTATION,
+    sacrebleuCompatibleVersion: SACREBLEU_COMPATIBLE_VERSION,
+    groups: results,
+  };
 }
 
 function buildDopplerOperatorMetrics(datasetRows, predictions) {
@@ -662,11 +639,7 @@ async function main() {
     lanes.push(await runLane(config, lane, datasetRows));
   }
   const groups = buildMetricGroups(datasetRows, baselinePredictions, lanes);
-  const metrics = await runPythonJson(
-    config.metrics.sacrebleuPython,
-    SACREBLEU_PROGRAM,
-    { groups }
-  );
+  const metrics = computeCorpusMetrics(groups);
   const output = await writeArtifacts(
     config,
     datasetRaw,
