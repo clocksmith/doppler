@@ -12,14 +12,26 @@
 // The encrypted KV cache stays on the GPU for the session. Evaluation keys stay resident across sessions of one key
 // epoch, and with --state-dir are kept on disk until the epoch's expiry, in the layout evaluator.go uses.
 
+//
+// Homomorphic split (--role stage-a | stage-b, split.js): every step is cut at a layer boundary. The requester sends
+// each step's input ciphertexts to stage A only; stage A runs the operations before the cut, keeps the encrypted KV
+// cache, and sends the carry ciphertexts straight to stage B over its own link (--next); stage B (--hop-listen)
+// runs the rest and returns the result ciphertext to the requester. Both stages hold the same public evaluation keys
+// and neither holds the requester's private key. The hop link is admitted with a one-time token the requester gives both stages.
+//
+// --gate (for a supervising agent): before computing step s the evaluator prints `WAIT s` and waits for `GO s` on
+// stdin; after it prints `STEP {json}` (sizes, timings and digests only). `READY address` is printed once listening.
+
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { createServer } from 'node:net';
+import { connect, createServer } from 'node:net';
 import { arch, platform } from 'node:os';
 import { join } from 'node:path';
+import { createInterface } from 'node:readline';
 import { parseArgs } from 'node:util';
 import { HeDevice } from './he-device.js';
 import { openDevice } from './gpu.js';
 import { loadProgram, runStep, uploadProgram } from './program-runner.js';
+import { SPLIT_LAYER, SPLIT_ROLES, splitStep } from './split.js';
 import { Conn, digest } from './wire.js';
 
 const ROTATIONS = [1, 2, 4, 8, 16, 32];
@@ -38,15 +50,49 @@ const { values } = parseArgs({
     // per-layer: drain the queue at each layer boundary (per-layer host and GPU times); overlap: submit every 256
     // dispatches so encoding overlaps GPU execution (lowest latency, no per-layer split).
     timing: { type: 'string', default: 'per-layer' },
+    role: { type: 'string', default: 'whole' },
+    next: { type: 'string' },
+    'hop-listen': { type: 'string' },
+    gate: { type: 'boolean', default: false },
   },
 });
 if (!values.program?.length) throw new Error('--program <base> is required');
+const role = values.role;
+if (role !== 'whole' && !SPLIT_ROLES.includes(role)) throw new Error(`--role must be whole, ${SPLIT_ROLES.join(' or ')}`);
+if (role === 'stage-a' && !values.next) throw new Error('--role stage-a needs --next <stage B hop address>');
+if (role === 'stage-b' && !values['hop-listen']) throw new Error('--role stage-b needs --hop-listen <address>');
+if (role !== 'whole' && values.misbehave) throw new Error('--misbehave runs only with --role whole');
+const TOKEN = /^[a-f0-9]{32}$/;
 
-const log = (msg) => console.error(`[evaluator webgpu ${platform()}/${arch()}] ${msg}`);
+const log = (msg) => console.error(`[evaluator webgpu ${platform()}/${arch()}${role === 'whole' ? '' : ` ${role}`}] ${msg}`);
 const rep = {
   schema: 'doppler.protected-evaluator-report/v1', backend: 'webgpu', arch: `${platform()}/${arch()}`, misbehave: values.misbehave,
-  timing: values.timing, outcome: 'completed', sessions: [],
+  timing: values.timing, role, outcome: 'completed', sessions: [],
 };
+
+// The supervisor's gate: stdout carries only READY, WAIT and STEP lines.
+const gate = (() => {
+  if (!values.gate) return null;
+  const released = new Set();
+  const waiters = new Map();
+  createInterface({ input: process.stdin }).on('line', (line) => {
+    const m = /^GO (\d+)$/.exec(line.trim());
+    if (!m) return;
+    const seq = Number(m[1]);
+    released.add(seq);
+    waiters.get(seq)?.();
+    waiters.delete(seq);
+  });
+  return {
+    ready: (address) => process.stdout.write(`READY ${address}\n`),
+    async wait(seq) {
+      if (released.has(seq)) return;
+      process.stdout.write(`WAIT ${seq}\n`);
+      await new Promise((resolve) => waiters.set(seq, resolve));
+    },
+    step: (row) => process.stdout.write(`STEP ${JSON.stringify(row)}\n`),
+  };
+})();
 
 // --- key epochs on disk (same files as evaluator.go: epoch-<id>.json and epoch-<id>.keys) ---
 
@@ -112,7 +158,7 @@ async function main() {
     const blobBuf = uploadProgram(he, program, blob);
     for (const step of program.steps) {
       const key = `${step.kind}:${step.first}:${step.position}`;
-      if (!steps.has(key)) steps.set(key, { program, step, blobBuf, identity });
+      if (!steps.has(key)) steps.set(key, { program, step, blobBuf, identity, split: role === 'whole' ? null : splitStep(program, step) });
     }
   }
   await he.sync();
@@ -134,7 +180,29 @@ async function main() {
   server.on('connection', (s) => sockets.push(s));
   await new Promise((resolve) => server.listen(Number(port), host, resolve));
   const addr = server.address();
+  // Stage B also listens for stage A's hop link; each session takes the next hop connection and checks its token.
+  let hop = null;
+  if (role === 'stage-b') {
+    const [hh, hp] = values['hop-listen'].split(/:(?=[^:]*$)/);
+    const hopServer = createServer();
+    const queue = [];
+    let wake = null;
+    hopServer.on('connection', (s) => { queue.push(s); wake?.(); });
+    await new Promise((resolve) => hopServer.listen(Number(hp), hh, resolve));
+    const ha = hopServer.address();
+    rep.hopListen = `${ha.address}:${ha.port}`;
+    hop = {
+      server: hopServer,
+      async next() {
+        while (queue.length === 0) await new Promise((resolve) => { wake = resolve; });
+        wake = null;
+        return queue.shift();
+      },
+    };
+    log(`hop link listening on ${rep.hopListen}`);
+  }
   if (values['ready-file']) writeFileSync(values['ready-file'], `${addr.address}:${addr.port}`, { mode: 0o600 });
+  gate?.ready(`${addr.address}:${addr.port}`);
   const limit = Number(values.sessions);
   try {
     for (let n = 0; limit === 0 || n < limit; n++) {
@@ -144,7 +212,7 @@ async function main() {
       const srep = { steps: [] };
       rep.sessions.push(srep);
       try {
-        await session(c, he, first, steps, stateDir, resident, srep);
+        await session(c, he, first, steps, stateDir, resident, srep, hop);
         srep.outcome = 'completed';
       } catch (e) {
         srep.outcome = 'failed';
@@ -159,6 +227,7 @@ async function main() {
     }
   } finally {
     server.close();
+    hop?.server.close();
     rep.gpu = {
       dispatches: he.stats.dispatches, submits: he.stats.submits, peakBufferBytes: he.stats.peakBytes,
       evaluationKeyBytesResident: he.stats.keyBytes, uploadBytes: he.stats.uploadBytes, readbackBytes: he.stats.readbackBytes,
@@ -167,11 +236,16 @@ async function main() {
   }
 }
 
-async function session(c, he, first, steps, stateDir, resident, srep) {
+async function session(c, he, first, steps, stateDir, resident, srep, hop) {
   const { header: h } = await c.recv('hello');
   const f = h.fields ?? {};
   if (f.profile !== first.profile) throw new Error(`requester pinned profile ${f.profile}, this evaluator runs ${first.profile}`);
   if (f.model !== first.model) throw new Error(`requester pinned model ${f.model}, this evaluator serves ${first.model}`);
+  if ((f.role ?? 'whole') !== role) throw new Error(`requester expects role ${f.role ?? 'whole'}, this evaluator runs ${role}`);
+  if (role !== 'whole' && (f.cutLayer !== SPLIT_LAYER || !TOKEN.test(f.hopToken ?? ''))) {
+    throw new Error('a split session needs the pinned cut layer and a hop token');
+  }
+  srep.role = role;
   const n = f.promptTokens;
   const g = f.generatedTokens;
   const plan = [`prefill:0:${n - 1}`];
@@ -197,6 +271,7 @@ async function session(c, he, first, steps, stateDir, resident, srep) {
   await c.send({ kind: 'manifest', session, fields: {
     profile: first.profile, profileDigest: first.profileDigest, model: first.model, rotations: ROTATIONS,
     inputLevel: first.q.length - 1, logSlots: first.logSlots, heldKeysDigest: held, backend: 'webgpu',
+    role, ...(role === 'whole' ? {} : { cutLayer: SPLIT_LAYER }),
   } });
   const tk = performance.now();
   const { header: kh, blobs: firstBlobs } = await c.recv('key', 'keys-held');
@@ -237,6 +312,8 @@ async function session(c, he, first, steps, stateDir, resident, srep) {
   await c.send({ kind: 'ready', session, fields: { keysDigest: resident.digest } });
   log(`ready: keys digest ${resident.digest} (${srep.keysFrom}), ${(he.stats.keyBytes / 2 ** 20).toFixed(1)} MiB of keys resident`);
 
+  if (role === 'stage-a') return stageA(c, he, first, steps, plan, session, f, srep);
+  if (role === 'stage-b') return stageB(c, he, first, steps, plan, session, f, srep, hop);
   const state = new Map();
   try {
     for (let seq = 1; ; seq++) {
@@ -285,6 +362,126 @@ async function session(c, he, first, steps, stateDir, resident, srep) {
   } finally {
     for (const ct of state.values()) he.freeCt(ct);
     srep.peakBufferBytes = he.stats.peakBytes;
+  }
+}
+
+// --- homomorphic split ---
+
+function stepRow(srep, row) {
+  srep.steps.push(row);
+  gate?.step({ step: row.seq - 1, seq: row.seq, kind: row.kind, position: row.position, columns: row.columns, inputDigest: row.inputDigest,
+    outputDigest: row.resultDigest, bytesIn: row.bytesIn, bytesOut: row.resultBytes, computeSeconds: row.computeSeconds,
+    gpuProgramMs: row.gpuProgramMs, dispatches: row.dispatches, layers: row.layers.map((l) => l.name) });
+}
+
+// Stage A: the requester's step ciphertexts in, the carry ciphertexts out to stage B. Holds the KV cache.
+async function stageA(c, he, first, steps, plan, session, f, srep) {
+  const socket = await new Promise((resolve, reject) => {
+    const [host, port] = values.next.split(/:(?=[^:]*$)/);
+    const s = connect(Number(port), host, () => resolve(s));
+    s.once('error', reject);
+  });
+  const link = new Conn(socket, first.protocol);
+  srep.hop = { to: 'stage-b' };
+  const state = new Map();
+  try {
+    await link.send({ kind: 'hop-hello', session, fields: { hopToken: f.hopToken, promptTokens: f.promptTokens, generatedTokens: f.generatedTokens } });
+    await link.recv('hop-ready');
+    for (let seq = 1; ; seq++) {
+      const { header: s, blobs } = await c.recv('prefill', 'decode', 'bye');
+      if (s.kind === 'bye') {
+        await link.send({ kind: 'bye', session });
+        log(`bye after ${seq - 1} steps; forwarded to stage B`);
+        return;
+      }
+      if (s.session !== session || s.seq !== seq || seq > plan.length) throw new Error('step binding mismatch');
+      const entry = steps.get(plan[seq - 1]);
+      if (s.kind !== entry.step.kind || blobs.length !== entry.step.inputs.length) {
+        throw new Error(`unexpected ${s.kind} with ${blobs.length} inputs at step ${seq}`);
+      }
+      await gate?.wait(seq);
+      const ts = performance.now();
+      const inputs = blobs.map((b) => {
+        const ct = he.uploadCt(b, { degree: 1, level: first.q.length - 1 });
+        if (ct.scale !== first.inputScale) throw new Error('input ciphertext does not have the pinned scale');
+        return ct;
+      });
+      const overlap = values.timing === 'overlap';
+      const run = await runStep(he, entry.program, entry.step, entry.blobBuf, inputs, state,
+        { timeLayers: !overlap, flushEvery: overlap ? 256 : 0, part: 'a', split: entry.split });
+      // The hop carries ciphertexts only; their scale field is not used by stage B's program and is sent as 0.
+      const carry = [];
+      for (const ct of run.carry) carry.push(Buffer.from(await he.readCt(ct, 0)));
+      const compute = (performance.now() - ts) / 1000;
+      for (const x of [...inputs, ...run.carry]) he.freeCt(x);
+      const bytesOut = carry.reduce((a, b) => a + b.length, 0);
+      await link.send({ kind: 'hop', session, seq, fields: { kind: s.kind, position: entry.step.position, stageASeconds: compute,
+        carry: entry.split.carry.map((x) => ({ deg: x.deg, level: x.level })) } }, ...carry);
+      stepRow(srep, { seq, kind: s.kind, position: entry.step.position, columns: blobs.length, computeSeconds: compute, gpuProgramMs: run.ms,
+        hostMs: run.hostMs, gpuWaitMs: run.gpuWaitMs, dispatches: run.dispatches, kvEntries: state.size, liveBufferBytes: he.stats.liveBytes,
+        layers: run.layers, inputDigest: digest(...blobs), bytesIn: blobs.reduce((a, b) => a + b.length, 0),
+        resultDigest: digest(...carry), resultBytes: bytesOut, carryLevels: entry.split.carry.map((x) => x.level) });
+      log(`step ${seq} (${s.kind}, position ${entry.step.position}) stage A: ${compute.toFixed(3)} s, program ${run.ms.toFixed(1)} ms, `
+        + `${run.dispatches} dispatches, ${bytesOut} bytes to stage B, KV entries ${state.size}`);
+    }
+  } finally {
+    for (const ct of state.values()) he.freeCt(ct);
+    srep.peakBufferBytes = he.stats.peakBytes;
+    srep.hop.bytesSent = link.sent;
+    srep.hop.bytesReceived = link.received;
+    socket.destroy();
+  }
+}
+
+// Stage B: the carry ciphertexts in from stage A, the result ciphertext out to the requester. Holds no session state.
+async function stageB(c, he, first, steps, plan, session, f, srep, hop) {
+  const socket = await hop.next();
+  const link = new Conn(socket, first.protocol);
+  srep.hop = { from: 'stage-a' };
+  try {
+    const { header: hh } = await link.recv('hop-hello');
+    const hf = hh.fields ?? {};
+    if (hh.session !== session || hf.hopToken !== f.hopToken || hf.promptTokens !== f.promptTokens || hf.generatedTokens !== f.generatedTokens) {
+      throw new Error('the hop link is not bound to this session');
+    }
+    await link.send({ kind: 'hop-ready', session });
+    for (let seq = 1; ; seq++) {
+      const { header: s, blobs } = await link.recv('hop', 'bye');
+      if (s.kind === 'bye') {
+        log(`bye after ${seq - 1} steps`);
+        return;
+      }
+      if (s.session !== session || s.seq !== seq || seq > plan.length) throw new Error('hop binding mismatch');
+      const entry = steps.get(plan[seq - 1]);
+      const carryShape = entry.split.carry;
+      if (s.fields?.kind !== entry.step.kind || blobs.length !== carryShape.length) throw new Error(`unexpected hop at step ${seq}`);
+      await gate?.wait(seq);
+      const ts = performance.now();
+      const inputs = blobs.map((b, i) => he.uploadCt(b, { degree: carryShape[i].deg, level: carryShape[i].level }));
+      const overlap = values.timing === 'overlap';
+      const run = await runStep(he, entry.program, entry.step, entry.blobBuf, inputs, null,
+        { timeLayers: !overlap, flushEvery: overlap ? 256 : 0, part: 'b', split: entry.split });
+      const out = Buffer.from(await he.readCt(run.output, entry.step.outputScale));
+      const compute = (performance.now() - ts) / 1000;
+      for (const x of inputs) he.freeCt(x);
+      he.freeCt(run.output);
+      const stageASeconds = Number(s.fields?.stageASeconds) || 0;
+      const hopBytes = blobs.reduce((a, b) => a + b.length, 0);
+      await c.send({ kind: 'result', session, seq, fields: {
+        computeSeconds: compute, stageASeconds, hopBytes, outputLevel: entry.step.outputLevel, position: entry.step.position, role,
+      } }, out);
+      stepRow(srep, { seq, kind: entry.step.kind, position: entry.step.position, columns: entry.step.kind === 'prefill' ? f.promptTokens : 1,
+        computeSeconds: compute, gpuProgramMs: run.ms, hostMs: run.hostMs, gpuWaitMs: run.gpuWaitMs, dispatches: run.dispatches,
+        liveBufferBytes: he.stats.liveBytes, layers: run.layers, inputDigest: digest(...blobs), bytesIn: hopBytes,
+        resultDigest: digest(out), resultBytes: out.length });
+      log(`step ${seq} (${entry.step.kind}, position ${entry.step.position}) stage B: ${compute.toFixed(3)} s, program ${run.ms.toFixed(1)} ms, `
+        + `${run.dispatches} dispatches, ${hopBytes} bytes from stage A`);
+    }
+  } finally {
+    srep.peakBufferBytes = he.stats.peakBytes;
+    srep.hop.bytesSent = link.sent;
+    srep.hop.bytesReceived = link.received;
+    socket.destroy();
   }
 }
 

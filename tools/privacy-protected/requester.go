@@ -5,6 +5,7 @@ package main
 // It answers no evaluator request. A route whose results disagree is closed without decrypting anything.
 
 import (
+	"bufio"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
@@ -15,6 +16,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -48,6 +50,8 @@ type stepReport struct {
 	RoundTripSeconds float64   `json:"roundTripSeconds"`
 	EvaluatorSeconds []float64 `json:"evaluatorReportedComputeSeconds"`
 	DownloadBytes    int64     `json:"downloadBytesPerEvaluator"`
+	StageASeconds    float64   `json:"stageASeconds,omitempty"`
+	HopBytes         int64     `json:"hopBytes,omitempty"`
 	VerifySeconds    float64   `json:"verifySeconds"`
 	DecryptSeconds   float64   `json:"decryptSeconds"`
 	OutputLevel      any       `json:"outputLevel"`
@@ -81,12 +85,25 @@ type requesterReport struct {
 	TimeToFirstTokenSeconds  float64          `json:"timeToFirstTokenSeconds"`
 	SessionBytes             []map[string]any `json:"sessionBytesPerEvaluator"`
 	PeakRSSBytes             int64            `json:"requesterPeakRSSBytes"`
+	Split                    *splitReport     `json:"split,omitempty"`
+	StoppedAfter             int              `json:"stoppedAfter,omitempty"`
 	TotalSeconds             float64          `json:"totalSeconds"`
 	Outcome                  string           `json:"outcome"`
 	Error                    string           `json:"error,omitempty"`
 }
 
+// splitReport: the homomorphic split. Stage A gets every input ciphertext; stage B returns every result; the carry
+// ciphertexts go from A to B directly. The requester never decrypts or re-encrypts between the stages.
+type splitReport struct {
+	CutLayer           string `json:"cutLayer"`
+	Stages             int    `json:"stages"`
+	RequesterRefreshes int    `json:"requesterRefreshes"`
+	RefreshReason      string `json:"refreshReason"`
+}
+
 type requester struct {
+	split  bool
+	events func(map[string]any)
 	prof   profile
 	params ckks.Parameters
 	sk     *rlwe.SecretKey
@@ -149,11 +166,20 @@ func (r *requester) step(session string, seq int, kind string, toks []int) (int,
 	}
 	sr.EncryptSeconds = time.Since(t0).Seconds()
 	t1 := time.Now()
-	if err := r.broadcast(header{Kind: kind, Session: session, Seq: seq}, blobs...); err != nil {
-		return 0, err
+	senders, receivers := r.peers, r.peers
+	if r.split {
+		// Inputs go to stage A only; the result comes from stage B only.
+		// Whole-model reference evaluators (peers[2:]) get the inputs and return results too.
+		senders = append([]*conn{r.peers[0]}, r.peers[2:]...)
+		receivers = r.peers[1:]
+	}
+	for _, p := range senders {
+		if err := p.send(header{Kind: kind, Session: session, Seq: seq}, blobs...); err != nil {
+			return 0, err
+		}
 	}
 	var results [][]byte
-	for _, p := range r.peers {
+	for _, p := range receivers {
 		h, b, err := p.recv("result")
 		if err != nil {
 			r.rep.Steps = append(r.rep.Steps, sr)
@@ -163,6 +189,10 @@ func (r *requester) step(session string, seq int, kind string, toks []int) (int,
 			return 0, fmt.Errorf("result is not bound to step %d of this session", seq)
 		}
 		sr.EvaluatorSeconds = append(sr.EvaluatorSeconds, toFloat(h.Fields["computeSeconds"]))
+		if r.split && p == r.peers[1] {
+			sr.StageASeconds = toFloat(h.Fields["stageASeconds"])
+			sr.HopBytes = int64(toFloat(h.Fields["hopBytes"]))
+		}
 		sr.OutputLevel = h.Fields["outputLevel"]
 		sr.DownloadBytes = int64(len(b[0]))
 		results = append(results, b[0])
@@ -213,12 +243,17 @@ type requesterOptions struct {
 	generate      int
 	stateDir      string // key epoch store; empty: a fresh key for this session only
 	keyTTL        time.Duration
+	split         bool // evaluators[0] is stage A, evaluators[1] stage B
+	events        bool // JSON events on stdout and `stop` on stdin, for a supervising process
 }
 
 func requesterMain(args []string) error {
 	fs := flag.NewFlagSet("requester", flag.ExitOnError)
 	var evals multiFlag
 	fs.Var(&evals, "evaluator", "evaluator address (repeat for the dual-evaluation integrity check)")
+	stageA := fs.String("stage-a", "", "homomorphic split: stage A's address (it receives the inputs and holds the KV cache)")
+	stageB := fs.String("stage-b", "", "homomorphic split: stage B's address (it returns the results)")
+	events := fs.Bool("events", false, "write one JSON event per line on stdout (ready, token, end, failed) and stop on a `stop` line on stdin")
 	profileID := fs.String("profile", "research-n16", "pinned profile")
 	modelID := fs.String("model-identity", "", "pinned model identity (sha256:...)")
 	prompt := fs.String("prompt", "ace", "prompt text")
@@ -233,14 +268,28 @@ func requesterMain(args []string) error {
 	if err != nil {
 		return err
 	}
+	split := *stageA != "" || *stageB != ""
+	if split {
+		if *stageA == "" || *stageB == "" {
+			return fmt.Errorf("a split needs --stage-a and --stage-b")
+		}
+		// Any --evaluator given with a split is a whole-model reference for the dual check.
+		evals = append(multiFlag{*stageA, *stageB}, evals...)
+	}
 	rep := &requesterReport{Schema: "doppler.protected-requester-report/v0", Protocol: protocolID, Profile: prof.ID,
 		ProfileDigest: prof.digest(), Insecure: prof.Insecure, Model: *modelID, Evaluators: len(evals), Prompt: *prompt}
 	rep.Integrity = "none (single evaluator): results decrypted unverified"
-	if len(evals) >= 2 {
+	if len(evals) >= 2 && !split {
 		rep.Integrity = "dual-evaluation: byte-identical results required before decryption"
 	}
+	if split {
+		rep.Integrity = "none (homomorphic split, one evaluator per stage): results decrypted unverified"
+		if len(evals) > 2 {
+			rep.Integrity = "dual-evaluation: the split's result must equal a whole-model evaluator's byte for byte before decryption"
+		}
+	}
 	runErr := runRequester(requesterOptions{prof: prof, allowInsecure: *allowInsecure, evaluators: evals, modelID: *modelID,
-		prompt: *prompt, generate: *generate, stateDir: *stateDir, keyTTL: *keyTTL}, rep, start)
+		prompt: *prompt, generate: *generate, stateDir: *stateDir, keyTTL: *keyTTL, split: split, events: *events}, rep, start)
 	rep.PeakRSSBytes, rep.TotalSeconds = peakRSSBytes(), time.Since(start).Seconds()
 	rep.Outcome = "completed"
 	if runErr != nil {
@@ -250,6 +299,16 @@ func requesterMain(args []string) error {
 	raw, _ := json.MarshalIndent(rep, "", " ")
 	if err := os.WriteFile(*out, raw, 0o600); err != nil {
 		return err
+	}
+	if *events {
+		e := map[string]any{"event": "end", "outputTokens": len(rep.Generated), "stopReason": "max-tokens", "requesterPeakRss": rep.PeakRSSBytes}
+		if rep.StoppedAfter > 0 {
+			e["stopReason"] = "requester-stop"
+		}
+		if runErr != nil {
+			e = map[string]any{"event": "failed", "error": runErr.Error()}
+		}
+		json.NewEncoder(os.Stdout).Encode(e)
 	}
 	return runErr
 }
@@ -325,7 +384,29 @@ func runRequester(o requesterOptions, rep *requesterReport, start time.Time) err
 	if err != nil {
 		return err
 	}
-	r := &requester{prof: o.prof, params: params, ecd: ckks.NewEncoder(params), rep: rep}
+	r := &requester{prof: o.prof, params: params, ecd: ckks.NewEncoder(params), rep: rep, split: o.split, events: func(map[string]any) {}}
+	var stop atomic.Bool
+	if o.events {
+		out := json.NewEncoder(os.Stdout)
+		r.events = func(e map[string]any) { out.Encode(e) }
+		go func() {
+			for in := bufio.NewScanner(os.Stdin); in.Scan(); {
+				if strings.TrimSpace(in.Text()) == "stop" {
+					stop.Store(true)
+				}
+			}
+		}()
+	}
+	hopToken := ""
+	roles := []string{""}
+	if o.split {
+		var ht [16]byte
+		rand.Read(ht[:])
+		hopToken = hex.EncodeToString(ht[:])
+		roles = []string{"stage-a", "stage-b"}
+		rep.Split = &splitReport{CutLayer: "ln2", Stages: 2, RequesterRefreshes: 0,
+			RefreshReason: "none needed: the whole block fits the 36-level budget (35 levels used), so no ciphertext is refreshed or bootstrapped between the stages"}
+	}
 	defer func() {
 		for i, p := range r.peers {
 			rep.SessionBytes = append(rep.SessionBytes, map[string]any{"evaluator": i + 1, "sent": p.sent, "received": p.received})
@@ -351,9 +432,12 @@ func runRequester(o requesterOptions, rep *requesterReport, start time.Time) err
 		}
 		p := &conn{c: nc, deadline: 30 * time.Minute}
 		r.peers = append(r.peers, p)
-		if err := p.send(header{Kind: "hello", Session: session, Fields: map[string]any{
-			"profile": o.prof.ID, "model": o.modelID, "promptTokens": len(toks), "generatedTokens": o.generate,
-			"keyEpoch": ep.Epoch, "keyEpochExpires": ep.Expires}}); err != nil {
+		fields := map[string]any{"profile": o.prof.ID, "model": o.modelID, "promptTokens": len(toks), "generatedTokens": o.generate,
+			"keyEpoch": ep.Epoch, "keyEpochExpires": ep.Expires}
+		if o.split && i < 2 {
+			fields["role"], fields["cutLayer"], fields["hopToken"] = roles[i], "ln2", hopToken
+		}
+		if err := p.send(header{Kind: "hello", Session: session, Fields: fields}); err != nil {
 			return err
 		}
 		h, _, err := p.recv("manifest")
@@ -363,7 +447,7 @@ func runRequester(o requesterOptions, rep *requesterReport, start time.Time) err
 		f := h.Fields
 		if h.Session != session || f["profile"] != o.prof.ID || f["profileDigest"] != o.prof.digest() || f["model"] != o.modelID ||
 			fmt.Sprint(f["rotations"]) != fmt.Sprint(rotationSteps()) || toFloat(f["inputLevel"]) != float64(params.MaxLevel()) ||
-			toFloat(f["logSlots"]) != logSlots {
+			toFloat(f["logSlots"]) != logSlots || (o.split && i < 2 && (f["role"] != roles[i] || f["cutLayer"] != "ln2")) {
 			return fmt.Errorf("evaluator %d does not match the pinned profile, model or layout; nothing uploaded", i+1)
 		}
 		allHold = allHold && f["heldKeysDigest"] == ep.KeysDigest
@@ -428,18 +512,42 @@ func runRequester(o requesterOptions, rep *requesterReport, start time.Time) err
 	}
 	rep.KeygenSeconds = genSecs
 	rep.KeyUploadSeconds = time.Since(t0).Seconds() - genSecs
-	// Fixed public schedule: one prefill message with every prompt token, then generate-1 single-token steps.
+	r.events(map[string]any{"event": "ready", "promptTokens": len(toks), "keysUploaded": !allHold, "keyBytes": rep.KeyBytes})
+	emit := func(seq, tok int) {
+		sr := rep.Steps[len(rep.Steps)-1]
+		var stageB float64
+		if len(sr.EvaluatorSeconds) > 0 {
+			stageB = sr.EvaluatorSeconds[0]
+		}
+		done := seq == o.generate
+		reason := any(nil)
+		if done {
+			reason = "max-tokens"
+		}
+		r.events(map[string]any{"event": "token", "step": seq - 1, "tokenId": tok, "delta": string(alphabet[tok]), "done": done, "stopReason": reason,
+			"inputTokens": sr.InputTokens, "wallMs": (sr.EncryptSeconds + sr.RoundTripSeconds + sr.VerifySeconds + sr.DecryptSeconds) * 1000,
+			"roundTripMs": sr.RoundTripSeconds * 1000, "stageAMs": sr.StageASeconds * 1000, "stageBMs": stageB * 1000,
+			"up": sr.UploadBytes, "down": sr.DownloadBytes, "hopBytes": sr.HopBytes, "encryptMs": sr.EncryptSeconds * 1000, "decryptMs": sr.DecryptSeconds * 1000})
+	}
+	// Fixed public schedule: one prefill message with every prompt token, then generate-1 single-token steps. A
+	// supervisor's stop ends the schedule early with bye (the evaluators then see a shorter session).
 	tok, err := r.step(session, 1, "prefill", toks)
 	if err != nil {
 		return err
 	}
 	rep.TimeToFirstTokenSeconds = time.Since(start).Seconds()
 	gen := []int{tok}
+	emit(1, tok)
 	for seq := 2; seq <= o.generate; seq++ {
+		if stop.Load() {
+			rep.StoppedAfter = len(gen)
+			break
+		}
 		if tok, err = r.step(session, seq, "decode", []int{tok}); err != nil {
 			return err
 		}
 		gen = append(gen, tok)
+		emit(seq, tok)
 	}
 	if err := r.broadcast(header{Kind: "bye", Session: session}); err != nil {
 		return err

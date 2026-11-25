@@ -29,34 +29,43 @@ export function uploadProgram(he, program, blob) {
 // Runs one step. `inputs` are the step's one-hot registers; `state` holds the session's KV cache and receives this
 // step's new entries. With `timeLayers`, the queue is drained at every layer boundary, so each layer's time splits
 // into host encoding and GPU wait.
+//
+// Homomorphic split (split.js): `part: 'a'` runs the operations before `split.cut` on the step's inputs and KV cache
+// and returns the carry registers as `carry` (stage A keeps the cache); `part: 'b'` runs the rest with `inputs` being
+// the carry ciphertexts, in `split.carry` order, and reads no session state.
 export async function runStep(he, program, step, blobBuf, inputs, state,
-  { timeLayers = true, flushEvery = 0, now = () => performance.now() } = {}) {
+  { timeLayers = true, flushEvery = 0, now = () => performance.now(), part = 'whole', split = null } = {}) {
   he.flushEvery = flushEvery;
-  if (inputs.length !== step.inputs.length) throw new Error(`step takes ${step.inputs.length} inputs`);
+  if (part !== 'whole' && !split) throw new Error(`part ${part} needs a split`);
+  const inputIds = part === 'b' ? split.carry.map((c) => c.id) : step.inputs;
+  const [opFirst, opEnd] = part === 'a' ? [step.opFirst, split.cut] : part === 'b' ? [split.cut, step.opEnd] : [step.opFirst, step.opEnd];
+  if (inputs.length !== inputIds.length) throw new Error(`this part of the step takes ${inputIds.length} inputs`);
   const regs = new Map();
   const owned = new Set();
-  step.inputs.forEach((id, i) => {
+  inputIds.forEach((id, i) => {
     const r = program.regs[id];
     if (inputs[i].deg !== r.deg || inputs[i].level !== r.level) throw new Error(`input ${i} has the wrong shape`);
     regs.set(id, inputs[i]);
     owned.add(id);
   });
-  for (const s of step.stateIn ?? []) {
+  for (const s of part === 'b' ? [] : step.stateIn ?? []) {
     const ct = state.get(s.name);
     if (!ct) throw new Error(`session state has no ${s.name}`);
     regs.set(s.reg, ct);
     owned.add(s.reg);
   }
-  const keep = new Set((step.stateOut ?? []).map((s) => s.reg));
-  const layerAt = new Map((step.layers ?? []).map((layer) => [layer.first, layer]));
-  const layerEnd = new Map((step.layers ?? []).map((layer) => [layer.last, layer]));
+  const keep = new Set(part === 'b' ? [] : (step.stateOut ?? []).map((s) => s.reg));
+  if (part === 'a') split.carry.forEach((c) => keep.add(c.id));
+  const inRange = (layer) => layer.first >= opFirst && layer.last < opEnd;
+  const layerAt = new Map((step.layers ?? []).filter(inRange).map((layer) => [layer.first, layer]));
+  const layerEnd = new Map((step.layers ?? []).filter(inRange).map((layer) => [layer.last, layer]));
   const layers = [];
   let open = null;
   const t0 = now();
   const d0 = he.stats.dispatches;
   const h0 = he.stats.hostMs;
   const w0 = he.stats.waitMs;
-  for (let i = step.opFirst; i < step.opEnd; i++) {
+  for (let i = opFirst; i < opEnd; i++) {
     if (timeLayers && layerAt.has(i)) {
       await he.sync();
       open = { name: layerAt.get(i).name, start: now(), dispatches: he.stats.dispatches, host: he.stats.hostMs, wait: he.stats.waitMs };
@@ -80,7 +89,12 @@ export async function runStep(he, program, step, blobBuf, inputs, state,
     }
   }
   await he.sync();
-  for (const s of step.stateOut ?? []) state.set(s.name, regs.get(s.reg));
-  return { output: regs.get(step.output), ms: now() - t0, dispatches: he.stats.dispatches - d0,
-    hostMs: he.stats.hostMs - h0, gpuWaitMs: he.stats.waitMs - w0, layers };
+  if (part !== 'b') for (const s of step.stateOut ?? []) state.set(s.name, regs.get(s.reg));
+  const timing = { ms: now() - t0, dispatches: he.stats.dispatches - d0, hostMs: he.stats.hostMs - h0, gpuWaitMs: he.stats.waitMs - w0, layers };
+  if (part === 'a') {
+    const carry = split.carry.map((c) => regs.get(c.id));
+    if (carry.some((ct) => !ct)) throw new Error('a carry register was not computed before the cut');
+    return { carry, ...timing };
+  }
+  return { output: regs.get(step.output), ...timing };
 }

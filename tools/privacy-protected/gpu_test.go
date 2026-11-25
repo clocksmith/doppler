@@ -32,7 +32,9 @@ func TestWebGPUSourceBoundaries(t *testing.T) {
 	}
 	ev, _ := os.ReadFile("webgpu/evaluator.js")
 	got := regexp.MustCompile(`recv\(('[a-z-]+'(, )?)+\)`).FindAllString(string(ev), -1)
-	if strings.Join(got, ";") != `recv('hello');recv('key', 'keys-held');recv('key');recv('prefill', 'decode', 'bye')` {
+	want := `recv('hello');recv('key', 'keys-held');recv('key');recv('prefill', 'decode', 'bye');` +
+		`recv('hop-ready');recv('prefill', 'decode', 'bye');recv('hop-hello');recv('hop', 'bye')`
+	if strings.Join(got, ";") != want {
 		t.Errorf("WebGPU evaluator accepts %v", got)
 	}
 }
@@ -159,6 +161,60 @@ func TestWebGPUAndCPUEvaluatorsAgree(t *testing.T) {
 	if err != nil {
 		raw, _ := os.ReadFile(report)
 		t.Fatalf("requester: %v %s %s", err, out, raw)
+	}
+	if out, err := exec.Command(bin, "compare", "--report", report).CombinedOutput(); err != nil {
+		t.Fatalf("compare: %v %s", err, out)
+	}
+}
+
+// The homomorphic split end to end on the development ring: stage A (embedding and attention, holding the KV cache)
+// and stage B (MLP, final norm and head) as two WebGPU evaluators, with the carry ciphertext going from A to B
+// directly, and a CPU (Lattigo) whole-model evaluator as the dual check. The requester decrypts only if the split's
+// result equals the CPU evaluator's byte for byte at every step. Needs a GPU; set DOPPLER_PROTECTED_WEBGPU=1.
+func TestWebGPUSplitEqualsCPUEvaluator(t *testing.T) {
+	if os.Getenv("DOPPLER_PROTECTED_WEBGPU") != "1" {
+		t.Skip("set DOPPLER_PROTECTED_WEBGPU=1 to run the WebGPU process test")
+	}
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "pp")
+	if out, err := exec.Command("go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
+		t.Fatalf("build: %v %s", err, out)
+	}
+	prog := filepath.Join(dir, "prog")
+	if out, err := exec.Command(bin, "gpu-compile", "--profile", "dev-insecure-n12-u32", "--positions", "3", "--decode-through", "7", "--out", prog).CombinedOutput(); err != nil {
+		t.Fatalf("compile: %v %s", err, out)
+	}
+	_, id, _ := loadModel("tiny-model.json")
+	start := func(name string, args ...string) string {
+		ready := filepath.Join(dir, "ready-"+name)
+		cmd := exec.Command(args[0], append(args[1:], "--ready-file", ready)...)
+		cmd.Stderr = os.Stderr
+		if err := cmd.Start(); err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { cmd.Process.Kill(); cmd.Wait() })
+		for deadline := time.Now().Add(60 * time.Second); ; time.Sleep(100 * time.Millisecond) {
+			if b, err := os.ReadFile(ready); err == nil && len(b) > 0 {
+				return string(b)
+			}
+			if time.Now().After(deadline) {
+				t.Fatalf("%s did not start", name)
+			}
+		}
+	}
+	hop := "127.0.0.1:" + fmt.Sprint(20000+time.Now().Nanosecond()%20000)
+	bAddr := start("b", "node", "webgpu/evaluator.js", "--program", prog, "--role", "stage-b", "--hop-listen", hop, "--report", filepath.Join(dir, "b.json"))
+	aAddr := start("a", "node", "webgpu/evaluator.js", "--program", prog, "--role", "stage-a", "--next", hop, "--report", filepath.Join(dir, "a.json"))
+	cpuAddr := start("cpu", bin, "evaluator", "--model", "tiny-model.json")
+	report := filepath.Join(dir, "report.json")
+	out, err := exec.Command(bin, "requester", "--profile", "dev-insecure-n12-u32", "--allow-insecure-dev", "--model-identity", id,
+		"--prompt", "hkn", "--generate", "6", "--stage-a", aAddr, "--stage-b", bAddr, "--evaluator", cpuAddr, "--report", report).CombinedOutput()
+	raw, _ := os.ReadFile(report)
+	if err != nil {
+		t.Fatalf("requester: %v %s %s", err, out, raw)
+	}
+	if !strings.Contains(string(raw), `"requesterRefreshes": 0`) || !strings.Contains(string(raw), `"hopBytes"`) {
+		t.Fatalf("report lacks the split record: %s", raw)
 	}
 	if out, err := exec.Command(bin, "compare", "--report", report).CombinedOutput(); err != nil {
 		t.Fatalf("compare: %v %s", err, out)

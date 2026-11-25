@@ -7,6 +7,8 @@ export const MAX_HEADER = 64 << 10;
 export const KIND_CEILING = {
   hello: 0, manifest: 0, key: 1 << 30, 'keys-held': 0, ready: 0, prefill: 8 * (64 << 20), decode: 8 * (64 << 20),
   result: 32 << 20, bye: 0,
+  // Homomorphic split: the stage A -> stage B link (split.js). `hop` carries the carry ciphertexts of one step.
+  'hop-hello': 0, 'hop-ready': 0, hop: 64 << 20,
 };
 
 export class Refusal extends Error {
