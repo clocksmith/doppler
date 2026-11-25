@@ -32,7 +32,8 @@ export function uploadProgram(he, program, blob) {
 
 // Runs the program on GPU registers `inputs`; returns the output register and per-layer timings. With `timeLayers`,
 // the queue is drained at every layer boundary, so each layer's wall time is GPU execution plus its encoding.
-export async function runProgram(he, program, blobBuf, inputs, { timeLayers = true, now = () => performance.now() } = {}) {
+export async function runProgram(he, program, blobBuf, inputs, { timeLayers = true, flushEvery = 0, now = () => performance.now() } = {}) {
+  he.flushEvery = flushEvery;
   if (inputs.length !== program.inputs.length) throw new Error(`program takes ${program.inputs.length} inputs`);
   const regs = new Array(program.regs.length).fill(null);
   program.inputs.forEach((id, i) => {
@@ -49,11 +50,13 @@ export async function runProgram(he, program, blobBuf, inputs, { timeLayers = tr
   for (let i = 0; i < program.ops.length; i++) {
     if (timeLayers && layerAt.has(i)) {
       await he.sync();
-      open = { name: layerAt.get(i).name, start: now(), dispatches: he.stats.dispatches };
+      open = { name: layerAt.get(i).name, start: now(), dispatches: he.stats.dispatches, host: he.stats.hostMs, wait: he.stats.waitMs };
     }
     const op = program.ops[i];
+    const te = now();
     const out = he.allocCt(op.deg, outLevel(op));
     he.execOp(op, op.a >= 0 ? regs[op.a] : null, op.b >= 0 ? regs[op.b] : null, out, blobBuf);
+    he.stats.hostMs += now() - te;
     regs[op.out] = out;
     for (const f of op.free ?? []) {
       if (regs[f] && !program.inputs.includes(f)) he.freeCt(regs[f]);
@@ -61,7 +64,8 @@ export async function runProgram(he, program, blobBuf, inputs, { timeLayers = tr
     }
     if (timeLayers && open && layerEnd.has(i)) {
       await he.sync();
-      layers.push({ name: open.name, ms: now() - open.start, dispatches: he.stats.dispatches - open.dispatches });
+      layers.push({ name: open.name, ms: now() - open.start, dispatches: he.stats.dispatches - open.dispatches,
+        hostMs: he.stats.hostMs - open.host, gpuWaitMs: he.stats.waitMs - open.wait });
       open = null;
     }
   }

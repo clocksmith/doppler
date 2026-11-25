@@ -70,7 +70,7 @@ export class HeDevice {
     }
     this.qCount = this.q.length;
     this.pCount = this.p.length;
-    this.stats = { dispatches: 0, submits: 0, liveBytes: 0, peakBytes: 0, keyBytes: 0, uploadBytes: 0, readbackBytes: 0 };
+    this.stats = { dispatches: 0, submits: 0, hostMs: 0, waitMs: 0, liveBytes: 0, peakBytes: 0, keyBytes: 0, uploadBytes: 0, readbackBytes: 0 };
     this.bufferIds = new WeakMap();
     this.nextBufferId = 1;
     this.pool = new Map();
@@ -79,6 +79,7 @@ export class HeDevice {
     this.arenaWords = new Uint32Array(ARENA_SLOTS * (SLOT_BYTES / 4));
     this.arenaUsed = 0;
     this.keys = { relin: null, galois: new Map() };
+    this.flushEvery = 0; // 0: submit when the uniform arena is full or at sync(); n: also every n dispatches
     this.permutations = new Map();
     this.#createPipelines();
     this.#uploadTables(params.psi);
@@ -224,6 +225,7 @@ export class HeDevice {
     const bg = this.#bindGroup(bind.a ?? this.dummy, bind.b ?? this.dummy, bind.o, bind.c ?? this.dummy, bind.tw ?? this.dummy);
     this.commands.push({ pipeline: this.pipelines[entry], bg, offset: slot * SLOT_BYTES, x, y });
     this.stats.dispatches++;
+    if (this.flushEvery && this.commands.length >= this.flushEvery) this.flush();
   }
 
   clear(buffer, offsetWords, words) {
@@ -253,9 +255,15 @@ export class HeDevice {
     this.arenaUsed = 0;
   }
 
+  // Drains the queue. hostMs accumulates time spent encoding and submitting (in execOp and flush); waitMs the time
+  // spent waiting for the GPU after the last submit.
   async sync() {
+    const t0 = performance.now();
     this.flush();
+    const t1 = performance.now();
     await this.device.queue.onSubmittedWorkDone();
+    this.stats.hostMs += t1 - t0;
+    this.stats.waitMs += performance.now() - t1;
   }
 
   // --- primitives ---

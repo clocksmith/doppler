@@ -1,0 +1,18 @@
+# node tools/privacy-protected/webgpu/test-vectors.js --vectors <dir>   (vectors from `pp gpu-vectors`, seed 1)
+# Each case is an rnsOp at levels 36, 27, 26, 25, 13, 3, 1 (add, sub, smul, sadd, smac, pmul, padd, tensor, relin,
+# rescale x2, rotate by 1/2/4/8/16/32) plus NTT and INTT(NTT) under all 50 moduli; all compared byte for byte.
+
+## mac-host (Apple M3, Metal), dev-insecure-n12-u32
+adapter webgpu {"vendor":"apple","architecture":"metal-3","device":"apple-m3","description":"Metal driver on macOS Version 26.6.2 (Build 25G83)"} profile dev-insecure-n12-u32 N=2^12
+ntt: 50 moduli checked
+121 passed, 0 failed; dispatches 2286, peak GPU buffers 73.2 MiB
+
+## mac-host (Apple M3, Metal), research-n16-u32
+adapter webgpu {"vendor":"apple","architecture":"metal-3","device":"apple-m3","description":"Metal driver on macOS Version 26.6.2 (Build 25G83)"} profile research-n16-u32 N=2^16
+ntt: 50 moduli checked
+121 passed, 0 failed; dispatches 4338, peak GPU buffers 1170.6 MiB
+
+## arm64-host (Jetson AGX Orin GPU, Vulkan), dev-insecure-n12-u32
+adapter webgpu {"vendor":"nvidia","architecture":"ampere","device":"nvidia-tegra-orin-nvgpu-","description":"NVIDIA: 540.4.0 540.4.0.0"} profile dev-insecure-n12-u32 N=2^12
+ntt: 50 moduli checked
+121 passed, 0 failed; dispatches 2286, peak GPU buffers 73.2 MiB

@@ -3,7 +3,7 @@
 # dual-evaluation check. Run from tools/privacy-protected after `go build -o "$PP" .` and `pp gpu-compile`.
 #
 #   PP=/path/to/pp PROGRAM=/path/to/prog-base OUT=/path/to/dir [GPU_EVALUATOR=host:port] [DUAL=1] [MISBEHAVE=...] \
-#     [PROMPT=hkn] [PROFILE=research-n16-u32] sh webgpu/run-one-token.sh
+#     [PROMPT=hkn] [PROFILE=research-n16-u32] [TIMING=per-layer|overlap] sh webgpu/run-one-token.sh
 #
 # With GPU_EVALUATOR set, no local WebGPU evaluator is started (it runs on another machine). With DUAL=1 a local CPU
 # evaluator (Lattigo) is the second evaluator, and the requester decrypts only if both results are byte-identical.
@@ -19,7 +19,7 @@ trap 'for p in $pids; do kill "$p" 2>/dev/null || true; done' EXIT
 if [ -z "${GPU_EVALUATOR:-}" ]; then
   : "${PROGRAM:?}"
   node webgpu/evaluator.js --program "$PROGRAM" --ready-file "$OUT/ready-gpu" --report "$OUT/gpu-evaluator.json" \
-    --misbehave "$MISBEHAVE" 2>"$OUT/gpu-evaluator.log" &
+    --misbehave "$MISBEHAVE" --timing "${TIMING:-per-layer}" 2>"$OUT/gpu-evaluator.log" &
   pids="$pids $!"
   until [ -s "$OUT/ready-gpu" ]; do sleep 0.2; done
   GPU_EVALUATOR=$(cat "$OUT/ready-gpu")

@@ -1,0 +1,98 @@
+{
+ "schema": "doppler.protected-requester-report/v0",
+ "protocol": "doppler-protected-ckks-tiny/v0-research",
+ "profile": "research-n16-u32",
+ "profileDigest": "sha256:df0090fb4b58f16bc67a6846f5a8a415682b0b4792e419e34177d3a54f37d963",
+ "insecureDevelopmentProfile": false,
+ "model": "sha256:90d4efb8e2e05df08082a2dc1a2d8ad49479e1750467f70ee2b0759d3578ae92",
+ "integrity": "dual-evaluation: byte-identical results required before decryption",
+ "evaluators": 2,
+ "prompt": "hkn",
+ "promptTokens": [
+  7,
+  10,
+  13
+ ],
+ "generatedTokens": [
+  16
+ ],
+ "generatedText": "q",
+ "keygenSeconds": 1.9251815010000002,
+ "evaluationKeyBytesPerEvaluator": 550502624,
+ "keyUploadSeconds": 1854.722796708,
+ "steps": [
+  {
+   "seq": 1,
+   "kind": "prefill",
+   "inputTokens": 3,
+   "encryptSeconds": 0.402386875,
+   "uploadBytesPerEvaluator": 58196064,
+   "roundTripSeconds": 89.881980917,
+   "evaluatorReportedComputeSeconds": [
+    3.67558822600008,
+    82.949491042
+   ],
+   "downloadBytesPerEvaluator": 1048608,
+   "verifySeconds": 0.001397083,
+   "decryptSeconds": 0.002201958,
+   "outputLevel": 1,
+   "token": 16,
+   "logits": [
+    -0.9508009162184239,
+    1.9883507617492322,
+    3.263569199187304,
+    -2.182506967983591,
+    -12.379405527549883,
+    -5.306432959555458,
+    -6.2613554285663255,
+    -1.736014508233783,
+    0.2732711951640217,
+    0.4747856224024009,
+    5.012616805660786,
+    3.6001707554813795,
+    1.9266950451224187,
+    2.475742525571906,
+    5.706628431370316,
+    7.919892059168271,
+    17.55770257725,
+    4.483312143532133,
+    0.19691829038905945,
+    -1.8219842217589217,
+    -2.6547000935517704,
+    4.040438220735749,
+    -9.922970410362295,
+    0.7052940415280834,
+    -7.754831372079114,
+    4.957396022574335,
+    -1.7392792205726888,
+    -1.1687532052013543,
+    -2.1878715653209735,
+    -2.3404561617929036,
+    -6.0796200418361455,
+    -2.6936450370489653
+   ],
+   "resultDigest": "sha256:0271ea50419769a5bca3e196e84a277e0af731fd701cee60860056d00326ea04"
+  }
+ ],
+ "decryptCalls": 1,
+ "keyEpoch": "589206d8f84f6dbb4df7a52786cecd04",
+ "keyEpochExpires": 1795665556,
+ "keyEpochReusedFromStore": false,
+ "evaluationKeysReusedNoUpload": false,
+ "timeToFirstTokenSeconds": 1952.86265625,
+ "sessionBytesPerEvaluator": [
+  {
+   "evaluator": 1,
+   "received": 1049584,
+   "sent": 608700364
+  },
+  {
+   "evaluator": 2,
+   "received": 1049491,
+   "sent": 608700364
+  }
+ ],
+ "requesterPeakRSSBytes": 387923968,
+ "totalSeconds": 1952.862709084,
+ "outcome": "completed"
+}

@@ -27,6 +27,9 @@ const { values } = parseArgs({
     'ready-file': { type: 'string' },
     report: { type: 'string' },
     misbehave: { type: 'string', default: '' },
+    // per-layer: drain the queue at each layer boundary (per-layer host and GPU times); overlap: submit every 256
+    // dispatches so encoding overlaps GPU execution (lowest latency, no per-layer split).
+    timing: { type: 'string', default: 'per-layer' },
   },
 });
 if (!values.program) throw new Error('--program <base> is required');
@@ -125,13 +128,15 @@ async function session(c, he, program, blobBuf) {
       if (ct.scale !== program.inputScale) throw new Error('input ciphertext does not have the pinned scale');
       return ct;
     });
-    const run = await runProgram(he, program, blobBuf, inputs);
+    const overlap = values.timing === 'overlap';
+    const run = await runProgram(he, program, blobBuf, inputs, { timeLayers: !overlap, flushEvery: overlap ? 256 : 0 });
     let out = Buffer.from(await he.readCt(run.output, program.outputScale));
     const compute = (performance.now() - ts) / 1000;
     for (const x of inputs) he.freeCt(x);
     he.freeCt(run.output);
     rep.steps.push({ seq, kind: s.kind, position: program.positions - 1, computeSeconds: compute, gpuProgramMs: run.ms,
-      dispatches: run.dispatches, layers: run.layers, resultDigest: digest(out), resultBytes: out.length });
+      dispatches: run.dispatches, timing: values.timing, hostMs: he.stats.hostMs, gpuWaitMs: he.stats.waitMs, layers: run.layers,
+      resultDigest: digest(out), resultBytes: out.length });
     if (values.misbehave === 'ask-decrypt') {
       log(`misbehave: sending a forged decrypt-request at step ${seq}`);
       await c.send({ kind: 'decrypt-request', session, seq }, blobs[0]);
