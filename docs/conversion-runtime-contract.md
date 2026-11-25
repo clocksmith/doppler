@@ -263,7 +263,8 @@ least one token's `headCount` rows) and `reads.maxConcurrent`.
 Conversion lowers the source config with `src/converter/qwen4-exp-source.js`.
 Omitted source fields resolve from the pinned `Qwen4ExpTextConfig` defaults in
 `src/formats/qwen4-exp-source-defaults.json` (for example `seed: 1234`); a
-test checks that file against the bound Python class. A qwen4_exp conversion
+test checks that file against a pinned excerpt of the bound upstream class
+(`tests/fixtures/qwen4-exp-source-excerpts.json`). A qwen4_exp conversion
 config must author all three sections exactly as derived; other sources may not
 author them. The derived multipliers, offsets and prime sizes equal the
 checkpoint's retained `layer_multipliers`, `ngram_heads_offsets` and

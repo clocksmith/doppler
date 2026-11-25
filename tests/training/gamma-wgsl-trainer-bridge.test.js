@@ -1,22 +1,15 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { serializeLoRASafetensors } from '../../src/experimental/training/export.js';
 import {
+  GammaHandoffRequiredError,
   buildGammaRequest,
-  buildGammaProcessEnv,
   readGammaAdapterTensors,
+  runGammaWgslRequest,
 } from '../../tools/trainers/gamma-wgsl-trainer.js';
-
-const gammaEnv = buildGammaProcessEnv({
-  PYTHONPATH: '/base/site',
-  GAMMA_WGSL_PYTHONPATH: '/overlay/site',
-  KEEP_ME: 'yes',
-});
-assert.equal(gammaEnv.PYTHONPATH, '/overlay/site');
-assert.equal(gammaEnv.KEEP_ME, 'yes');
 
 const sftRequest = buildGammaRequest({
   workload: {
@@ -86,5 +79,27 @@ assert.deepEqual(tensors[0].shape, [3, 2]);
 assert.deepEqual(Array.from(tensors[0].tensor), [1, 4, 2, 5, 3, 6]);
 assert.deepEqual(tensors[1].shape, [2, 4]);
 assert.deepEqual(Array.from(tensors[1].tensor), [7, 9, 11, 13, 8, 10, 12, 14]);
+
+// Doppler does not run Gamma's trainer: the first call writes the request and
+// asks for an external run; a matching response is then validated and returned.
+const handoffRoot = join(root, 'handoff');
+const request = { protocol: 'gamma_wgsl_trainer_json_v1', action: 'probe', outputRoot: handoffRoot, value: 1 };
+await assert.rejects(runGammaWgslRequest(request), (error) => {
+  assert.ok(error instanceof GammaHandoffRequiredError);
+  assert.match(error.message, /outside Doppler/);
+  return true;
+});
+const requestPath = join(handoffRoot, 'probe-request.json');
+const responsePath = join(handoffRoot, 'probe-response.json');
+assert.deepEqual(JSON.parse(await readFile(requestPath, 'utf8')), request);
+await writeFile(responsePath, JSON.stringify({ protocol: 'gamma_wgsl_trainer_json_v1', ok: true, action: 'probe', result: { x: 2 } }));
+const exchanged = await runGammaWgslRequest(request);
+assert.equal(exchanged.response.result.x, 2);
+assert.equal(exchanged.paths.responsePath, responsePath);
+await writeFile(responsePath, JSON.stringify({ protocol: 'gamma_wgsl_trainer_json_v1', ok: true, action: 'other' }));
+await assert.rejects(runGammaWgslRequest(request), /gamma_wgsl_trainer_invalid_response/);
+// A changed request discards the earlier response and asks for a new run.
+await writeFile(responsePath, JSON.stringify({ protocol: 'gamma_wgsl_trainer_json_v1', ok: true, action: 'probe' }));
+await assert.rejects(runGammaWgslRequest({ ...request, value: 2 }), GammaHandoffRequiredError);
 
 console.log('gamma-wgsl-trainer-bridge.test: ok');

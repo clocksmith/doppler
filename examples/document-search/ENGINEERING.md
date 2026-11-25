@@ -73,9 +73,10 @@ node tools/run-node-without-network.js tools/check-document-search-node-cli.js /
 
 The CLI config supplies `applicationDir`, `storageDir`, `fixturePath`, and its own
 `outputPath`. It sends two queries through the installed interactive runner and
-requires process exit after EOF. The Linux isolation probe requires Python and
-libseccomp, denies IPv4/IPv6 socket creation in all descendants, and verifies
-`EPERM` for both address families. These are qualification dependencies only.
+requires process exit after EOF. The Linux isolation probe requires util-linux
+`unshare` and unprivileged user namespaces. It runs the script and all
+descendants in an empty network namespace and first verifies that IPv4 and
+IPv6 connections are unreachable there. These are qualification dependencies only.
 Receipts distinguish process RSS from requested GPU allocation accounting;
 neither establishes physical GPU residency or a minimum-memory configuration.
 Injected I/O faults are not evidence of a physically exhausted volume or reboot.

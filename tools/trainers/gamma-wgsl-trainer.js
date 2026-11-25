@@ -1,11 +1,9 @@
-import { execFile } from 'node:child_process';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { promisify } from 'node:util';
 
 import { parseSafetensorsHeader } from '../../src/formats/safetensors/types.js';
 
-const execFileAsync = promisify(execFile);
 const PROTOCOL = 'gamma_wgsl_trainer_json_v1';
 const TARGET_MODULES = new Set([
   'q_proj',
@@ -109,86 +107,65 @@ export async function readGammaAdapterTensors(adapterPath) {
   return tensors;
 }
 
-function gammaPaths() {
-  const gammaRoot = resolve(
-    process.env.GAMMA_ROOT || join(process.cwd(), '..', 'gamma')
-  );
-  return {
-    gammaRoot,
-    python: resolve(process.env.GAMMA_WGSL_PYTHON || join(gammaRoot, '.venv_rocm', 'bin', 'python')),
-    trainer: join(
-      gammaRoot,
-      'projects',
-      'distillation',
-      'wgsl',
-      'training',
-      'train_wgsl.py'
-    ),
-  };
+// Gamma's trainer is an external project that Doppler does not run (Doppler is
+// JavaScript-only). The bridge is a file handoff: Doppler writes the request,
+// the operator runs Gamma's trainer on it outside Doppler, and the next Doppler
+// run validates and consumes the response written beside the request.
+export class GammaHandoffRequiredError extends Error {
+  constructor(paths) {
+    super(
+      'gamma_wgsl_trainer_handoff_required: run the Gamma WGSL trainer outside Doppler with '
+      + `--request ${paths.requestPath} --response ${paths.responsePath}, then rerun this command.`
+    );
+    this.name = 'GammaHandoffRequiredError';
+    this.paths = paths;
+  }
 }
 
-export function buildGammaProcessEnv(environment = process.env) {
-  return {
-    ...environment,
-    ...(environment.GAMMA_WGSL_PYTHONPATH
-      ? { PYTHONPATH: environment.GAMMA_WGSL_PYTHONPATH }
-      : {}),
-  };
+async function exchangeGammaRequest(request, requestPath, responsePath) {
+  const requestText = `${JSON.stringify(request, null, 2)}\n`;
+  const requestSha256 = createHash('sha256').update(requestText).digest('hex');
+  const paths = { requestPath, responsePath };
+  await mkdir(dirname(requestPath), { recursive: true });
+  let existing = null;
+  try {
+    existing = await readFile(requestPath, 'utf8');
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
+  if (existing !== requestText) {
+    // A new or changed request invalidates any earlier response.
+    await writeFile(requestPath, requestText, 'utf8');
+    await rm(responsePath, { force: true });
+  }
+  let responseText = '';
+  try {
+    responseText = await readFile(responsePath, 'utf8');
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
+  if (!responseText.trim()) throw new GammaHandoffRequiredError(paths);
+  const response = JSON.parse(responseText);
+  if (response.protocol !== PROTOCOL || response.ok !== true || response.action !== request.action) {
+    const error = new Error(`gamma_wgsl_trainer_invalid_response: ${response.error || 'contract mismatch'}`);
+    error.response = response;
+    error.paths = paths;
+    throw error;
+  }
+  return { response, paths, requestSha256 };
 }
 
 export async function runGammaWgslRequest(request, options = {}) {
   if (request?.protocol !== PROTOCOL) {
     throw new Error(`Gamma WGSL request.protocol must be ${PROTOCOL}.`);
   }
-  const paths = gammaPaths();
   const runRoot = resolve(options.runRoot || request.outputRoot);
-  await mkdir(runRoot, { recursive: true });
   const prefix = String(options.prefix || request.action || 'request');
-  const requestPath = join(runRoot, `${prefix}-request.json`);
-  const responsePath = join(runRoot, `${prefix}-response.json`);
-  const stdoutPath = join(runRoot, `${prefix}-stdout.log`);
-  const stderrPath = join(runRoot, `${prefix}-stderr.log`);
-  await writeFile(requestPath, `${JSON.stringify(request, null, 2)}\n`, 'utf8');
-  let processResult;
-  try {
-    processResult = await execFileAsync(
-      paths.python,
-      [paths.trainer, '--request', requestPath, '--response', responsePath],
-      {
-        cwd: paths.gammaRoot,
-        env: buildGammaProcessEnv(),
-        encoding: 'utf8',
-        maxBuffer: 16 * 1024 * 1024,
-      }
-    );
-  } catch (cause) {
-    await Promise.all([
-      writeFile(stdoutPath, String(cause?.stdout || ''), 'utf8'),
-      writeFile(stderrPath, String(cause?.stderr || cause?.message || cause), 'utf8'),
-    ]);
-    let response = null;
-    try {
-      response = JSON.parse(await readFile(responsePath, 'utf8'));
-    } catch {
-      // Raw process logs are the evidence when the trainer cannot write JSON.
-    }
-    const error = new Error(`gamma_wgsl_trainer_failed: ${response?.error || cause?.message || cause}`);
-    error.response = response;
-    error.paths = { requestPath, responsePath, stdoutPath, stderrPath };
-    throw error;
-  }
-  await Promise.all([
-    writeFile(stdoutPath, processResult.stdout || '', 'utf8'),
-    writeFile(stderrPath, processResult.stderr || '', 'utf8'),
-  ]);
-  const response = JSON.parse(await readFile(responsePath, 'utf8'));
-  if (response.protocol !== PROTOCOL || response.ok !== true || response.action !== request.action) {
-    throw new Error(`gamma_wgsl_trainer_invalid_response: ${response.error || 'contract mismatch'}`);
-  }
-  return {
-    response,
-    paths: { requestPath, responsePath, stdoutPath, stderrPath },
-  };
+  return exchangeGammaRequest(
+    request,
+    join(runRoot, `${prefix}-request.json`),
+    join(runRoot, `${prefix}-response.json`)
+  );
 }
 
 function precisionName(value) {
@@ -235,48 +212,12 @@ export function buildGammaRequest(input, outputRoot) {
 }
 
 export async function trainCausalLmLora(input) {
-  const paths = gammaPaths();
   const gammaRoot = join(input.layout.checkpoints, 'gamma');
   const requestPath = join(input.layout.logs, 'gamma-request.json');
   const responsePath = join(input.layout.logs, 'gamma-response.json');
-  const stdoutPath = join(input.layout.logs, 'gamma-stdout.log');
-  const stderrPath = join(input.layout.logs, 'gamma-stderr.log');
-  await mkdir(dirname(requestPath), { recursive: true });
   const request = buildGammaRequest(input, gammaRoot);
-  await writeFile(requestPath, `${JSON.stringify(request, null, 2)}\n`, 'utf8');
-  let processResult;
-  try {
-    processResult = await execFileAsync(
-      paths.python,
-      [paths.trainer, '--request', requestPath, '--response', responsePath],
-      {
-        cwd: paths.gammaRoot,
-        env: buildGammaProcessEnv(),
-        encoding: 'utf8',
-        maxBuffer: 16 * 1024 * 1024,
-      }
-    );
-  } catch (error) {
-    await Promise.all([
-      writeFile(stdoutPath, String(error?.stdout || ''), 'utf8'),
-      writeFile(stderrPath, String(error?.stderr || error?.message || error), 'utf8'),
-    ]);
-    let response = null;
-    try {
-      response = JSON.parse(await readFile(responsePath, 'utf8'));
-    } catch {
-      // The process-level error below retains the raw logs when no JSON response exists.
-    }
-    throw new Error(`gamma_wgsl_trainer_failed: ${response?.error || error?.message || error}`);
-  }
-  await Promise.all([
-    writeFile(stdoutPath, processResult.stdout || '', 'utf8'),
-    writeFile(stderrPath, processResult.stderr || '', 'utf8'),
-  ]);
-  const response = JSON.parse(await readFile(responsePath, 'utf8'));
-  if (response.protocol !== PROTOCOL || response.ok !== true || response.action !== 'sft') {
-    throw new Error(`gamma_wgsl_trainer_invalid_response: ${response.error || 'contract mismatch'}`);
-  }
+  if (request.action !== 'sft') throw new Error('Gamma causal LM LoRA training requires an sft request.');
+  const { response } = await exchangeGammaRequest(request, requestPath, responsePath);
   const result = response.result;
   const tensors = await readGammaAdapterTensors(result.adapterPath);
   return {
@@ -295,8 +236,6 @@ export async function trainCausalLmLora(input) {
       metricsPath: result.metricsPath,
       requestPath,
       responsePath,
-      stdoutPath,
-      stderrPath,
       claimBoundary: response.claimBoundary,
     }],
     tensors,
