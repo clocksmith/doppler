@@ -120,6 +120,8 @@ func dispatch(cmd string, args []string) error {
 		return trapsetMain(args)
 	case "reference":
 		return referenceMain(args)
+	case "trap-oracle":
+		return trapOracleMain(args)
 	}
 	return fmt.Errorf("unknown command %q", cmd)
 }

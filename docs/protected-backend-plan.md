@@ -342,3 +342,27 @@ descriptor.
 Swapping in a GPU evaluator: implement the same engine port Reploid's evaluator peer uses (describe, then per
 session hello/manifest, keys or `keys-held`, ready, one result per lane per step), compute the same circuit (same
 profile and circuit digests, so the published trap set still applies), and never construct a secret key.
+
+## 9. Trap verification v2: the trap oracle
+
+A public trap set does not verify anything. An evaluator that reads it can compute, on ciphertext and without a key,
+I = sum over traps t of prod_p [token_p = t_p] from the encrypted one-hot prompt, and add (1 - I) * delta to the
+logits: zero on every published trap, a wrong answer everywhere else. `evaluator --misbehave vanish:<trapset.json>`
+implements it (about 16 x L plaintext multiplications, rotation sums and L - 1 relinearized products per lane at
+prefill, from the top of the chain, then one addition per step). `TestVanishingPerturbationSparesOnlyPublishedTraps`
+shows a published trap prompt returning its exact reference and an unpublished prompt corrupted.
+
+`trap-oracle` replaces it. A party the evaluator cannot see into runs it with the pinned weights. On
+`POST /v1/trap-batch` (`doppler.protected-trap-request/v1`: circuit, prompt length, generated count, trap count, a
+256-bit requester nonce, a one-time X25519 key) it samples fresh prompts with `crypto/rand` from
+`doppler.fixture-prompt-mixture/v1`. That is a third letter progressions, a third sequences the model generates
+itself at temperature 1 from a random start, and a third random letters. It keeps those inside every interval with
+a top-1 margin of at least 2.5, and returns their greedy continuations and expected logits. The batch is encrypted
+(X25519 with a fresh oracle key, HKDF-SHA256 salted with the nonce, AES-256-GCM, the batch id as associated data)
+under a header signed with the oracle's Ed25519 key. The header binds the batch id, the circuit, the requester's
+nonce and key, the oracle's one-time key, the IV, the ciphertext digest, the issue time and the expiry. `GET
+/v1/descriptor` publishes the key and circuit. The oracle learns a session's prompt length, generated and trap
+counts, time and network address; never the prompt. `TestTrapOracleIssuesFreshBoundBatches` decrypts batches as a
+requester does, checks every expected row against the pinned reference, checks that draws do not repeat a fixed
+list, and checks that another circuit is refused. The trust assumption: the oracle does not collude with the
+evaluator.

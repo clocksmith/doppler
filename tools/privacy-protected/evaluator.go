@@ -35,6 +35,8 @@ type circuit struct {
 	keys   []*rlwe.Ciphertext // cache: key rows per position
 	vals   []*rlwe.Ciphertext // cache: value rows (output projection folded in)
 	ops    map[string]int
+	vanish [][]int          // test only: published trap prompts the vanishing attack leaves untouched
+	pert   *rlwe.Ciphertext // test only: that attack's encrypted perturbation for this lane
 }
 
 func (c *circuit) count(op string) { c.ops[op]++ }
@@ -379,7 +381,7 @@ func evaluatorMain(args []string) error {
 	fs := flag.NewFlagSet("evaluator", flag.ExitOnError)
 	listen := fs.String("listen", "127.0.0.1:0", "address to listen on")
 	modelPath := fs.String("model", "tiny-model.json", "public model fixture")
-	misbehave := fs.String("misbehave", "", "test only: ask-decrypt | tamper | wrong-seq | lie-all | lie-random | lie-lane=N")
+	misbehave := fs.String("misbehave", "", "test only: ask-decrypt | tamper | wrong-seq | lie-all | lie-random | lie-lane=N | vanish:<published trap set>")
 	sessions := fs.Int("sessions", 1, "sessions to serve, one at a time (0: until stopped)")
 	maxLanes := fs.Int("max-lanes", 8, "most input lanes one session may use")
 	describe := fs.Bool("describe", false, "print this evaluator's manifest for --profile as JSON and exit")
@@ -527,12 +529,24 @@ func liarDelta() []float64 {
 // lane runs one input stream of a session: its own encrypted KV cache and its own evaluator instance.
 func (c *circuit) lane(params ckks.Parameters, inputs [][]byte, pos int, lie bool) ([]byte, error) {
 	var q, x0 *rlwe.Ciphertext
+	cts := make([]*rlwe.Ciphertext, len(inputs))
 	for i, raw := range inputs {
 		ct, err := importInput(params, raw)
 		if err != nil {
 			return nil, err
 		}
-		if q, x0, err = c.lookup(ct, pos+i, i == len(inputs)-1); err != nil {
+		cts[i] = ct
+	}
+	if pos == 0 && c.vanish != nil {
+		pert, err := c.vanishingPerturbation(cts)
+		if err != nil {
+			return nil, err
+		}
+		c.pert = pert
+	}
+	for i, ct := range cts {
+		var err error
+		if q, x0, err = c.lookup(ct, pos+i, i == len(cts)-1); err != nil {
 			return nil, err
 		}
 	}
@@ -545,7 +559,87 @@ func (c *circuit) lane(params ckks.Parameters, inputs [][]byte, pos int, lie boo
 			return nil, err
 		}
 	}
+	if c.pert != nil {
+		if err := c.eval.Add(logits, c.pert, logits); err != nil {
+			return nil, err
+		}
+	}
 	return logits.MarshalBinary()
+}
+
+// vanishingPerturbation is the attack that defeats a public trap set (test only). From the encrypted one-hot prompt
+// it computes I = sum over known traps t of prod_p [token_p == t_p], which is 1 exactly when the prompt is one of the
+// published traps, and returns (1 - I) * delta: zero on every published trap, a wrong answer on everything else.
+// It needs no secret key and never decrypts; it only exploits knowing the traps.
+func (c *circuit) vanishingPerturbation(prompt []*rlwe.Ciphertext) (*rlwe.Ciphertext, error) {
+	var indicator *rlwe.Ciphertext
+	for _, t := range c.vanish {
+		if len(t) != len(prompt) {
+			continue
+		}
+		var match *rlwe.Ciphertext
+		for p, tok := range t {
+			mask := make([]float64, vocab)
+			mask[tok] = 1
+			m, err := c.eval.MulNew(prompt[p], replicate(mask, vocab))
+			if err != nil {
+				return nil, err
+			}
+			if err := c.eval.Rescale(m, m); err != nil {
+				return nil, err
+			}
+			if m, err = c.rotsum(m, vocab); err != nil {
+				return nil, err
+			}
+			if match == nil {
+				match = m
+			} else if match, err = c.mulRelin(match, m); err != nil {
+				return nil, err
+			}
+		}
+		if indicator == nil {
+			indicator = match
+		} else if err := c.eval.Add(indicator, match, indicator); err != nil {
+			return nil, err
+		}
+	}
+	if indicator == nil {
+		return nil, fmt.Errorf("no published trap has this prompt length")
+	}
+	// (1 - I) * delta, with delta = liarDelta: multiply by -delta, then add delta.
+	neg := liarDelta()
+	for i := range neg {
+		neg[i] = -neg[i]
+	}
+	pert, err := c.eval.MulNew(indicator, neg)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.eval.Rescale(pert, pert); err != nil {
+		return nil, err
+	}
+	return pert, c.eval.Add(pert, liarDelta(), pert)
+}
+
+// loadVanishSet reads the prompts of a published (v1) trap set: everything the vanishing attack needs.
+func loadVanishSet(path string) ([][]int, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var env trapSetEnvelope
+	var body trapSetBody
+	if err := json.Unmarshal(raw, &env); err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal([]byte(env.Body), &body); err != nil {
+		return nil, err
+	}
+	var out [][]int
+	for _, t := range body.Traps {
+		out = append(out, t.Prompt)
+	}
+	return out, nil
 }
 
 func serveSession(nc net.Conn, pl *plan, modelID, misbehave, stateDir string, maxLanes int, rep *evaluatorReport,
@@ -671,6 +765,11 @@ func serveSession(nc net.Conn, pl *plan, modelID, misbehave, stateDir string, ma
 		// (fused multiply-add), which would make honest evaluators disagree byte for byte.
 		ev.Encoder = ckks.NewEncoder(params, encodingPrecision)
 		cirs[i] = &circuit{params: params, eval: ev, poly: polynomial.NewEvaluator(params, ev), pl: pl, ops: map[string]int{}}
+		if strings.HasPrefix(misbehave, "vanish:") {
+			if cirs[i].vanish, err = loadVanishSet(strings.TrimPrefix(misbehave, "vanish:")); err != nil {
+				return err
+			}
+		}
 	}
 	defer func() {
 		if rep.Ops == nil {
