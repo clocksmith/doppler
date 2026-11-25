@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Share operator in JavaScript: the Go operator's wire protocol, step reports and acknowledgment gate, with Q4_K
+ * Share operator in JavaScript: the Route 3 wire protocol, step reports and acknowledgment gate, with Q4_K
  * projections computed exactly in Z_(2^64) either by the two-u32-limb WebGPU ring matvec (ring-matvec.js, --device
  * gpu, the default) or by the plain-JS CPU ring matvec over worker threads (ring-cpu.js, --device cpu). The few
  * F16/F32 projections (DeltaNet in_proj_a and in_proj_b) run on the CPU with the same exact limb arithmetic.
@@ -42,7 +42,7 @@ if (!stage || plan.schema !== 'doppler.secret-shared-plan/v1') throw Error('stag
 const CAPS = ['returnShift', 'prg:aes256-ctr'];
 const f16 = bits => { const s = bits & 0x8000 ? -1 : 1, e = (bits >> 10) & 31, f = bits & 1023;
   return e === 0 ? s * f * 2 ** -24 : e === 31 ? (f ? NaN : s * Infinity) : s * (1 + f / 1024) * 2 ** (e - 15); };
-/** round(v * 2^fw), half away from zero as the Go operator's fixed(); a signed integer below 2^32 in magnitude */
+/** round(v * 2^fw), half away from zero (the scale rule every Route 3 operator uses); a signed integer below 2^32 in magnitude */
 const fixed = v => { const x = v * 2 ** plan.fw, r = x < 0 ? -Math.round(-x) : Math.round(x);
   if (!(Math.abs(r) < 2 ** 32)) throw Error('dense weight outside the fixed-point range'); return r; };
 

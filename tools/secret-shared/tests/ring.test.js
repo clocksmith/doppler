@@ -85,7 +85,7 @@ test('packed returns (bytes shift/8..7 of each share) recombine to within 2^shif
   }
 });
 
-test('PRG vectors: SHAKE-256 matches Python hashlib; AES-256-CTR (WebCrypto) matches openssl enc -aes-256-ctr', async () => {
+test('PRG vectors: SHAKE-256 matches an independent hashlib vector; AES-256-CTR (WebCrypto) matches openssl enc -aes-256-ctr', async () => {
   const seed = Uint8Array.from({ length: 32 }, (_, i) => i);
   assert.equal(Buffer.from(shake256(seed, 7, 48)).toString('hex'),
     'dd0566df0a3f090d2fa8e2cc92164d9b96d3fff9904c3a6202b1fee26302e39b2dfe220c451965f9a75151caa7a9ecf7');

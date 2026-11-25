@@ -1,6 +1,6 @@
 /**
  * Exact Z_(2^64) ring matvec on the CPU in plain JS, for operators without a usable GPU. Same algebra as the WGSL
- * kernel (ring-matvec.js) and the Go operator: for a row and a 32-weight Q4_K sub-block with scale A = round(d*sc*2^fw)
+ * kernel (ring-matvec.js): for a row and a 32-weight Q4_K sub-block with scale A = round(d*sc*2^fw)
  * and offset B = round(dmin*m*2^fw),
  *   contribution = A * S - B * T   (mod 2^64),   S = sum q * x,   T = sum x.
  * Each 64-bit input share is two u32 words (lo, hi). S and T are kept as two exact double sums (lo words and hi

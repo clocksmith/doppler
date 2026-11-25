@@ -1,5 +1,5 @@
 /**
- * The requester's side of the share-operator protocol (see ../operator/main.go and ../gpu/operator-gpu.js): per
+ * The requester's side of the share-operator protocol (see ../gpu/operator-gpu.js): per
  * projection group, encode the input in Z_(2^64), split it into a PRG share for operator A and x~ - x0 for operator B,
  * send both, and recombine the two returned output shares.
  *
@@ -132,8 +132,9 @@ export class SharedCluster {
     c.rounds = [];
     c.step = null;
     c.keepDigests = options.digests !== false;
+    c.roundTimeoutMs = options.roundTimeoutMs ?? 300000;
     // Shares are uniform, so a digest of the first 4 KiB already shows that no share-B vector repeats; fullDigests
-    // hashes every byte, as requester.py did.
+    // hashes every byte, as the earlier prototype requester did.
     c.digestLimit = options.fullDigests ? 0 : 4096;
     return c;
   }
@@ -177,7 +178,10 @@ export class SharedCluster {
     const t1 = performance.now();
     const b = pair[1].read().then(r => { replied[1] = performance.now(); return r; });
     const digestB = this.keepDigests ? digest(this.env.crypto.subtle, shareB, this.digestLimit) : null;
-    const [[h0, y0], [h1, y1]] = await Promise.all([a, b]);
+    // A round that stalls fails with the share that did not reply, instead of waiting forever.
+    let timer;
+    const watchdog = new Promise((_, reject) => { timer = setTimeout(() => reject(Error(`${gid} round ${counter}: no reply from share ${replied[0] ? 'B' : 'A'}${replied[0] || replied[1] ? '' : ' or B'} within ${this.roundTimeoutMs} ms`)), this.roundTimeoutMs); });
+    const [[h0, y0], [h1, y1]] = await Promise.race([Promise.all([a, b]), watchdog]).finally(() => clearTimeout(timer));
     const t2 = performance.now();
     const y = new Float32Array(n * out);
     const maxAbs = recombine(y0, y1, s.width, s.shift, this.fx, this.fw, y);

@@ -12,8 +12,11 @@ export function createHeadPool(threads = 0) {
   const workers = Array.from({ length: count }, () => new Worker(new URL(import.meta.url)));
   const waiting = new Map();
   let next = 1;
+  const failAll = error => { for (const p of waiting.values()) p.reject(error); waiting.clear(); };
   for (const w of workers) {
     w.on('message', ({ id, error }) => { const p = waiting.get(id); waiting.delete(id); error ? p.reject(Error(error)) : p.resolve(); });
+    w.on('error', failAll);
+    w.on('exit', code => failAll(Error(`a DeltaNet worker exited (${code})`)));
     w.unref();
   }
   return {
@@ -29,7 +32,7 @@ export function createHeadPool(threads = 0) {
       }
       try { await Promise.all(jobs); } finally { for (const w of workers) w.unref(); }
     },
-    close() { for (const w of workers) w.terminate(); }
+    close() { for (const w of workers) { w.removeAllListeners('exit'); w.terminate(); } }
   };
 }
 

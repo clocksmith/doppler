@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Route 3 requester in JavaScript (replaces ../requester.py): Qwen 3.5 with every projection evaluated by a stage's two
+ * Route 3 requester in JavaScript: Qwen 3.5 with every projection evaluated by a stage's two
  * share operators, on 2-party additive shares in Z_(2^64). Runs in Node here; model.js, cluster.js and ring.js are
  * environment-neutral and take their transport and crypto from the caller, so a browser can host the same requester.
  *

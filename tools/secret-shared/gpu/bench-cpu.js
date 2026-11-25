@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Ring-matvec throughput of the plain-JS CPU operator path (ring-cpu.js) at the 27B MLP shape (gate/up: 17408 x 5120)
- * on random Q4_K blocks and uniform 64-bit shares, the same case as the Go operator's BenchmarkQ4KMatVec27B.
+ * on random Q4_K blocks and uniform 64-bit shares, the same case as the earlier (removed) native operator's 27B-shape benchmark.
  *
  *   node bench-cpu.js [--threads N] [--rows 17408] [--cols 5120] [--reps 5]
  */

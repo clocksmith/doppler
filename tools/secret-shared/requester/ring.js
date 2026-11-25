@@ -4,7 +4,7 @@
  * A ring element is two u32 words (lo, hi), stored little-endian in a Uint32Array so the array's bytes are the wire's
  * u64 LE layout. Encoding needs |round(x * 2^fx)| < 2^53 so the integer is exact in a double; decoding converts the
  * signed 64-bit sum to float64 with one rounding (hi * 2^32 is exact, + lo rounds once), as numpy's int64 -> float64
- * does, then to float32 with Math.fround. So with 64-bit returns every step is bit-identical to the Python requester.
+ * does, then to float32 with Math.fround. So with 64-bit returns every step is bit-identical to the earlier prototype requester's numpy arithmetic.
  *
  * Packed returns (operator option `returnShift` S): each operator returns bits S..63 of its share in (64 - S) / 8 bytes.
  * The requester adds the two mod 2^(64-S), sign-extends, and estimates y as (sum + 1) * 2^S: the unknown carry out of
