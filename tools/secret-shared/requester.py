@@ -11,6 +11,9 @@ Qwen 3.5 (as in tools/qwen35-deployed-reference.py), with the deployed F16 KV st
   requester.py layer --model DIR --plan PLAN.json --operators OPS.json --out REPORT.json
   requester.py generate --model DIR --plan PLAN.json --operators OPS.json --prompts PROMPTS.json --max-tokens 32 --out REPORT.json
   requester.py control --model DIR --prompts PROMPTS.json --max-tokens 32 --out REPORT.json   (plaintext linears)
+  requester.py run --model DIR --plan PLAN.json --operators OPS.json --request REQUEST.json --out REPORT.json
+      One request for a supervising process: a JSON event per line on stdout (ready, token, end or failed); a line
+      `stop` on stdin stops the answer after the token in progress. REQUEST.json: {"messages": [...], "maxTokens": N}.
 
 OPS.json: {"token": "...", "stages": [[{"host": h, "port": p}, {"host": h, "port": p}], ...]} (share 0, share 1).
 """
@@ -176,6 +179,7 @@ class SharedCluster:
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
         self.rounds = []
         self.cache = {}
+        self.step = None  # the requester's current step, sent with every round so operators can account per token
 
     def run_group(self, gid, x):
         """x: float tensor [n, in]. Returns float32 [n, out] = W x, computed only on shares."""
@@ -195,7 +199,10 @@ class SharedCluster:
         else:
             x0 = np.frombuffer(os.urandom(size), dtype='<u8').reshape(enc.shape)
         x1 = enc - x0  # uint64 wraps mod 2^64
-        header = {'op': 'linear', 'group': gid, 'n': n, 'round': counter}
+        # Freshness evidence: share A is PRG(seed, counter) with a never-repeated counter; share B's digest is kept so
+        # the receipt can show that no share vector was ever sent twice.
+        share_b_digest = hashlib.sha256(x1.tobytes()).hexdigest()[:32]
+        header = {'op': 'linear', 'group': gid, 'n': n, 'round': counter, **({'step': self.step} if self.step is not None else {})}
         t1 = time.perf_counter()
         sent_before = [op.sent for op in pair]
         recv_before = [op.received for op in pair]
@@ -207,7 +214,7 @@ class SharedCluster:
         out = np.ldexp(y.astype(np.float64), -(self.fx + self.fw)).reshape(n, -1)
         assert np.abs(out).max() < 2.0 ** (62 - self.fx - self.fw), 'output outside the fixed-point range'
         t3 = time.perf_counter()
-        self.rounds.append({'group': gid, 'stage': stage, 'n': n, 'encodeMs': (t1 - t0) * 1e3, 'wireMs': (t2 - t1) * 1e3,
+        self.rounds.append({'group': gid, 'stage': stage, 'n': n, 'counter': counter, 'shareBSha256': share_b_digest, 'encodeMs': (t1 - t0) * 1e3, 'wireMs': (t2 - t1) * 1e3,
                             'decodeMs': (t3 - t2) * 1e3, 'operatorMs': [h0['computeNs'] / 1e6, h1['computeNs'] / 1e6],
                             'up': [pair[i].sent - sent_before[i] for i in range(2)],
                             'down': [pair[i].received - recv_before[i] for i in range(2)]})
@@ -322,24 +329,27 @@ def tokenize_prompts(root, prompts):
     return tokenizer, rows
 
 
-def greedy(model, config, manifest, ids, max_tokens, cluster=None, forced=None):
+def greedy(model, config, manifest, ids, max_tokens, cluster=None, forced=None, on_token=None, should_stop=None):
     """Greedy decode (or teacher-forced on `forced`), returning tokens, per-step logits summaries and timings."""
     cache = half_cache(config)
+    if forced is not None:
+        max_tokens = min(max_tokens, len(forced))
     tokens, steps, logits_rows = [], [], []
     inputs = list(ids)
     eos = set(manifest['eos_token_id'] if isinstance(manifest['eos_token_id'], list) else [manifest['eos_token_id']])
     for step in range(max_tokens):
         if cluster:
             cluster.cache.clear()
+            cluster.step = step
             before = len(cluster.rounds)
-        t0 = time.perf_counter()
+        t0, c0 = time.perf_counter(), time.process_time()
         with torch.inference_mode():
             out = model(input_ids=torch.tensor([inputs]), past_key_values=cache, use_cache=True, logits_to_keep=1)
         logits = out.logits[0, -1].float().numpy().astype(np.float64)
         wall = time.perf_counter() - t0
         top = np.argsort(-logits)[:2]
         token = int(top[0])
-        row = {'step': step, 'columns': len(inputs), 'wallMs': wall * 1e3, 'token': token,
+        row = {'step': step, 'columns': len(inputs), 'wallMs': wall * 1e3, 'cpuMs': (time.process_time() - c0) * 1e3, 'token': token,
                'margin': float(logits[top[0]] - logits[top[1]])}
         if cluster:
             rounds = cluster.rounds[before:]
@@ -351,7 +361,13 @@ def greedy(model, config, manifest, ids, max_tokens, cluster=None, forced=None):
         logits_rows.append(logits.astype(np.float32))
         tokens.append(token)
         nxt = forced[step] if forced is not None else token
+        done = forced is None and (token in eos or step + 1 == max_tokens)
+        if on_token:
+            on_token(step, token, row, done)
         if forced is None and token in eos:
+            break
+        if should_stop and should_stop():
+            row['stoppedAfter'] = True
             break
         inputs = [nxt]
     return tokens, steps, logits_rows
@@ -443,12 +459,73 @@ def cmd_generate(args):
     forced = read_json(args.forced)['results'] if args.forced else None
     results = run_prompts(args, model, config, manifest, cluster, forced)
     stats = cluster.close('exit' if args.exit_operators else 'close')
-    report = {'schema': 'doppler.secret-shared-generation/v1', 'modelId': plan['modelId'], 'fx': plan['fx'], 'fw': plan['fw'],
+    digests = [r['shareBSha256'] for r in cluster.rounds]
+    counters = [r['counter'] for r in cluster.rounds]
+    freshness = {'rounds': len(digests), 'distinctShareBDigests': len(set(digests)),
+                 'countersStrictlyIncreasing': all(b > a for a, b in zip(counters, counters[1:])),
+                 'shareASeedsPerStage': 'one 32-byte os.urandom seed per stage pair per session, sent only to share A'}
+    report = {'freshness': freshness, 'schema': 'doppler.secret-shared-generation/v1', 'modelId': plan['modelId'], 'fx': plan['fx'], 'fw': plan['fw'],
               'seeded': not args.explicit, 'teacherForced': bool(forced), 'loadS': load_s,
               'stages': [{'index': s['index'], 'layers': s['layers']} for s in plan['stages']],
               'results': results, 'operatorStats': stats, 'requesterPeakRss': peak_rss(),
               'rounds': cluster.rounds if args.keep_rounds else None}
     Path(args.out).write_text(json.dumps(report) + '\n')
+    print(json.dumps({'freshness': freshness, 'requesterPeakRss': report['requesterPeakRss']}))
+
+
+def cmd_run(args):
+    """One request under a supervisor: events on stdout, `stop` on stdin. Everything else goes to stderr."""
+    import threading
+    out = sys.stdout
+    sys.stdout = sys.stderr
+    emit = lambda event: (out.write(json.dumps(event) + '\n'), out.flush())
+    stop = threading.Event()
+
+    def watch():
+        for line in sys.stdin:
+            if line.strip() == 'stop':
+                stop.set()
+    threading.Thread(target=watch, daemon=True).start()
+    torch.set_num_threads(args.threads)
+    plan = read_json(args.plan)
+    request = read_json(args.request)
+    messages = request['messages']
+    assert len(messages) == 1 and messages[0]['role'] == 'user', 'one user message'
+    try:
+        t0 = time.perf_counter()
+        cluster = SharedCluster(plan, read_json(args.operators), seeded=not args.explicit)
+        model, config, manifest = load_model(args.model, args.source_config, plan, cluster)
+        tokenizer, rows = tokenize_prompts(args.model, [messages[0]['content']])
+        ids = rows[0]['ids']
+        eos = set(manifest['eos_token_id'] if isinstance(manifest['eos_token_id'], list) else [manifest['eos_token_id']])
+        emit({'event': 'ready', 'promptTokens': len(ids), 'loadS': time.perf_counter() - t0,
+              'stages': [[op.hello['stage'], op.hello['share'], op.hello['planSha256']] for pair in cluster.pairs for op in pair]})
+        generated, text = [], ''
+
+        def on_token(step, token, row, done):
+            nonlocal text
+            generated.append(token)
+            full = tokenizer.decode(generated, skip_special_tokens=True)
+            delta, text = full[len(text):], full
+            reason = 'eos' if token in eos else ('max-tokens' if done else None)
+            emit({'event': 'token', 'step': step, 'tokenId': token, 'delta': delta, 'done': bool(done), 'stopReason': reason,
+                  'inputTokens': row['columns'], **{k: row.get(k) for k in ['wallMs', 'cpuMs', 'rounds', 'up', 'down', 'wireMs', 'operatorMs', 'margin']}})
+        tokens, steps, _ = greedy(model, config, manifest, ids, request['maxTokens'], cluster, on_token=on_token, should_stop=stop.is_set)
+        stopped = bool(steps and steps[-1].get('stoppedAfter'))
+        stats = cluster.close()
+        digests = [r['shareBSha256'] for r in cluster.rounds]
+        counters = [r['counter'] for r in cluster.rounds]
+        freshness = {'rounds': len(digests), 'distinctShareBDigests': len(set(digests)),
+                     'countersStrictlyIncreasing': all(b > a for a, b in zip(counters, counters[1:]))}
+        report = {'schema': 'doppler.secret-shared-run/v1', 'modelId': plan['modelId'], 'fx': plan['fx'], 'fw': plan['fw'],
+                  'promptTokens': len(ids), 'tokens': tokens, 'text': text, 'steps': steps, 'freshness': freshness,
+                  'operatorStats': stats, 'requesterPeakRss': peak_rss(), 'wallS': time.perf_counter() - t0}
+        Path(args.out).write_text(json.dumps(report) + '\n')
+        emit({'event': 'end', 'stopReason': 'requester-stop' if stopped else ('eos' if tokens and tokens[-1] in eos else 'max-tokens'),
+              'outputTokens': len(tokens), 'freshness': freshness, 'requesterPeakRss': report['requesterPeakRss']})
+    except Exception as error:  # the supervisor records the failure; partial text is not a result
+        emit({'event': 'failed', 'error': f'{type(error).__name__}: {error}'[:500]})
+        sys.exit(1)
 
 
 def cmd_control(args):
@@ -462,12 +539,13 @@ def cmd_control(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('command', choices=['plan', 'layer', 'generate', 'control'])
+    parser.add_argument('command', choices=['plan', 'layer', 'generate', 'control', 'run'])
     parser.add_argument('--model', required=True)
     parser.add_argument('--source-config')
     parser.add_argument('--plan')
     parser.add_argument('--operators')
     parser.add_argument('--prompts')
+    parser.add_argument('--request')
     parser.add_argument('--prompt', default='Explain why the sky is blue in one sentence.')
     parser.add_argument('--forced', help='teacher-force the tokens of this report')
     parser.add_argument('--max-tokens', type=int, default=32)
@@ -483,4 +561,4 @@ if __name__ == '__main__':
     parser.add_argument('--out', required=True)
     a = parser.parse_args()
     a.source_config = a.source_config or str(Path(a.model) / 'source-config.json')
-    {'plan': cmd_plan, 'layer': cmd_layer, 'generate': cmd_generate, 'control': cmd_control}[a.command](a)
+    {'plan': cmd_plan, 'layer': cmd_layer, 'generate': cmd_generate, 'control': cmd_control, 'run': cmd_run}[a.command](a)

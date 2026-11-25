@@ -5,7 +5,12 @@
 // random (or SHAKE-256 pseudorandom) ring element, so on its own it learns nothing about the requester's content
 // beyond sizes and timing.
 //
-//	operator --plan PLAN.json --model-dir DIR --stage S --share 0|1 --listen 127.0.0.1:7701 [--threads N]
+//	operator --plan PLAN.json --model-dir DIR --stage S --share 0|1 --listen 127.0.0.1:7701 [--threads N] [--gate]
+//
+// Steps: each linear request names the requester's step (one generated token). When a new step begins, the operator
+// prints one line `STEP {json}` for the step just finished (rounds, columns, macs, bytes, and a running SHA-256 over
+// every output share it has returned: its delivery transcript). With --gate it then waits for `GO <step>` on stdin
+// before computing the new step (its supervisor checks the requester's acknowledgments there), and `STOP` refuses it.
 //
 // The session token (SS_TOKEN) must match the requester's hello. Wire format, little-endian: u32 magic "RSS1", u32 JSON
 // length, JSON header, u64 payload length, payload.
@@ -21,6 +26,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"hash"
 	"io"
 	"log"
 	"math"
@@ -181,7 +187,12 @@ func main() {
 	share := flag.Int("share", -1, "share 0 (A) or 1 (B)")
 	listen := flag.String("listen", "127.0.0.1:7701", "listen address")
 	threads := flag.Int("threads", 0, "worker threads (0 = all CPUs)")
+	gate := flag.Bool("gate", false, "wait for GO <step> on stdin before each new step")
 	flag.Parse()
+	gateIn = nil
+	if *gate {
+		gateIn = bufio.NewReader(os.Stdin)
+	}
 	token := os.Getenv("SS_TOKEN")
 	if *planFile == "" || *dir == "" || *stageIndex < 0 || (*share != 0 && *share != 1) || token == "" {
 		log.Fatal("usage: operator --plan P --model-dir D --stage S --share 0|1 [--listen A] [--threads N], with SS_TOKEN set")
@@ -241,6 +252,39 @@ func main() {
 	}
 }
 
+var gateIn *bufio.Reader
+
+// stepState tracks the requester's current step and this operator's delivery transcript.
+type stepState struct {
+	step       int64
+	rounds     int64
+	columns    int64
+	macs       int64
+	bytesOut   int64
+	transcript hash.Hash
+}
+
+// finish reports the finished step on stdout and, when gated, waits for the supervisor's decision on the next one.
+func (st *stepState) finish(next int64) error {
+	if st.step >= 0 && st.rounds > 0 {
+		line, _ := json.Marshal(map[string]any{"step": st.step, "rounds": st.rounds, "columns": st.columns, "macs": st.macs,
+			"bytesOut": st.bytesOut, "transcript": hex.EncodeToString(st.transcript.Sum(nil))})
+		fmt.Printf("STEP %s\n", line)
+	}
+	if next >= 0 && gateIn != nil {
+		fmt.Printf("WAIT %d\n", next)
+		reply, err := gateIn.ReadString('\n')
+		if err != nil {
+			return err
+		}
+		if reply != fmt.Sprintf("GO %d\n", next) {
+			return errors.New("the supervisor refused step " + fmt.Sprint(next))
+		}
+	}
+	st.step, st.rounds, st.columns, st.macs, st.bytesOut = next, 0, 0, 0, 0
+	return nil
+}
+
 // serve handles one requester session; it returns true when the requester asked the operator to exit.
 func serve(conn net.Conn, token string, p *plan, stage, share int, groups map[string]*group, weightBytes int64, planSha string, threads int) bool {
 	defer conn.Close()
@@ -253,6 +297,7 @@ func serve(conn net.Conn, token string, p *plan, stage, share int, groups map[st
 	var seed []byte
 	var s stats
 	authed := false
+	st := &stepState{step: -1, transcript: sha256.New()}
 	for {
 		h, payload, err := readMsg(r)
 		if err != nil {
@@ -308,6 +353,16 @@ func serve(conn net.Conn, token string, p *plan, stage, share int, groups map[st
 				writeMsg(w, map[string]any{"error": "payload size"}, nil)
 				return false
 			}
+			if v, ok := h["step"].(float64); ok && int64(v) != st.step {
+				if int64(v) < st.step {
+					writeMsg(w, map[string]any{"error": "step went backwards"}, nil)
+					return false
+				}
+				if err := st.finish(int64(v)); err != nil {
+					writeMsg(w, map[string]any{"error": err.Error()}, nil)
+					return false
+				}
+			}
 			t0 := time.Now()
 			x := make([]uint64, n*g.in)
 			for i := range x {
@@ -324,6 +379,13 @@ func serve(conn net.Conn, token string, p *plan, stage, share int, groups map[st
 				binary.LittleEndian.PutUint64(out[8*i:], v)
 			}
 			ns := time.Since(t0).Nanoseconds()
+			st.transcript.Write(out)
+			if st.rounds == 0 {
+				st.columns = int64(n)
+			}
+			st.rounds++
+			st.macs += int64(n * g.in * g.out)
+			st.bytesOut += int64(len(out))
 			s.Rounds++
 			s.Columns += int64(n)
 			s.Macs += int64(n * g.in * g.out)
@@ -333,9 +395,11 @@ func serve(conn net.Conn, token string, p *plan, stage, share int, groups map[st
 		case "stats":
 			writeMsg(w, map[string]any{"stats": s, "peakRss": peakRSS(), "weightBytes": weightBytes}, nil)
 		case "close":
+			st.finish(-1)
 			writeMsg(w, map[string]any{"stats": s, "peakRss": peakRSS()}, nil)
 			return false
 		case "exit":
+			st.finish(-1)
 			writeMsg(w, map[string]any{"stats": s, "peakRss": peakRSS()}, nil)
 			return true
 		default:
