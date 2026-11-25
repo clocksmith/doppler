@@ -18,8 +18,8 @@ Baseline corrected on 2026-10-15. Old exports had a slow prefill path; their lar
 
 ## Recorded evidence summary (includes historical rows)
 
-- Catalog models: 31
-- Runtime-verified models: 28
+- Catalog models: 33
+- Runtime-verified models: 30
 - HF-published models: 21
 - Failed models: 2
 - Verification-needed models: 1
@@ -33,7 +33,7 @@ Baseline corrected on 2026-10-15. Old exports had a slow prefill path; their lar
 - Transformers.js embedding latency-leading rows: 1
 - Doppler rerank latency-leading rows: 1
 - Transformers.js rerank latency-leading rows: 0
-- Evidence-incomplete rows: 36
+- Evidence-incomplete rows: 38
 
 ## Claim Status Rules
 
@@ -99,8 +99,10 @@ Baseline corrected on 2026-10-15. Old exports had a slow prefill path; their lar
 | muse-glimmer-30b-text-bf16-af32 | text | missing | browser:missing<br>node:missing<br>bun:missing | transformersjs | failed<br>runtime-verify | runtime-verify<br>hf-publish<br>compare-profile | none |
 | muse-glimmer-30b-text-f16-af32 | text | missing | browser:missing<br>node:missing<br>bun:missing | transformersjs | failed<br>runtime-verify | runtime-verify<br>hf-publish<br>compare-profile | none |
 | nucleotide-transformer-v2-50m-f32-af32 | embedding | clocksmith/rdrr@a5703ef6971cc883438a393d73f2f54dccf94976<br>models/nucleotide-transformer-v2-50m-f32-af32 | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>compare-profile | compare-profile | [nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json](../docs/status/nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json) |
+| qwen-3-5-0-8b-q4k-ef16-af32-vf16 | text | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>hf-publish | hf-publish<br>compare-profile | [2026-11-21T15-24-41.049Z.json](../reports/release-claims/qwen-3-5-0-8b-q4k-ef16-af32-vf16/2026-11-21T15-24-41.049Z.json) |
 | qwen-3-5-0-8b-q4k-ehaf16 | generation | clocksmith/rdrr@ea7b211b72c4d43687fa72802dee7aba74eca293<br>models/qwen-3-5-0-8b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-0.8B-ONNX<br>onnx/q4f16 | superseded-baseline<br>current-comparator-result | current-comparator-result<br>summary-svg | [2026-05-10T02-22-04.891Z.json](../reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json)<br>[compare_20260705T160226.json](../benchmarks/vendors/results/compare_20260705T160226.json) |
 | qwen-3-5-0-8b-q4k-ehaf16 | generation | clocksmith/rdrr@ea7b211b72c4d43687fa72802dee7aba74eca293<br>models/qwen-3-5-0-8b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-0.8B-ONNX<br>onnx/q4f16 | superseded-baseline<br>current-comparator-result | current-comparator-result<br>summary-svg | [2026-05-10T02-22-04.891Z.json](../reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json)<br>[compare_20260705T161224.json](../benchmarks/vendors/results/compare_20260705T161224.json) |
+| qwen-3-5-2b-q4k-ef16-af32 | text | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>hf-publish | hf-publish<br>compare-profile | [2026-11-21T15-25-19.225Z.json](../reports/release-claims/qwen-3-5-2b-q4k-ef16-af32/2026-11-21T15-25-19.225Z.json) |
 | qwen-3-5-2b-q4k-ehaf16 | generation | clocksmith/rdrr@3a05b346b1c86abf02c7620f2369a9a7b82cb62f<br>models/qwen-3-5-2b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-2B-ONNX<br>onnx/q4f16 | superseded-baseline<br>current-comparator-result | current-comparator-result<br>summary-svg | [2026-05-03T02-33-21.397Z.json](../reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json)<br>[compare_20260707T154847.json](../benchmarks/vendors/results/compare_20260707T154847.json) |
 | qwen-3-5-2b-q4k-ehaf16 | generation | clocksmith/rdrr@3a05b346b1c86abf02c7620f2369a9a7b82cb62f<br>models/qwen-3-5-2b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-2B-ONNX<br>onnx/q4f16 | superseded-baseline<br>current-comparator-result | current-comparator-result<br>summary-svg | [2026-05-03T02-33-21.397Z.json](../reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json)<br>[compare_20260707T155858.json](../benchmarks/vendors/results/compare_20260707T155858.json) |
 | qwen-3-5-2b-q4k-ehaf16 | generation | clocksmith/rdrr@3a05b346b1c86abf02c7620f2369a9a7b82cb62f<br>models/qwen-3-5-2b-q4k-ehaf16 | browser:benchmarked<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/Qwen3.5-2B-ONNX<br>onnx/q4f16 | superseded-baseline<br>current-comparator-result | current-comparator-result<br>summary-svg | [2026-05-03T02-33-21.397Z.json](../reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json)<br>[compare_20260707T161623.json](../benchmarks/vendors/results/compare_20260707T161623.json) |

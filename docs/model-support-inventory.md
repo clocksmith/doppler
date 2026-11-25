@@ -18,14 +18,14 @@ Size tiers group recorded artifact bytes, not parameter classes or implementatio
 
 ## Summary
 
-- Catalog models: 31
+- Catalog models: 33
 - Source checkpoints: 23
-- Conversion-only configs: 20
+- Conversion-only configs: 22
 - HF-published catalog models: 21
-- Runtime-verified catalog models: 28
+- Runtime-verified catalog models: 30
 - Benchmark-selected source architectures: 1
 - Sources pending benchmark-selected architecture: 22
-- Model type counts: text-generators=17, multimodal-generators=3, diffusion-language-models=1, translation-specialists=2, language-embedders=2, rerankers=2, protein-encoders=3, nucleotide-encoders=1
+- Model type counts: text-generators=19, multimodal-generators=3, diffusion-language-models=1, translation-specialists=2, language-embedders=2, rerankers=2, protein-encoders=3, nucleotide-encoders=1
 
 ## Source Support
 
@@ -41,10 +41,10 @@ Size tiers group recorded artifact bytes, not parameter classes or implementatio
 | small | Rerankers | Qwen/Qwen3-Reranker-0.6B | 0.87 GiB | benchmark-receipts-incomplete | qwen-3-reranker-0-6b-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json |
 | small | Translation specialists | clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87 | 0.96 GiB | benchmark-comparison-needed | translategemma-4b-1b-enes-q4k-ehf16-af32 candidate; benchmark comparison pending | benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json |
 | small | Text generators | google/gemma-3-1b-it | 0.97 GiB | benchmark-comparison-needed | gemma-3-1b-it-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/gemma-3-1b-it-q4k-ehf16-af32/2026-06-24T01-23-10.494Z.json |
-| small | Text generators | Qwen/Qwen3.5-0.8B | 1.08 GiB | benchmark-receipts-incomplete | qwen-3-5-0-8b-q4k-ehaf16 candidate; benchmark comparison pending | reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json |
+| small | Text generators | Qwen/Qwen3.5-0.8B | 1.08 GiB | benchmark-receipts-incomplete | qwen-3-5-0-8b-q4k-ef16-af32-vf16 candidate; benchmark comparison pending | reports/release-claims/qwen-3-5-0-8b-q4k-ef16-af32-vf16/2026-11-21T15-24-41.049Z.json |
 | small | Language embedders | Qwen/Qwen3-Embedding-0.6B | 1.11 GiB | benchmark-receipts-incomplete | qwen-3-embedding-0-6b-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json |
 | small | Protein encoders | biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee | 1.24 GiB | benchmark-comparison-needed | esmc-300m-f32-af32 candidate; benchmark comparison pending | docs/status/esmc-300m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json |
-| small | Text generators | Qwen/Qwen3.5-2B | 1.94 GiB | benchmark-receipts-incomplete | qwen-3-5-2b-q4k-ehaf16 candidate; benchmark comparison pending | reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json |
+| small | Text generators | Qwen/Qwen3.5-2B | 1.94 GiB | benchmark-receipts-incomplete | qwen-3-5-2b-q4k-ef16-af32 candidate; benchmark comparison pending | reports/release-claims/qwen-3-5-2b-q4k-ef16-af32/2026-11-21T15-25-19.225Z.json |
 | medium | Translation specialists | google/translategemma-4b-it | 2.95 GiB | benchmark-comparison-needed | translategemma-4b-it-q4k-ehf16-af32 candidate; benchmark comparison pending | reports/release-claims/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json |
 | medium | Multimodal generators | google/gemma-4-E2B-it | 3.73 GiB | benchmark-receipts-incomplete | gemma-4-e2b-it-q4k-ehf16-af16-int4ple candidate; benchmark comparison pending | reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-15-34.710Z.json |
 | medium | Text generators | google/gemma-4-12B-it | 7.60 GiB | benchmark-comparison-needed | gemma-4-12b-it-text-q4k-ehf16-af16 candidate; benchmark comparison pending | reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af16/2026-06-29T22-14-43.963Z.json |
@@ -72,9 +72,11 @@ Size tiers group recorded artifact bytes, not parameter classes or implementatio
 | qwen-3-reranker-0-6b-f16-af32 | Rerankers | qwen3 | 1.11 GiB | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | 2026-07-04 (node) | clocksmith/rdrr@3a05b346b1c86abf02c7620f2369a9a7b82cb62f | missing | missing | compare-profile |
 | translategemma-4b-1b-enes-q4k-ehf16-af32 | Translation specialists | translategemma | 0.96 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-07-11 (browser+node) | clocksmith/rdrr@1e2c047357f07dfe45a8effc2fa915acd73999ee | capability-only / no TJS mapping | missing | benchmark-lane-capability-only |
 | gemma-3-1b-it-q4k-ehf16-af32 | Text generators | gemma3 | 0.97 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-06-24 (node) | clocksmith/rdrr@7c3d30e300bcb02cbd68fb0db3eee64fbf738f99 | performance-comparable / onnx-community/gemma-3-1b-it-ONNX-GQA | missing | compare-result |
+| qwen-3-5-0-8b-q4k-ef16-af32-vf16 | Text generators | qwen3 | 1.08 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-11-21 (node) | missing | missing | missing | hf-publish |
 | qwen-3-5-0-8b-q4k-ehaf16 | Text generators | qwen3 | 1.08 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-06-15 (browser+node) | clocksmith/rdrr@ea7b211b72c4d43687fa72802dee7aba74eca293 | performance-comparable / onnx-community/Qwen3.5-0.8B-ONNX-OPT | missing | summary-svg |
 | qwen-3-embedding-0-6b-q4k-ehf16-af32 | Language embedders | qwen3 | 1.11 GiB | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | 2026-07-05 (browser+node) | clocksmith/rdrr@3a05b346b1c86abf02c7620f2369a9a7b82cb62f | performance-comparable / onnx-community/Qwen3-Embedding-0.6B-ONNX | missing | summary-svg |
 | esmc-300m-f32-af32 | Protein encoders | esmc | 1.24 GiB | RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute, row Q4K layout | 2026-07-19 (node) | clocksmith/rdrr@8354795dc544798ca7a4419bf00f844648f4b6f0 | missing | missing | compare-profile |
+| qwen-3-5-2b-q4k-ef16-af32 | Text generators | qwen3 | 1.94 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-11-21 (node) | missing | missing | missing | hf-publish |
 | qwen-3-5-2b-q4k-ehaf16 | Text generators | qwen3 | 1.94 GiB | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout | 2026-06-15 (browser+node) | clocksmith/rdrr@3a05b346b1c86abf02c7620f2369a9a7b82cb62f | performance-comparable / onnx-community/Qwen3.5-2B-ONNX-OPT | missing | summary-svg |
 
 ## Medium Models
@@ -122,6 +124,8 @@ These entries have checked-in conversion configs but are not catalog-supported r
 | src/config/conversion/qwen3/qwen-3-5-9b-q4k-ehaf16.json | qwen-3-5-9b-q4k-ehaf16 | qwen3 | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout |
 | src/config/conversion/qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32.json | qwen-3-6-35b-a3b-text-q4k-ehf16-af32 | qwen3 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout |
 | src/config/conversion/qwen3/qwen-3-6-35b-a3b-q4_0-passthrough.json | qwen-3-6-35b-a3b-text-source-q4_0-af32 | qwen3 | RDRR, q4_0 weights, q4_0 embeddings, q6k LM head, f32 compute, row Q4K layout |
+| src/config/conversion/qwen3/qwen-3-6-35b-a3b-text-source-q40-hq6k-af32.json | qwen-3-6-35b-a3b-text-source-q40-hq6k-af32 | qwen3 | RDRR, q4_0 weights, q4_0 embeddings, q6k LM head, f32 compute, row Q4K layout |
+| src/config/conversion/qwen3/qwen-3-8-27b-text-q4k-ef16-af32.json | qwen-3-8-27b-text-q4k-ef16-af32 | qwen3 | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout |
 | src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json | qwen-3-8-flash-next-text-q4k-ehf16-af32 | qwen3 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout |
 | src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json | qwen-3-embedding-0-6b-f16-af32 | qwen3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout |
 | src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json | qwen-3-reranker-0-6b-f16-true-logit-af32 | qwen3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute |

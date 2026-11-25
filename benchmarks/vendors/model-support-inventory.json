@@ -108,11 +108,11 @@
     }
   },
   "summary": {
-    "catalogModelCount": 31,
+    "catalogModelCount": 33,
     "sourceCheckpointCount": 23,
-    "conversionOnlyConfigCount": 20,
+    "conversionOnlyConfigCount": 22,
     "hfPublishedModelCount": 21,
-    "verifiedModelCount": 28,
+    "verifiedModelCount": 30,
     "benchmarkSelectedSourceCount": 1,
     "benchmarkPendingSourceCount": 22,
     "tierCounts": {
@@ -122,7 +122,7 @@
       "unknown": 0
     },
     "typeClusterCounts": {
-      "text-generators": 17,
+      "text-generators": 19,
       "multimodal-generators": 3,
       "diffusion-language-models": 1,
       "translation-specialists": 2,
@@ -1632,20 +1632,105 @@
         "label": "Text generators"
       },
       "tier": "small",
-      "minSizeBytes": 1155351431,
+      "minSizeBytes": 1155350214,
       "minSizeLabel": "1.08 GiB",
       "status": "benchmark-receipts-incomplete",
       "preferredArchitecture": {
         "status": "pending-benchmark-comparison",
-        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
         "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
         "evidence": {
-          "runtimeReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json",
+          "runtimeReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ef16-af32-vf16/2026-11-21T15-24-41.049Z.json",
           "compareResult": null,
           "summarySvg": null
         }
       },
       "variants": [
+        {
+          "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+          "label": "Qwen 3.5 0.8B (Q4K, F32 activations)",
+          "family": "qwen3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
+          "modes": [
+            "text"
+          ],
+          "sizeBytes": 1155350214,
+          "sizeLabel": "1.08 GiB",
+          "tier": "small",
+          "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+          "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-6b21b912ed0b",
+          "manifestVariantId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16-mv-4085b42abdaa",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "manifest-owned",
+          "conversionConfig": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ef16-af32-vf16.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "q4k",
+            "embeddings": "f16",
+            "lmHead": "q4k",
+            "computePrecision": "f32",
+            "q4kLayout": "row",
+            "label": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout"
+          },
+          "lifecycle": {
+            "runtime": "active",
+            "conversion": "ready",
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-11-21",
+            "surfaces": [
+              "node"
+            ]
+          },
+          "hf": {
+            "published": false,
+            "repoId": null,
+            "revision": null,
+            "path": null
+          },
+          "quickstart": true,
+          "compare": {
+            "profile": null,
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ef16-af32-vf16/2026-11-21T15-24-41.049Z.json",
+            "runtimeReportExists": true,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js qwen-3-5-0-8b-q4k-ef16-af32-vf16 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-5-0-8b-q4k-ef16-af32-vf16 --dry-run --bootstrap",
+            "compareCommands": [],
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-5-0-8b-q4k-ef16-af32-vf16 --dry-run --bootstrap"
+          },
+          "missing": [
+            "hf-publish",
+            "compare-profile"
+          ],
+          "nextGate": "hf-publish"
+        },
         {
           "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
           "label": "Qwen 3.5 0.8B (Q4K)",
@@ -1772,9 +1857,9 @@
           "nextGate": "summary-svg"
         }
       ],
-      "nextAction": "Run compare/bench receipts for qwen-3-5-0-8b-q4k-ehaf16.",
-      "nextGate": "summary-svg",
-      "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+      "nextAction": "Publish or refresh the Hugging Face manifest/weights for qwen-3-5-0-8b-q4k-ef16-af32-vf16.",
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-5-0-8b-q4k-ef16-af32-vf16 --dry-run --bootstrap"
     },
     {
       "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
@@ -2023,20 +2108,105 @@
         "label": "Text generators"
       },
       "tier": "small",
-      "minSizeBytes": 2087407391,
+      "minSizeBytes": 2087405138,
       "minSizeLabel": "1.94 GiB",
       "status": "benchmark-receipts-incomplete",
       "preferredArchitecture": {
         "status": "pending-benchmark-comparison",
-        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "modelId": "qwen-3-5-2b-q4k-ef16-af32",
         "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
         "evidence": {
-          "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
+          "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ef16-af32/2026-11-21T15-25-19.225Z.json",
           "compareResult": null,
           "summarySvg": null
         }
       },
       "variants": [
+        {
+          "modelId": "qwen-3-5-2b-q4k-ef16-af32",
+          "label": "Qwen 3.5 2B (Q4K, F32 activations)",
+          "family": "qwen3",
+          "classification": {
+            "domain": "language",
+            "tasks": [
+              "generation"
+            ],
+            "architectureRole": "autoregressive-decoder",
+            "inputs": [
+              "text"
+            ],
+            "outputs": [
+              "text"
+            ]
+          },
+          "typeCluster": {
+            "id": "text-generators",
+            "label": "Text generators"
+          },
+          "modes": [
+            "text"
+          ],
+          "sizeBytes": 2087405138,
+          "sizeLabel": "1.94 GiB",
+          "tier": "small",
+          "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+          "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-cb8b019af965",
+          "manifestVariantId": "qwen-3-5-2b-q4k-ef16-af32-mv-41e532684994",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "manifest-owned",
+          "conversionConfig": "src/config/conversion/qwen3/qwen-3-5-2b-q4k-ef16-af32.json",
+          "architecture": {
+            "artifactFormat": "rdrr",
+            "weights": "q4k",
+            "embeddings": "f16",
+            "lmHead": "q4k",
+            "computePrecision": "f32",
+            "q4kLayout": "row",
+            "label": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout"
+          },
+          "lifecycle": {
+            "runtime": "active",
+            "conversion": "ready",
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-11-21",
+            "surfaces": [
+              "node"
+            ]
+          },
+          "hf": {
+            "published": false,
+            "repoId": null,
+            "revision": null,
+            "path": null
+          },
+          "quickstart": true,
+          "compare": {
+            "profile": null,
+            "benchmarkComparable": false,
+            "benchmarkEvidenceOk": false
+          },
+          "evidence": {
+            "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ef16-af32/2026-11-21T15-25-19.225Z.json",
+            "runtimeReportExists": true,
+            "compareResult": null,
+            "compareResultExists": false,
+            "summarySvg": null,
+            "summarySvgExists": false,
+            "localClaimLaneId": null
+          },
+          "actions": {
+            "verifyCommand": "node tools/run-registry-verify.js qwen-3-5-2b-q4k-ef16-af32 --surface auto",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-5-2b-q4k-ef16-af32 --dry-run --bootstrap",
+            "compareCommands": [],
+            "primaryNextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-5-2b-q4k-ef16-af32 --dry-run --bootstrap"
+          },
+          "missing": [
+            "hf-publish",
+            "compare-profile"
+          ],
+          "nextGate": "hf-publish"
+        },
         {
           "modelId": "qwen-3-5-2b-q4k-ehaf16",
           "label": "Qwen 3.5 2B (Q4K)",
@@ -2163,9 +2333,9 @@
           "nextGate": "summary-svg"
         }
       ],
-      "nextAction": "Run compare/bench receipts for qwen-3-5-2b-q4k-ehaf16.",
-      "nextGate": "summary-svg",
-      "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
+      "nextAction": "Publish or refresh the Hugging Face manifest/weights for qwen-3-5-2b-q4k-ef16-af32.",
+      "nextGate": "hf-publish",
+      "nextCommand": "node tools/publish-hf-registry-model.js --model-id qwen-3-5-2b-q4k-ef16-af32 --dry-run --bootstrap"
     },
     {
       "sourceCheckpointId": "google/translategemma-4b-it",
@@ -4108,6 +4278,42 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish qwen-3-6-35b-a3b-text-source-q4_0-af32 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "qwen-3-6-35b-a3b-text-source-q40-hq6k-af32",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen-3-6-35b-a3b-text-source-q40-hq6k-af32.json",
+      "sourceCheckpointId": "Qwen/Qwen3.6-35B-A3B",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "q4_0",
+        "embeddings": "q4_0",
+        "lmHead": "q6k",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, q4_0 weights, q4_0 embeddings, q6k LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen-3-6-35b-a3b-text-source-q40-hq6k-af32 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "qwen-3-8-27b-text-q4k-ef16-af32",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen-3-8-27b-text-q4k-ef16-af32.json",
+      "sourceCheckpointId": "Qwen/Qwen3.8-27B",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "q4k",
+        "embeddings": "f16",
+        "lmHead": "q4k",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen-3-8-27b-text-q4k-ef16-af32 before claiming runtime support.",
       "nextCommand": null
     },
     {
