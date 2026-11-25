@@ -354,3 +354,5 @@ behaviour, A1 on real activations, A2 or A4.
 | The linear-check policy could be weakened without changing any identity | Floors enforced; the digest is reported, not bound into the plan |
 | Not every parse or decrypt failure is deferred | Stated |
 | The cost link pointed at a missing section; one profile was named, two exist | Corrected |
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `bridge.py`, `calibrate_linear_check.py`, `checked_bridge.py`, `linear_check.py`, `ssh_route.py`, `test_checked_bridge.py`, `test_checked_native.py`, `test_linear_check.py`, `test_ssh_route.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

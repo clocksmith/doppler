@@ -777,3 +777,4 @@ per full tile row on a two-core host, or 0.55 seconds on the retained native
 fixture, one token row of 150,868 tiles is between about one and two and a half
 days of evaluator time on four threads before any client work.
 
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `flash_mlp.py`, `flash_model_assembly.py`, `flash_model_graph.py`, `flash_model_state.py`, `flash_ple_model.py`, `flash_qsa_model.py`, `flash_reference.py`, `flash_request_state.py`, `flash_stage_source.py`, `flash_storage_plan.py`, `flash_text_config.py`, `flash_tokenizer.py`, `flash_weights.py`, `inventory_flash_ngram.py`, `inventory_flash_text.py`, `local_ngram_rows.py`, `prepare_flash_tokenizer.py`, `public_weights.py`, `validate_flash_checkpoint.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

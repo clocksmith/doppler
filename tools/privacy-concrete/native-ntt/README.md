@@ -56,3 +56,5 @@ public-weight corruption before disclosure, and parser ordering for accepted
 responses. These are bounded in-process verification tests; they bypass the
 full-model constructor and do not qualify model admission, transport, malicious
 security or cryptographic confidentiality.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `Cargo.lock`, `test_integrity.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/native-ntt); the recorded receipts here are unchanged.

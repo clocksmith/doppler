@@ -1,5 +1,7 @@
 # Two-server shares route: design and threat model
 
+> **Python requester removed, 2026-11-25.** Doppler is JavaScript-only. The Python requester, CPU evaluator and their tests were removed; they remain at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete). The JavaScript transport and GPU provider stay here; a JavaScript requester is not yet written.
+
 Status: research. Production admission remains closed. No cryptographer has reviewed this. The
 [review record](#review-record) lists what has been checked.
 
@@ -40,8 +42,8 @@ theirs in detail; only their abstract and secondary summaries were read.
 ## Parties
 
 - **Requester.** Holds the prompt and the output. Runs the client model with the `shared` mode of
-  [full_model.py](full_model.py) and [shares.py](shares.py). Trusted.
-- **Providers A and B.** Two mesh computers, each running [shares_evaluator.py](shares_evaluator.py) with the public
+  [full_model.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/full_model.py) and [shares.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/shares.py). Trusted.
+- **Providers A and B.** Two mesh computers, each running [shares_evaluator.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/shares_evaluator.py) with the public
   coefficient files. Each may be dishonest. They must not pool what they see.
 - **Model owner.** Publishes the weights and the manifest.
 
@@ -77,7 +79,7 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
 - **Claim 1, privacy.** Each provider's rows are jointly uniform over the field and independent of the input, the
   probe and the multipliers, so one provider alone learns nothing about the activations, whatever it computes. This
   needs no hardness assumption; field elements are drawn exactly uniformly, redrawing the one out-of-range value. Argument: `x1` is uniform; `x2 = x - x1` is
-  uniform because `x1` is; every other row carries its own fresh uniform mask. [test_shares.py](test_shares.py) shows
+  uniform because `x1` is; every other row carries its own fresh uniform mask. [test_shares.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/test_shares.py) shows
   that A's rows are identical for a different input, that B's rows are identical for a different input under an
   equally likely first share, and that A's rows are identical for a different probe under equally likely masks.
 - **Claim 2, one dishonest provider is caught.** If one provider changes any value in its real block while the other
@@ -95,8 +97,8 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
   bound depends on the input, but a wrong value reaches it only after passing the field checks, with the
   probabilities above. And after a failure the requester computes on substituted zeros; if a later client step then
   cannot proceed, the route closes early, and the number of calls made before that could depend on the input. That
-  second exception was measured on 2026-11-18 with [shares_failure_probe.py](shares_failure_probe.py), which makes one
-  provider answer one chosen request wrongly ([shares_faulty_evaluator.py](shares_faulty_evaluator.py)) and compares
+  second exception was measured on 2026-11-18 with [shares_failure_probe.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/shares_failure_probe.py), which makes one
+  provider answer one chosen request wrongly ([shares_faulty_evaluator.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/shares_faulty_evaluator.py)) and compares
   what each provider was sent with an honest attempt. In 22 dishonest attempts (5 public prompts; the wrong answer at
   request 1, 2, 85, 170, 400 or 676; one value changed or the whole answer zeroed; with and without grouped flights)
   the requester never stopped early: every attempt made the same 676 projection calls, sent the same 65,152,252 bytes
@@ -154,8 +156,8 @@ such a group in one flight, so a block costs 4 round trips and not 7, and a step
 - A writer thread sends while the caller reads, so a flight larger than the pipe buffers cannot stall.
 - It is off by default. `shares_model.py --group-flights` turns it on and the receipt records `groupedFlights` and
   `sharedFlights`. The run compares its logits with the clear reference after closing, as every run does.
-- Tested: the route against real provider processes ([test_shares.py](test_shares.py)) and the projection module's
-  control flow with a stand-in for the quantizer ([test_shares_flights_model.py](test_shares_flights_model.py)).
+- Tested: the route against real provider processes ([test_shares.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/test_shares.py)) and the projection module's
+  control flow with a stand-in for the quantizer ([test_shares_flights_model.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/test_shares_flights_model.py)).
 - Measured on the Qwen fixture, one host, two CPU providers, 2026-11-18: the grouped run gives the same four tokens
   with zero logit difference and byte-for-byte the same traffic (65,152,252 bytes sent and 120,415,092 received per
   provider) in 388 flights instead of 676. It is not faster there: 5.15 s separate
@@ -177,7 +179,7 @@ is a 61-bit rotation), added, and corrected for the weight offset. Workspace sto
 to the process high-water mark and are reused across calls. The answer is the same eight bytes per value the CPU
 provider returns.
 
-[test_shares_gpu.py](test_shares_gpu.py) compares it with the CPU reference bit for bit on four shapes, including an
+[test_shares_gpu.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/test_shares_gpu.py) compares it with the CPU reference bit for bit on four shapes, including an
 input width above 4096, weights at both 16-bit and 8-bit extremes, multi-chunk column dispatches, workspace reuse
 across growing and shrinking batches, symlink and invalid-geometry rejection, mid-frame stream truncation, and inputs
 of zero, the prime minus one, the prime and 2^64 - 1, and runs a complete checked route on two GPU providers and on one
@@ -265,9 +267,9 @@ receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`
 - 2026-11-18, grouped flights added behind `--group-flights`: 23 CPU route tests and 3 projection-module tests
   pass on macOS and on the AMD Linux host; the Qwen fixture matches the clear reference exactly with grouping on.
   No independent review yet and no network run.
-- 2026-11-17, automated tests: 18 CPU pass ([test_shares.py](test_shares.py)), 5 GPU pass
-  ([test_shares_gpu.py](test_shares_gpu.py), run on both Metal and Vulkan WebGPU bindings), and 4 network/enrollment
-  pass ([test_shares_network.py](test_shares_network.py), covering prime-order Ed25519 subgroup validation, distinct-owner
+- 2026-11-17, automated tests: 18 CPU pass ([test_shares.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/test_shares.py)), 5 GPU pass
+  ([test_shares_gpu.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/test_shares_gpu.py), run on both Metal and Vulkan WebGPU bindings), and 4 network/enrollment
+  pass ([test_shares_network.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/test_shares_network.py), covering prime-order Ed25519 subgroup validation, distinct-owner
   and requester-owner exclusion, unauthenticated and tampered-ciphertext rejection, and >390 KB pipelined prefill
   batches).
 - 2026-11-17, first independent automated review, of a version with a public probe in a separate row and arithmetic
@@ -305,10 +307,12 @@ receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`
   alignment, `int8` (`|i1`) weight support, per-call GPU buffer and per-element `BigInt` allocations, and uncaught
   `end of stream` rejections when stdin closes mid-frame.
 - 2026-11-18, three-pass independent security review of [shares_network.js](shares_network.js),
-  [shares_model.py](shares_model.py), and [test_shares_network.py](test_shares_network.py). Closed all 15 findings
+  [shares_model.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/shares_model.py), and [test_shares_network.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/test_shares_network.py). Closed all 15 findings
   (10 initial, 2 follow-up, 3 polish): exact RFC 8032 prime-order Ed25519 point validation (`[L]A == O && A != O`) and
   strict `s < L` signature enforcement, `ownerId` and per-session `shares-manifest.json` SHA-256 transcript binding,
   pinned `--enrollment-sha256` and `--peer-computer-id` checks between Python and Node, directional ChaCha20-Poly1305
   record framing with explicit authenticated EOF and socket flush, backpressure-aware pre-auth/post-auth frame caps,
   post-`REC_READY` session admission accounting, and process-group teardown on Unix and Windows.
 - Cryptographer review: none.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `full_model.py`, `shares.py`, `shares_evaluator.py`, `shares_failure_probe.py`, `shares_faulty_evaluator.py`, `shares_model.py`, `test_shares.py`, `test_shares_flights_model.py`, `test_shares_gpu.py`, `test_shares_network.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

@@ -1,7 +1,7 @@
 /**
  * Authenticated, encrypted TCP transport and enrolled-operator identity verifier for the two-server shares route.
  *
- * Wraps any pipe-speaking shares evaluator (shares_evaluator.py or shares_evaluator_gpu.js) without changing its
+ * Wraps any pipe-speaking shares evaluator (for example shares_evaluator_gpu.js) without changing its
  * framing. Each session proves the provider's enrolled Ed25519 identity and ownerId over fresh nonces, the pinned
  * policy, plan, model, role ('a' or 'b'), per-session shares-manifest.json digest and ephemeral X25519 keys, then
  * encrypts every stream chunk and EOF marker with ChaCha20-Poly1305 under directional HKDF-SHA256 keys.

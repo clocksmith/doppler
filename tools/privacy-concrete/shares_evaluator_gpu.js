@@ -1,5 +1,5 @@
 /**
- * GPU evaluator for the two-server shares route. Same pipe protocol and manifest as shares_evaluator.py; the product
+ * GPU evaluator for the two-server shares route. Same pipe protocol and manifest as the retired CPU evaluator (commit 3e485ca93); the product
  * runs in shares_field_matmul.wgsl through a Node WebGPU binding. It multiplies whatever rows it is sent by the named
  * public matrix modulo 2^61 - 1. The rows are uniformly random numbers, so it handles no private data and needs no key.
  *

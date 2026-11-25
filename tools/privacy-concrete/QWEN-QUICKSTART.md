@@ -41,7 +41,7 @@ existing results.
 ## Use an already prepared client environment
 
 The exact environment/build recipe is the
-[workflow source](../../.github/workflows/encrypted-qwen-ntt12.yml).
+[workflow source](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/.github/workflows/encrypted-qwen-ntt12.yml).
 It uses Python 3.12, CPU Torch 2.3.1, the installed research dependency pins and the
 source-locked native NTT build. A stock extension wheel is not a substitute.
 Before model preparation, check the installed native identity:
@@ -73,3 +73,5 @@ and implementation review, and independent malicious-security qualification are
 unfinished. Full **Qwen3.8 Flash** generation is a separate unfinished integration;
 its operator and geometry evidence does not upgrade this prototype's model scope.
 See [the security boundary](SECURITY-BOUNDARY.md) and [complete evidence/limitations](FULL-QWEN.md).
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `../../.github/workflows/encrypted-qwen-ntt12.yml`, `full_model.py`, `native-ntt/prepare.py`, `prepare.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

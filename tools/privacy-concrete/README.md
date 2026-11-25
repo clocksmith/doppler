@@ -1,5 +1,7 @@
 # Encrypted transformer process experiments
 
+> **Code removed, 2026-11-25.** Doppler is JavaScript-only, so the Python (Concrete ML, NumPy and PyTorch) implementation of these experiments, its Rust NTT extension, `requirements.txt` and the eighteen GitHub workflows that ran it were removed from the tree. The policies, receipts under `evidence/` and these guides are retained as research records. To rerun an experiment, check out commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete) and follow the instructions there in an isolated Python environment outside this repository. The JavaScript shares transport and GPU provider (`shares_network.js`, `shares_evaluator_gpu.js`) remain.
+
 > **Direction, 2026-11-17.** The owner stopped the encrypted Flash run on the homomorphic design below. It makes the
 > requester hold the weights and pay for heavy cryptography. The protected tier must leave the requester light and
 > run on ordinary mesh computers, so it now continues in the [two-server shares route](SHARES.md): the requester
@@ -78,3 +80,5 @@ The two recorded runs took about 19.2 and 23.4 seconds, including about 7.8 and 
 - [SEAL's decryption/oracle and ciphertext-authenticity guidance](https://github.com/microsoft/SEAL/blob/main/SECURITY.md), relevant to the separate BFV experiment and the need to analyze encrypted feedback protocols.
 
 The upstream optimized executor runs encryption/evaluation/decryption together in `execute` mode; its `remote` path rejects optimized linear execution. This experiment owns a small explicit client projection adapter and a serialized process bridge for the encrypted multiplication call, without claiming the documentation's optimized/GPU timings are network deployment measurements. Production matching continues to reject cryptographic descriptors until a concrete backend and its full guarantees are qualified.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `experiment.py`, `native-ntt/prepare.py`, `prepare.py`, `requirements.txt`, `test_native.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

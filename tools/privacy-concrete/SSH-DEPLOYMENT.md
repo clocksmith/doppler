@@ -84,3 +84,5 @@ all four model steps after route closure. Its trusted client host held the keys;
 this was neither a browser client nor hardware attestation. The evidence records
 the pinned older experiment revision and actual costs, and does not qualify
 subsequent repository changes, arbitrary private inputs or production security.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `ssh_route.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.
