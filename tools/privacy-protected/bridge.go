@@ -17,6 +17,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
@@ -26,7 +27,7 @@ import (
 
 const bridgeProtocol = "doppler-protected-bridge/v1"
 
-var bridgeCeiling = map[string]int64{"keygen": 0, "commit-keys": 0, "encrypt": 0, "decrypt": maxResultBytes, "close": 0}
+var bridgeCeiling = map[string]int64{"keygen": 0, "commit-keys": 0, "retire-epoch": 0, "encrypt": 0, "decrypt": maxResultBytes, "close": 0}
 
 type stdioConn struct {
 	r *bufio.Reader
@@ -168,6 +169,17 @@ func bridgeMain(args []string) error {
 				return err
 			}
 			if err := c.send(header{Kind: "committed"}); err != nil {
+				return err
+			}
+		case "retire-epoch":
+			// After a failed verification the host retires this key epoch: the stored secret key and epoch record are
+			// deleted, so the next session makes a new key and uploads new evaluation keys.
+			if o.stateDir != "" {
+				os.Remove(filepath.Join(o.stateDir, "key-epoch.sk"))
+				os.Remove(filepath.Join(o.stateDir, "key-epoch.json"))
+			}
+			ep.KeysDigest = ""
+			if err := c.send(header{Kind: "retired", Fields: map[string]any{"keyEpoch": ep.Epoch}}); err != nil {
 				return err
 			}
 		case "encrypt":
