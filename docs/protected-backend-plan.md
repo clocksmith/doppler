@@ -498,7 +498,9 @@ Prompts were drawn at random at run time (recorded in the evidence). Each sessio
 | `arm64-host` GPU only | `vv` -> `ybehknq`, `efn` -> `prtvxz`, `noy` -> `behknq` | not checked (single evaluator) | 3 of 3 |
 
 **Where the pinned reference is missed, the cause is a near tie in the circuit, not the GPU**; the GPU equals the CPU
-there too. `f` and `s` are one-letter prompts, which give this letter-progression fixture no stride. Their first token
+there too. Exactly three prompts miss it: `f`, `s` and `dkt` (`dkt` ran twice, GPU-only and then dual), so 15 of 18
+distinct prompts match. Every other prompt matches both references, with smallest top-1 margins of 0.48-8.94 (for
+example `jm` -> `psvybeh`: 8.94, byte-identical to the CPU at 7 of 7 steps). `f` and `s` are one-letter prompts, which give this letter-progression fixture no stride. Their first token
 is a near tie in every model: top-1 margin 0.02-0.04 in the float64 model and 0.02-0.09 encrypted. The pinned
 approximate reference and the encrypted circuit then break the tie differently, and greedy decoding diverges from
 there (hence logit errors of 30 against the reference's different sequence). The second-step margins are 7-10. `dkt`
