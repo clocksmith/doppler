@@ -1,6 +1,6 @@
 # Two-server shares route: design and threat model
 
-> **Python requester removed, 2026-11-25.** Doppler is JavaScript-only. The Python requester, CPU evaluator and their tests were removed; they remain at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete). The JavaScript transport and GPU provider stay here; a JavaScript requester is not yet written.
+> **Python requester removed, 2026-11-25.** Doppler is JavaScript-only. The Python requester, CPU evaluator and their tests were removed; they remain at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete). The JavaScript transport and GPU provider stay here. [shares_client.js](shares_client.js) is the JavaScript requester: the same field, probe, query and check rules (its probe and anchors match the Python ones bit for bit), speaking the evaluator pipe protocol to a local provider or to `shares_network.js connect`; `tests/tooling/shares-client.test.js` runs it against two CPU stand-in providers, locally and over the enrolled transport. It sends one projection per round trip (no multi-projection flights yet). The model-level `shared` mode of full_model.py was not ported.
 
 Status: research. Production admission remains closed. No cryptographer has reviewed this. The
 [review record](#review-record) lists what has been checked.
