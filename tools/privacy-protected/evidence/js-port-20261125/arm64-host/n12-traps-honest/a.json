@@ -1,0 +1,153 @@
+{
+ "schema": "doppler.protected-evaluator-report/v1",
+ "backend": "webgpu",
+ "arch": "linux/arm64",
+ "misbehave": "",
+ "timing": "per-layer",
+ "role": "whole",
+ "outcome": "completed",
+ "sessions": [
+  {
+   "steps": [
+    {
+     "seq": 1,
+     "kind": "prefill",
+     "position": 2,
+     "lanes": 3,
+     "computeSeconds": 1.1354887419999995,
+     "gpuProgramMs": 1050.6800870000006,
+     "hostMs": 110.0998980000004,
+     "gpuWaitMs": 173.3199220000006,
+     "dispatches": 10479,
+     "kvEntries": 6,
+     "liveBufferBytes": 228616124,
+     "layers": [],
+     "resultDigest": "sha256:bf487c02bf9db4eee0f6121700af70903108892232d286a3739a87b3902cf3cd",
+     "resultBytes": 196704
+    },
+    {
+     "seq": 2,
+     "kind": "decode",
+     "position": 3,
+     "lanes": 3,
+     "computeSeconds": 0.6964768670000003,
+     "gpuProgramMs": 690.3264940000008,
+     "hostMs": 89.39332499998,
+     "gpuWaitMs": 128.73824499999955,
+     "dispatches": 9364,
+     "kvEntries": 8,
+     "liveBufferBytes": 236709820,
+     "layers": [],
+     "resultDigest": "sha256:56c3b9575fd47a509fd42153c48d37af41bd967f64f7fba3079c0464fc3655ad",
+     "resultBytes": 196704
+    },
+    {
+     "seq": 3,
+     "kind": "decode",
+     "position": 4,
+     "lanes": 3,
+     "computeSeconds": 0.7044275200000002,
+     "gpuProgramMs": 697.289006,
+     "hostMs": 86.24203300002421,
+     "gpuWaitMs": 135.72306599999956,
+     "dispatches": 10251,
+     "kvEntries": 10,
+     "liveBufferBytes": 244803516,
+     "layers": [],
+     "resultDigest": "sha256:fbc56a1975ec1750ec787e55929138b1d8f16fc7b29bc83ebb9c3f6c03e808db",
+     "resultBytes": 196704
+    },
+    {
+     "seq": 4,
+     "kind": "decode",
+     "position": 5,
+     "lanes": 3,
+     "computeSeconds": 0.7640321250000006,
+     "gpuProgramMs": 756.3877320000001,
+     "hostMs": 123.55133400000432,
+     "gpuWaitMs": 143.35113699999965,
+     "dispatches": 11138,
+     "kvEntries": 12,
+     "liveBufferBytes": 252897212,
+     "layers": [],
+     "resultDigest": "sha256:30ef9b2cf94d9fa94ab06e1d1a675c3ba114b8d15f46d5f5b87710e724115f2d",
+     "resultBytes": 196704
+    },
+    {
+     "seq": 5,
+     "kind": "decode",
+     "position": 6,
+     "lanes": 3,
+     "computeSeconds": 0.8398097820000002,
+     "gpuProgramMs": 832.463049,
+     "hostMs": 115.5364570000038,
+     "gpuWaitMs": 146.60505600000033,
+     "dispatches": 12025,
+     "kvEntries": 14,
+     "liveBufferBytes": 260990908,
+     "layers": [],
+     "resultDigest": "sha256:64ecbb5a29536e8eddd1424904c9bc01f71aaf1b85a654ef78127af28e085311",
+     "resultBytes": 196704
+    },
+    {
+     "seq": 6,
+     "kind": "decode",
+     "position": 7,
+     "lanes": 3,
+     "computeSeconds": 0.8129792700000007,
+     "gpuProgramMs": 805.927921999999,
+     "hostMs": 105.398058999981,
+     "gpuWaitMs": 157.1259659999996,
+     "dispatches": 12912,
+     "kvEntries": 16,
+     "liveBufferBytes": 269084604,
+     "layers": [],
+     "resultDigest": "sha256:92f2a75c64d0b8ea5e316f615a9f7bea3aafe00476f86d132f944d6a061cd92d",
+     "resultBytes": 196704
+    }
+   ],
+   "role": "whole",
+   "lanes": 3,
+   "keyEpoch": "818d53cbfb129737488ead52a8340dd5",
+   "schedule": {
+    "promptTokens": 3,
+    "generatedTokens": 6
+   },
+   "keysFrom": "upload",
+   "keysDigest": "sha256:216f0d0f957466159679ef92156ade16d3eb4cf3bf9e33d3c18d5d12219ed123",
+   "keyLoadSeconds": 1.616817007,
+   "peakBufferBytes": 269084604,
+   "outcome": "completed",
+   "bytesReceived": 63507905,
+   "bytesSent": 1182366
+  }
+ ],
+ "provider": "webgpu",
+ "adapter": {
+  "vendor": "nvidia",
+  "architecture": "ampere",
+  "device": "nvidia-tegra-orin-nvgpu-",
+  "description": "NVIDIA: 540.4.0 540.4.0.0"
+ },
+ "programs": [
+  "sha256:ef2bb3ceefe61dc820c0bfc3c3789828f678995e839b3f1ec9f9519e9fb697f1"
+ ],
+ "steps": [
+  "prefill:0:2",
+  "decode:3:3",
+  "decode:4:4",
+  "decode:5:5",
+  "decode:6:6",
+  "decode:7:7"
+ ],
+ "setupSeconds": 0.690274101,
+ "programBufferBytes": 30582716,
+ "gpu": {
+  "dispatches": 198514,
+  "submits": 37,
+  "peakBufferBytes": 269084604,
+  "evaluationKeyBytesResident": 34406400,
+  "uploadBytes": 29097984,
+  "readbackBytes": 1179648
+ }
+}

@@ -595,3 +595,97 @@ Code: `webgpu/split.js`, `evaluator.js --role stage-a|stage-b` (`--next`, `--hop
 - **What it does not change.** Splitting divides weights, constants and the KV cache, not the evaluation keys (each
   stage key-switches), multiplies key upload by the number of stages, and adds a hop per stage boundary per token. The
   go/no-go of section 9 stands.
+
+## 11. JavaScript only (2026-11-25)
+
+Owner decision: no Go and no Python in the protected route. The Go/Lattigo tools, `train_tiny.py` and the shell and
+Python harnesses are removed; everything runs on Node. `node tools/privacy-protected/pp.js <command>` replaces the
+`pp` binary (`requester`, `bridge`, `gpu-compile`, `compare`, `reference`, `audit`, `plain-bench`, `trapset`,
+`trap-oracle`); `webgpu/evaluator.js` is the evaluator, now with `--backend cpu` as well.
+
+| Module | Replaces | What it does |
+| --- | --- | --- |
+| `ckks/bigfloat.js` | Go `math/big.Float` | the semantics Lattigo's scales, coefficients and encoder rely on (precision rules, round to nearest even) |
+| `ckks/params.js`, `profiles.json` | `profile.go` | the u32 profiles with Lattigo's primes and roots pinned and checked; same profile digests |
+| `ckks/encoder.js` | Lattigo's encoder | the 64-slot arbitrary-precision embedding (64-bit big-float FFT) and the float64 decoder |
+| `ckks/keys.js`, `key-workers.js` | `requester.go` key code | ternary secret, Gaussian error (sigma 3.2, bound 19), gadget keys, encryption, decryption; node:crypto CSPRNG; worker threads |
+| `ckks/rns-exec.js`, `webgpu/cpu-device.js` | `rnsExec`, the CPU evaluator | every program op on the CPU, word for word as the WGSL kernels; the dual check's second evaluator |
+| `compiler.js` | `gpu_record.go` | the circuit compiled as Lattigo v6.2.0 evaluated it: scale matching, constants, Paterson-Stockmeyer in the Chebyshev basis |
+| `plan.js`, `ckks/gomath.js`, `tools.js` | `plan.go`, `reference.go`, `compare.go`, `audit.go` | plan, approximations, references; Go's arm64 `math.Exp` and `math.tanh` for the Chebyshev nodes |
+| `requester.js`, `trap-client.js` | `requester.go` | whole model, dual check, split, events, key epochs, and trap lanes |
+| `traps.js`, `trap-oracle.js`, `trapset.js`, `bridge.js` | `oracle.go`, `trapset.go`, `bridge.go` (branch `protected-route`) | trap oracle (v2), signed trap set (v1), the verifier, the stdio key holder |
+
+**Equivalence with the Go code.** `fixtures/go-golden.json` was exported once from the Go code before it was deleted;
+`npm run protected:check` (24 tests, about a minute) checks the port against it:
+
+- the two u32 profiles (moduli, roots, Galois elements, digests) and all 112 Chebyshev coefficients, bit for bit at
+  128 bits;
+- 16 reference prompts: identical tokens, logits within 1e-9;
+- 24 encodings, word for word;
+- the decryption of a Lattigo ciphertext with its exported secret key (within 1e-15 of Lattigo's own decoding);
+- 119 RNS operations on shared inputs, including key switching, rotation, relinearization and rescale, word for word;
+- whole programs: the compiler's output is byte-identical (JSON and constants) to the Go recorder's and to the receipt
+  programs `bundle12-a`, `bundle16-b` and `bundle16-c`. `bundle16-a` was made by an earlier Go build that did not keep
+  the last position's KV entries as step state; its constants are identical. Programs compiled on aarch64 and
+  x86_64 are byte-identical. Compiling takes 2-6 s (the Go recorder took 48-80 s at N = 2^12 and minutes at 2^16).
+
+Before the deletion, the JavaScript requester (JavaScript keys, encryption and decryption) also drove the Go CPU
+evaluator: `hkn` -> `qtwzcf`, equal to both references (evidence `mac-interop-go-cpu-evaluator/`).
+`webgpu/test-vectors.js` now checks the GPU against the JavaScript executor: 121 of 121 on the `arm64-host` GPU (Jetson AGX Orin) at
+N = 2^12 (on the golden inputs, so against Lattigo's digests as well) and at N = 2^16.
+
+**Results (all JavaScript; evidence in [`tools/privacy-protected/evidence/js-port-20261125/`](../tools/privacy-protected/evidence/js-port-20261125/), `summary.json`).**
+
+| Run | Tokens | Check |
+| --- | --- | --- |
+| N = 2^12, `arm64-host` GPU, `hkn` | `qtwzcf` | both references; also on the CPU backend (Mac) |
+| N = 2^16, `arm64-host` GPU, `kpd`, `cnr`, `ahg` | `fhjlnq`, `tvxzbd`, `ijklmn` | both references; `kpd` errors 0.905 / 1.943, margin 1.508 (the Go receipt: 0.91 / 1.95 / 1.51) |
+| N = 2^16, `arm64-host` GPU, `dkt` | `wxyzab` | misses the references, as in section 9 (a near tie in the circuit) |
+| N = 2^12 split on the `arm64-host` GPU, `gmq`, plus a whole-model evaluator | `rstuvy` | split equals whole byte for byte at 6 of 6 steps |
+| N = 2^12 split, stage A `arm64-host` GPU, stage B `intel-host` iGPU, plus a whole-model evaluator | `qtwzcf` | byte for byte at 6 of 6 steps |
+| N = 2^16 split, stage A `arm64-host` GPU, stage B `intel-host` iGPU, `kpd` | `fhjlnq` | both references; 13,107,232 bytes per hop |
+| N = 2^12, `arm64-host` GPU, 2 trap lanes from the JavaScript oracle | `pqrstu` | 12 of 12 trap checks passed (max error 0.0008) |
+| the same with one lane tampered (`--misbehave tamper-lane=0`), 3 sessions | refused, refused, `aapapp` | refused when the tampered lane was a trap (2 of 3, as expected for 2 trap lanes); the third accepted a wrong answer |
+
+**Decode on the Orin GPU (`arm64-host`), against the kill gate (section 9 and the Route 1 receipts).** Requester on `arm64-host` (the earlier
+figures had it on a Mac, so their round trip includes 19.4 MB per token over the network); another worker's CPU job
+used about 2.5 of its 12 cores throughout.
+
+| Measure (median per decode token, N = 2^16) | JavaScript, this run | Go requester, earlier |
+| --- | --- | --- |
+| Evaluator, whole block | 2.61-2.94 s (GPU wait 2.39-2.58 s) | 2.62-2.70 s (GPU wait 2.43 s) |
+| Round trip, whole block | 2.66-2.96 s (local requester) | 3.68-3.78 s (Mac requester) |
+| Round trip, two-machine split | 7.19 s (stage A 2.39 s, stage B 2.76 s) | 6.05 s (2.17 s, 2.57 s) |
+| Requester encryption | 0.16-0.23 s | 0.08-0.15 s |
+| Key generation (7 keys) | 4.7-7.0 s (4 worker threads) | 2.1-2.2 s |
+| Time to first token, fresh keys, local evaluator | 12.3-14.4 s | 36.2 s (Mac, 26.5 s upload) |
+| Requester peak RSS | 1.16 GB | 0.62 GB |
+
+The evaluator is the same JavaScript and WGSL as before, so its time is unchanged within the contention. The
+requester is slower than Go/Lattigo on one thread (key generation 22 s, encryption 0.7 s per token) and uses worker
+threads instead; four workers keep it near 1.2 GB.
+
+**What changed.**
+
+- Only the u32 profiles exist. `research-n16` and `dev-insecure-n12` used 61-bit special primes and the removed
+  Lattigo CPU evaluator; Reploid's parked protected route (`server/protected-route/go-*.js`) still spawns the Go binary
+  and must move to `pp.js bridge` with `research-n16-u32` and `webgpu/evaluator.js` (lanes and `--max-lanes` are
+  supported).
+- The requester's key-epoch secret is stored in a JavaScript format; epochs stored by the Go tools are not read (a new
+  epoch is made).
+- The CPU evaluator (`--backend cpu`) is slow: about 70-230 s per step at N = 2^12 on a loaded Mac, against a few
+  seconds for Lattigo. Dual checks on the research ring use a second WebGPU evaluator.
+- `tiny-model.json` is a pinned artifact (its sha256 is the model identity). It was trained by the removed PyTorch
+  script `train_tiny.py`; retraining is not part of the route.
+- The trap set (v1) uses SplitMix64 for its seeded prompts (recorded as `generator`), so a seed gives other traps than
+  Go's `math/rand` did; verification is unchanged.
+
+```sh
+npm run protected:check                                   # JavaScript-only guard and the 24 tests
+node tools/privacy-protected/pp.js gpu-compile --profile research-n16-u32 --positions 3 --decode-through 7 --out /tmp/prog
+node tools/privacy-protected/webgpu/evaluator.js --program /tmp/prog --ready-file /tmp/a &          # --backend cpu without a GPU
+node tools/privacy-protected/pp.js requester --profile research-n16-u32 --evaluator $(cat /tmp/a) \
+  --model-identity sha256:$(shasum -a 256 tools/privacy-protected/tiny-model.json | cut -d' ' -f1) --prompt kpd --generate 6 --report r.json
+node tools/privacy-protected/pp.js compare --report r.json
+node tools/privacy-protected/webgpu/test-vectors.js --profile dev-insecure-n12-u32                  # kernels against the reference
+```
