@@ -1,7 +1,7 @@
 // node --test tools/secret-shared/tests/   (plain CPU; opens no GPU device)
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { q4kRows, denseRows } from '../gpu/ring-cpu.js';
+import { createCpuRingMatVec, q4kRows, denseRows } from '../gpu/ring-cpu.js';
 import { encode, encodeAndShare, recombine, rint } from '../requester/ring.js';
 import { shake256 } from '../requester/node.js';
 
@@ -93,4 +93,22 @@ test('PRG vectors: SHAKE-256 matches an independent hashlib vector; AES-256-CTR 
   const counter = new Uint8Array(16); new DataView(counter.buffer).setBigUint64(0, 7n, false);
   const out = Buffer.from(await crypto.subtle.encrypt({ name: 'AES-CTR', counter, length: 64 }, key, new Uint8Array(48)));
   assert.equal(out.toString('hex'), '3754fb01bdf925d28f8d964fce69304d0486426f0df0dfa8e09791abbb162ea0e275cd65f84287563f0eeba3038d83c5');
+});
+
+test('the pooled CPU ring (worker threads, reused shared buffers, concurrent calls) equals the single-thread kernel', async () => {
+  const ring = createCpuRingMatVec({ fw: 24, threads: 3 });
+  let s = 7; const rnd = () => (s = (s * 1103515245 + 12345) >>> 0);
+  try {
+    for (const [rows, cols, n] of [[37, 512, 3], [5, 256, 1], [64, 1024, 2]]) {
+      const q = new Uint8Array(rows * cols / 256 * 144).map(() => rnd() >>> 24);
+      const v = new DataView(q.buffer);
+      for (let o = 0; o < q.length; o += 144) { v.setUint16(o, 0x1400 | (rnd() & 1023), true); v.setUint16(o + 2, 0x1000 | (rnd() & 1023), true); }
+      const x = new Uint32Array(2 * n * cols).map(() => rnd());
+      const t = ring.tensor(rows, cols, q);
+      const [a, b] = await Promise.all([ring.run([t], x, n, rows), ring.run([t], x, n, rows)]);
+      const ref = new Uint32Array(2 * n * rows);
+      q4kRows(q, cols, x, n, 0, rows, 24, ref, rows, 0);
+      assert.deepEqual([...a], [...ref]); assert.deepEqual([...b], [...ref]);
+    }
+  } finally { ring.close(); }
 });

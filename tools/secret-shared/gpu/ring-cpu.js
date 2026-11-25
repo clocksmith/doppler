@@ -157,6 +157,7 @@ export function createCpuRingMatVec({ fw, threads = 0 }) {
   const waiting = new Map();
   for (const w of workers) { w.on('message', ({ id, error }) => { const done = waiting.get(id); waiting.delete(id); error ? done.reject(Error(error)) : done.resolve(); }); w.unref(); }
   const shared = bytes => { const sab = new SharedArrayBuffer(bytes.byteLength); new Uint8Array(sab).set(bytes); return sab; };
+  let xsBuf = null, ysBuf = null, queue = Promise.resolve();
   return {
     threads: count,
     tensor(rows, cols, q4kBytes) {
@@ -167,8 +168,21 @@ export function createCpuRingMatVec({ fw, threads = 0 }) {
     dense(rows, cols, values) { const sab = new SharedArrayBuffer(8 * rows * cols); new Float64Array(sab).set(values); return { kind: 'dense', rows, cols, sab }; },
     /** x: Uint32Array [n*cols*2]; returns Uint32Array [n*out*2] for the members in order. */
     async run(tensors, x, n, out) {
-      const xs = new SharedArrayBuffer(x.byteLength); new Uint32Array(xs).set(x);
-      const ys = new SharedArrayBuffer(n * out * 8);
+      // One input and one output buffer per operator, grown as needed and reused: allocating SharedArrayBuffers per
+      // round let the operator's resident memory climb across sessions. Rounds are serialized here.
+      const run = queue.then(async () => {
+        if (!xsBuf || xsBuf.byteLength < x.byteLength) xsBuf = new SharedArrayBuffer(x.byteLength);
+        if (!ysBuf || ysBuf.byteLength < n * out * 8) ysBuf = new SharedArrayBuffer(n * out * 8);
+        new Uint32Array(xsBuf, 0, x.length).set(x);
+        await dispatch(tensors, xsBuf, n, out, ysBuf);
+        return new Uint32Array(ysBuf, 0, n * out * 2).slice();
+      });
+      queue = run.catch(() => {});
+      return run;
+    },
+    close() { for (const w of workers) w.terminate(); }
+  };
+  async function dispatch(tensors, xs, n, out, ys) {
       const jobs = [];
       let offset = 0;
       for (const t of tensors) {
@@ -182,10 +196,7 @@ export function createCpuRingMatVec({ fw, threads = 0 }) {
       }
       for (const w of workers) w.ref();
       try { await Promise.all(jobs); } finally { for (const w of workers) w.unref(); }
-      return new Uint32Array(ys);
-    },
-    close() { for (const w of workers) w.terminate(); }
-  };
+  }
 }
 
 if (!isMainThread && workerData) {
