@@ -1,11 +1,11 @@
 # Model Atlas generator
 
-`../build-model-atlas.js` relocates the original Atlas renderer and its retained
-2026-11-07 analysis inputs from temporary storage. Requires Node 22 and Python 3
-(standard libraries only). It reads `models/catalog.json` for current lifecycle
+`../build-model-atlas.js` renders the Atlas from its retained 2026-11-07
+analysis inputs with the in-process renderer `gen.js`. Requires Node 22 and no
+other runtime. It reads `models/catalog.json` for current lifecycle
 labels. Shape counts, tensor inventories and pipeline prose are retained
 inspection records, not fresh execution or model qualification. Input digests
-are recorded in `snapshot.json`; update them deliberately after reviewing an
+(including `gen.js`) are recorded in `snapshot.json`; update them deliberately after reviewing an
 input change. Local model files and network access are unnecessary.
 
 Generate the public page from the Doppler repository:

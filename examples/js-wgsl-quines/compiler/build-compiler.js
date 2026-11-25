@@ -1,27 +1,28 @@
-"""Bootstrap a self-hosting Sprout -> JavaScript/WGSL compiler.
+// Bootstrap a self-hosting Sprout -> JavaScript/WGSL compiler.
+//
+// Called by ../build.js. The generated compiler never imports this builder.
+// Sprout is structured register assembly. Compiled outputs contain direct host
+// statements; they do not interpret Sprout at runtime.
+import { buildWasm } from './build-wasm.js';
 
-Executed by ../build.py. The generated compiler never imports this builder.
-Sprout is structured register assembly. Compiled outputs contain direct host
-statements; they do not interpret Sprout at runtime.
-"""
-OPS = ['nop','set','mov','add','sub','mul','div','mod','eq','lt','data','input','put','decimal','while','end','if','else','fi']
-OPNUM={name:i for i,name in enumerate(OPS)}
-JS_OP=[
-';\n','r[~a]=~b;\n','r[~a]=r[~b];\n','r[~a]=(r[~b]+r[~c])>>>0;\n',
-'r[~a]=(r[~b]-r[~c])>>>0;\n','r[~a]=Math.imul(r[~b],r[~c])>>>0;\n',
-'r[~a]=Math.floor(r[~b]/r[~c])>>>0;\n','r[~a]=(r[~b]%r[~c])>>>0;\n',
-'r[~a]=Number(r[~b]===r[~c]);\n','r[~a]=Number(r[~b]<r[~c]);\n',
-'r[~a]=at(P,r[~b]);\n','r[~a]=at(input,r[~b]);\n','put(r[~a]);\n','decimal(r[~a]);\n',
-'while(r[~a]!==0){\n','}\n','if(r[~a]!==0){\n','}else{\n','}\n']
-WG_OP=[
-'{}\n','r[~a]=~bu;\n','r[~a]=r[~b];\n','r[~a]=r[~b]+r[~c];\n',
-'r[~a]=r[~b]-r[~c];\n','r[~a]=r[~b]*r[~c];\n',
-'r[~a]=safe_div(r[~b],r[~c]);\n','r[~a]=safe_mod(r[~b],r[~c]);\n',
-'r[~a]=select(0u,1u,r[~b]==r[~c]);\n','r[~a]=select(0u,1u,r[~b]<r[~c]);\n',
-'r[~a]=data_at(r[~b]);\n','r[~a]=input_at(r[~b]);\n','put(r[~a]);\n','decimal(r[~a]);\n',
-'while(r[~a]!=0u){\n','}\n','if(r[~a]!=0u){\n','}else{\n','}\n']
+const OPS = ['nop', 'set', 'mov', 'add', 'sub', 'mul', 'div', 'mod', 'eq', 'lt', 'data', 'input', 'put', 'decimal', 'while', 'end', 'if', 'else', 'fi'];
+const OPNUM = Object.fromEntries(OPS.map((name, i) => [name, i]));
+const JS_OP = [
+  ';\n', 'r[~a]=~b;\n', 'r[~a]=r[~b];\n', 'r[~a]=(r[~b]+r[~c])>>>0;\n',
+  'r[~a]=(r[~b]-r[~c])>>>0;\n', 'r[~a]=Math.imul(r[~b],r[~c])>>>0;\n',
+  'r[~a]=Math.floor(r[~b]/r[~c])>>>0;\n', 'r[~a]=(r[~b]%r[~c])>>>0;\n',
+  'r[~a]=Number(r[~b]===r[~c]);\n', 'r[~a]=Number(r[~b]<r[~c]);\n',
+  'r[~a]=at(P,r[~b]);\n', 'r[~a]=at(input,r[~b]);\n', 'put(r[~a]);\n', 'decimal(r[~a]);\n',
+  'while(r[~a]!==0){\n', '}\n', 'if(r[~a]!==0){\n', '}else{\n', '}\n'];
+const WG_OP = [
+  '{}\n', 'r[~a]=~bu;\n', 'r[~a]=r[~b];\n', 'r[~a]=r[~b]+r[~c];\n',
+  'r[~a]=r[~b]-r[~c];\n', 'r[~a]=r[~b]*r[~c];\n',
+  'r[~a]=safe_div(r[~b],r[~c]);\n', 'r[~a]=safe_mod(r[~b],r[~c]);\n',
+  'r[~a]=select(0u,1u,r[~b]==r[~c]);\n', 'r[~a]=select(0u,1u,r[~b]<r[~c]);\n',
+  'r[~a]=data_at(r[~b]);\n', 'r[~a]=input_at(r[~b]);\n', 'put(r[~a]);\n', 'decimal(r[~a]);\n',
+  'while(r[~a]!=0u){\n', '}\n', 'if(r[~a]!=0u){\n', '}else{\n', '}\n'];
 
-JS_VALIDATE=r'''function at(a, i) { return i < a.length ? a[i] : 0; }
+const JS_VALIDATE = `function at(a, i) { return i < a.length ? a[i] : 0; }
 function validateProgram(p) {
   if (!p || p.length < 3 || p.length > 60000 || p[0] !== 21331 || p[2] % 4 || p.length !== 3+p[1]+p[2]) throw new Error("Invalid Sprout header.");
   if (Array.from(p).some(n => !Number.isSafeInteger(n) || n < 0 || n > 4294967295)) throw new Error("Sprout words must be u32.");
@@ -36,37 +37,9 @@ function validateProgram(p) {
     if (stack.length > 64) throw new Error("Control nesting is too deep.");
   }
   if (stack.length) throw new Error("Unclosed control block.");
-}'''
+}`;
 
-JS_PARTS=[
-'(() => {\n"use strict";\nconst PROGRAM_LENGTH = ',
-';\nconst P = Object.freeze([',
-']);\n'+JS_VALIDATE+r'''
-function execute(input = P, target = 0) {
-  validateProgram(input);
-  if (target !== 0 && target !== 1) throw new Error("Use target 0 (JS) or 1 (WGSL).");
-  const r = new Uint32Array(64);
-  r[0] = target; r[1] = input.length;
-  const output = [];
-  const put = c => { if (c > 127 || output.length >= 262143) throw new Error("Invalid or oversized compiler output."); output.push(c); };
-  const decimal = n => { for (const c of String(n >>> 0)) put(c.charCodeAt(0)); };
-''',
-r'''  return new TextDecoder().decode(Uint8Array.from(output));
-}
-'''+HOST+PRINT_JS+r'''
-const api = { id: "compiler", program: P, execute, self: () => execute(P, 0), wgsl: () => execute(P, 1),
-  compile: (program, target = "js") => execute(program, target === "js" ? 0 : target === "wgsl" ? 1 : -1),
-  run: (target = "js", input = null) => {
-    if (!["js", "wgsl"].includes(target)) throw new Error("Use js or wgsl.");
-    if (input !== null) validateProgram(input);
-    return withDevice(device => dispatchText(device, execute(P, 1), "main", { TARGET: target === "js" ? 0 : 1, EXTERNAL: input === null ? 0 : 1 }, input ?? []));
-  }
-};
-const DEFAULT_GPU = false;
-'''+AUTORUN+'\n})();\n'
-]
-
-WG_RUNTIME=r'''override TARGET: u32 = 1u;
+const WG_RUNTIME = `override TARGET: u32 = 1u;
 override EXTERNAL: u32 = 0u;
 @group(0) @binding(0) var<storage, read_write> output: array<u32>;
 @group(0) @binding(1) var<storage, read> supplied: array<u32>;
@@ -127,11 +100,44 @@ fn main() {
   if (!valid_input()) { output[0] = 0u; return; }
   var r: array<u32, 64>;
   r[0] = TARGET; r[1] = input_length();
-'''
-WG_PARTS=['const PROGRAM_LENGTH = ', 'u;\nconst P = array<u32, PROGRAM_LENGTH>(', ');\n'+WG_RUNTIME, '  output[0] = select(cursor - 1u, 0u, bad);\n}\n']
+`;
 
-# The compiler's own embedded data consists only of generic code-emission
-# templates. It also includes its Sprout instructions, compiled below.
-# Keep the small language; add native binary emission in the backend builder.
-AUTORUN = AUTORUN.replace('const task =', 'const task=')
-exec((ROOT / 'compiler/build_wasm.py').read_text(), globals())
+export function buildCompiler({ root, host, printJs, autorun, numbers }) {
+  const JS_PARTS = [
+    '(() => {\n"use strict";\nconst PROGRAM_LENGTH = ',
+    ';\nconst P = Object.freeze([',
+    ']);\n' + JS_VALIDATE + `
+function execute(input = P, target = 0) {
+  validateProgram(input);
+  if (target !== 0 && target !== 1) throw new Error("Use target 0 (JS) or 1 (WGSL).");
+  const r = new Uint32Array(64);
+  r[0] = target; r[1] = input.length;
+  const output = [];
+  const put = c => { if (c > 127 || output.length >= 262143) throw new Error("Invalid or oversized compiler output."); output.push(c); };
+  const decimal = n => { for (const c of String(n >>> 0)) put(c.charCodeAt(0)); };
+`,
+    `  return new TextDecoder().decode(Uint8Array.from(output));
+}
+` + host + printJs + `
+const api = { id: "compiler", program: P, execute, self: () => execute(P, 0), wgsl: () => execute(P, 1),
+  compile: (program, target = "js") => execute(program, target === "js" ? 0 : target === "wgsl" ? 1 : -1),
+  run: (target = "js", input = null) => {
+    if (!["js", "wgsl"].includes(target)) throw new Error("Use js or wgsl.");
+    if (input !== null) validateProgram(input);
+    return withDevice(device => dispatchText(device, execute(P, 1), "main", { TARGET: target === "js" ? 0 : 1, EXTERNAL: input === null ? 0 : 1 }, input ?? []));
+  }
+};
+const DEFAULT_GPU = false;
+` + autorun + '\n})();\n',
+  ];
+  const WG_PARTS = ['const PROGRAM_LENGTH = ', 'u;\nconst P = array<u32, PROGRAM_LENGTH>(', ');\n' + WG_RUNTIME, '  output[0] = select(cursor - 1u, 0u, bad);\n}\n'];
+
+  // The compiler's own embedded data consists only of generic code-emission
+  // templates. It also includes its Sprout instructions, compiled below.
+  // Keep the small language; add native binary emission in the backend builder.
+  return buildWasm({
+    root, host, printJs, numbers,
+    autorun: autorun.replaceAll('const task =', 'const task='),
+    OPS, OPNUM, JS_OP, WG_OP, JS_PARTS, WG_PARTS, WG_RUNTIME,
+  });
+}

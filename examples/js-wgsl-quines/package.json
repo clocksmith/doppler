@@ -8,8 +8,8 @@
     "test": "node tests/test-minimal.js && node tests/cpu.js",
     "test:minimal": "node tests/test-minimal.js",
     "test:gpu": "node tests/gpu.js",
-    "build": "python3 build.py",
-    "serve": "python3 -m http.server 8000 --bind 127.0.0.1",
+    "build": "node build.js",
+    "serve": "node serve.js 8000",
     "test:wasm": "node tests/wasm.js",
     "test:browser": "node tests/browser.js",
     "test:gpu-quine": "node tests/gpu-quine-browser.js"

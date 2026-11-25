@@ -81,8 +81,8 @@ The original generated constructions and their manifest remain unchanged.
 ## Construction notes
 
 Five complete constructions, not pseudocode. Generated programs are under
-`quines/`; the readable construction logic is in `build.py` and
-`compiler/build_compiler.py`.
+`quines/`; the readable construction logic is in `build.js`,
+`compiler/build-compiler.js` and `compiler/build-wasm.js`.
 
 **Verification boundary:** the supplied JavaScript, independent character-emission
 reference, and independent Sprout interpreter tests pass. All five also pass their
@@ -98,7 +98,7 @@ The gallery is self-contained, with all five initial programs embedded. It does
 not download libraries, models, fonts, or other runtime resources.
 
 ```bash
-python3 -m http.server 8000 --bind 127.0.0.1
+npm run serve
 ```
 
 Open `http://localhost:8000/demo.html` in a WebGPU-capable browser. Choose a program,
@@ -291,18 +291,18 @@ already generated source plus a pixel output buffer.
 ## Rebuild and inspect
 
 ```bash
-python3 build.py
+npm run build
 npm test
 ```
 
-Rebuilding requires Python 3 and Node. Runtime reproduction needs neither the
+Rebuilding requires only Node. Runtime reproduction needs neither the
 builder nor any original source file. `manifest.json` records all ten source-file
 sizes and SHA-256 hashes. It is external verification metadata, not an ingredient
 used by the quines.
 
-`build.py` builds the first four fixed points and embeds the complete launcher.
-`compiler/build_compiler.py` contains the bootstrap backend templates and builds
-the Sprout compiler. `compiler/compiler.sprout` is the actual self-hosted source,
+`build.js` builds the first four fixed points and embeds the complete launcher.
+`compiler/build-compiler.js` and `compiler/build-wasm.js` contain the bootstrap
+backend templates and build the Sprout compiler. `compiler/compiler.sprout` is the actual self-hosted source,
 with its generic emission templates as data. `compiler/assemble.js` assembles that
 text form. `tests/reference.js` independently interprets the numeric language.
 
@@ -331,7 +331,7 @@ The compiler now emits JavaScript, WGSL, or an import-free Wasm binary. It still
 uses 19 opcodes and 64 u32 registers. Generated Wasm contains direct native
 instructions, not a Sprout interpreter. Its embedded numeric source supplies
 quotation, just as it does for the two text backends. No descendant reads its
-source file, calls the Python builder, or embeds a precompiled compiler module.
+source file, calls the builder, or embeds a precompiled compiler module.
 
 The one output-domain change is that `put` accepts bytes 0..255 rather than only
 ASCII. Text targets remain strings; the Wasm target returns a `Uint8Array`.
@@ -340,7 +340,7 @@ instantiates the supplied module and only transports input/output through its
 memory; compilation runs inside that module.
 
 `compiler/complexity.json` records instruction count, source sizes, deterministic
-gzip sizes, and hashes. These are description-size measurements, not a proof of
+gzip sizes (reference zlib level 9, reproduced by `compiler/zlib-gzip.js`), and hashes. These are description-size measurements, not a proof of
 minimal Kolmogorov complexity. Dynamic binary sizes and i32 constants use legal
 five-byte LEB128: fewer compiler rules, somewhat larger emitted binaries.
 

@@ -41,7 +41,7 @@ Reranker lanes score each route with the application's prompt and use softmax(ye
 routes as probabilities. open-jev lanes ask one typed question: `choice("What type of GitHub
 issue is this?", [bug, feature, question])`, with the route descriptions. Models were fetched at
 pinned revisions with every LFS file checked against its SHA-256
-([fetch-models.py](../../examples/issue-triage/benchmark/fetch-models.py)).
+([fetch-models.js](../../examples/issue-triage/benchmark/fetch-models.js)).
 
 The F16 artifact is a fresh conversion of the pinned source safetensors
 (`model.safetensors` LFS `27cd75a4…`). The conversion configuration now uses the tiled F16
@@ -163,7 +163,7 @@ amd-host, or rebuild them with the commands in the qualification report. Then:
 
 ```sh
 cd examples/issue-triage/benchmark && npm ci
-python3 -I fetch-models.py <models root>   # plus the reranker fp16 export for transformersjs-fp16
+node fetch-models.js <models root>   # plus the reranker fp16 export for transformersjs-fp16
 cp config.example.json config.local.json   # fill paths and the Safari version
 node run.js config.local.json              # Chrome, Firefox, Safari (manual kind)
 node node-run.js <node config>             # same keys as the Linux node config

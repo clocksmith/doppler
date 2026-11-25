@@ -6,9 +6,9 @@
   "f16ModelDirectory": "<doppler>/.cache/qwen-reranker-f16-20261022",
   "hf": {
     "Qwen/Qwen3-Reranker-0.6B": "<directory with config.json, tokenizer files, generation_config.json and onnx/model_fp16.onnx of the reranker export>",
-    "onnx-community/kev-0.6b-ONNX": "<fetch-models.py root>/onnx-community/kev-0.6b-ONNX",
-    "onnx-community/kev-4b-ONNX": "<fetch-models.py root>/onnx-community/kev-4b-ONNX",
-    "onnx-community/open-jev-deberta-v3-large-ONNX": "<fetch-models.py root>/onnx-community/open-jev-deberta-v3-large-ONNX"
+    "onnx-community/kev-0.6b-ONNX": "<fetch-models.js root>/onnx-community/kev-0.6b-ONNX",
+    "onnx-community/kev-4b-ONNX": "<fetch-models.js root>/onnx-community/kev-4b-ONNX",
+    "onnx-community/open-jev-deberta-v3-large-ONNX": "<fetch-models.js root>/onnx-community/open-jev-deberta-v3-large-ONNX"
   },
   "browsers": [
     { "name": "chrome-macos", "kind": "chrome", "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" },

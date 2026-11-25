@@ -610,8 +610,8 @@
     "reports/decision-benchmark-20261022": {
       "retentionClass": "frozen-evidence",
       "files": 76,
-      "bytes": 2248489,
-      "inventoryHash": "sha256:6bedfad30d40c5bd325e874332e38c931ace86ccba2040757f07d8999b688a33"
+      "bytes": 2248483,
+      "inventoryHash": "sha256:c4480c8b4393d443b049c8c06a7162125ebfa6e2dfa0aa216bad1044bbed3a15"
     },
     "reports/demo-activation-20261107": {
       "retentionClass": "frozen-evidence",
