@@ -13,7 +13,11 @@ before anything advertises the capability.
 
 2026-11-25: one encrypted token computed on WebGPU (section 8): every layer of the fixture runs on ciphertexts in WGSL,
 on an Apple M3 and on a Jetson AGX Orin GPU, and the GPU's result ciphertext is byte-identical to the CPU (Lattigo)
-evaluator's. Prefill only; multi-token decoding on the GPU is not done.
+evaluator's.
+
+2026-11-25: autonomous encrypted generation on WebGPU (section 9): the encrypted KV cache stays on the GPU, every
+chosen token is fed back freshly encrypted, and one compiled decode program per position runs on both GPUs, byte-identical
+to the CPU circuit at every step. No real model is started: section 9 states the go/no-go.
 
 ## 1. Survey
 
@@ -457,3 +461,106 @@ DOPPLER_PROTECTED_WEBGPU=1 go test -count=1 -run TestWebGPUAndCPUEvaluatorsAgree
   key switches per bootstrap, that is tens of minutes per token. Kernel work (hoisted rotations, fused key switching,
   fewer NTT passes) might give 5-10x: minutes per token. Seconds per token is not in reach on these GPUs. Time to
   first token scales with prompt length (each position's lookups, plus one block).
+
+## 9. Autonomous encrypted generation on WebGPU (2026-11-25)
+
+Step 2 on the tiny fixture only. Code: `gpu-compile --positions n --decode-through 7`, `webgpu/run-sessions.sh`.
+Evidence: [`tools/privacy-protected/evidence/webgpu-generation-20261125/`](../tools/privacy-protected/evidence/webgpu-generation-20261125/).
+
+### How it works
+
+- **One compiled program per step.** `gpu-compile` records a whole session (the prefill, then decode at every later
+  position) and cuts it into step programs. The replay check now covers every step. Bundle A is prefill(1) plus decode
+  at positions 1-7: 10,072 ops, 24 MB of constants, 31 min and 6.4 GB to compile. Bundles B and C are prefill(3) and
+  prefill(2); their decode steps come from A.
+- **Encrypted KV cache on the GPU.** Each position's key and value rows (two ciphertexts at level 35, 18.9 MB each)
+  are named registers (`k<j>`, `v<j>`) in the session state. Every step exports the entries it makes, so steps from
+  different compiled sessions compose. The cache never leaves the GPU and is freed at `bye`.
+- **Feedback.** The requester decrypts each step's logits, picks the argmax and sends that token freshly encrypted as
+  the next decode step (unchanged from section 6). Nothing derived from a decryption travels in the clear.
+- **Key reuse.** The WebGPU evaluator keeps evaluation keys resident across sessions of one key epoch, and stores
+  them on disk until the epoch's expiry, in evaluator.go's layout. The requester sends `keys-held` when every evaluator
+  holds the epoch. Only the first session on each GPU uploaded keys; the other 17 sessions uploaded 0 bytes, including
+  runs after the evaluators restarted (keys read from the store).
+
+### Results
+
+Prompts were drawn at random at run time (recorded in the evidence). Each session fills the 8-position context
+(8, 7 or 6 tokens).
+
+| Run | Prompts -> generated | Byte-identical to the CPU circuit | Pinned reference |
+| --- | --- | --- | --- |
+| `mac-host` dual | `f` -> `iloruxad`, `jm` -> `psvybeh`, `egj` -> `mpsvyb` | every step (21 of 21) | 2 of 3 |
+| `mac-host` dual | `tm` -> `nopqrst`, `in` -> `prtvxzb`, `ksw` -> `yacegi` | every step (20 of 20) | 3 of 3 |
+| `arm64-host` dual (GPU on the Orin, CPU reference on `mac-host`) | `s` -> `vybehknq`, `jb` -> `ehklmno`, `oxv` -> `yzabcd` | every step (21 of 21) | 2 of 3 |
+| `arm64-host` dual | `ja` -> `dgjmpsv`, `tlc` -> `svwxyz`, `buy` -> `behknq` | every step (19 of 19) | 3 of 3 |
+| `mac-host` GPU only | `jc` -> `filnprt`, `zie` -> `gikmoq`, `dkt` -> `wxyzab` | not checked; `dkt` re-run in dual mode: every step (6 of 6) | 2 of 3 |
+| `arm64-host` GPU only | `vv` -> `ybehknq`, `efn` -> `prtvxz`, `noy` -> `behknq` | not checked (single evaluator) | 3 of 3 |
+
+**Where the pinned reference is missed, the cause is a near tie in the circuit, not the GPU**; the GPU equals the CPU
+there too. `f` and `s` are one-letter prompts, which give this letter-progression fixture no stride. Their first token
+is a near tie in every model: top-1 margin 0.02-0.04 in the float64 model and 0.02-0.09 encrypted. The pinned
+approximate reference and the encrypted circuit then break the tie differently, and greedy decoding diverges from
+there (hence logit errors of 30 against the reference's different sequence). The second-step margins are 7-10. `dkt`
+(a 3-letter prompt outside the fixture's stride family) agrees for four tokens, then meets a near tie at step 5
+(encrypted margin 0.083). A separate dual run of `dkt` confirmed that the GPU equals the CPU circuit at all six steps,
+with the same tokens `wxyzab`.
+Where the sequences agree, the largest logit error against the pinned reference is 0.38-0.76, and against the
+float64 model below 0.8.
+
+| Measure (keys reused, one evaluator) | `mac-host` (Apple M3, Metal) | `arm64-host` (Jetson AGX Orin GPU, Vulkan), requester on `mac-host` |
+| --- | --- | --- |
+| Time to first token (2-3 token prompts) | 3.5-5.2 s | 6.8-7.9 s |
+| Decode, round trip per token (median per session) | 4.1-5.1 s | 4.2 s |
+| of which GPU evaluator per token | 4.0-5.0 s | 2.7-2.8 s (the rest is about 1.4 s to send 19.4 MB through the SSH tunnel) |
+| Peak GPU buffers | 3.38-3.40 GB | 3.38-3.40 GB |
+| Upload per generated token / download | 19,398,688 / 1,048,608 bytes | same |
+| First session (keys uploaded) | key generation 4.1 s, upload 2.7 s (loopback) | key generation 7.9 s, upload 34.3 s |
+
+Peak GPU memory is keys 0.55 GB, program constants about 34 MB, the KV cache (up to 14 entries, 0.26 GB), and
+working ciphertexts and key-switch temporaries.
+
+In dual mode the round trip is set by the CPU evaluator (50-87 s per step on the M3), so dual-mode latency measures
+the reference, not the GPU.
+
+Network to `arm64-host` was re-measured, 64 MiB each: raw TCP over the LAN 20.4 MiB/s, raw TCP over the tailnet
+14.9 MiB/s, SSH tunnel 15.8 MiB/s. That makes the 550 MB key upload about 27 s on the LAN and 35 s through the tunnel.
+The 31-minute upload of section 8 reflected the network at that time, not the route. The runs used the SSH tunnel
+(authenticated, encrypted), about 22% slower than the unauthenticated LAN path. The LAN-address SSH variant was
+refused because no host key is pinned for that name.
+
+### Go/no-go for real models
+
+**No-go for any real catalogued model at interactive latency on these GPUs.** Go only for the tiny fixture, as a
+protocol and kernel testbed, and for one research step beyond it.
+
+The basis is measured, not assumed. Today's WebGPU kernels are GPU-bound (host encoding is 2-10% of a step), at about
+24 ms per key switch on the M3 and 13 ms on the Orin GPU, at N = 2^16 and 37 limbs. Any real model needs bootstrapping.
+
+| | Estimate (today's kernels) |
+| --- | --- |
+| One bootstrap (CoeffsToSlots and SlotsToCoeffs rotations, EvalMod polynomial; about 150-250 key switches, over more limbs) | 3.6-6 s on the M3, 2-3.3 s on the Orin |
+| GPT-2 small (124M; Perseus needs 416 bootstraps per token) | 25-42 min/token on the M3, 14-23 min on the Orin, before the linear layers |
+| Memory: bootstrapping keys (Lattigo's example: 7.9 GB serialized, about 4 GB as u32) plus rotation keys for d = 768 transforms | 10-20 GB: tight on the 24 GB M3, possible on the 64 GB Orin |
+| Reference point | Perseus: 1.55 s/token for GPT-2 small on a 96 GB Blackwell GPU with CUDA 64-bit integer multiplies, 63 GiB |
+
+What would change the verdict, and by how much:
+
+- **Kernel work** (hoisted rotations sharing one decomposition, fused key switching, radix-4/8 NTT with fewer global
+  passes, key-switch digits kept in workgroup memory): plausibly 5-10x. GPT-2 small would then take minutes per
+  token on the Orin: still not interactive. WebGPU's missing 64-bit integers and multiply-high cost about 2-4x against
+  CUDA whatever the kernel work.
+- **Different hardware:** a large discrete GPU with 10-20x the Orin's integer throughput, through WebGPU, plus the
+  kernel work: tens of seconds per token for GPT-2 small. Seconds per token needs Perseus-class engineering on
+  Blackwell-class hardware.
+- **A smaller real model:** about 4-6 layers with d = 256-384, at about 5-8 bootstraps per layer, is 20-50
+  bootstraps: 1-3 min/token on the Orin today, perhaps 15-30 s after the kernel work. The vocabulary head (d x vocab)
+  is a large linear layer but needs no bootstrap of its own. This is the nearest real-model target, and it is still not
+  interactive.
+- **Circuit redesign:** the largest lever. Use encryption-friendly training (polynomial activations, LayerNorm
+  folded or removed, low-degree softmax substitutes, bounded ranges, as the fixture does) and place bootstraps by depth
+  and magnitude (Perseus's placer), to cut bootstraps per token several-fold. Moving argmax and token feedback onto
+  the evaluator removes one round trip per token, at the cost of extra depth.
+
+Recommended next research step (not started): a 2-4 layer, d = 64-128 encryption-friendly model with bootstrapping on
+the Orin GPU, at minutes per token, so the kernel work has a target that needs it.

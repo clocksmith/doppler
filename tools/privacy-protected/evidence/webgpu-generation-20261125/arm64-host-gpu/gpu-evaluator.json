@@ -1,0 +1,1495 @@
+{
+ "schema": "doppler.protected-evaluator-report/v1",
+ "backend": "webgpu",
+ "arch": "linux/arm64",
+ "misbehave": "",
+ "timing": "per-layer",
+ "outcome": "completed",
+ "sessions": [
+  {
+   "steps": [
+    {
+     "seq": 1,
+     "kind": "prefill",
+     "position": 1,
+     "computeSeconds": 2.598963254,
+     "gpuProgramMs": 2417.107524000001,
+     "hostMs": 575.1879260000624,
+     "gpuWaitMs": 1837.667798999999,
+     "dispatches": 15899,
+     "kvEntries": 4,
+     "liveBufferBytes": 3060020524,
+     "layers": [
+      {
+       "name": "embed-0",
+       "ms": 437.7017909999995,
+       "dispatches": 1817,
+       "hostMs": 113.09812400000555,
+       "gpuWaitMs": 323.55020400000103
+      },
+      {
+       "name": "embed-1",
+       "ms": 502.7556889999996,
+       "dispatches": 2927,
+       "hostMs": 42.99664300002223,
+       "gpuWaitMs": 459.2423319999998
+      },
+      {
+       "name": "attention-scores",
+       "ms": 517.1513340000001,
+       "dispatches": 2943,
+       "hostMs": 115.96598599999561,
+       "gpuWaitMs": 400.6709059999994
+      },
+      {
+       "name": "softmax",
+       "ms": 175.88689200000044,
+       "dispatches": 941,
+       "hostMs": 60.43868900000052,
+       "gpuWaitMs": 115.20630900000106
+      },
+      {
+       "name": "attention-values",
+       "ms": 77.33781799999997,
+       "dispatches": 440,
+       "hostMs": 28.265557000000626,
+       "gpuWaitMs": 48.96579399999973
+      },
+      {
+       "name": "ln2",
+       "ms": 224.44822999999997,
+       "dispatches": 1603,
+       "hostMs": 59.64280200000212,
+       "gpuWaitMs": 164.48999899999944
+      },
+      {
+       "name": "mlp",
+       "ms": 331.4628049999992,
+       "dispatches": 3181,
+       "hostMs": 101.67759700002716,
+       "gpuWaitMs": 229.07438100000036
+      },
+      {
+       "name": "lnf",
+       "ms": 123.28706499999862,
+       "dispatches": 1569,
+       "hostMs": 43.18691300000319,
+       "gpuWaitMs": 79.70852699999887
+      },
+      {
+       "name": "head",
+       "ms": 24.32729300000028,
+       "dispatches": 478,
+       "hostMs": 9.695993000004819,
+       "gpuWaitMs": 14.513088999998217
+      }
+     ],
+     "resultDigest": "sha256:2483ec6dd7c147e9485e9749bcdb0c61e41eff73ff41dfbb4eb4eec4e3ef2979",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 2,
+     "kind": "decode",
+     "position": 2,
+     "computeSeconds": 2.169913822999999,
+     "gpuProgramMs": 2025.627574,
+     "hostMs": 230.52243399999134,
+     "gpuWaitMs": 1792.1561480000018,
+     "dispatches": 15773,
+     "kvEntries": 6,
+     "liveBufferBytes": 3114022188,
+     "layers": [
+      {
+       "name": "embed-2",
+       "ms": 597.2236639999992,
+       "dispatches": 2927,
+       "hostMs": 74.35446699999011,
+       "gpuWaitMs": 522.0447940000013
+      },
+      {
+       "name": "attention-scores",
+       "ms": 645.5670950000003,
+       "dispatches": 4415,
+       "hostMs": 43.75411299999905,
+       "gpuWaitMs": 601.3183449999997
+      },
+      {
+       "name": "softmax",
+       "ms": 125.42556399999921,
+       "dispatches": 941,
+       "hostMs": 13.302499000008538,
+       "gpuWaitMs": 111.94437199999993
+      },
+      {
+       "name": "attention-values",
+       "ms": 78.17364799999996,
+       "dispatches": 659,
+       "hostMs": 6.1246160000009695,
+       "gpuWaitMs": 71.95696800000042
+      },
+      {
+       "name": "ln2",
+       "ms": 180.00503099999878,
+       "dispatches": 1603,
+       "hostMs": 16.697998999994525,
+       "gpuWaitMs": 163.09845300000052
+      },
+      {
+       "name": "mlp",
+       "ms": 277.97412000000077,
+       "dispatches": 3181,
+       "hostMs": 51.166979000003266,
+       "gpuWaitMs": 226.23602700000083
+      },
+      {
+       "name": "lnf",
+       "ms": 97.27405799999906,
+       "dispatches": 1569,
+       "hostMs": 18.44961799999328,
+       "gpuWaitMs": 78.52148900000066
+      },
+      {
+       "name": "head",
+       "ms": 19.912657999999283,
+       "dispatches": 478,
+       "hostMs": 5.47186099999999,
+       "gpuWaitMs": 14.345337000000654
+      }
+     ],
+     "resultDigest": "sha256:5d8fa8374ed923cbf39d3877c753add2af69c4b7399c6ce0f982488d7ccff1d3",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 3,
+     "kind": "decode",
+     "position": 3,
+     "computeSeconds": 2.358873946000003,
+     "gpuProgramMs": 2209.6443819999986,
+     "hostMs": 184.14214599995103,
+     "gpuWaitMs": 2023.1405850000124,
+     "dispatches": 17464,
+     "kvEntries": 8,
+     "liveBufferBytes": 3168023852,
+     "layers": [
+      {
+       "name": "embed-3",
+       "ms": 543.6713139999993,
+       "dispatches": 2927,
+       "hostMs": 31.98926999999094,
+       "gpuWaitMs": 511.2484030000019
+      },
+      {
+       "name": "attention-scores",
+       "ms": 859.6154090000018,
+       "dispatches": 5887,
+       "hostMs": 53.43059699997684,
+       "gpuWaitMs": 805.6521939999984
+      },
+      {
+       "name": "softmax",
+       "ms": 125.45537500000137,
+       "dispatches": 941,
+       "hostMs": 12.27213899999333,
+       "gpuWaitMs": 113.01977900000202
+      },
+      {
+       "name": "attention-values",
+       "ms": 116.32448999999906,
+       "dispatches": 878,
+       "hostMs": 20.017071999998734,
+       "gpuWaitMs": 96.14245500000106
+      },
+      {
+       "name": "ln2",
+       "ms": 178.17247900000075,
+       "dispatches": 1603,
+       "hostMs": 15.50090599999021,
+       "gpuWaitMs": 162.48558000000048
+      },
+      {
+       "name": "mlp",
+       "ms": 256.93415300000197,
+       "dispatches": 3181,
+       "hostMs": 29.629563000005874,
+       "gpuWaitMs": 226.87891599999784
+      },
+      {
+       "name": "lnf",
+       "ms": 95.55619400000069,
+       "dispatches": 1569,
+       "hostMs": 16.48995300000388,
+       "gpuWaitMs": 78.82677899999908
+      },
+      {
+       "name": "head",
+       "ms": 19.233021000000008,
+       "dispatches": 478,
+       "hostMs": 4.80150999999023,
+       "gpuWaitMs": 14.345204000001104
+      }
+     ],
+     "resultDigest": "sha256:5ba75ac1b6fef907efc26e65ea8ec091802beb6c7ce290afd86c2b749e397011",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 4,
+     "kind": "decode",
+     "position": 4,
+     "computeSeconds": 2.5901094660000017,
+     "gpuProgramMs": 2449.106456999998,
+     "hostMs": 210.62523599991982,
+     "gpuWaitMs": 2236.020015000009,
+     "dispatches": 19155,
+     "kvEntries": 10,
+     "liveBufferBytes": 3222025516,
+     "layers": [
+      {
+       "name": "embed-4",
+       "ms": 560.8402190000015,
+       "dispatches": 2927,
+       "hostMs": 61.79498099999546,
+       "gpuWaitMs": 498.3180890000003
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1081.1906850000014,
+       "dispatches": 7359,
+       "hostMs": 63.289378999965265,
+       "gpuWaitMs": 1017.3843040000029
+      },
+      {
+       "name": "softmax",
+       "ms": 127.26634399999966,
+       "dispatches": 941,
+       "hostMs": 13.226360000000568,
+       "gpuWaitMs": 113.90346900000077
+      },
+      {
+       "name": "attention-values",
+       "ms": 128.5709480000005,
+       "dispatches": 1097,
+       "hostMs": 9.341989999989892,
+       "gpuWaitMs": 119.13881200000105
+      },
+      {
+       "name": "ln2",
+       "ms": 177.44275800000105,
+       "dispatches": 1603,
+       "hostMs": 14.833723000007012,
+       "gpuWaitMs": 162.44634399999995
+      },
+      {
+       "name": "mlp",
+       "ms": 255.52436600000146,
+       "dispatches": 3181,
+       "hostMs": 28.336402999979327,
+       "gpuWaitMs": 226.79579199999716
+      },
+      {
+       "name": "lnf",
+       "ms": 94.04166399999667,
+       "dispatches": 1569,
+       "hostMs": 15.10998099997596,
+       "gpuWaitMs": 78.7043479999993
+      },
+      {
+       "name": "head",
+       "ms": 19.122707000002265,
+       "dispatches": 478,
+       "hostMs": 4.680579000007128,
+       "gpuWaitMs": 14.35399900000266
+      }
+     ],
+     "resultDigest": "sha256:abb2a08b1b1b2ad03afa53ed9bafefed6ad7c5ff2c691479591813f6632b36f0",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 5,
+     "kind": "decode",
+     "position": 5,
+     "computeSeconds": 2.838805780999999,
+     "gpuProgramMs": 2699.8669069999996,
+     "hostMs": 244.9166930000174,
+     "gpuWaitMs": 2452.37413,
+     "dispatches": 20846,
+     "kvEntries": 12,
+     "liveBufferBytes": 3276027180,
+     "layers": [
+      {
+       "name": "embed-5",
+       "ms": 590.9785699999993,
+       "dispatches": 2927,
+       "hostMs": 73.5221139999594,
+       "gpuWaitMs": 516.7714500000002
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1279.5791050000007,
+       "dispatches": 8831,
+       "hostMs": 84.04569500000798,
+       "gpuWaitMs": 1194.8222910000004
+      },
+      {
+       "name": "softmax",
+       "ms": 125.96283600000243,
+       "dispatches": 941,
+       "hostMs": 14.443915000028937,
+       "gpuWaitMs": 111.39523800000097
+      },
+      {
+       "name": "attention-values",
+       "ms": 154.9804949999998,
+       "dispatches": 1316,
+       "hostMs": 11.380107999997563,
+       "gpuWaitMs": 143.48473599999852
+      },
+      {
+       "name": "ln2",
+       "ms": 176.9267409999993,
+       "dispatches": 1603,
+       "hostMs": 14.549741000002541,
+       "gpuWaitMs": 162.23040500000207
+      },
+      {
+       "name": "mlp",
+       "ms": 255.09028200000103,
+       "dispatches": 3181,
+       "hostMs": 27.615517000034743,
+       "gpuWaitMs": 227.08163799999966
+      },
+      {
+       "name": "lnf",
+       "ms": 93.51262700000007,
+       "dispatches": 1569,
+       "hostMs": 14.674865000004502,
+       "gpuWaitMs": 78.62332700000115
+      },
+      {
+       "name": "head",
+       "ms": 19.10154799999873,
+       "dispatches": 478,
+       "hostMs": 4.672385999983817,
+       "gpuWaitMs": 14.355208999997558
+      }
+     ],
+     "resultDigest": "sha256:d49662f6aab090fb7ab871799fd3f00848406538a16bc577a845ecdaef9649ae",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 6,
+     "kind": "decode",
+     "position": 6,
+     "computeSeconds": 3.0473176219999987,
+     "gpuProgramMs": 2915.365436,
+     "hostMs": 243.01945699994758,
+     "gpuWaitMs": 2669.499480000002,
+     "dispatches": 22537,
+     "kvEntries": 14,
+     "liveBufferBytes": 3330028844,
+     "layers": [
+      {
+       "name": "embed-6",
+       "ms": 586.4546649999975,
+       "dispatches": 2927,
+       "hostMs": 65.3222660000356,
+       "gpuWaitMs": 520.3342020000018
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1477.0357210000002,
+       "dispatches": 10303,
+       "hostMs": 93.80595099999482,
+       "gpuWaitMs": 1382.3778450000027
+      },
+      {
+       "name": "softmax",
+       "ms": 124.01360000000204,
+       "dispatches": 941,
+       "hostMs": 11.752111999998306,
+       "gpuWaitMs": 112.13825400000133
+      },
+      {
+       "name": "attention-values",
+       "ms": 180.0909040000006,
+       "dispatches": 1535,
+       "hostMs": 12.308412000005774,
+       "gpuWaitMs": 167.67093899999963
+      },
+      {
+       "name": "ln2",
+       "ms": 175.95643700000073,
+       "dispatches": 1603,
+       "hostMs": 13.776409000001877,
+       "gpuWaitMs": 162.03842599999916
+      },
+      {
+       "name": "mlp",
+       "ms": 254.57332800000222,
+       "dispatches": 3181,
+       "hostMs": 26.946144999932585,
+       "gpuWaitMs": 227.17619600000035
+      },
+      {
+       "name": "lnf",
+       "ms": 93.39540000000125,
+       "dispatches": 1569,
+       "hostMs": 14.62080699998478,
+       "gpuWaitMs": 78.56329100000585
+      },
+      {
+       "name": "head",
+       "ms": 18.8663349999988,
+       "dispatches": 478,
+       "hostMs": 4.4751949999918,
+       "gpuWaitMs": 14.341827999996895
+      }
+     ],
+     "resultDigest": "sha256:b1cba2209bab47b84bdd537b07fc4226ca400f016fabcc5f1db5953e1a998421",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 7,
+     "kind": "decode",
+     "position": 7,
+     "computeSeconds": 3.2794705229999965,
+     "gpuProgramMs": 3141.9878839999947,
+     "hostMs": 247.85041799990722,
+     "gpuWaitMs": 2891.2730329999977,
+     "dispatches": 24228,
+     "kvEntries": 14,
+     "liveBufferBytes": 3384030508,
+     "layers": [
+      {
+       "name": "embed-7",
+       "ms": 587.4337749999977,
+       "dispatches": 2927,
+       "hostMs": 64.07220100008271,
+       "gpuWaitMs": 522.6299429999999
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1675.0071790000002,
+       "dispatches": 11775,
+       "hostMs": 100.47530199990433,
+       "gpuWaitMs": 1573.6114739999975
+      },
+      {
+       "name": "softmax",
+       "ms": 123.49430399999983,
+       "dispatches": 941,
+       "hostMs": 11.134751999998116,
+       "gpuWaitMs": 112.24729500000103
+      },
+      {
+       "name": "attention-values",
+       "ms": 205.26620700000058,
+       "dispatches": 1754,
+       "hostMs": 14.03650499998912,
+       "gpuWaitMs": 191.10176499999943
+      },
+      {
+       "name": "ln2",
+       "ms": 176.76019900000392,
+       "dispatches": 1603,
+       "hostMs": 13.527758999931393,
+       "gpuWaitMs": 163.09352599999693
+      },
+      {
+       "name": "mlp",
+       "ms": 253.7966299999971,
+       "dispatches": 3181,
+       "hostMs": 26.366767999999865,
+       "gpuWaitMs": 227.06486500000028
+      },
+      {
+       "name": "lnf",
+       "ms": 95.79124700000102,
+       "dispatches": 1569,
+       "hostMs": 13.760306000011042,
+       "gpuWaitMs": 81.77279299999645
+      },
+      {
+       "name": "head",
+       "ms": 18.89035899999726,
+       "dispatches": 478,
+       "hostMs": 4.464921000006143,
+       "gpuWaitMs": 14.353598000001512
+      }
+     ],
+     "resultDigest": "sha256:afa6ffb4626d4b2494a5dcc558c2deaec73963285981d661299493391f852bc3",
+     "resultBytes": 1048608
+    }
+   ],
+   "keyEpoch": "21b7d25c47c41d18acc2d22a5b502a23",
+   "schedule": {
+    "promptTokens": 2,
+    "generatedTokens": 7
+   },
+   "keysFrom": "store",
+   "keysDigest": "sha256:83644f9df25bae42cb7c46608a3d617c90d29e411ffeb4a19c8a636bc385be11",
+   "keyLoadSeconds": 1.5230928510000004,
+   "peakBufferBytes": 3384030508,
+   "outcome": "completed",
+   "bytesReceived": 155191189,
+   "bytesSent": 7342531
+  },
+  {
+   "steps": [
+    {
+     "seq": 1,
+     "kind": "prefill",
+     "position": 2,
+     "computeSeconds": 2.784305168999999,
+     "gpuProgramMs": 2568.0926430000036,
+     "hostMs": 213.95192299997893,
+     "gpuWaitMs": 2351.6604470000093,
+     "dispatches": 19407,
+     "kvEntries": 6,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-0",
+       "ms": 372.63607399999455,
+       "dispatches": 1817,
+       "hostMs": 43.68001899999945,
+       "gpuWaitMs": 328.6555070000031
+      },
+      {
+       "name": "embed-1",
+       "ms": 313.1075259999998,
+       "dispatches": 1817,
+       "hostMs": 27.601047999967705,
+       "gpuWaitMs": 285.25018299999647
+      },
+      {
+       "name": "embed-2",
+       "ms": 472.2547179999965,
+       "dispatches": 2927,
+       "hostMs": 25.725040000012314,
+       "gpuWaitMs": 446.16531500000565
+      },
+      {
+       "name": "attention-scores",
+       "ms": 656.6456009999965,
+       "dispatches": 4415,
+       "hostMs": 36.658728999966115,
+       "gpuWaitMs": 619.6447889999981
+      },
+      {
+       "name": "softmax",
+       "ms": 124.48054399999819,
+       "dispatches": 941,
+       "hostMs": 11.04818399999931,
+       "gpuWaitMs": 113.30295099999785
+      },
+      {
+       "name": "attention-values",
+       "ms": 79.57804500000202,
+       "dispatches": 659,
+       "hostMs": 5.94785899999988,
+       "gpuWaitMs": 73.56471299999976
+      },
+      {
+       "name": "ln2",
+       "ms": 176.80366199999844,
+       "dispatches": 1603,
+       "hostMs": 14.788063000036345,
+       "gpuWaitMs": 161.8464129999993
+      },
+      {
+       "name": "mlp",
+       "ms": 256.5414860000019,
+       "dispatches": 3181,
+       "hostMs": 28.9726210000008,
+       "gpuWaitMs": 227.16527099999803
+      },
+      {
+       "name": "lnf",
+       "ms": 93.20726699999796,
+       "dispatches": 1569,
+       "hostMs": 14.775452999972913,
+       "gpuWaitMs": 78.21571500000573
+      },
+      {
+       "name": "head",
+       "ms": 19.26401900000201,
+       "dispatches": 478,
+       "hostMs": 4.742235000048822,
+       "gpuWaitMs": 14.440534000001207
+      }
+     ],
+     "resultDigest": "sha256:069fc88a5794ee9511d74153916f5c929ad026edbe3061e3ee7aed5289272c36",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 2,
+     "kind": "decode",
+     "position": 3,
+     "computeSeconds": 2.3487726970000002,
+     "gpuProgramMs": 2209.456886,
+     "hostMs": 210.99277999989863,
+     "gpuWaitMs": 1996.0116159999889,
+     "dispatches": 17464,
+     "kvEntries": 8,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-3",
+       "ms": 559.4437930000058,
+       "dispatches": 2927,
+       "hostMs": 60.10006299991801,
+       "gpuWaitMs": 498.0247010000021
+      },
+      {
+       "name": "attention-scores",
+       "ms": 850.3809000000037,
+       "dispatches": 5887,
+       "hostMs": 51.5794759999917,
+       "gpuWaitMs": 798.3865359999982
+      },
+      {
+       "name": "softmax",
+       "ms": 122.92652299999463,
+       "dispatches": 941,
+       "hostMs": 9.16667100002087,
+       "gpuWaitMs": 113.681994999999
+      },
+      {
+       "name": "attention-values",
+       "ms": 104.6487649999981,
+       "dispatches": 878,
+       "hostMs": 7.754898999992292,
+       "gpuWaitMs": 96.83764099999826
+      },
+      {
+       "name": "ln2",
+       "ms": 178.8145829999994,
+       "dispatches": 1603,
+       "hostMs": 14.499026999968919,
+       "gpuWaitMs": 164.21693099999538
+      },
+      {
+       "name": "mlp",
+       "ms": 276.66229100000055,
+       "dispatches": 3181,
+       "hostMs": 49.071775999960664,
+       "gpuWaitMs": 227.3457419999977
+      },
+      {
+       "name": "lnf",
+       "ms": 92.45096499999636,
+       "dispatches": 1569,
+       "hostMs": 14.071754000025976,
+       "gpuWaitMs": 78.2626969999983
+      },
+      {
+       "name": "head",
+       "ms": 19.228587999998126,
+       "dispatches": 478,
+       "hostMs": 4.600791000018944,
+       "gpuWaitMs": 14.578004000002693
+      }
+     ],
+     "resultDigest": "sha256:023855a2a6a00a1533b68c87931474699953337ef4bfa578c93e0643c8fa7aca",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 3,
+     "kind": "decode",
+     "position": 4,
+     "computeSeconds": 2.5808592370000043,
+     "gpuProgramMs": 2447.0605360000045,
+     "hostMs": 220.0320399999473,
+     "gpuWaitMs": 2224.6686120000086,
+     "dispatches": 19155,
+     "kvEntries": 10,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-4",
+       "ms": 563.5223289999994,
+       "dispatches": 2927,
+       "hostMs": 60.89570499998081,
+       "gpuWaitMs": 501.9294940000036
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1063.6785579999996,
+       "dispatches": 7359,
+       "hostMs": 64.4039229999762,
+       "gpuWaitMs": 998.7678739999974
+      },
+      {
+       "name": "softmax",
+       "ms": 122.43369900000107,
+       "dispatches": 941,
+       "hostMs": 8.778915999959281,
+       "gpuWaitMs": 113.54230200000165
+      },
+      {
+       "name": "attention-values",
+       "ms": 149.16837300000043,
+       "dispatches": 1097,
+       "hostMs": 28.18753100000322,
+       "gpuWaitMs": 120.8871749999962
+      },
+      {
+       "name": "ln2",
+       "ms": 179.4159739999959,
+       "dispatches": 1603,
+       "hostMs": 14.01299599999038,
+       "gpuWaitMs": 165.25683099999878
+      },
+      {
+       "name": "mlp",
+       "ms": 253.20905800000037,
+       "dispatches": 3181,
+       "hostMs": 26.01594000003388,
+       "gpuWaitMs": 226.843160000004
+      },
+      {
+       "name": "lnf",
+       "ms": 92.05229900000268,
+       "dispatches": 1569,
+       "hostMs": 13.360405000013998,
+       "gpuWaitMs": 78.51163200000155
+      },
+      {
+       "name": "head",
+       "ms": 18.89574100000027,
+       "dispatches": 478,
+       "hostMs": 4.362255999985791,
+       "gpuWaitMs": 14.391658000000461
+      }
+     ],
+     "resultDigest": "sha256:c85df0cc6a49ca04ba8ff4bcd3f68abaacd960a5ac287e49be2cf862b85e4f1b",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 4,
+     "kind": "decode",
+     "position": 5,
+     "computeSeconds": 2.830323912,
+     "gpuProgramMs": 2691.9185790000047,
+     "hostMs": 221.8828430001231,
+     "gpuWaitMs": 2467.680490000006,
+     "dispatches": 20846,
+     "kvEntries": 12,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-5",
+       "ms": 592.937426000004,
+       "dispatches": 2927,
+       "hostMs": 64.3956170000165,
+       "gpuWaitMs": 527.9496369999979
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1272.289681000002,
+       "dispatches": 8831,
+       "hostMs": 80.75286900003266,
+       "gpuWaitMs": 1190.868570999999
+      },
+      {
+       "name": "softmax",
+       "ms": 122.37992899999517,
+       "dispatches": 941,
+       "hostMs": 9.214342999977816,
+       "gpuWaitMs": 113.0526549999995
+      },
+      {
+       "name": "attention-values",
+       "ms": 155.26907400000346,
+       "dispatches": 1316,
+       "hostMs": 10.64573099998961,
+       "gpuWaitMs": 144.5181900000025
+      },
+      {
+       "name": "ln2",
+       "ms": 181.2566519999964,
+       "dispatches": 1603,
+       "hostMs": 13.693850000017846,
+       "gpuWaitMs": 167.42270399999688
+      },
+      {
+       "name": "mlp",
+       "ms": 253.04712499999732,
+       "dispatches": 3181,
+       "hostMs": 26.0664590000888,
+       "gpuWaitMs": 226.61336499999743
+      },
+      {
+       "name": "lnf",
+       "ms": 91.78109100000438,
+       "dispatches": 1569,
+       "hostMs": 12.71709400000691,
+       "gpuWaitMs": 78.886265000001
+      },
+      {
+       "name": "head",
+       "ms": 18.825909999999567,
+       "dispatches": 478,
+       "hostMs": 4.383567999990191,
+       "gpuWaitMs": 14.371492999998736
+      }
+     ],
+     "resultDigest": "sha256:2810694ade2030ac53dcf05968dd7fbe5eb1db946134426b99fdf2d8bc3a6ffa",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 5,
+     "kind": "decode",
+     "position": 6,
+     "computeSeconds": 3.0269077409999956,
+     "gpuProgramMs": 2890.8483209999977,
+     "hostMs": 224.6182109998772,
+     "gpuWaitMs": 2647.120874,
+     "dispatches": 22537,
+     "kvEntries": 14,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-6",
+       "ms": 553.1973510000025,
+       "dispatches": 2927,
+       "hostMs": 48.61482799996884,
+       "gpuWaitMs": 503.75876399999834
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1485.8704339999967,
+       "dispatches": 10303,
+       "hostMs": 95.52181900005962,
+       "gpuWaitMs": 1372.8157299999948
+      },
+      {
+       "name": "softmax",
+       "ms": 123.14648399999714,
+       "dispatches": 941,
+       "hostMs": 9.955186000013782,
+       "gpuWaitMs": 113.09180900000501
+      },
+      {
+       "name": "attention-values",
+       "ms": 183.1654750000016,
+       "dispatches": 1535,
+       "hostMs": 12.783748999980162,
+       "gpuWaitMs": 170.30124500000238
+      },
+      {
+       "name": "ln2",
+       "ms": 177.175255999995,
+       "dispatches": 1603,
+       "hostMs": 14.574083999956201,
+       "gpuWaitMs": 162.50008199999866
+      },
+      {
+       "name": "mlp",
+       "ms": 252.9674240000022,
+       "dispatches": 3181,
+       "hostMs": 25.748266999908083,
+       "gpuWaitMs": 226.99659200000315
+      },
+      {
+       "name": "lnf",
+       "ms": 91.6313949999967,
+       "dispatches": 1569,
+       "hostMs": 12.799588999972912,
+       "gpuWaitMs": 78.71484300000157
+      },
+      {
+       "name": "head",
+       "ms": 18.890959999996994,
+       "dispatches": 478,
+       "hostMs": 4.498031000010087,
+       "gpuWaitMs": 14.345728000000236
+      }
+     ],
+     "resultDigest": "sha256:54dc3cde8db4ae4f03e113f96cf755950bac52afb1e6a78ca3292255b753e811",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 6,
+     "kind": "decode",
+     "position": 7,
+     "computeSeconds": 3.228687315000003,
+     "gpuProgramMs": 3090.357959000001,
+     "hostMs": 218.92649500003608,
+     "gpuWaitMs": 2868.839702999998,
+     "dispatches": 24228,
+     "kvEntries": 14,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-7",
+       "ms": 550.2089819999965,
+       "dispatches": 2927,
+       "hostMs": 42.92062999994232,
+       "gpuWaitMs": 506.7027739999976
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1667.439986999998,
+       "dispatches": 11775,
+       "hostMs": 97.21034900008817,
+       "gpuWaitMs": 1569.3461009999955
+      },
+      {
+       "name": "softmax",
+       "ms": 124.1408289999963,
+       "dispatches": 941,
+       "hostMs": 8.55077300000994,
+       "gpuWaitMs": 115.47658200000296
+      },
+      {
+       "name": "attention-values",
+       "ms": 206.02097899999353,
+       "dispatches": 1754,
+       "hostMs": 14.29359599998861,
+       "gpuWaitMs": 191.59915900000487
+      },
+      {
+       "name": "ln2",
+       "ms": 176.06549999999697,
+       "dispatches": 1603,
+       "hostMs": 12.872415000063484,
+       "gpuWaitMs": 163.0625849999924
+      },
+      {
+       "name": "mlp",
+       "ms": 252.7764360000001,
+       "dispatches": 3181,
+       "hostMs": 25.48773999993864,
+       "gpuWaitMs": 226.87217699999746
+      },
+      {
+       "name": "lnf",
+       "ms": 91.81404800000018,
+       "dispatches": 1569,
+       "hostMs": 13.205926000024192,
+       "gpuWaitMs": 78.42626200000814
+      },
+      {
+       "name": "head",
+       "ms": 18.883113000003505,
+       "dispatches": 478,
+       "hostMs": 4.373833999998169,
+       "gpuWaitMs": 14.456347999992431
+      }
+     ],
+     "resultDigest": "sha256:50fd3ac2544985160e96feb83e09fbab6bff4157152d3c3e920ece9d1655f181",
+     "resultBytes": 1048608
+    }
+   ],
+   "keyEpoch": "21b7d25c47c41d18acc2d22a5b502a23",
+   "schedule": {
+    "promptTokens": 3,
+    "generatedTokens": 6
+   },
+   "keysFrom": "gpu-resident",
+   "keysDigest": "sha256:83644f9df25bae42cb7c46608a3d617c90d29e411ffeb4a19c8a636bc385be11",
+   "keyLoadSeconds": 0.026026084999997694,
+   "peakBufferBytes": 3403429164,
+   "outcome": "completed",
+   "bytesReceived": 155191052,
+   "bytesSent": 6293703
+  },
+  {
+   "steps": [
+    {
+     "seq": 1,
+     "kind": "prefill",
+     "position": 2,
+     "computeSeconds": 2.7614974199999995,
+     "gpuProgramMs": 2548.5864839999995,
+     "hostMs": 192.9787630000501,
+     "gpuWaitMs": 2353.1280320000333,
+     "dispatches": 19407,
+     "kvEntries": 6,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-0",
+       "ms": 372.904720999999,
+       "dispatches": 1817,
+       "hostMs": 35.894690999994054,
+       "gpuWaitMs": 336.7112710000074
+      },
+      {
+       "name": "embed-1",
+       "ms": 302.2204700000002,
+       "dispatches": 1817,
+       "hostMs": 16.923422000050778,
+       "gpuWaitMs": 285.05118599999696
+      },
+      {
+       "name": "embed-2",
+       "ms": 472.16921400000865,
+       "dispatches": 2927,
+       "hostMs": 24.602180999951088,
+       "gpuWaitMs": 447.1429960000096
+      },
+      {
+       "name": "attention-scores",
+       "ms": 650.0016000000032,
+       "dispatches": 4415,
+       "hostMs": 36.25622899993323,
+       "gpuWaitMs": 613.4404690000083
+      },
+      {
+       "name": "softmax",
+       "ms": 123.10355699999491,
+       "dispatches": 941,
+       "hostMs": 10.823542999962228,
+       "gpuWaitMs": 112.16266799998994
+      },
+      {
+       "name": "attention-values",
+       "ms": 78.16877899999963,
+       "dispatches": 659,
+       "hostMs": 6.167079999984708,
+       "gpuWaitMs": 71.93523400000413
+      },
+      {
+       "name": "ln2",
+       "ms": 176.70743399999628,
+       "dispatches": 1603,
+       "hostMs": 14.314100000017788,
+       "gpuWaitMs": 162.25656500000332
+      },
+      {
+       "name": "mlp",
+       "ms": 255.2983830000012,
+       "dispatches": 3181,
+       "hostMs": 27.805462000265834,
+       "gpuWaitMs": 227.14513999999326
+      },
+      {
+       "name": "lnf",
+       "ms": 93.9268630000006,
+       "dispatches": 1569,
+       "hostMs": 14.54309299995657,
+       "gpuWaitMs": 79.17803799999456
+      },
+      {
+       "name": "head",
+       "ms": 19.313157000011415,
+       "dispatches": 478,
+       "hostMs": 4.825745999958599,
+       "gpuWaitMs": 14.314736999993329
+      }
+     ],
+     "resultDigest": "sha256:e8fabbf3477deae69df3ed3ffb81c4e31f6c0564054f89e671c18a56aa359b9b",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 2,
+     "kind": "decode",
+     "position": 3,
+     "computeSeconds": 2.369369787999996,
+     "gpuProgramMs": 2235.759514999998,
+     "hostMs": 187.10128799977247,
+     "gpuWaitMs": 2045.7508149999921,
+     "dispatches": 17464,
+     "kvEntries": 8,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-3",
+       "ms": 556.5783490000031,
+       "dispatches": 2927,
+       "hostMs": 42.98247600000468,
+       "gpuWaitMs": 512.9563060000073
+      },
+      {
+       "name": "attention-scores",
+       "ms": 848.9165720000019,
+       "dispatches": 5887,
+       "hostMs": 50.268741999869235,
+       "gpuWaitMs": 797.4144329999981
+      },
+      {
+       "name": "softmax",
+       "ms": 120.6816850000032,
+       "dispatches": 941,
+       "hostMs": 8.630094999985886,
+       "gpuWaitMs": 111.94233900000108
+      },
+      {
+       "name": "attention-values",
+       "ms": 103.32270900000003,
+       "dispatches": 878,
+       "hostMs": 7.202968999990844,
+       "gpuWaitMs": 96.04476399999112
+      },
+      {
+       "name": "ln2",
+       "ms": 217.07794199998898,
+       "dispatches": 1603,
+       "hostMs": 13.120444000014686,
+       "gpuWaitMs": 203.82399400000577
+      },
+      {
+       "name": "mlp",
+       "ms": 275.02222600000096,
+       "dispatches": 3181,
+       "hostMs": 47.87263299993356,
+       "gpuWaitMs": 226.8190889999969
+      },
+      {
+       "name": "lnf",
+       "ms": 91.15600299999642,
+       "dispatches": 1569,
+       "hostMs": 12.715346000040881,
+       "gpuWaitMs": 78.26794999999402
+      },
+      {
+       "name": "head",
+       "ms": 18.887063999995007,
+       "dispatches": 478,
+       "hostMs": 4.293414999934612,
+       "gpuWaitMs": 14.518127999996068
+      }
+     ],
+     "resultDigest": "sha256:3726bda389c6069c52d9e35bb85914fec00cc36b3a6456e2e73b1ea3d8538c36",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 3,
+     "kind": "decode",
+     "position": 4,
+     "computeSeconds": 2.5574286629999987,
+     "gpuProgramMs": 2417.9891849999985,
+     "hostMs": 194.08086100043147,
+     "gpuWaitMs": 2221.9519660000515,
+     "dispatches": 19155,
+     "kvEntries": 10,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-4",
+       "ms": 554.428516999993,
+       "dispatches": 2927,
+       "hostMs": 46.46227099993848,
+       "gpuWaitMs": 507.3528309999965
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1054.2717879999982,
+       "dispatches": 7359,
+       "hostMs": 56.9829760001594,
+       "gpuWaitMs": 996.6710050000111
+      },
+      {
+       "name": "softmax",
+       "ms": 121.28024799999548,
+       "dispatches": 941,
+       "hostMs": 8.61175500000536,
+       "gpuWaitMs": 112.55802599999879
+      },
+      {
+       "name": "attention-values",
+       "ms": 146.49761900000158,
+       "dispatches": 1097,
+       "hostMs": 26.41252599992731,
+       "gpuWaitMs": 120.01430699999037
+      },
+      {
+       "name": "ln2",
+       "ms": 175.83108899999934,
+       "dispatches": 1603,
+       "hostMs": 13.361372000130359,
+       "gpuWaitMs": 162.36981300001207
+      },
+      {
+       "name": "mlp",
+       "ms": 252.47504900000058,
+       "dispatches": 3181,
+       "hostMs": 25.045460000183084,
+       "gpuWaitMs": 227.220622000008
+      },
+      {
+       "name": "lnf",
+       "ms": 91.40989800001262,
+       "dispatches": 1569,
+       "hostMs": 12.808527000088361,
+       "gpuWaitMs": 78.48728899999696
+      },
+      {
+       "name": "head",
+       "ms": 18.80670500000997,
+       "dispatches": 478,
+       "hostMs": 4.382502000007662,
+       "gpuWaitMs": 14.375914000003831
+      }
+     ],
+     "resultDigest": "sha256:bed5e2c5ca7c77feab9d20cbbf8027b981c385ee29414c1831f094e33d7e748d",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 4,
+     "kind": "decode",
+     "position": 5,
+     "computeSeconds": 2.8114851980000095,
+     "gpuProgramMs": 2673.317016999994,
+     "hostMs": 216.22604499988665,
+     "gpuWaitMs": 2453.888671000008,
+     "dispatches": 20846,
+     "kvEntries": 12,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-5",
+       "ms": 584.8546199999982,
+       "dispatches": 2927,
+       "hostMs": 60.60068399994634,
+       "gpuWaitMs": 523.5152629999939
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1270.073648999998,
+       "dispatches": 8831,
+       "hostMs": 80.85432299987588,
+       "gpuWaitMs": 1187.7937359999924
+      },
+      {
+       "name": "softmax",
+       "ms": 120.84320999999181,
+       "dispatches": 941,
+       "hostMs": 8.967726000046241,
+       "gpuWaitMs": 111.76114600000437
+      },
+      {
+       "name": "attention-values",
+       "ms": 154.13001399999484,
+       "dispatches": 1316,
+       "hostMs": 10.589994000052684,
+       "gpuWaitMs": 143.44184400000086
+      },
+      {
+       "name": "ln2",
+       "ms": 176.0580670000054,
+       "dispatches": 1603,
+       "hostMs": 13.161009000148624,
+       "gpuWaitMs": 162.76982300000964
+      },
+      {
+       "name": "mlp",
+       "ms": 252.36705200000142,
+       "dispatches": 3181,
+       "hostMs": 24.80778200001805,
+       "gpuWaitMs": 227.23231599999417
+      },
+      {
+       "name": "lnf",
+       "ms": 91.48887800000375,
+       "dispatches": 1569,
+       "hostMs": 12.872906999880797,
+       "gpuWaitMs": 78.43292700000165
+      },
+      {
+       "name": "head",
+       "ms": 18.812938999995822,
+       "dispatches": 478,
+       "hostMs": 4.359715999962646,
+       "gpuWaitMs": 14.383365000001504
+      }
+     ],
+     "resultDigest": "sha256:9b984981c88682c71532178b2ebb68d676a61d76a1f28c26de36ed3b00d09e3e",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 5,
+     "kind": "decode",
+     "position": 6,
+     "computeSeconds": 2.998636486000003,
+     "gpuProgramMs": 2859.385110999996,
+     "hostMs": 204.98138800027664,
+     "gpuWaitMs": 2652.0873960000026,
+     "dispatches": 22537,
+     "kvEntries": 14,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-6",
+       "ms": 553.7286829999939,
+       "dispatches": 2927,
+       "hostMs": 42.9947550000652,
+       "gpuWaitMs": 509.91455299999507
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1463.4114339999942,
+       "dispatches": 10303,
+       "hostMs": 85.99776799994288,
+       "gpuWaitMs": 1376.579700000002
+      },
+      {
+       "name": "softmax",
+       "ms": 120.56376699999964,
+       "dispatches": 941,
+       "hostMs": 8.74016999999003,
+       "gpuWaitMs": 111.75783699999738
+      },
+      {
+       "name": "attention-values",
+       "ms": 179.55937400000403,
+       "dispatches": 1535,
+       "hostMs": 12.095131000052788,
+       "gpuWaitMs": 167.39736000000266
+      },
+      {
+       "name": "ln2",
+       "ms": 175.64660899998853,
+       "dispatches": 1603,
+       "hostMs": 12.923753999944893,
+       "gpuWaitMs": 162.62618200000725
+      },
+      {
+       "name": "mlp",
+       "ms": 252.6396160000004,
+       "dispatches": 3181,
+       "hostMs": 24.925572000152897,
+       "gpuWaitMs": 227.50488900000346
+      },
+      {
+       "name": "lnf",
+       "ms": 91.71704400000453,
+       "dispatches": 1569,
+       "hostMs": 12.781894000101602,
+       "gpuWaitMs": 78.82461900000635
+      },
+      {
+       "name": "head",
+       "ms": 19.082760000004782,
+       "dispatches": 478,
+       "hostMs": 4.508807000005618,
+       "gpuWaitMs": 14.528097000002163
+      }
+     ],
+     "resultDigest": "sha256:aaca0fbf78e7585e50f650580883d65d8d73c602219953f9bf97157338b82c71",
+     "resultBytes": 1048608
+    },
+    {
+     "seq": 6,
+     "kind": "decode",
+     "position": 7,
+     "computeSeconds": 3.2698270219999976,
+     "gpuProgramMs": 3132.2919829999882,
+     "hostMs": 249.75730799978191,
+     "gpuWaitMs": 2879.2994570000155,
+     "dispatches": 24228,
+     "kvEntries": 14,
+     "liveBufferBytes": 3403429164,
+     "layers": [
+      {
+       "name": "embed-7",
+       "ms": 560.9597950000025,
+       "dispatches": 2927,
+       "hostMs": 58.25401499996951,
+       "gpuWaitMs": 501.927337000001
+      },
+      {
+       "name": "attention-scores",
+       "ms": 1695.5599010000005,
+       "dispatches": 11775,
+       "hostMs": 107.97374799984391,
+       "gpuWaitMs": 1586.181527000008
+      },
+      {
+       "name": "softmax",
+       "ms": 123.24759900000936,
+       "dispatches": 941,
+       "hostMs": 11.230377999992925,
+       "gpuWaitMs": 111.9032670000015
+      },
+      {
+       "name": "attention-values",
+       "ms": 206.7873499999987,
+       "dispatches": 1754,
+       "hostMs": 14.996641000019736,
+       "gpuWaitMs": 191.66724900000554
+      },
+      {
+       "name": "ln2",
+       "ms": 176.01738000000478,
+       "dispatches": 1603,
+       "hostMs": 13.42586700002721,
+       "gpuWaitMs": 162.38130300000194
+      },
+      {
+       "name": "mlp",
+       "ms": 254.2753309999971,
+       "dispatches": 3181,
+       "hostMs": 26.585133000058704,
+       "gpuWaitMs": 227.3479159999988
+      },
+      {
+       "name": "lnf",
+       "ms": 91.50317500000529,
+       "dispatches": 1569,
+       "hostMs": 12.864802999887615,
+       "gpuWaitMs": 78.52099499999895
+      },
+      {
+       "name": "head",
+       "ms": 18.813532000000123,
+       "dispatches": 478,
+       "hostMs": 4.41312299996207,
+       "gpuWaitMs": 14.35352899999998
+      }
+     ],
+     "resultDigest": "sha256:ae678982c6f80310781056947b5ba13ce7d9b296bd7bfb7a758adb3ca20104b3",
+     "resultBytes": 1048608
+    }
+   ],
+   "keyEpoch": "21b7d25c47c41d18acc2d22a5b502a23",
+   "schedule": {
+    "promptTokens": 3,
+    "generatedTokens": 6
+   },
+   "keysFrom": "gpu-resident",
+   "keysDigest": "sha256:83644f9df25bae42cb7c46608a3d617c90d29e411ffeb4a19c8a636bc385be11",
+   "keyLoadSeconds": 0.02159327199999825,
+   "peakBufferBytes": 3403429164,
+   "outcome": "completed",
+   "bytesReceived": 155191052,
+   "bytesSent": 6293710
+  }
+ ],
+ "provider": "webgpu",
+ "adapter": {
+  "vendor": "nvidia",
+  "architecture": "ampere",
+  "device": "nvidia-tegra-orin-nvgpu-",
+  "description": "NVIDIA: 540.4.0 540.4.0.0"
+ },
+ "programs": [
+  "sha256:4c768b1326f43f8c4fbf936a48ad05e792e88598978633a4446386692a8d46ba",
+  "sha256:af1c5466af5ea2bdf486d06df548e6579892cc441e682e02a55dafa630705661",
+  "sha256:869356d7293c05c1b0ddabda8d977cba11d0dceaa8f514c7ca5ba015f4d83009"
+ ],
+ "steps": [
+  "prefill:0:0",
+  "decode:1:1",
+  "decode:2:2",
+  "decode:3:3",
+  "decode:4:4",
+  "decode:5:5",
+  "decode:6:6",
+  "decode:7:7",
+  "prefill:0:2",
+  "prefill:0:1"
+ ],
+ "setupSeconds": 1.3673028010000001,
+ "programBufferBytes": 191378732,
+ "gpu": {
+  "dispatches": 383183,
+  "submits": 167,
+  "peakBufferBytes": 3403429164,
+  "evaluationKeyBytesResident": 550502400,
+  "uploadBytes": 465567744,
+  "readbackBytes": 19922944
+ }
+}
