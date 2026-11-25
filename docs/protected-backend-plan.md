@@ -582,7 +582,7 @@ Code: `webgpu/split.js`, `evaluator.js --role stage-a|stage-b` (`--next`, `--hop
   its own link, admitted by a one-time token the requester gives both stages in `hello`; stage B returns the result to
   the requester. Both stages hold the same public evaluation keys; neither can decrypt.
 - **Checks.** Development ring on the arm64-host GPU: both stages plus a CPU (Lattigo) whole-model evaluator as the dual
-  reference, 6 of 6 steps byte-identical (`TestWebGPUSplitEqualsCPUEvaluator`). The 121 kernel vectors pass on an Intel
+  reference, 6 of 6 steps byte-identical. That run followed `TestWebGPUSplitEqualsCPUEvaluator` by hand on that host; the Go test itself has not been run yet (it needs a GPU on a host with Go). The 121 kernel vectors pass on an Intel
   Tiger Lake iGPU (Mesa) as well.
 - **N = 2^16, two machines** (stage A on the arm64-host GPU, stage B on an Intel iGPU, requester on a Mac): 6 of 6
   tokens equal to both references; decode median 6.05 s per token round trip (stage A 2.17 s, stage B 2.57 s); per token
