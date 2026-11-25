@@ -38,7 +38,7 @@ const signedModules = {
   '../../gpu/device.js': 'export const initDevice=async()=>({}); export const getKernelCapabilities=()=>({}); export const getPlatformConfig=()=>null;',
   '../../loader/embedding-limit-preflight.js': 'export const resolveManifestGpuResidentEmbeddingLimitError=()=>null;',
   '../../loader/doppler-loader.js': 'export const createDopplerLoader=()=>({});',
-  '../runtime/model-source.js': `export const resolveModelSource=async x=>x; export const sha256ManifestText=async()=> 'a'.repeat(64); export const resolveManifestArtifactSource=async x=>x; export const resolveLoadProgressHandlers=()=>({}); export const createDefaultNodeLoadProgressLogger=()=>{}; export const fetchManifestPayloadFromBaseUrl=()=>{throw Error('unexpected fetch')};`,
+  '../runtime/model-source.js': `export const resolveModelSource=async x=>x; export const assertRegistryManifest=()=>{}; export const sha256ManifestText=async()=> 'a'.repeat(64); export const resolveManifestArtifactSource=async x=>x; export const resolveLoadProgressHandlers=()=>({}); export const createDefaultNodeLoadProgressLogger=()=>{}; export const fetchManifestPayloadFromBaseUrl=()=>{throw Error('unexpected fetch')};`,
   '../runtime/node-source-cache.js': '',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
