@@ -7,6 +7,10 @@ cryptographer has reviewed the design, the parameters or the code.
 Goal: a protected backend in which the machine doing the work cannot read the input, for Reploid's
 `confidentiality: "requester-only"`. Reploid's contract for that mode includes collusion of **all** remote parties.
 
+2026-11-25: the two-machine CPU proof on the tiny fixture passed (section 6), under one operator, over an
+unauthenticated LAN transport. Independent review (section 7) and an authenticated transport are still required
+before anything advertises the capability.
+
 ## 1. Survey
 
 ### What Doppler already has
@@ -114,11 +118,25 @@ bits, P = 7 x 61 bits (log QP 1629), dense ternary secret, rotation keys for 1, 
 `dev-insecure-n12` is the same chain on N = 2^12, insecure, for fast tests; the requester refuses it without
 `--allow-insecure-dev`.
 
+**Key epochs.** With `--state-dir`, the requester keeps its secret key (a 0600 file) and an epoch record (random id,
+expiry from `--key-ttl`, digest of the evaluation keys last sent). The evaluator, also with `--state-dir`, keeps the
+evaluation keys of each epoch until the expiry the requester declared, and deletes expired epochs at start. Each
+`hello` names the epoch and its expiry; the `manifest` returns the digest of the keys the evaluator holds for it.
+Only if every evaluator holds exactly the epoch's recorded keys does the requester send `keys-held` instead of
+uploading; otherwise it makes new evaluation keys from the same secret key and sends them to all evaluators, so they
+always hold identical bytes. Reuse means more ciphertexts under one key and a secret key at rest on the requester;
+the expiry bounds both.
+
+**Cross-architecture determinism.** The evaluator encodes plaintexts with Lattigo's 64-bit big-float encoder instead
+of float64 FFTs (`ev.Encoder = ckks.NewEncoder(params, 64)`), so x86_64 and aarch64 evaluators cannot round
+differently. In a two-step development-ring check, the float64 encoder also happened to agree across the two
+architectures; that is one observation, not a guarantee, so the proof uses the big-float encoder.
+
 ```sh
 cd tools/privacy-protected
 python3 train_tiny.py --out tiny-model.json         # optional: regenerates the committed fixture
 go test -count=1 .                                    # source boundaries, insecure-profile refusal
-DOPPLER_PROTECTED_E2E=1 go test -count=1 -v .         # + process tests on the insecure ring (about 1 minute)
+DOPPLER_PROTECTED_E2E=1 go test -count=1 -v .         # + process tests on the insecure ring, incl. key-epoch reuse
 go build -o /tmp/pp . && /tmp/pp audit                # plaintext approximation audit
 /tmp/pp evaluator --ready-file /tmp/a &  /tmp/pp evaluator --ready-file /tmp/b &
 /tmp/pp requester --evaluator $(cat /tmp/a) --evaluator $(cat /tmp/b) \
@@ -178,7 +196,7 @@ in the retained run under memory pressure; bootstrapping keys were 7.9 GB serial
   evaluation keys per evaluator and ~39 MB uploaded per token.
 - **GPT-2 small at usable latency on the fleet: no.** Perseus needs 416 bootstraps per token and 63.3 GiB of GPU
   memory on a Blackwell GPU to reach 1.55 s/token. The fleet has no such GPU (Perseus targets CUDA sm_120 only;
-  the AMD GPU host is unsupported and off limits; the Jetson AGX device is sm_87 with 32-64 GB shared). On CPU, 416 bootstraps at
+  the AMD GPU host is unsupported and reserved for other work; the Jetson AGX device is sm_87 with 32-64 GB shared). On CPU, 416 bootstraps at
   11-22 s is 1.3-2.5 hours per token for bootstrapping alone, consistent with EncryptedLLM's ~10^4 s/token CPU
   baseline. Bootstrapping keys add ~8 GB per requester session, which breaks "light requester" on bandwidth unless
   keys are reused across sessions and seed-compressed (Perseus halves them that way).
@@ -218,24 +236,65 @@ in the retained run under memory pressure; bootstrapping keys were 7.9 GB serial
   method: "requester-held-key/<protocol>" }` only once the review below is done; `integrity.verified` records
   `dual-evaluation-digest` when used. Until then the capability stays unadvertised.
 
-## 6. Two-machine proof plan
+## 6. Two-machine proof (2026-11-25)
 
-1. Pin a commit of this branch; build the binary for each machine. Evaluators get the public fixture; the
-   requester gets only the profile, the model identity and the alphabet.
-2. Placement, CPU only and inside agreed windows: requester on the Mac; evaluator A and evaluator B on two other
-   fleet CPUs (not the AMD GPU host). Check first that both evaluators produce byte-identical results across their CPU
-   architectures (Go may fuse multiply-adds differently on arm64 and amd64, which would change plaintext encodings);
-   if they differ, pin both to one architecture or precompute the encoded diagonals as integers with published
-   digests.
-3. Transport: wrap the TCP stream in an authenticated encrypted channel bound to the enrolled evaluator keys (reuse
-   `privacy-concrete/shares_network.js`'s Ed25519 + X25519 + ChaCha20-Poly1305 transcript, or pinned SSH).
-4. The owner chooses the prompt at run time. Four generated tokens; `compare` runs after the route closes and must
-   show encrypted tokens equal to the approximate (pinned) and exact references.
-5. Record requester peak RSS, keygen time, key bytes, per-token upload and download bytes, round-trip latency,
-   evaluator compute per step, and the dual-evaluation cost separately (second evaluator's compute and upload,
-   requester hashing time).
-6. Negative runs on the same machines: `--misbehave ask-decrypt`, `tamper`, `wrong-seq`; each must end with zero
-   decryptions.
+Owner decisions applied (2026-11-25): the tiny fixture is the proof model; the **pinned reference is the approximate circuit's
+output** (`compare`'s approximate reference), and the approximation diverges from the float64 model on 2.5% of
+arbitrary three-letter prompts (section 3); dual evaluators provide integrity; evaluation keys are reused across
+sessions until an expiry; nothing was spent on GPUs or licences.
+
+**Setup.** Requester on `mac-host` (Apple M3, 24 GB), holding the only secret key and no weights. Evaluator 1 on
+`intel-host` (linux/amd64, 4 CPUs) and evaluator 2 on `arm64-host` (Jetson AGX Orin CPU, linux/arm64, 12 CPUs), each
+a cross-compiled static binary with the public fixture in a fresh state directory, run at nice 10 beside the hosts'
+standing Reploid providers (left running). Traffic went over the home Wi-Fi LAN as plain TCP. All three machines
+belong to **one owner, so the dual-evaluator check ran under one operator**: it shows the mechanism, not
+independence. The transport is **not authenticated or encrypted** (section 5's channel binding is still to do);
+inputs and results are ciphertexts, but the admission manifest and step headers are not protected against an
+active network attacker. Receipts, with machine addresses removed:
+[`tools/privacy-protected/evidence/two-machine-20261125/`](../tools/privacy-protected/evidence/two-machine-20261125/).
+
+| Session (UTC) | Prompt chosen at run time | Keys | Tokens (encrypted = pinned reference) | Float64 reference |
+| --- | --- | --- | --- | --- |
+| 1: 00:38:27-00:49:56 | `dgj` (task family) | new epoch, uploaded, 24 h expiry | `mpsvy`, 5 tokens, equal | equal |
+| 2: 00:50:43-00:57:58 | `fox` (outside the task family) | reused, nothing uploaded | `zadg`, 4 tokens, equal | equal |
+| tamper: 00:58:18-01:02:52 | `nqt` | reused | none: refused at step 1, zero decryptions | n/a |
+| forged decrypt request: 01:02:59-01:06:05 | `eik` | reused | none: refused at step 1, zero decryptions | n/a |
+
+Every step of sessions 1 and 2 returned byte-identical result ciphertexts from the x86_64 and aarch64 evaluators.
+Largest logit error against the pinned reference: 0.152 and 0.195; smallest encrypted top-1 margin 3.64 (session 2).
+
+| Measure | Session 1 (key upload) | Session 2 (keys reused) |
+| --- | --- | --- |
+| Requester weights loaded | none (alphabet, profile, model identity) | none |
+| Requester peak RSS | 728 MB | 398 MB |
+| Requester key generation | 3.2 s | 0 |
+| Key upload | 1,937,800,240 bytes per evaluator, 126 s over Wi-Fi to both | 0 bytes (`keys-held`), 4.7 s to open the stored keys |
+| Time to first token (from start, incl. keys and prefill) | 245.6 s | 123.3 s |
+| Latency per decode token (round trip) | 96.7-127.4 s | 94.4-116.0 s |
+| Upload per token, per evaluator | 38,798,206 bytes (prefill: 116,394,618 for 3 tokens) | same |
+| Download per token, per evaluator | 2,097,486 bytes | same |
+| Bytes per session, per evaluator (sent / received) | 2,209,389,945 / 10,489,169 | 232,790,488 / 8,391,538 |
+| Requester encrypt / verify / decrypt per step | 0.07-0.23 s / 2.5-5.0 ms / 3.7-4.9 ms | 0.07-0.23 s / 4.6-5.2 ms / 3.6-4.8 ms |
+| Evaluator compute, intel-host / arm64-host | 428.7 s / 528.8 s | 324.9 s / 400.7 s |
+| Evaluator peak RSS, intel-host / arm64-host | 6.73 / 6.79 GB | 6.40 / 6.25 GB |
+
+**Cost of the integrity check, separately.** A second evaluator: 6.2-6.8 GB of RAM and 401-529 s of CPU per session.
+A second copy of every upload: 2.21 GB in session 1, 233 MB in session 2. Latency: each step waits for the slower
+evaluator, here the arm64 host, about 100 s per session or 20 s per token more than the x86 host alone. The
+requester's own work is hashing, 19-21 ms per session.
+
+**Negative tests on the real machines.** With the arm64 host flipping one bit of its step-1 result, the requester
+saw different digests and closed the route: `evaluator results differ at step 1; route closed without decrypting`,
+zero decryptions, no output. (The evaluator's own record shows the digest before its deliberate bit flip.)
+With the x86 host sending a `decrypt-request` carrying a ciphertext of its choice instead of its step-1 result, the
+requester refused before reading the blob: `refused unsolicited "decrypt-request" message while waiting for
+[result]; session ended without decrypting`, zero decryptions. Both evaluators then exited on the closed connection.
+
+**What this establishes.** On two real machines of different architectures, a requester holding no weights and the
+only key got a fresh prompt's continuation generated autonomously over several tokens, equal to the pinned
+reference, while never answering an evaluator request and never decrypting an unverified result. It does not
+establish operator independence, an authenticated transport, a reviewed parameter set, or usefulness: the model is
+a one-block, 32-symbol fixture at about 1.5-2 minutes per token.
 
 ## 7. Review requirement
 
