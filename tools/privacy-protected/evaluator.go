@@ -20,14 +20,28 @@ import (
 	"time"
 
 	"github.com/tuneinsight/lattigo/v6/circuits/ckks/polynomial"
+	cpoly "github.com/tuneinsight/lattigo/v6/circuits/common/polynomial"
 	"github.com/tuneinsight/lattigo/v6/core/rlwe"
 	"github.com/tuneinsight/lattigo/v6/schemes/ckks"
 )
 
+// heEval is the part of Lattigo's CKKS evaluator the circuit uses. *ckks.Evaluator implements it; the GPU program
+// compiler (gpu_record.go) substitutes a recorder that also lowers every call to RNS operations.
+type heEval interface {
+	RotateNew(op0 *rlwe.Ciphertext, k int) (*rlwe.Ciphertext, error)
+	Add(op0 *rlwe.Ciphertext, op1 rlwe.Operand, opOut *rlwe.Ciphertext) error
+	Sub(op0 *rlwe.Ciphertext, op1 rlwe.Operand, opOut *rlwe.Ciphertext) error
+	MulNew(op0 *rlwe.Ciphertext, op1 rlwe.Operand) (*rlwe.Ciphertext, error)
+	MulRelinNew(op0 *rlwe.Ciphertext, op1 rlwe.Operand) (*rlwe.Ciphertext, error)
+	Rescale(op0, opOut *rlwe.Ciphertext) error
+}
+
 type circuit struct {
 	params ckks.Parameters
-	eval   *ckks.Evaluator
+	eval   heEval
 	poly   *polynomial.Evaluator
+	copyCt func(*rlwe.Ciphertext) *rlwe.Ciphertext // nil: CopyNew; the recorder aliases instead
+	mark   func(stage string)                     // nil, or the GPU recorder's layer boundaries
 	pl     *plan
 	keys   []*rlwe.Ciphertext // cache: key rows per position
 	vals   []*rlwe.Ciphertext // cache: value rows (output projection folded in)
@@ -35,6 +49,19 @@ type circuit struct {
 }
 
 func (c *circuit) count(op string) { c.ops[op]++ }
+
+func (c *circuit) stage(name string) {
+	if c.mark != nil {
+		c.mark(name)
+	}
+}
+
+func (c *circuit) cp(ct *rlwe.Ciphertext) *rlwe.Ciphertext {
+	if c.copyCt != nil {
+		return c.copyCt(ct)
+	}
+	return ct.CopyNew()
+}
 
 // rot rotates left by k slots, composed from the power-of-two keys the requester provided.
 func (c *circuit) rot(ct *rlwe.Ciphertext, k int) (*rlwe.Ciphertext, error) {
@@ -51,14 +78,14 @@ func (c *circuit) rot(ct *rlwe.Ciphertext, k int) (*rlwe.Ciphertext, error) {
 		}
 	}
 	if out == ct {
-		out = ct.CopyNew()
+		out = c.cp(ct)
 	}
 	return out, nil
 }
 
 // rotsum: every slot receives the sum over its period-n block (inputs are replicated with period n).
 func (c *circuit) rotsum(ct *rlwe.Ciphertext, n int) (*rlwe.Ciphertext, error) {
-	acc := ct.CopyNew()
+	acc := c.cp(ct)
 	for i := 1; i < n; i *= 2 {
 		r, err := c.rot(acc, i)
 		if err != nil {
@@ -152,7 +179,10 @@ func (c *circuit) mulRelin(a, b *rlwe.Ciphertext) (*rlwe.Ciphertext, error) {
 
 func (c *circuit) approx(ct *rlwe.Ciphertext, p approximation) (*rlwe.Ciphertext, error) {
 	c.count("poly-" + p.Name)
-	return c.poly.Evaluate(ct, polynomial.NewPolynomial(p.Poly), c.params.DefaultScale())
+	// Same as c.poly.Evaluate, which copies ct into a new power basis; building it here lets the GPU recorder follow
+	// the copy.
+	pb := cpoly.PowerBasis{Value: map[int]*rlwe.Ciphertext{1: c.cp(ct)}, Basis: p.Poly.Basis}
+	return c.poly.EvaluateFromPowerBasis(pb, polynomial.NewPolynomial(p.Poly), c.params.DefaultScale())
 }
 
 // table returns the transposed lookup matrix (dim x vocab) of one table at one position.
@@ -257,11 +287,12 @@ func (c *circuit) forward(q, x0 *rlwe.Ciphertext) (*rlwe.Ciphertext, error) {
 		}
 		es = append(es, e)
 		if sum == nil {
-			sum = e.CopyNew()
+			sum = c.cp(e)
 		} else if err := c.eval.Add(sum, e, sum); err != nil {
 			return nil, err
 		}
 	}
+	c.stage("softmax")
 	if err := c.eval.Add(sum, pl.invP.offset(), sum); err != nil {
 		return nil, err
 	}
@@ -269,6 +300,7 @@ func (c *circuit) forward(q, x0 *rlwe.Ciphertext) (*rlwe.Ciphertext, error) {
 	if err != nil {
 		return nil, err
 	}
+	c.stage("attention-values")
 	var h *rlwe.Ciphertext
 	for j := range es {
 		a, err := c.mulRelin(es[j], inv)
@@ -291,10 +323,12 @@ func (c *circuit) forward(q, x0 *rlwe.Ciphertext) (*rlwe.Ciphertext, error) {
 	if err := c.eval.Add(h, replicate(pl.projB, dim), h); err != nil {
 		return nil, err
 	}
+	c.stage("ln2")
 	y, err := c.layerNorm(h, pl.isq2P)
 	if err != nil {
 		return nil, err
 	}
+	c.stage("mlp")
 	bab, err := c.babies(y, babyCount(dim))
 	if err != nil {
 		return nil, err
@@ -323,10 +357,12 @@ func (c *circuit) forward(q, x0 *rlwe.Ciphertext) (*rlwe.Ciphertext, error) {
 	if err := c.eval.Add(mlp, h, mlp); err != nil {
 		return nil, err
 	}
+	c.stage("lnf")
 	yf, err := c.layerNorm(mlp, pl.isqfP)
 	if err != nil {
 		return nil, err
 	}
+	c.stage("head")
 	if bab, err = c.babies(yf, babyCount(dim)); err != nil {
 		return nil, err
 	}
@@ -337,9 +373,9 @@ func (c *circuit) forward(q, x0 *rlwe.Ciphertext) (*rlwe.Ciphertext, error) {
 	return logits, c.eval.Add(logits, replicate(pl.headB, vocab), logits)
 }
 
-func importInput(params ckks.Parameters, raw []byte) (*rlwe.Ciphertext, error) {
-	ct := new(rlwe.Ciphertext)
-	if err := ct.UnmarshalBinary(raw); err != nil {
+func importInput(prof profile, params ckks.Parameters, raw []byte) (*rlwe.Ciphertext, error) {
+	ct, err := unmarshalCt(prof, params, raw)
+	if err != nil {
 		return nil, err
 	}
 	if ct.Degree() != 1 || ct.Level() != params.MaxLevel() || ct.LogDimensions.Cols != logSlots || !ct.IsNTT ||
@@ -525,15 +561,15 @@ func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *eva
 		return fmt.Errorf("wrong number of evaluation keys")
 	}
 	var kd [][]byte
-	rlk := new(rlwe.RelinearizationKey)
-	if err := rlk.UnmarshalBinary(keyBlobs[0]); err != nil {
+	rlk, err := unmarshalRelinKey(prof, params, keyBlobs[0])
+	if err != nil {
 		return err
 	}
 	kd = append(kd, []byte(digest(keyBlobs[0])))
 	var gks []*rlwe.GaloisKey
 	for i, r := range rotationSteps() {
-		gk := new(rlwe.GaloisKey)
-		if err := gk.UnmarshalBinary(keyBlobs[1+i]); err != nil {
+		gk, err := unmarshalGaloisKey(prof, params, keyBlobs[1+i])
+		if err != nil {
 			return err
 		}
 		if gk.GaloisElement != params.GaloisElement(r) {
@@ -587,7 +623,7 @@ func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *eva
 		t0 := time.Now()
 		var q, x0 *rlwe.Ciphertext
 		for i, raw := range blobs {
-			ct, err := importInput(params, raw)
+			ct, err := importInput(prof, params, raw)
 			if err != nil {
 				return err
 			}
@@ -600,7 +636,7 @@ func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *eva
 		if err != nil {
 			return err
 		}
-		out, err := logits.MarshalBinary()
+		out, err := marshalCt(prof, params, logits)
 		if err != nil {
 			return err
 		}

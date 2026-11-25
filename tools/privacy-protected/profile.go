@@ -32,7 +32,18 @@ type profile struct {
 	LogP     []int
 	LogScale int
 	Insecure bool // development only: the requester refuses it unless explicitly allowed, and reports say so
+	Wire     wireFormat
 }
+
+// wireFormat: how keys and ciphertexts travel. wireLattigo is Lattigo's own binary encoding (u64 words). wireRawU32
+// is the flat RNS layout the WebGPU evaluator reads directly (gpu_codec.go); both evaluator kinds speak it, so a CPU
+// and a GPU evaluator can be the two sides of the dual-evaluation check and must agree byte for byte.
+type wireFormat string
+
+const (
+	wireLattigo wireFormat = ""
+	wireRawU32  wireFormat = "raw-u32/v0"
+)
 
 func chain(first, n, bits int) []int {
 	q := []int{first}
@@ -49,6 +60,15 @@ var profiles = map[string]profile{
 	"research-n16": {ID: "research-n16", LogN: 16, LogQ: chain(50, 36, 32), LogP: []int{61, 61, 61, 61, 61, 61, 61}, LogScale: 32},
 	"dev-insecure-n12": {ID: "dev-insecure-n12", LogN: 12, LogQ: chain(50, 36, 32), LogP: []int{61, 61, 61, 61, 61, 61, 61},
 		LogScale: 32, Insecure: true},
+	// research-n16-u32: the WebGPU profile. Every modulus is a ~31-bit NTT prime below 2^32, so one RNS limb is one
+	// u32 in WGSL. Same depth as research-n16 (37 Q primes, 36 rescalings), scale 2^31, 13 special primes, so key
+	// switching has ceil(37/13) = 3 digits. log QP is about 50 * 31 = 1550 bits, below the 1772-bit ceiling commonly
+	// cited for 128-bit security at N = 2^16; like research-n16 this is NOT independently estimated.
+	"research-n16-u32": {ID: "research-n16-u32", LogN: 16, LogQ: chain(31, 36, 31), LogP: chain(31, 12, 31), LogScale: 31,
+		Wire: wireRawU32},
+	// dev-insecure-n12-u32: the same chain on N = 2^12 for fast kernel and process tests; insecure.
+	"dev-insecure-n12-u32": {ID: "dev-insecure-n12-u32", LogN: 12, LogQ: chain(31, 36, 31), LogP: chain(31, 12, 31), LogScale: 31,
+		Wire: wireRawU32, Insecure: true},
 }
 
 func lookupProfile(id string) (profile, error) {
@@ -71,5 +91,8 @@ func rotationSteps() []int { return []int{1, 2, 4, 8, 16, 32} }
 func (p profile) digest() string {
 	h := sha256.New()
 	fmt.Fprintf(h, "%s|%d|%v|%v|%d|%d|%v", p.ID, p.LogN, p.LogQ, p.LogP, p.LogScale, logSlots, rotationSteps())
+	if p.Wire != wireLattigo {
+		fmt.Fprintf(h, "|%s", p.Wire) // absent for the original profiles, so their digests are unchanged
+	}
 	return "sha256:" + hex.EncodeToString(h.Sum(nil))
 }

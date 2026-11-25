@@ -78,6 +78,10 @@ func dispatch(cmd string, args []string) error {
 		return requesterMain(args)
 	case "compare":
 		return compareMain(args)
+	case "gpu-vectors":
+		return gpuVectorsMain(args)
+	case "gpu-compile":
+		return gpuCompileMain(args)
 	case "bootstrap-probe":
 		return bootstrapProbeMain(args)
 	}

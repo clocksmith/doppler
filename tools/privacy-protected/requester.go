@@ -87,6 +87,7 @@ type requesterReport struct {
 }
 
 type requester struct {
+	prof   profile
 	params ckks.Parameters
 	sk     *rlwe.SecretKey
 	enc    *rlwe.Encryptor
@@ -120,7 +121,7 @@ func (r *requester) sealOneHot(tok int) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ct.MarshalBinary()
+	return marshalCt(r.prof, r.params, ct)
 }
 
 // broadcast sends the same message to every evaluator.
@@ -177,8 +178,8 @@ func (r *requester) step(session string, seq int, kind string, toks []int) (int,
 			return 0, fmt.Errorf("evaluator results differ at step %d; route closed without decrypting", seq)
 		}
 	}
-	ct := new(rlwe.Ciphertext)
-	if err := ct.UnmarshalBinary(results[0]); err != nil {
+	ct, err := unmarshalCt(r.prof, r.params, results[0])
+	if err != nil {
 		return 0, err
 	}
 	if ct.Degree() != 1 || ct.LogDimensions.Cols != logSlots || !ct.IsNTT {
@@ -324,7 +325,7 @@ func runRequester(o requesterOptions, rep *requesterReport, start time.Time) err
 	if err != nil {
 		return err
 	}
-	r := &requester{params: params, ecd: ckks.NewEncoder(params), rep: rep}
+	r := &requester{prof: o.prof, params: params, ecd: ckks.NewEncoder(params), rep: rep}
 	defer func() {
 		for i, p := range r.peers {
 			rep.SessionBytes = append(rep.SessionBytes, map[string]any{"evaluator": i + 1, "sent": p.sent, "received": p.received})
@@ -387,7 +388,7 @@ func runRequester(o requesterOptions, rep *requesterReport, start time.Time) err
 			return r.broadcast(header{Kind: "key", Session: session}, b)
 		}
 		g0 := time.Now()
-		rlk, err := kgen.GenRelinearizationKeyNew(r.sk).MarshalBinary()
+		rlk, err := marshalRelinKey(o.prof, params, kgen.GenRelinearizationKeyNew(r.sk))
 		if err != nil {
 			return err
 		}
@@ -398,7 +399,7 @@ func runRequester(o requesterOptions, rep *requesterReport, start time.Time) err
 		rlk = nil
 		for _, rot := range rotationSteps() {
 			g := time.Now()
-			gk, err := kgen.GenGaloisKeyNew(params.GaloisElement(rot), r.sk).MarshalBinary()
+			gk, err := marshalGaloisKey(o.prof, params, kgen.GenGaloisKeyNew(params.GaloisElement(rot), r.sk))
 			if err != nil {
 				return err
 			}
