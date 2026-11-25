@@ -1,5 +1,5 @@
 function isProdTurboQuantMode(mode) {
-  return mode === 'turboquant_prod';
+  return mode === 'turboquant-prod';
 }
 
 export function buildTieredQuantAttentionOptions(kvState, options = {}) {

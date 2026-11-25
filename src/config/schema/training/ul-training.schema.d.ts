@@ -1,4 +1,4 @@
-export type UlTrainingStage = 'stage1_joint' | 'stage2_base';
+export type UlTrainingStage = 'stage1-joint' | 'stage2-base';
 
 export interface UlNoiseScheduleSchema {
   type: string;

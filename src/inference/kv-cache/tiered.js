@@ -9,11 +9,11 @@ import {
 } from '../../gpu/kernels/turboquant-codebook.js';
 
 function isTurboQuantMode(mode) {
-  return mode === 'turboquant' || mode === 'turboquant_prod';
+  return mode === 'turboquant' || mode === 'turboquant-prod';
 }
 
 function assertSupportedTurboQuantMode(mode, label) {
-  if (mode !== 'turboquant_outlier') {
+  if (mode !== 'turboquant-outlier') {
     return mode;
   }
   throw new Error(
@@ -115,7 +115,7 @@ export class TieredKVCache {
     }
 
     this.isTurboQuant = isTurboQuantMode(this.coldQuantMode);
-    this.isProdMode = this.coldQuantMode === 'turboquant_prod';
+    this.isProdMode = this.coldQuantMode === 'turboquant-prod';
     this.turboQuantBitWidth = this.isTurboQuant
       ? requirePositiveInteger(this.compression.bitWidth, 'TieredKVCache tiering.compression.bitWidth')
       : null;
@@ -199,12 +199,12 @@ export class TieredKVCache {
       gating?.mode,
       'TieredKVCache tiering.gating.mode'
     );
-    if (gatingMode === 'force_off') return 'none';
-    if (gatingMode === 'force_on') return requested;
+    if (gatingMode === 'force-off') return 'none';
+    if (gatingMode === 'force-on') return requested;
     if (gatingMode === 'auto' && gating.minAluBwRatio > 0) {
       throw new Error(
         'TieredKVCache auto compression gating requires an explicit measured ALU/BW ratio. ' +
-        'Use gating.mode="force_on"/"force_off" or set minAluBwRatio to 0.'
+        'Use gating.mode="force-on"/"force-off" or set minAluBwRatio to 0.'
       );
     }
     return requested;

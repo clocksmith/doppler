@@ -56,7 +56,7 @@ export async function recordAttentionOutputProjection({
             tensor.dtype,
             oProjInputDtype,
             'Attention output projection would change activations implicitly.',
-            'step_precision'
+            'step-precision'
           );
           return oProjInputDtype === 'f16'
             ? recordCastF32ToF16(recorder, tensor)

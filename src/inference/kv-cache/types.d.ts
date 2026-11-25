@@ -17,27 +17,27 @@ export interface KVCacheConfig {
   headDim: number;
   maxSeqLen: number;
   useGPU: boolean;
-  layout: 'contiguous' | 'contiguous_quantized' | 'paged' | 'tiered' | 'bdpa' | 'bdpa_paged';
+  layout: 'contiguous' | 'contiguous-quantized' | 'paged' | 'tiered' | 'bdpa' | 'bdpa-paged';
   pageSize: number;
   kvDtype: 'f16' | 'f32';
   /** Window size for sliding window cache */
   windowSize?: number;
   /** Tiered KV cache settings (required when layout = 'tiered') */
   tiering?: {
-    mode: 'off' | 'fp16' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
+    mode: 'off' | 'fp16' | 'int8' | 'int4' | 'turboquant' | 'turboquant-prod';
     hotWindow: number;
     coldPageSize: number;
     coldDtype: 'f16' | 'f32';
     compression: {
-      mode: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
+      mode: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant-prod';
       blockSize: number;
       bitWidth?: number;
       prodMode?: boolean;
     };
-    gating: { mode: 'auto' | 'force_on' | 'force_off'; minAluBwRatio: number };
+    gating: { mode: 'auto' | 'force-on' | 'force-off'; minAluBwRatio: number };
   };
   quantization?: {
-    mode: 'none' | 'turboquant' | 'turboquant_prod';
+    mode: 'none' | 'turboquant' | 'turboquant-prod';
     bitWidth?: number;
     prodMode?: boolean;
   };
@@ -125,7 +125,7 @@ export interface TieredGPUBuffersResult {
   coldPageTableGPU?: GPUBuffer;
   coldPageSize?: number;
   coldPackedStride?: number;
-  coldQuantMode?: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
+  coldQuantMode?: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant-prod';
   rotationMatrixBuffer?: GPUBuffer;
   codebookCentroidsBuffer?: GPUBuffer;
   residualKGPU?: GPUBuffer;
@@ -137,9 +137,9 @@ export interface TieredGPUBuffersResult {
 }
 
 export interface QuantizedGPUBuffersResult {
-  layout: 'contiguous_quantized';
+  layout: 'contiguous-quantized';
   seqLen: number;
-  quantMode: 'turboquant' | 'turboquant_prod';
+  quantMode: 'turboquant' | 'turboquant-prod';
   prodMode: boolean;
   packedStride: number;
   scalesKGPU: GPUBuffer;
@@ -182,7 +182,7 @@ export interface MemoryStats {
   efficiency: number;
   seqLen: number;
   maxSeqLen: number;
-  layout: 'contiguous' | 'contiguous_quantized' | 'paged' | 'tiered' | 'bdpa_paged';
+  layout: 'contiguous' | 'contiguous-quantized' | 'paged' | 'tiered' | 'bdpa-paged';
   kvDtype?: 'f16' | 'f32' | null;
   counters?: Record<string, unknown> | null;
 }

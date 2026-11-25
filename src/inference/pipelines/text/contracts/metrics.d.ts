@@ -112,7 +112,7 @@ export interface PipelineStats {
   decodeReadbackMapWaitMs?: number;
   decodeReadbackCleanupMs?: number;
   decodeReadbackCopyMs?: number;
-  decodeMode?: 'single_token' | 'batched_gpu' | 'batched_gpu_stepwise_ple' | null;
+  decodeMode?: 'single-token' | 'batched-gpu' | 'batched-gpu-stepwise-ple' | null;
   batchGuardReason?: string | null;
   singleTokenSubmitWaitMs?: number;
   singleTokenReadbackWaitMs?: number;

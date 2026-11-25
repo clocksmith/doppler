@@ -87,7 +87,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           gpuSamplingAvailable,
           disableMultiTokenDecode: executionPlan.disableMultiTokenDecode || hasSuppressedSamplingTokens || typeof opts.logitMaskFn === 'function',
           disableCommandBatching: executionPlan.disableCommandBatching,
-          isBdpaPagedLayout: this._state.kvCache?.layout === 'bdpa_paged',
+          isBdpaPagedLayout: this._state.kvCache?.layout === 'bdpa-paged',
           finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
           hasLinearAttentionLayers: hasLinearLayers,
           selfSpeculationEnabled: opts.speculation?.mode === 'self' && !initialHotVocabularyBatchDecodeAvailable,
@@ -104,19 +104,19 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
       else if (executionPlan.disableCommandBatching) reason = 'command_batching_disabled';
       else if (hasSuppressedSamplingTokens) reason = 'sampling_suppression_requires_cpu_logits';
       else if (typeof opts.logitMaskFn === 'function') reason = 'token_constraint_requires_per_token_logits';
-      else if (executionPlan.disableMultiTokenDecode) reason = 'multi_token_decode_disabled';
+      else if (executionPlan.disableMultiTokenDecode) reason = 'multi-token-decode-disabled';
       else if (executionPlan.batchSize <= 1) reason = 'batch_size_1';
-      else if (this._state.kvCache?.layout === 'bdpa_paged') reason = 'bdpa_paged_layout';
+      else if (this._state.kvCache?.layout === 'bdpa-paged') reason = 'bdpa_paged_layout';
       else if (this._hasFinitenessFallbackWindow()) reason = 'finiteness_fallback_window';
       else if (hasLinearLayers) reason = 'linear_attention_layers';
       this._state.stats.decodeMode = replayPrefillDecode
-        ? 'replay_prefill'
-        : (opts.speculation?.mode === 'self' ? 'self_speculation' : 'single_token');
+        ? 'replay-prefill'
+        : (opts.speculation?.mode === 'self' ? 'self-speculation' : 'single-token');
       this._state.stats.batchGuardReason = reason;
     } else {
       this._state.stats.decodeMode = hasRangeBackedPerLayerInputs
-        ? 'batched_gpu_stepwise_ple'
-        : 'batched_gpu';
+        ? 'batched-gpu-stepwise-ple'
+        : 'batched-gpu';
       this._state.stats.batchGuardReason = null;
     }
 

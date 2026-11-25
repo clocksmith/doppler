@@ -202,7 +202,7 @@ export function supportsGenerationContext(state) {
   if (state.useGPU !== true || !(state.kvCache instanceof KVCache) || state.kvCache.layout !== 'contiguous') {
     return false;
   }
-  if (state.modelConfig?.decodeStrategy === 'replay_prefill') {
+  if (state.modelConfig?.decodeStrategy === 'replay-prefill') {
     return false;
   }
   const partition = resolveContextPartition(state);

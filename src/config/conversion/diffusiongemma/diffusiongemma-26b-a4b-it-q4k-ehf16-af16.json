@@ -39,7 +39,7 @@
     "ffn": {
       "activation": "gelu",
       "gatedActivation": true,
-      "branchMode": "dense_plus_moe",
+      "branchMode": "dense-plus-moe",
       "useDoubleWideMlp": false,
       "swigluLimit": null
     },
@@ -208,7 +208,7 @@
         "rowsAhead": 1
       },
       "gpuUpload": {
-        "mode": "per_step_slices",
+        "mode": "per-step-slices",
         "stagingRows": 1
       },
       "hotCache": {
@@ -662,7 +662,7 @@
     ],
     "policies": {
       "unsupportedPrecision": "error",
-      "dtypeTransition": "require_cast_step",
+      "dtypeTransition": "require-cast-step",
       "unresolvedKernel": "error"
     }
   },

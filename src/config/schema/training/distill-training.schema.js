@@ -1,5 +1,5 @@
-export const DISTILL_STAGE_VALUES = Object.freeze(['stage_a', 'stage_b']);
-const DISTILL_STUDENT_GRAPH_MODE_VALUES = Object.freeze(['projection_head', 'transformer_full']);
+export const DISTILL_STAGE_VALUES = Object.freeze(['stage-a', 'stage-b']);
+const DISTILL_STUDENT_GRAPH_MODE_VALUES = Object.freeze(['projection-head', 'transformer-full']);
 
 export const DISTILL_TRAINING_SCHEMA_VERSION = 1;
 
@@ -14,7 +14,7 @@ export const DEFAULT_DISTILL_FREEZE_GROUPS = Object.freeze({
 export const DEFAULT_DISTILL_TRAINING_CONFIG = Object.freeze({
   schemaVersion: DISTILL_TRAINING_SCHEMA_VERSION,
   enabled: false,
-  stage: 'stage_a',
+  stage: 'stage-a',
   teacherModelId: null,
   studentModelId: null,
   datasetId: null,
@@ -35,7 +35,7 @@ export const DEFAULT_DISTILL_TRAINING_CONFIG = Object.freeze({
   alphaCe: 0,
   allowHintFallback: false,
   tripletMargin: 0.2,
-  studentGraphMode: 'transformer_full',
+  studentGraphMode: 'transformer-full',
   freeze: DEFAULT_DISTILL_FREEZE_GROUPS,
 });
 
@@ -124,8 +124,8 @@ export function validateDistillTrainingConfig(config) {
   assertBoolean(freeze.base, 'freeze.base');
   assertBoolean(freeze.lora, 'freeze.lora');
 
-  if (config.stage === 'stage_b' && !config.stageAArtifact) {
-    throw new Error('Distill config: stage_b requires stageAArtifact.');
+  if (config.stage === 'stage-b' && !config.stageAArtifact) {
+    throw new Error('Distill config: stage-b requires stageAArtifact.');
   }
   if (
     config.shardIndex !== null

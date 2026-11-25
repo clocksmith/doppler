@@ -53,7 +53,7 @@
       "session": {
         "prefillChunkSubmitMode": "sync",
         "perLayerInputs": {
-          "materialization": "gpu_split_tables"
+          "materialization": "gpu-split-tables"
         },
         "decodeLoop": {
           "batchSize": 1,

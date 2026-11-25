@@ -21,21 +21,21 @@ export const READBACK_MODES = Object.freeze(['sequential', 'overlapped', 'auto']
 export const PREFILL_CHUNK_SUBMIT_MODES = Object.freeze(['sync', 'async']);
 export const PER_LAYER_INPUT_MATERIALIZATION_MODES = Object.freeze([
   'auto',
-  'range_backed',
-  'cpu_resident',
-  'gpu_resident',
-  'gpu_split_tables',
+  'range-backed',
+  'cpu-resident',
+  'gpu-resident',
+  'gpu-split-tables',
 ]);
 export const PER_LAYER_INPUT_ROW_CACHE_MODES = Object.freeze(['off', 'lru']);
-export const PER_LAYER_INPUT_PREFETCH_MODES = Object.freeze(['off', 'next_token']);
+export const PER_LAYER_INPUT_PREFETCH_MODES = Object.freeze(['off', 'next-token']);
 export const PER_LAYER_INPUT_GPU_UPLOAD_MODES = Object.freeze([
-  'per_step_slices',
-  'per_batch_slices',
+  'per-step-slices',
+  'per-batch-slices',
 ]);
 export const PER_LAYER_INPUT_HOT_CACHE_MODES = Object.freeze([
   'off',
-  'prepared_tokens',
-  'tokenizer_scores',
+  'prepared-tokens',
+  'tokenizer-scores',
 ]);
 
 const DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION = {
@@ -47,15 +47,15 @@ const DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION = {
     decodedDtype: 'f32',
   },
   prefetch: {
-    mode: 'next_token',
+    mode: 'next-token',
     rowsAhead: 1,
   },
   gpuUpload: {
-    mode: 'per_step_slices',
+    mode: 'per-step-slices',
     stagingRows: 2,
   },
   hotCache: {
-    mode: 'prepared_tokens',
+    mode: 'prepared-tokens',
     maxTokens: 1024,
     maxBytes: 134217728,
     outputDtype: 'f32',
@@ -102,7 +102,7 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
 
 export const DEFAULT_EXECUTION_V1_POLICIES = {
   unsupportedPrecision: 'error',
-  dtypeTransition: 'require_cast_step',
+  dtypeTransition: 'require-cast-step',
   unresolvedKernel: 'error',
 };
 

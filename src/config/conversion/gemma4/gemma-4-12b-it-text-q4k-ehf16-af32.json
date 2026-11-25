@@ -289,7 +289,7 @@
       "disableCommandBatching": false
     },
     "perLayerInputs": {
-      "materialization": "gpu_split_tables",
+      "materialization": "gpu-split-tables",
       "rowCache": {
         "mode": "lru",
         "maxRows": 512,
@@ -297,15 +297,15 @@
         "decodedDtype": "f32"
       },
       "prefetch": {
-        "mode": "next_token",
+        "mode": "next-token",
         "rowsAhead": 1
       },
       "gpuUpload": {
-        "mode": "per_step_slices",
+        "mode": "per-step-slices",
         "stagingRows": 2
       },
       "hotCache": {
-        "mode": "prepared_tokens",
+        "mode": "prepared-tokens",
         "maxTokens": 4096,
         "maxBytes": 268435456,
         "outputDtype": "f32"
@@ -764,7 +764,7 @@
     ],
     "policies": {
       "unsupportedPrecision": "error",
-      "dtypeTransition": "require_cast_step",
+      "dtypeTransition": "require-cast-step",
       "unresolvedKernel": "error"
     }
   },

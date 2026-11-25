@@ -310,7 +310,7 @@ export async function loadModel(manifest, options = {}) {
 
     // Initialize KV cache
     const kvCacheAllocation = resolveKVCacheAllocation(manifest, this.runtimeConfig);
-    if (this.modelConfig.decodeStrategy === 'replay_prefill') {
+    if (this.modelConfig.decodeStrategy === 'replay-prefill') {
       this.kvCache = null;
       log.warn(
         'Pipeline',

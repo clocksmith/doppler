@@ -11,11 +11,11 @@ export function collectTrainingArtifactsFromSuiteResult(suiteResult) {
     }
     const stage = String(artifact.stage || '').trim();
     const kind = String(artifact.kind || '').trim();
-    if (kind === 'distill' || stage === 'stage_a' || stage === 'stage_b') {
+    if (kind === 'distill' || stage === 'stage-a' || stage === 'stage-b') {
       distillArtifacts.push(artifact);
       return;
     }
-    if (kind === 'ul' || stage === 'stage1_joint' || stage === 'stage2_base' || source === 'ul') {
+    if (kind === 'ul' || stage === 'stage1-joint' || stage === 'stage2-base' || source === 'ul') {
       ulArtifacts.push(artifact);
       return;
     }

@@ -15,8 +15,8 @@ export interface InputSpan {
 }
 
 export type PrefixEmbeddingOverrideTransitionDeclaration =
-  | 'step_precision'
-  | 'explicit_cast_step'
+  | 'step-precision'
+  | 'explicit-cast-step'
   | null;
 
 export interface PrefixEmbeddingOverrideExecutionOptions {

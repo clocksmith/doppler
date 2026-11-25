@@ -96,7 +96,7 @@
       "enabled": true
     },
     "rerank": {
-      "format": "qwen3_yes_no_logit",
+      "format": "qwen3-yes-no-logit",
       "instruction": "Given a web search query, retrieve relevant passages that answer the query",
       "inputTemplate": "<Instruct>: {instruction}\n<Query>: {query}\n<Document>: {document}",
       "prefix": "<|im_start|>system\nJudge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the answer can only be \"yes\" or \"no\".<|im_end|>\n<|im_start|>user\n",
@@ -105,7 +105,7 @@
       "trueTokenId": 9693,
       "falseToken": "no",
       "falseTokenId": 2152,
-      "score": "true_logit",
+      "score": "true-logit",
       "probability": "sigmoid"
     }
   },
@@ -165,15 +165,15 @@
         "decodedDtype": "f32"
       },
       "prefetch": {
-        "mode": "next_token",
+        "mode": "next-token",
         "rowsAhead": 1
       },
       "gpuUpload": {
-        "mode": "per_step_slices",
+        "mode": "per-step-slices",
         "stagingRows": 2
       },
       "hotCache": {
-        "mode": "prepared_tokens",
+        "mode": "prepared-tokens",
         "maxTokens": 1024,
         "maxBytes": 134217728,
         "outputDtype": "f32"
@@ -191,7 +191,7 @@
     "inlineKernelPath": true,
     "policies": {
       "unsupportedPrecision": "error",
-      "dtypeTransition": "require_cast_step",
+      "dtypeTransition": "require-cast-step",
       "unresolvedKernel": "error"
     },
     "kernels": {

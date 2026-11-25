@@ -77,10 +77,10 @@ function resolveTrainingObjective(config, options) {
   }
   const distill = config.training?.distill;
   if (distill?.enabled) {
-    if (distill.stage === 'stage_a') {
+    if (distill.stage === 'stage-a') {
       return createDistillKdObjective({ crossEntropyLoss: options.crossEntropyLoss });
     }
-    if (distill.stage === 'stage_b') {
+    if (distill.stage === 'stage-b') {
       return createDistillTripletObjective({ crossEntropyLoss: options.crossEntropyLoss });
     }
   }
@@ -88,10 +88,10 @@ function resolveTrainingObjective(config, options) {
   if (!ul?.enabled) {
     return createCrossEntropyObjective({ crossEntropyLoss: options.crossEntropyLoss });
   }
-  if (ul.stage === 'stage1_joint') {
+  if (ul.stage === 'stage1-joint') {
     return createUlStage1JointObjective({ crossEntropyLoss: options.crossEntropyLoss });
   }
-  if (ul.stage === 'stage2_base') {
+  if (ul.stage === 'stage2-base') {
     return createUlStage2BaseObjective({ crossEntropyLoss: options.crossEntropyLoss });
   }
   return createCrossEntropyObjective({ crossEntropyLoss: options.crossEntropyLoss });
@@ -119,14 +119,14 @@ function average(values) {
 }
 
 function resolveObjectiveStage(objectiveName) {
-  if (objectiveName === 'ul_stage1_joint') return 'stage1_joint';
-  if (objectiveName === 'ul_stage2_base') return 'stage2_base';
+  if (objectiveName === 'ul-stage1-joint') return 'stage1-joint';
+  if (objectiveName === 'ul-stage2-base') return 'stage2-base';
   return null;
 }
 
 function resolveObjectiveDistillStage(objectiveName) {
-  if (objectiveName === 'kd') return 'stage_a';
-  if (objectiveName === 'triplet') return 'stage_b';
+  if (objectiveName === 'kd') return 'stage-a';
+  if (objectiveName === 'triplet') return 'stage-b';
   return null;
 }
 
@@ -714,10 +714,10 @@ export class TrainingRunner {
           runOptions: options,
         })
         : null);
-    const stage1ArtifactContext = ulContract.enabled && ulContract.stage === 'stage2_base'
+    const stage1ArtifactContext = ulContract.enabled && ulContract.stage === 'stage2-base'
       ? await resolveStage1ArtifactContext(this.config)
       : null;
-    const stageAArtifactContext = distillContract.enabled && distillContract.stage === 'stage_b'
+    const stageAArtifactContext = distillContract.enabled && distillContract.stage === 'stage-b'
       ? await resolveStageAArtifactContext(this.config)
       : null;
 
@@ -761,7 +761,7 @@ export class TrainingRunner {
         );
         pushRolling(lossWindow, meanLoss, telemetry.windowSize);
         pushRolling(stepTimeWindow, step_time_ms, telemetry.windowSize);
-        const objectiveName = stepResult.objectiveName || this.trainingObjective?.name || 'cross_entropy';
+        const objectiveName = stepResult.objectiveName || this.trainingObjective?.name || 'cross-entropy';
         const objectiveStage = resolveObjectiveStage(objectiveName);
         const objectiveDistillStage = resolveObjectiveDistillStage(objectiveName);
 

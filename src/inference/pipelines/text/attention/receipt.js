@@ -18,7 +18,7 @@ export function captureAttentionRefactorReceipt(options = {}) {
   const failure = options.error
     ? normalizeError(options.error, options.failureBoundary ?? 'attention')
     : null;
-  if (policy === 'off' || (policy === 'on_failure' && !failure)) {
+  if (policy === 'off' || (policy === 'on-failure' && !failure)) {
     return null;
   }
   const plan = options.plan ?? null;

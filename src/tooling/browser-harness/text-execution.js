@@ -685,9 +685,9 @@ export async function runSequenceEncoding(pipeline, runOverrides = null) {
   const staleAfterStart = runOverrides?.sequenceQualificationStaleAfterStart === true;
   const controller = abortMode ? new AbortController() : null;
   let requestGeneration = 1;
-  if (abortMode === 'before_execution') {
+  if (abortMode === 'before-execution') {
     controller.abort('Sequence qualification cancelled before execution.');
-  } else if (abortMode === 'after_start') {
+  } else if (abortMode === 'after-start') {
     // Queue the abort only after encodeSequence has entered its async path. The
     // pipeline checks the signal at GPU synchronization boundaries and must
     // drop the late result instead of publishing an output.

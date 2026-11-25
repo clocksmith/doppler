@@ -53,7 +53,7 @@ function artifactId(role, artifactPath, hash) {
 
 function resolveLayerType(layerIndex, layerPattern) {
   if (layerPattern.type === 'uniform') return 'global-attention';
-  if (layerPattern.type === 'every_n') {
+  if (layerPattern.type === 'every-n') {
     const period = requirePositiveInteger(layerPattern.period, 'manifest.inference.layerPattern.period');
     if (!Number.isInteger(layerPattern.offset) || layerPattern.offset < 0 || layerPattern.offset >= period) {
       throw new Error('Rig requires manifest.inference.layerPattern.offset within the declared period.');

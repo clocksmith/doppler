@@ -11,7 +11,7 @@ export function attachPreparedDecodeWorkspace(
 ): import("../../../../gpu/prepared-decode-workspace.js").PreparedDecodeWorkspace | null;
 
 export interface StaticExecutionPlan {
-  id: 'primary' | 'finiteness_fallback';
+  id: 'primary' | 'finiteness-fallback';
   source: string;
   kernelPath: KernelPathSchema | null;
   kernelPathId: string | null;
@@ -44,11 +44,11 @@ export interface ExecutionPlanState {
    */
   primaryPlan: StaticExecutionPlan;
   fallbackPlan: StaticExecutionPlan | null;
-  activePlanId: 'primary' | 'finiteness_fallback';
+  activePlanId: 'primary' | 'finiteness-fallback';
 }
 
 export interface ExecutionSessionPlan {
-  planId: 'primary' | 'finiteness_fallback';
+  planId: 'primary' | 'finiteness-fallback';
   source: string;
   kernelPath: KernelPathSchema | null;
   kernelPathId: string | null;
@@ -97,7 +97,7 @@ export declare function hasFallbackExecutionPlan(container: { executionPlanState
 export declare function resolveActiveExecutionPlan(container: { executionPlanState?: ExecutionPlanState } | ExecutionPlanState): StaticExecutionPlan;
 export declare function setActiveExecutionPlan(
   container: { executionPlanState?: ExecutionPlanState } | ExecutionPlanState,
-  planId: 'primary' | 'finiteness_fallback'
+  planId: 'primary' | 'finiteness-fallback'
 ): StaticExecutionPlan;
 export declare function resetActiveExecutionPlan(container: { executionPlanState?: ExecutionPlanState } | ExecutionPlanState): StaticExecutionPlan;
 export declare function activateFallbackExecutionPlan(

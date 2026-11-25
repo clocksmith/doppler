@@ -1,9 +1,9 @@
 export type PrecisionReplayMode =
   | 'exact'
-  | 'f32_forward'
-  | 'f32_reverse'
-  | 'f32_tree64'
-  | 'f16_forward';
+  | 'f32-forward'
+  | 'f32-reverse'
+  | 'f32-tree64'
+  | 'f16-forward';
 
 export declare const PRECISION_REPLAY_MODES: readonly PrecisionReplayMode[];
 export declare function roundF32(value: number): number;

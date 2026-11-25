@@ -11,7 +11,7 @@ export declare function inferLiteRTRowwiseLayout(
   tensorName?: string
 ): {
   sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
-  storageEncoding: 'signed' | 'offset_binary';
+  storageEncoding: 'signed' | 'offset-binary';
 };
 
 export declare function resolveGemma4AttentionHeadDim(

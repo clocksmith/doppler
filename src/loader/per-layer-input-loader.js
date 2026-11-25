@@ -201,13 +201,13 @@ function resolvePerLayerInputMaterializationMode(ctx, label, name, location) {
     const shouldStream = location && typeof ctx.shouldStreamLargeWeight === 'function'
       ? ctx.shouldStreamLargeWeight(name, location, label)
       : false;
-    return shouldStream ? 'range_backed' : 'gpu_resident';
+    return shouldStream ? 'range-backed' : 'gpu-resident';
   }
   if (
-    mode === 'range_backed'
-    || mode === 'cpu_resident'
-    || mode === 'gpu_resident'
-    || mode === 'gpu_split_tables'
+    mode === 'range-backed'
+    || mode === 'cpu-resident'
+    || mode === 'gpu-resident'
+    || mode === 'gpu-split-tables'
   ) {
     return mode;
   }
@@ -255,17 +255,17 @@ async function loadNamedTensor(ctx, name, label, options = {}) {
   if (label === 'embedTokensPerLayer') {
     const materializationMode = resolvePerLayerInputMaterializationMode(ctx, label, name, location);
     const effectiveMaterializationMode = (
-      options.splitTable === true && materializationMode === 'gpu_split_tables'
+      options.splitTable === true && materializationMode === 'gpu-split-tables'
     )
-      ? 'gpu_resident'
+      ? 'gpu-resident'
       : materializationMode;
-    if (effectiveMaterializationMode === 'range_backed' || effectiveMaterializationMode === 'gpu_split_tables') {
+    if (effectiveMaterializationMode === 'range-backed' || effectiveMaterializationMode === 'gpu-split-tables') {
       const rangeBacked = createRangeBackedWeightBuffer(ctx, name, location);
       if (rangeBacked) {
         log.info(
           'Loader',
           `Per-layer input tensor loaded: ${label} <- ${name} ` +
-          `(${effectiveMaterializationMode === 'gpu_split_tables' ? 'range-backed CPU source for split GPU tables' : 'range-backed CPU source'})`
+          `(${effectiveMaterializationMode === 'gpu-split-tables' ? 'range-backed CPU source for split GPU tables' : 'range-backed CPU source'})`
         );
         return {
           name,
@@ -277,7 +277,7 @@ async function loadNamedTensor(ctx, name, label, options = {}) {
         'but shard range loading is unavailable.'
       );
     }
-    const toGPU = effectiveMaterializationMode === 'gpu_resident';
+    const toGPU = effectiveMaterializationMode === 'gpu-resident';
     const tensor = await ctx.loadTensor(name, toGPU, true);
     if (!tensor) {
       return null;

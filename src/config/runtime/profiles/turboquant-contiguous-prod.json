@@ -19,7 +19,7 @@
             "mode": "off"
           },
           "quantization": {
-            "mode": "turboquant_prod",
+            "mode": "turboquant-prod",
             "bitWidth": 4,
             "prodMode": true
           }

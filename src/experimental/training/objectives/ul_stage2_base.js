@@ -72,14 +72,14 @@ export function createUlStage2BaseObjective(options = {}) {
   }
 
   return createTrainingObjective({
-    name: 'ul_stage2_base',
+    name: 'ul-stage2-base',
     async prepareBatch({ batch, config, options: runOptions }) {
       const ulConfig = config.training?.ul;
       if (!ulConfig?.enabled) {
         throw new Error('UL stage2 objective requires training.ul.enabled=true.');
       }
-      if (ulConfig.stage !== 'stage2_base') {
-        throw new Error('UL stage2 objective requires training.ul.stage="stage2_base".');
+      if (ulConfig.stage !== 'stage2-base') {
+        throw new Error('UL stage2 objective requires training.ul.stage="stage2-base".');
       }
       if (!ulConfig.stage1Artifact) {
         throw new Error('UL stage2 objective requires training.ul.stage1Artifact.');

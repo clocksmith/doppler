@@ -81,15 +81,15 @@ const QUANT_TAG_ALIASES = {
 };
 
 const PER_LAYER_EMBEDDING_QUANT_ALIASES = {
-  'int4_per_row': 'int4_per_row',
-  'int4-per-row': 'int4_per_row',
-  'i4-per-row': 'int4_per_row',
-  'i4_per_row': 'int4_per_row',
+  'int4-per-row': 'int4-per-row',
+  'int4_per_row': 'int4-per-row',
+  'i4-per-row': 'int4-per-row',
+  'i4_per_row': 'int4-per-row',
 };
 
 // Human-facing variant suffixes for naming-only artifacts.
 const PER_LAYER_EMBEDDING_VARIANT_TAGS = {
-  int4_per_row: 'int4ple',
+  'int4-per-row': 'int4ple',
 };
 
 const SOURCE_TRAINING_QUANTIZATION_ALIASES = {
@@ -178,7 +178,7 @@ function normalizePerLayerEmbeddingQuant(value) {
   const canonical = PER_LAYER_EMBEDDING_QUANT_ALIASES[normalized];
   if (canonical) return canonical;
   throw new Error(
-    `converter.quantization.perLayerEmbeddings must be "int4_per_row" or null; got ${JSON.stringify(value)}.`
+    `converter.quantization.perLayerEmbeddings must be "int4-per-row" or null; got ${JSON.stringify(value)}.`
   );
 }
 

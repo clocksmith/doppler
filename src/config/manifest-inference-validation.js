@@ -284,9 +284,9 @@ export function validateRequiredInferenceFields(inf, modelId) {
     const normalizedBranchMode = typeof inf.ffn.branchMode === 'string'
       ? inf.ffn.branchMode.trim().toLowerCase()
       : '';
-    const supportedBranchModes = new Set(['auto', 'dense', 'moe', 'dense_plus_moe']);
+    const supportedBranchModes = new Set(['auto', 'dense', 'moe', 'dense-plus-moe']);
     if (!supportedBranchModes.has(normalizedBranchMode)) {
-      errors.push('ffn.branchMode must be one of: auto, dense, moe, dense_plus_moe');
+      errors.push('ffn.branchMode must be one of: auto, dense, moe, dense-plus-moe');
     }
   }
   if (inf.ffn.useDoubleWideMlp == null) {
@@ -458,8 +458,8 @@ export function validateRequiredInferenceFields(inf, modelId) {
     if (!sequence || typeof sequence !== 'object' || Array.isArray(sequence)) {
       errors.push('sequence must be null or an object');
     } else {
-      if (sequence.alphabet !== 'amino_acid' && sequence.alphabet !== 'nucleotide') {
-        errors.push('sequence.alphabet must be "amino_acid" or "nucleotide"');
+      if (sequence.alphabet !== 'amino-acid' && sequence.alphabet !== 'nucleotide') {
+        errors.push('sequence.alphabet must be "amino-acid" or "nucleotide"');
       }
       if (typeof sequence.tokenEmbeddings !== 'boolean') {
         errors.push('sequence.tokenEmbeddings must be boolean');

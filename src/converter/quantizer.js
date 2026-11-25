@@ -238,7 +238,7 @@ export function quantizeToQ4KMRowWise(data, shape) {
 // per_layer_embedder convention (extracted from gemma-4-E2B-it.litertlm
 // composite0..composite34 PLE tensors). Each row of `data` (shape [rows, cols])
 // gets its own F32 scale = max(|row|) / 7. Values are quantized to signed INT4
-// in [-7, +7], stored as offset_binary uint4 [1, 15] (uint4 = qvar + 8) packed
+// in [-7, +7], stored as offset-binary uint4 [1, 15] (uint4 = qvar + 8) packed
 // 2 nibbles per byte, low-nibble-first.
 //
 // Returns:
@@ -246,7 +246,7 @@ export function quantizeToQ4KMRowWise(data, shape) {
 //   scales:    Float32Array of length rows
 //
 // The runtime side already handles this convention via `litert_axis_dequant`
-// + `scaleSemantics: 'step'` + `storageEncoding: 'offset_binary'`. Manifest
+// + `scaleSemantics: 'step'` + `storageEncoding: 'offset-binary'`. Manifest
 // entries for these tensors should set sourceTransform.kind=litert_axis_dequant,
 // sourceDtype=INT4, scaleSemantics=step, storageShape=[cols, rows] (transposed
 // so quantAxis=0 indexes the per-row scales by output row).
@@ -286,7 +286,7 @@ export function quantizeToInt4PerRowSymmetric(f32Data, shape) {
       let qb = Math.round(b * inv);
       if (qa < -8) qa = -8; else if (qa > 7) qa = 7;
       if (qb < -8) qb = -8; else if (qb > 7) qb = 7;
-      // offset_binary: stored = qvar + 8, range [0, 15]
+      // offset-binary: stored = qvar + 8, range [0, 15]
       quantized[(rowOff + c) >> 1] = ((qa + 8) & 0xf) | (((qb + 8) & 0xf) << 4);
     }
   }

@@ -10,8 +10,8 @@
 import type { ConverterConfigSchema } from "../manifest/converter.schema.js";
 
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
-export type ToolingDiagnosticsMode = 'off' | 'on_failure' | 'always';
-export type RefactorReceiptPolicy = 'off' | 'on_failure' | 'always';
+export type ToolingDiagnosticsMode = 'off' | 'on-failure' | 'always';
+export type RefactorReceiptPolicy = 'off' | 'on-failure' | 'always';
 
 export interface ToolingConfigSchema {
   /** Diagnostics policy for verification runs */

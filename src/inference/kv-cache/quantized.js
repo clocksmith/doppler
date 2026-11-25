@@ -24,7 +24,7 @@ export class QuantizedKVCache {
     this.headDim = config.headDim;
     this.maxSeqLen = config.maxSeqLen;
     this.useGPU = config.useGPU;
-    this.layout = 'contiguous_quantized';
+    this.layout = 'contiguous-quantized';
     this.kvDtype = requireString(config.kvDtype, 'QuantizedKVCache config.kvDtype');
     this.quantMode = config.quantMode;
     this.bitWidth = requirePositiveInteger(config.bitWidth, 'QuantizedKVCache config.bitWidth');
@@ -35,9 +35,9 @@ export class QuantizedKVCache {
     if (this.kvDtype !== 'f16') {
       throw new Error('QuantizedKVCache requires f16 KV input.');
     }
-    if (this.quantMode === 'turboquant_outlier') {
+    if (this.quantMode === 'turboquant-outlier') {
       throw new Error(
-        'QuantizedKVCache quantMode="turboquant_outlier" is not supported yet. ' +
+        'QuantizedKVCache quantMode="turboquant-outlier" is not supported yet. ' +
         'TurboQuant outlier high-precision buffers and decode kernels are not wired end to end.'
       );
     }
@@ -247,7 +247,7 @@ export class QuantizedKVCache {
           startPos,
           numTokens,
           packedStride: this.msePackedStride,
-          mode: 'turboquant_prod',
+          mode: 'turboquant-prod',
           rotationMatrixBuffer: this.rotationMatrixBuffer,
           codebookCentroidsBuffer: this.codebookCentroidsBuffer,
           codebookBoundariesBuffer: this.codebookBoundariesBuffer,
@@ -285,7 +285,7 @@ export class QuantizedKVCache {
     if (!layer) return null;
 
     const base = {
-      layout: 'contiguous_quantized',
+      layout: 'contiguous-quantized',
       seqLen: this.currentSeqLen,
       quantMode: this.quantMode,
       prodMode: this.prodMode,

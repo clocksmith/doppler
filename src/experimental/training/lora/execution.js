@@ -60,7 +60,7 @@ export function createLossGradient(loss, lossScale) {
 
 export function createCausalLmTrainingObjective() {
   return {
-    name: 'causal_lm_cross_entropy',
+    name: 'causal-lm-cross-entropy',
     async forward({ model, batch, tape }) {
       if (typeof model.forwardCausalLm === 'function') {
         return model.forwardCausalLm(batch, tape);
@@ -117,9 +117,9 @@ export async function createCausalLmLoraFixture(workload) {
     }, {
       distillRuntime: {
         studentPipeline: handle.pipeline,
-        studentGraphMode: 'transformer_full',
+        studentGraphMode: 'transformer-full',
       },
-      studentGraphMode: 'transformer_full',
+      studentGraphMode: 'transformer-full',
       loraAdapter: {
         rank: adapter.rank,
         alpha: adapter.alpha,
@@ -267,7 +267,7 @@ export function createLoraRunnerTrainingConfig(workload, freeze) {
       lossScaling: { enabled: false },
       distill: {
         enabled: false,
-        stage: 'stage_a',
+        stage: 'stage-a',
         teacherModelId: null,
         studentModelId: null,
         datasetId: null,
@@ -288,12 +288,12 @@ export function createLoraRunnerTrainingConfig(workload, freeze) {
         alphaCe: 0,
         allowHintFallback: false,
         tripletMargin: 0.2,
-        studentGraphMode: 'transformer_full',
+        studentGraphMode: 'transformer-full',
         freeze,
       },
       ul: {
         enabled: false,
-        stage: 'stage1_joint',
+        stage: 'stage1-joint',
         stage1Artifact: null,
         stage1ArtifactHash: null,
         artifactDir: null,

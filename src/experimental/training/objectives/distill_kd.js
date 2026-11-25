@@ -162,7 +162,7 @@ function argmax(values) {
 
 async function resolveForwardLogits(model, batch, tape) {
   if (model && typeof model.forwardDistill === 'function') {
-    const output = await model.forwardDistill(batch, tape, { phase: 'anchor', stage: 'stage_a' });
+    const output = await model.forwardDistill(batch, tape, { phase: 'anchor', stage: 'stage-a' });
     if (isTensorLike(output)) {
       return output;
     }
@@ -292,7 +292,7 @@ export function createDistillKdObjective(options = {}) {
         loss,
         components: {
           loss_kd: lossKd,
-          distill_stage: 'stage_a',
+          distill_stage: 'stage-a',
           distill_temperature: temperature,
           distill_alpha_kd: alphaKd,
           distill_alpha_ce: alphaCe,
@@ -336,7 +336,7 @@ export function createDistillKdObjective(options = {}) {
       const components = lossResult.components || {};
       return {
         loss_kd: Number.isFinite(components.loss_kd) ? components.loss_kd : 0,
-        distill_stage: 'stage_a',
+        distill_stage: 'stage-a',
         distill_temperature: Number.isFinite(components.distill_temperature)
           ? components.distill_temperature
           : toFinite(distill.temperature, 1),

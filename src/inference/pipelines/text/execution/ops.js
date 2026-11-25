@@ -520,7 +520,7 @@ export async function doAttention(
     };
   }
 
-  const isBDPA = state?.kvCache?.layout === 'bdpa_paged';
+  const isBDPA = state?.kvCache?.layout === 'bdpa-paged';
   if (recorder && isBDPA) {
     throw new Error('BDPA attention does not support command recorder mode. Disable command batching for BDPA.');
   }

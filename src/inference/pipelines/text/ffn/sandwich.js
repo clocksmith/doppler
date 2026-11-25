@@ -25,14 +25,14 @@ async function debugFFNBuffer(context, layerIdx, label, tensor, numTokens, hidde
 }
 
 function shouldUseDensePlusMoeFFN(layerIdx, config, layerWeights) {
-  return config.ffnBranchMode === 'dense_plus_moe'
+  return config.ffnBranchMode === 'dense-plus-moe'
     && config.useMoE
     && isMoELayer(layerIdx, config);
 }
 
 function shouldUseLegacyMoeOnlyFFN(layerIdx, config, layerWeights) {
   return config.ffnBranchMode !== 'dense'
-    && config.ffnBranchMode !== 'dense_plus_moe'
+    && config.ffnBranchMode !== 'dense-plus-moe'
     && config.useMoE
     && isMoELayer(layerIdx, config);
 }
@@ -40,7 +40,7 @@ function shouldUseLegacyMoeOnlyFFN(layerIdx, config, layerWeights) {
 function requireNormWeight(layerIdx, layerWeights, key) {
   const weight = layerWeights?.[key];
   if (!weight) {
-    throw new Error(`Layer ${layerIdx} dense_plus_moe FFN is missing ${key}. Re-convert the model.`);
+    throw new Error(`Layer ${layerIdx} dense-plus-moe FFN is missing ${key}. Re-convert the model.`);
   }
   return weight;
 }

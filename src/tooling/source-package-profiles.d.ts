@@ -29,7 +29,7 @@ export interface DirectSourcePackageProfile {
       embedderTFLiteModelType?: string | null;
       graphAdapter?: string | null;
       fixedInt4Scale?: number | null;
-      fixedInt4StorageEncoding?: 'signed' | 'offset_binary' | null;
+      fixedInt4StorageEncoding?: 'signed' | 'offset-binary' | null;
       layerScalarLayers?: number[] | null;
       missingLayerScalarValue?: number | null;
       executionTemplateProfileId?: string | null;

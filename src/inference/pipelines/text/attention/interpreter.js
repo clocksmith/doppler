@@ -101,7 +101,7 @@ export async function interpretAttentionWithRecorder(
   const kvCacheDtype = attentionPrecisionContract.resolvedKvCacheDtype ?? state.kvCache?.kvDtype ?? kvCacheFallback;
   const allowF16Attention = useF16Activations && kvCacheDtype === 'f16';
   const attentionInputTransitionDeclaredBy = attentionPrecisionContract.explicitInputDtype
-    ? 'step_precision'
+    ? 'step-precision'
     : null;
   let attentionInput = input;
   let attentionInputTemp = false;

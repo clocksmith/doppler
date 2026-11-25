@@ -102,8 +102,8 @@ export function resolveKVCacheState(state, layerIdx, kTensor, vTensor, currentSe
     kvState.residualNormsVGPU = gpuBuffers.residualNormsVGPU ?? null;
     kvState.qjlMatrixBuffer = gpuBuffers.qjlMatrixBuffer ?? null;
     kvState.residualPackedStride = gpuBuffers.residualPackedStride ?? 0;
-  } else if (gpuBuffers?.layout === 'contiguous_quantized') {
-    kvState.kvLayout = 'contiguous_quantized';
+  } else if (gpuBuffers?.layout === 'contiguous-quantized') {
+    kvState.kvLayout = 'contiguous-quantized';
     kvState.kvLenForAttention = gpuBuffers.seqLen;
     kvState.cachedKCold = gpuBuffers.keysPackedGPU;
     kvState.cachedVCold = gpuBuffers.valuesPackedGPU;
@@ -340,7 +340,7 @@ export function buildAttentionDispatchParams(config, state, kTensor, vTensor, kv
   }
 
   // Contiguous quantized prefill fallback: decode-only kernel, use raw K/V for prefill
-  if (kvState.kvLayout === 'contiguous_quantized' && numTokens > 1) {
+  if (kvState.kvLayout === 'contiguous-quantized' && numTokens > 1) {
     kvState.kvLayout = 'contiguous';
     kvState.kvLenForAttention = numTokens;
     kvState.startPosForMask = 0;

@@ -216,7 +216,7 @@ export interface ParsedModelConfig {
   embeddingPostprocessor: ManifestEmbeddingPostprocessorSchema | null;
   hiddenActivation: ActivationType;
   gatedActivation: boolean;
-  ffnBranchMode: 'auto' | 'dense' | 'moe' | 'dense_plus_moe';
+  ffnBranchMode: 'auto' | 'dense' | 'moe' | 'dense-plus-moe';
   useDoubleWideMlp: boolean;
   swigluLimit: number | null;
   stopTokenIds: number[];
@@ -258,7 +258,7 @@ export interface ParsedModelConfig {
   chatTemplateType?: string | null;
   chatTemplateEnabled: boolean;
   chatTemplateThinking: boolean | null;
-  decodeStrategy: 'incremental' | 'replay_prefill';
+  decodeStrategy: 'incremental' | 'replay-prefill';
   diffusionGemma: ManifestInferenceSchema['diffusionGemma'];
   /** Resolved hyper-connection decoder contracts (qwen4_exp); each null when absent. */
   hyperConnections: HyperConnectionDecoderContracts['hyperConnections'];

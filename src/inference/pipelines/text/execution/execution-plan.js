@@ -12,7 +12,7 @@ import { resolveLinearNormGateActivation } from "../../../../config/schema/manif
 import { resolveMoeExecutionProfile } from "../moe-shape-validator.js";
 
 const PRIMARY_EXECUTION_PLAN_ID = 'primary';
-const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
+const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness-fallback';
 
 export function assertPreparedDecodeWorkspaceCompatible(context) {
   const preparedMoE = context.config.useMoE

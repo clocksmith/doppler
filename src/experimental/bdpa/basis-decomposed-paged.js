@@ -13,7 +13,7 @@ export class BasisDecomposedPagedCache extends KVCache {
         super({
             ...config,
             // Force BDPA to identify as paged for downstream assertions, but we implement custom layout
-            layout: 'bdpa_paged'
+            layout: 'bdpa-paged'
         });
 	    
 		if (!config.useGPU) {

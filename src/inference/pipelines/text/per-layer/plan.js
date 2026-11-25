@@ -199,7 +199,7 @@ export function prunePreparedTokenCache(cache, policy) {
 
 export function getPreparedTokenEntry(cache, tokenId, sessionConfig, activationDtype, stats = null) {
   const policy = getPleHotCachePolicy(sessionConfig);
-  if (!policy || policy.mode !== 'prepared_tokens' || !(cache?.preparedTokenEntries instanceof Map)) {
+  if (!policy || policy.mode !== 'prepared-tokens' || !(cache?.preparedTokenEntries instanceof Map)) {
     return null;
   }
   if (policy.outputDtype !== activationDtype) {
@@ -229,7 +229,7 @@ export function getPreparedTokenEntry(cache, tokenId, sessionConfig, activationD
 
 export function storePreparedTokenEntry(cache, tokenId, buffers, sessionConfig, activationDtype, stats = null) {
   const policy = getPleHotCachePolicy(sessionConfig);
-  if (!policy || policy.mode !== 'prepared_tokens' || !(cache?.preparedTokenEntries instanceof Map)) {
+  if (!policy || policy.mode !== 'prepared-tokens' || !(cache?.preparedTokenEntries instanceof Map)) {
     return buffers;
   }
   if (policy.outputDtype !== activationDtype) {

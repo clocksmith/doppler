@@ -268,7 +268,7 @@ export async function runDenseUngatedFFNGPU(layerIdx, inputTensor, numTokens, co
     upInput = await coerceTensorDtype(inputTensor, upInputDtype, recorder, {
       executionPolicies: context.executionPolicies ?? null,
       op: 'ffn_up_input',
-      transitionDeclaredBy: 'step_precision',
+      transitionDeclaredBy: 'step-precision',
     });
     upInputOwned = upInput !== inputTensor;
   }
@@ -331,7 +331,7 @@ export async function runDenseUngatedFFNGPU(layerIdx, inputTensor, numTokens, co
     downInput = await coerceTensorDtype(activated, downInputDtype, recorder, {
       executionPolicies: context.executionPolicies ?? null,
       op: 'ffn_down_input',
-      transitionDeclaredBy: 'step_precision',
+      transitionDeclaredBy: 'step-precision',
     });
     downInputOwned = downInput !== activated;
   }
@@ -462,7 +462,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
       gateUpInput = await coerceTensorDtype(inputTensor, fusedGateUpInputDtype, recorder, {
         executionPolicies: context.executionPolicies ?? null,
         op: 'ffn_gate_up_input',
-        transitionDeclaredBy: 'step_precision',
+        transitionDeclaredBy: 'step-precision',
       });
       gateUpInputOwned = gateUpInput !== inputTensor;
     }
@@ -613,7 +613,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
         fusedInput = await coerceTensorDtype(inputTensor, fusedGateUpInputDtype, recorder, {
           executionPolicies: context.executionPolicies ?? null,
           op: 'ffn_gate_up_input',
-          transitionDeclaredBy: 'step_precision',
+          transitionDeclaredBy: 'step-precision',
         });
         fusedInputOwned = fusedInput !== inputTensor;
       }
@@ -695,7 +695,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
     downInput = await coerceTensorDtype(activatedOutput, downInputDtype, recorder, {
       executionPolicies: context.executionPolicies ?? null,
       op: 'ffn_down_input',
-      transitionDeclaredBy: 'step_precision',
+      transitionDeclaredBy: 'step-precision',
     });
     if (getLoRAModule(lora, layerIdx, 'down_proj')) {
       log.warn('Layer', `L${layerIdx} LoRA down_proj with fused kernel not yet optimized`);

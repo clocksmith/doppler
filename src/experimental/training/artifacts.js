@@ -107,7 +107,7 @@ function buildDeterministicManifestView(manifestBase) {
 
 function toLatentDatasetRecord(entry) {
   if (!entry || typeof entry !== 'object') return null;
-  if (entry.objective !== 'ul_stage1_joint') return null;
+  if (entry.objective !== 'ul-stage1-joint') return null;
   const required = [
     entry.step,
     entry.lambda,
@@ -319,8 +319,8 @@ async function validateStage2Dependency(config, contractHash) {
       );
     }
   }
-  if (manifest.stage !== 'stage1_joint') {
-    throw new Error(`UL stage2 requires stage1_joint artifact, got "${manifest.stage}".`);
+  if (manifest.stage !== 'stage1-joint') {
+    throw new Error(`UL stage2 requires stage1-joint artifact, got "${manifest.stage}".`);
   }
   if (manifest.ulContractHash !== contractHash) {
     throw new Error(
@@ -370,7 +370,7 @@ async function validateStage2Dependency(config, contractHash) {
 
 export async function resolveStage1ArtifactContext(config) {
   const ulConfig = config?.training?.ul;
-  if (!ulConfig?.enabled || ulConfig.stage !== 'stage2_base') {
+  if (!ulConfig?.enabled || ulConfig.stage !== 'stage2-base') {
     return null;
   }
   if (!isNodeRuntime()) {
@@ -408,7 +408,7 @@ export async function createUlArtifactSession(options) {
   const { mkdir, appendFile, writeFile } = await nodeFs();
   const { join, relative } = await nodePath();
 
-  const resolvedStage = stage || ulConfig.stage || 'stage1_joint';
+  const resolvedStage = stage || ulConfig.stage || 'stage1-joint';
   const timestamp = normalizeTimestamp(runOptions.timestamp);
   const artifactRoot = await resolveNodePath(
     runOptions.ulArtifactDir || ulConfig.artifactDir || 'reports/training/ul'
@@ -419,10 +419,10 @@ export async function createUlArtifactSession(options) {
   const latentDatasetPath = join(runDir, 'latents.ndjson');
   const manifestPath = join(
     runDir,
-    resolvedStage === 'stage2_base' ? 'ul_stage2_manifest.json' : 'ul_stage1_manifest.json'
+    resolvedStage === 'stage2-base' ? 'ul_stage2_manifest.json' : 'ul_stage1_manifest.json'
   );
   const ulContractHash = hashStableJson(buildUlContractPayload(ulConfig));
-  const stageDependency = resolvedStage === 'stage2_base'
+  const stageDependency = resolvedStage === 'stage2-base'
     ? await validateStage2Dependency(config, ulContractHash)
     : null;
   let latentDatasetCount = 0;
@@ -430,7 +430,7 @@ export async function createUlArtifactSession(options) {
   return {
     async appendStep(entry) {
       await appendFile(metricsPath, `${JSON.stringify(entry)}\n`, 'utf8');
-      if (resolvedStage === 'stage1_joint') {
+      if (resolvedStage === 'stage1-joint') {
         const latentRecord = toLatentDatasetRecord(entry);
         if (latentRecord) {
           latentDatasetCount += 1;
@@ -455,7 +455,7 @@ export async function createUlArtifactSession(options) {
       );
       const buildProvenance = await resolveBuildProvenance();
       let latentDataset = null;
-      if (resolvedStage === 'stage1_joint' && latentDatasetCount > 0) {
+      if (resolvedStage === 'stage1-joint' && latentDatasetCount > 0) {
         const parsed = await readNdjson(latentDatasetPath);
         latentDataset = {
           path: relative(process.cwd(), latentDatasetPath),
@@ -683,13 +683,13 @@ export function resolveDistillTrainingContract(distillConfig) {
 async function validateDistillStageBDependency(config, contractHash) {
   const distillConfig = config.training?.distill;
   if (!distillConfig?.stageAArtifact) {
-    throw new Error('Distill stage_b requires training.distill.stageAArtifact.');
+    throw new Error('Distill stage-b requires training.distill.stageAArtifact.');
   }
   const manifestPath = await resolveNodePath(distillConfig.stageAArtifact);
   const manifestHash = await computeFileHash(manifestPath);
   const manifest = await readJson(manifestPath);
   if (!manifest || typeof manifest !== 'object') {
-    throw new Error('Distill stage_b requires a valid StageA manifest JSON.');
+    throw new Error('Distill stage-b requires a valid StageA manifest JSON.');
   }
   const providedHash = distillConfig.stageAArtifactHash;
   if (providedHash) {
@@ -701,26 +701,26 @@ async function validateDistillStageBDependency(config, contractHash) {
     ];
     if (!accepted.includes(providedHash)) {
       throw new Error(
-        `Distill stage_b artifact hash mismatch: expected ${providedHash}, got ${manifestHash}.`
+        `Distill stage-b artifact hash mismatch: expected ${providedHash}, got ${manifestHash}.`
       );
     }
   }
-  if (manifest.stage !== 'stage_a') {
-    throw new Error(`Distill stage_b requires stage_a artifact, got "${manifest.stage}".`);
+  if (manifest.stage !== 'stage-a') {
+    throw new Error(`Distill stage-b requires stage-a artifact, got "${manifest.stage}".`);
   }
   if (manifest.distillContractHash !== contractHash) {
     throw new Error(
-      `Distill stage_b contract mismatch: expected ${contractHash}, got ${manifest.distillContractHash || 'unknown'}.`
+      `Distill stage-b contract mismatch: expected ${contractHash}, got ${manifest.distillContractHash || 'unknown'}.`
     );
   }
   if (!manifest.metrics || typeof manifest.metrics !== 'object' || !manifest.metrics.stepMetricsPath) {
-    throw new Error('Distill stage_b requires stage_a metrics path metadata.');
+    throw new Error('Distill stage-b requires stage-a metrics path metadata.');
   }
   const metricsPath = await resolveNodePath(manifest.metrics.stepMetricsPath);
   const metricsHash = await computeFileHash(metricsPath);
   const metrics = await readNdjson(metricsPath);
   if (!Array.isArray(metrics.entries) || metrics.entries.length === 0) {
-    throw new Error('Distill stage_b requires non-empty stage_a metrics.');
+    throw new Error('Distill stage-b requires non-empty stage-a metrics.');
   }
   return {
     path: manifestPath,
@@ -737,11 +737,11 @@ async function validateDistillStageBDependency(config, contractHash) {
 
 export async function resolveStageAArtifactContext(config) {
   const distillConfig = config?.training?.distill;
-  if (!distillConfig?.enabled || distillConfig.stage !== 'stage_b') {
+  if (!distillConfig?.enabled || distillConfig.stage !== 'stage-b') {
     return null;
   }
   if (!isNodeRuntime()) {
-    throw new Error('Distill stage_b artifact context currently requires Node runtime.');
+    throw new Error('Distill stage-b artifact context currently requires Node runtime.');
   }
   const distillContractHash = hashStableJson(buildDistillContractPayload(distillConfig));
   const dependency = await validateDistillStageBDependency(config, distillContractHash);
@@ -776,7 +776,7 @@ export async function createDistillArtifactSession(options) {
   const { mkdir, appendFile, writeFile } = await nodeFs();
   const { join, relative } = await nodePath();
 
-  const resolvedStage = stage || distillConfig.stage || 'stage_a';
+  const resolvedStage = stage || distillConfig.stage || 'stage-a';
   const timestamp = normalizeTimestamp(runOptions.timestamp);
   const artifactRoot = await resolveNodePath(
     runOptions.distillArtifactDir || distillConfig.artifactDir || 'reports/training/distill'
@@ -786,10 +786,10 @@ export async function createDistillArtifactSession(options) {
   const metricsPath = join(runDir, 'metrics.ndjson');
   const manifestPath = join(
     runDir,
-    resolvedStage === 'stage_b' ? 'distill_stage_b_manifest.json' : 'distill_stage_a_manifest.json'
+    resolvedStage === 'stage-b' ? 'distill_stage_b_manifest.json' : 'distill_stage_a_manifest.json'
   );
   const distillContractHash = hashStableJson(buildDistillContractPayload(distillConfig));
-  const stageDependency = resolvedStage === 'stage_b'
+  const stageDependency = resolvedStage === 'stage-b'
     ? await validateDistillStageBDependency(config, distillContractHash)
     : null;
 

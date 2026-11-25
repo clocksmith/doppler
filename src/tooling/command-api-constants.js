@@ -5,7 +5,7 @@ export const TOOLING_WORKLOAD_SET = Object.freeze(['kernels', 'inference', 'embe
 export const TOOLING_INTENT_SET = ['verify', 'investigate', 'calibrate'];
 // Compatibility name: verification consumes the canonical workload set.
 export const VERIFY_WORKLOADS = TOOLING_WORKLOAD_SET;
-export const TRAINING_STAGE_SET = ['stage1_joint', 'stage2_base', 'stage_a', 'stage_b'];
+export const TRAINING_STAGE_SET = ['stage1-joint', 'stage2-base', 'stage-a', 'stage-b'];
 export const DISTILL_ACTION_SET = ['run', 'stage-a', 'stage-b', 'eval', 'watch', 'compare', 'quality-gate', 'subsets'];
 export const LORA_ACTION_SET = ['run', 'eval', 'watch', 'export', 'compare', 'quality-gate', 'activate'];
 export const TRAINING_COMMAND_SCHEMA_VERSION = 1;

@@ -67,7 +67,7 @@
       "logitInputScale": 1
     },
     "layerPattern": {
-      "type": "all_attention",
+      "type": "all-attention",
       "globalPattern": null,
       "period": null,
       "offset": null,
@@ -133,15 +133,15 @@
         "decodedDtype": "f32"
       },
       "prefetch": {
-        "mode": "next_token",
+        "mode": "next-token",
         "rowsAhead": 1
       },
       "gpuUpload": {
-        "mode": "per_step_slices",
+        "mode": "per-step-slices",
         "stagingRows": 2
       },
       "hotCache": {
-        "mode": "prepared_tokens",
+        "mode": "prepared-tokens",
         "maxTokens": 1024,
         "maxBytes": 134217728,
         "outputDtype": "f32"
@@ -384,7 +384,7 @@
     ],
     "policies": {
       "unsupportedPrecision": "error",
-      "dtypeTransition": "require_cast_step",
+      "dtypeTransition": "require-cast-step",
       "unresolvedKernel": "error"
     }
   },

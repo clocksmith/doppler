@@ -27,16 +27,16 @@ export class TieredKVCache {
   hotWindow: number;
   coldPageSize: number;
   coldDtype: 'f16' | 'f32';
-  tieringMode: 'off' | 'fp16' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
-  coldQuantMode: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
+  tieringMode: 'off' | 'fp16' | 'int8' | 'int4' | 'turboquant' | 'turboquant-prod';
+  coldQuantMode: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant-prod';
   coldPackedStride: number;
   compression: {
-    mode: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
+    mode: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant-prod';
     blockSize: number;
     bitWidth?: number;
     prodMode?: boolean;
   };
-  gating: { mode: 'auto' | 'force_on' | 'force_off'; minAluBwRatio: number };
+  gating: { mode: 'auto' | 'force-on' | 'force-off'; minAluBwRatio: number };
   currentSeqLen: number;
   totalTokensSeen: number;
   memoryUsage: number;

@@ -13,7 +13,7 @@ export declare function runDistillationStageB(options: {
   priorStageResult?: Record<string, unknown> | null;
 }): Promise<{
   stageId: string;
-  trainingStage: 'stage_a' | 'stage_b';
+  trainingStage: 'stage-a' | 'stage-b';
   metrics: Record<string, unknown>[];
   checkpointArtifacts: Array<Record<string, unknown>>;
   evalReports: Array<Record<string, unknown>>;

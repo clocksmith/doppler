@@ -3,7 +3,7 @@ export interface TrainingMetricsReportSchema {
     step: number;
     epoch: number;
     batch: number;
-    objective: 'cross_entropy' | 'causal_lm_cross_entropy' | 'ul_stage1_joint' | 'ul_stage2_base' | 'kd' | 'triplet';
+    objective: 'cross-entropy' | 'causal-lm-cross-entropy' | 'ul-stage1-joint' | 'ul-stage2-base' | 'kd' | 'triplet';
     total_loss: number;
     step_time_ms: number;
     forward_ms?: number;
@@ -22,7 +22,7 @@ export interface TrainingMetricsReportSchema {
     scheduler_phase?: string | null;
     loss_kd?: number | null;
     loss_triplet?: number | null;
-    distill_stage?: 'stage_a' | 'stage_b' | null;
+    distill_stage?: 'stage-a' | 'stage-b' | null;
     progress_shard_index?: number | null;
     progress_shard_count?: number | null;
     progress_step_in_shard?: number | null;
@@ -57,7 +57,7 @@ export interface TrainingMetricsReportSchema {
     telemetry_alerts?: string[];
     window_loss_avg?: number | null;
     window_step_time_ms_avg?: number | null;
-    ul_stage?: 'stage1_joint' | 'stage2_base' | null;
+    ul_stage?: 'stage1-joint' | 'stage2-base' | null;
     lambda?: number | null;
     loss_total?: number | null;
     loss_prior?: number | null;

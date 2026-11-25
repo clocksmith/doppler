@@ -377,7 +377,7 @@ export async function computeLogits(
           ? await ownTensor(coerceTensorDtype(inputTensor, finalNormInputDtype, {
             executionPolicies: config.executionPolicies ?? null,
             op: 'final_norm',
-            transitionDeclaredBy: 'step_precision',
+            transitionDeclaredBy: 'step-precision',
           }))
           : inputTensor;
         normInputBufferOwned = normInputTensor !== inputTensor;
@@ -437,7 +437,7 @@ export async function computeLogits(
           ? await ownTensor(coerceTensorDtype(normedTensor, finalNormOutputDtype, {
             executionPolicies: config.executionPolicies ?? null,
             op: 'final_norm',
-            transitionDeclaredBy: 'step_precision',
+            transitionDeclaredBy: 'step-precision',
           }))
           : normedTensor;
       }
@@ -594,7 +594,7 @@ export async function computeLogits(
       const coercedInput = await ownTensor(coerceTensorDtype(matmulInputTensor, lmHeadInputDtype, {
         executionPolicies: config.executionPolicies ?? null,
         op: 'lm_head',
-        transitionDeclaredBy: 'step_precision',
+        transitionDeclaredBy: 'step-precision',
       }));
       if (matmulInputOwned) {
         resources.release(matmulInputTensor.buffer);

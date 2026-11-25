@@ -828,7 +828,7 @@ export async function runBenchSuite(options = {}) {
   const summary = buildSuiteSummary('bench', results, startTime);
   const timingDiagnostics = buildTimingDiagnostics(timing, {
     source: 'doppler',
-    prefillSemantics: 'internal_prefill_phase',
+    prefillSemantics: 'internal-prefill-phase',
     loadTiming: loadTimings.loadTiming,
     pipelineLoadTiming: loadTimings.pipelineLoadTiming,
   });

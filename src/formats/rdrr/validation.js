@@ -19,9 +19,9 @@ const ARTIFACT_COMPLETENESS_VALUES = new Set([
 ]);
 
 const LOWERING_EXACTNESS_CLASSES = new Set([
-  'bit_exact_solo',
-  'algorithm_exact',
-  'tolerance_bounded',
+  'bit-exact-solo',
+  'algorithm-exact',
+  'tolerance-bounded',
 ]);
 
 const LOWERING_NULLABLE_STRING_FIELDS = [
@@ -34,10 +34,10 @@ const LOWERING_NULLABLE_STRING_FIELDS = [
 ];
 
 const LOWERING_ALGORITHM_EXACT_INVARIANTS = new Set([
-  'reduction_order',
-  'tree_shape',
-  'accum_dtype',
-  'associativity_grouping',
+  'reduction-order',
+  'tree-shape',
+  'accum-dtype',
+  'associativity-grouping',
 ]);
 
 function validateOptionalNonEmptyString(errors, object, field, prefix) {
@@ -146,14 +146,14 @@ function validateLoweringsSection(lowerings, errors) {
         errors.push(`${prefix}.exactness must be an object or null`);
       } else {
         if (!LOWERING_EXACTNESS_CLASSES.has(entry.exactness.class)) {
-          errors.push(`${prefix}.exactness.class must be one of bit_exact_solo, algorithm_exact, tolerance_bounded`);
+          errors.push(`${prefix}.exactness.class must be one of bit-exact-solo, algorithm-exact, tolerance-bounded`);
         }
         if (!Array.isArray(entry.exactness.algorithmExactInvariants)) {
           errors.push(`${prefix}.exactness.algorithmExactInvariants must be an array`);
         } else {
           entry.exactness.algorithmExactInvariants.forEach((inv, i) => {
             if (typeof inv !== 'string' || !LOWERING_ALGORITHM_EXACT_INVARIANTS.has(inv)) {
-              errors.push(`${prefix}.exactness.algorithmExactInvariants[${i}] must be one of reduction_order, tree_shape, accum_dtype, associativity_grouping`);
+              errors.push(`${prefix}.exactness.algorithmExactInvariants[${i}] must be one of reduction-order, tree-shape, accum-dtype, associativity-grouping`);
             }
           });
         }

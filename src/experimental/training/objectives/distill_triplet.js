@@ -121,7 +121,7 @@ function extractLogitsFromForwardOutput(output) {
 
 async function resolveForwardLogits(model, batch, tape, phase) {
   if (model && typeof model.forwardDistill === 'function') {
-    const output = await model.forwardDistill(batch, tape, { phase, stage: 'stage_b' });
+    const output = await model.forwardDistill(batch, tape, { phase, stage: 'stage-b' });
     const logits = extractLogitsFromForwardOutput(output);
     if (!logits) {
       throw new Error(`Distill triplet objective: model.forwardDistill() returned invalid ${phase} logits.`);
@@ -147,8 +147,8 @@ export function createDistillTripletObjective(options = {}) {
     name: 'triplet',
     async prepareBatch({ batch, config, options: runOptions }) {
       const distill = resolveDistillConfig(config);
-      if (distill.stage !== 'stage_b') {
-        throw new Error('Distill triplet objective requires training.distill.stage="stage_b".');
+      if (distill.stage !== 'stage-b') {
+        throw new Error('Distill triplet objective requires training.distill.stage="stage-b".');
       }
       if (!distill.stageAArtifact) {
         throw new Error('Distill triplet objective requires training.distill.stageAArtifact.');
@@ -215,7 +215,7 @@ export function createDistillTripletObjective(options = {}) {
           loss,
           components: {
             loss_triplet: lossTripletFallback,
-            distill_stage: 'stage_b',
+            distill_stage: 'stage-b',
             distill_triplet_margin: margin,
             distill_triplet_active_count: tripletCountFallback,
             distill_stage_a_step_count: toFinite(stageAContext?.metricsSummary?.stepCount, 0),
@@ -318,7 +318,7 @@ export function createDistillTripletObjective(options = {}) {
         loss,
         components: {
           loss_triplet: lossTriplet,
-          distill_stage: 'stage_b',
+          distill_stage: 'stage-b',
           distill_triplet_margin: margin,
           distill_triplet_active_count: activeTriplets,
           distill_stage_a_step_count: toFinite(stageAContext?.metricsSummary?.stepCount, 0),
@@ -384,7 +384,7 @@ export function createDistillTripletObjective(options = {}) {
       const components = lossResult.components || {};
       return {
         loss_triplet: Number.isFinite(components.loss_triplet) ? components.loss_triplet : 0,
-        distill_stage: 'stage_b',
+        distill_stage: 'stage-b',
         distill_triplet_margin: Number.isFinite(components.distill_triplet_margin)
           ? components.distill_triplet_margin
           : toFinite(distill.tripletMargin, 0.2),

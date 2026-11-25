@@ -1,4 +1,4 @@
-export const UL_STAGE_VALUES = Object.freeze(['stage1_joint', 'stage2_base']);
+export const UL_STAGE_VALUES = Object.freeze(['stage1-joint', 'stage2-base']);
 export const UL_TRAINING_SCHEMA_VERSION = 1;
 
 export const DEFAULT_UL_NOISE_SCHEDULE = Object.freeze({
@@ -37,7 +37,7 @@ const DEFAULT_UL_LOSS_WEIGHTS = Object.freeze({
 export const DEFAULT_UL_TRAINING_CONFIG = Object.freeze({
   schemaVersion: UL_TRAINING_SCHEMA_VERSION,
   enabled: false,
-  stage: 'stage1_joint',
+  stage: 'stage1-joint',
   lambda0: 5,
   seed: 1337,
   artifactDir: 'reports/training/ul',
@@ -132,8 +132,8 @@ export function validateUlTrainingConfig(config) {
   assertBoolean(freeze.base, 'freeze.base');
   assertBoolean(freeze.lora, 'freeze.lora');
 
-  if (config.stage === 'stage2_base' && !config.stage1Artifact) {
-    throw new Error('UL config: stage2_base requires stage1Artifact.');
+  if (config.stage === 'stage2-base' && !config.stage1Artifact) {
+    throw new Error('UL config: stage2-base requires stage1Artifact.');
   }
 
   return config;

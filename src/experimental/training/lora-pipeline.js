@@ -212,7 +212,7 @@ export async function runLoraPipeline(options) {
         lossScaling: { enabled: false },
         distill: {
           enabled: false,
-          stage: 'stage_a',
+          stage: 'stage-a',
           teacherModelId: null,
           studentModelId: null,
           datasetId: null,
@@ -233,12 +233,12 @@ export async function runLoraPipeline(options) {
           alphaCe: 0,
           allowHintFallback: false,
           tripletMargin: 0.2,
-          studentGraphMode: 'projection_head',
+          studentGraphMode: 'projection-head',
           freeze: { encoder: false, prior: false, decoder: false, base: true, lora: false },
         },
         ul: {
           enabled: false,
-          stage: 'stage1_joint',
+          stage: 'stage1-joint',
           stage1Artifact: null,
           stage1ArtifactHash: null,
           artifactDir: null,

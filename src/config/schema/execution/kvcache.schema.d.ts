@@ -23,7 +23,7 @@ export type KVDtype = 'f16' | 'f32';
  * - 'tiered': Hot ring + cold paged tiers
  * - 'bdpa': Basis-decomposed paged layout (experimental)
  */
-export type KVLayout = 'contiguous' | 'paged' | 'tiered' | 'bdpa' | 'contiguous_quantized';
+export type KVLayout = 'contiguous' | 'paged' | 'tiered' | 'bdpa' | 'contiguous-quantized';
 
 /**
  * Tiered KV cache mode.
@@ -33,7 +33,7 @@ export type KVLayout = 'contiguous' | 'paged' | 'tiered' | 'bdpa' | 'contiguous_
  * - 'int8': Cold tier compressed to int8
  * - 'int4': Cold tier compressed to int4 (experimental)
  */
-export type KVTieringMode = 'off' | 'fp16' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
+export type KVTieringMode = 'off' | 'fp16' | 'int8' | 'int4' | 'turboquant' | 'turboquant-prod';
 
 /**
  * Cold tier compression mode.
@@ -42,16 +42,16 @@ export type KVTieringMode = 'off' | 'fp16' | 'int8' | 'int4' | 'turboquant' | 't
  * - 'int8': Block-wise int8 compression
  * - 'int4': Block-wise int4 compression
  */
-export type KVCompressionMode = 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
+export type KVCompressionMode = 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant-prod';
 
 /**
  * Gating mode for tiered compression.
  *
  * - 'auto': Use device heuristics to enable/disable compression
- * - 'force_on': Always enable compression
- * - 'force_off': Always disable compression
+ * - 'force-on': Always enable compression
+ * - 'force-off': Always disable compression
  */
-export type KVTieringGatingMode = 'auto' | 'force_on' | 'force_off';
+export type KVTieringGatingMode = 'auto' | 'force-on' | 'force-off';
 
 export interface KVTieringCompressionSchema {
   /** Compression mode for cold tier */
@@ -66,7 +66,7 @@ export interface KVTieringCompressionSchema {
 
 export interface KVQuantizationConfigSchema {
   /** Contiguous quantized KV cache mode */
-  mode: 'none' | 'turboquant' | 'turboquant_prod';
+  mode: 'none' | 'turboquant' | 'turboquant-prod';
   /** Quantized cache bit width */
   bitWidth: number;
   /** Enable TurboQuant production packing */

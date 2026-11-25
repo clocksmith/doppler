@@ -48,7 +48,7 @@ export function createUlStage1JointObjective(options = {}) {
   }
 
   return createTrainingObjective({
-    name: 'ul_stage1_joint',
+    name: 'ul-stage1-joint',
     async prepareBatch({ batch, config, options: runOptions }) {
       const ulConfig = config.training?.ul;
       if (!ulConfig?.enabled) {

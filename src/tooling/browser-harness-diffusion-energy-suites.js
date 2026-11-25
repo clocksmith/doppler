@@ -438,7 +438,7 @@ export async function runDiffusionSuite(options = {}) {
   });
   const timingDiagnostics = buildTimingDiagnostics(timing, {
     source: 'doppler',
-    prefillSemantics: 'internal_prefill_phase',
+    prefillSemantics: 'internal-prefill-phase',
   });
   const metricsWithContracts = buildSuiteContractMetrics(
     'diffusion',

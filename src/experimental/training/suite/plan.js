@@ -24,9 +24,9 @@ export const DISTILL_ADAPTER_TOP_K = 64;
 
 export const DISTILL_LOGIT_FALLBACK = -80;
 
-export const DISTILL_STUDENT_GRAPH_PROJECTION = 'projection_head';
+export const DISTILL_STUDENT_GRAPH_PROJECTION = 'projection-head';
 
-export const DISTILL_STUDENT_GRAPH_FULL = 'transformer_full';
+export const DISTILL_STUDENT_GRAPH_FULL = 'transformer-full';
 
 export function makeTensorFromFloat32(values, shape, label) {
   const data = values instanceof Float32Array ? values : new Float32Array(values);
@@ -62,7 +62,7 @@ export function normalizeDistillStudentGraphMode(value) {
   const normalized = normalizeOptionalString(value);
   if (!normalized) return DISTILL_STUDENT_GRAPH_FULL;
   const compact = normalized.toLowerCase().replace(/[-\s]/g, '_');
-  if (compact === 'projection_head' || compact === 'projection') {
+  if (compact === 'projection-head' || compact === 'projection') {
     return DISTILL_STUDENT_GRAPH_PROJECTION;
   }
   return DISTILL_STUDENT_GRAPH_FULL;
@@ -180,7 +180,7 @@ export function buildShuffledIndices(length, seed = 1337) {
 
 export function normalizeDistillStage(value) {
   const stage = String(value || '').trim();
-  return stage === 'stage_b' ? 'stage_b' : 'stage_a';
+  return stage === 'stage-b' ? 'stage-b' : 'stage-a';
 }
 
 export async function computeTeacherPromptDistillFeatures(sample, prompt, runtime) {
@@ -270,7 +270,7 @@ export function createDistillTensorDataset(samples, options = {}) {
             teacherTopLogits.push(baseDistill.teacherTopLogits);
             prompts.push(prompt);
 
-            if (stage === 'stage_b') {
+            if (stage === 'stage-b') {
               const posPrompt = buildDistillCandidatePrompt(sample, sample.targetPos);
               const negPrompt = sample.targetNeg
                 ? buildDistillCandidatePrompt(sample, sample.targetNeg)
@@ -751,9 +751,9 @@ export function createToyModelFixture(overrides = {}) {
   };
 }
 
-export const UL_STAGE_SET = Object.freeze(['stage1_joint', 'stage2_base']);
+export const UL_STAGE_SET = Object.freeze(['stage1-joint', 'stage2-base']);
 
-export const DISTILL_STAGE_SET = Object.freeze(['stage_a', 'stage_b']);
+export const DISTILL_STAGE_SET = Object.freeze(['stage-a', 'stage-b']);
 
 export const TRAINING_STAGE_SET = Object.freeze([...UL_STAGE_SET, ...DISTILL_STAGE_SET]);
 
@@ -785,7 +785,7 @@ export function buildDistillTrainingOverrides(options = {}) {
   if (!distillEnabled) {
     return trainingConfig || null;
   }
-  const stage = isDistillStage(explicitStage) ? explicitStage : 'stage_a';
+  const stage = isDistillStage(explicitStage) ? explicitStage : 'stage-a';
   const distillOverride = {
     ...(trainingConfig?.distill || {}),
     enabled: true,
@@ -821,7 +821,7 @@ export function buildDistillTrainingOverrides(options = {}) {
     stageAArtifactHash: options.stageAArtifactHash ?? trainingConfig?.distill?.stageAArtifactHash ?? null,
     artifactDir: options.distillArtifactDir ?? trainingConfig?.distill?.artifactDir ?? 'reports/training/distill',
   };
-  if (stage === 'stage_b') {
+  if (stage === 'stage-b') {
     distillOverride.freeze = {
       encoder: true,
       prior: true,

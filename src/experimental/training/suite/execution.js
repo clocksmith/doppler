@@ -252,7 +252,7 @@ export function buildUlTrainingOverrides(options = {}) {
   if (!ulEnabled) {
     return trainingConfig || null;
   }
-  const stage = isUlStage(explicitStage) ? explicitStage : 'stage1_joint';
+  const stage = isUlStage(explicitStage) ? explicitStage : 'stage1-joint';
   const ulOverride = {
     ...(trainingConfig?.ul || {}),
     enabled: true,
@@ -261,7 +261,7 @@ export function buildUlTrainingOverrides(options = {}) {
     stage1ArtifactHash: options.stage1ArtifactHash ?? trainingConfig?.ul?.stage1ArtifactHash ?? null,
     artifactDir: options.ulArtifactDir ?? trainingConfig?.ul?.artifactDir ?? 'reports/training/ul',
   };
-  if (stage === 'stage2_base') {
+  if (stage === 'stage2-base') {
     ulOverride.freeze = {
       encoder: true,
       prior: true,
@@ -353,7 +353,7 @@ export async function runUlStageTest(stage, options = {}) {
       'coeff_decoder',
       'coeff_recon',
     ];
-    if (stage === 'stage1_joint') {
+    if (stage === 'stage1-joint') {
       requiredFields.push(
         'schedule_step_index',
         'latent_clean_mean',
@@ -368,7 +368,7 @@ export async function runUlStageTest(stage, options = {}) {
         'latent_noisy_values'
       );
     }
-    if (stage === 'stage2_base') {
+    if (stage === 'stage2-base') {
       requiredFields.push('stage1_latent_count');
     }
     for (const field of requiredFields) {
@@ -416,7 +416,7 @@ export async function runUlStageTest(stage, options = {}) {
 }
 
 export async function runUlStage1Test(options = {}) {
-  return runUlStageTest('stage1_joint', options);
+  return runUlStageTest('stage1-joint', options);
 }
 
 export async function runUlStage2Test(options = {}) {
@@ -427,7 +427,7 @@ export async function runUlStage2Test(options = {}) {
   if (!stage1Artifact) {
     const stage1 = await runUlStage1Test({
       ...options,
-      trainingStage: 'stage1_joint',
+      trainingStage: 'stage1-joint',
     });
     if (!stage1?.passed || !stage1?.artifact?.manifestPath) {
       return { passed: false, error: 'UL stage2 preflight failed to generate stage1 artifact.' };
@@ -441,7 +441,7 @@ export async function runUlStage2Test(options = {}) {
     }
   }
 
-  return runUlStageTest('stage2_base', {
+  return runUlStageTest('stage2-base', {
     ...options,
     stage1Artifact,
     stage1ArtifactHash,
@@ -533,7 +533,7 @@ export async function runDistillStageTest(stage, options = {}) {
     if (!Array.isArray(metrics) || metrics.length === 0) {
       return { passed: false, error: `Distill ${stage} produced no metrics.` };
     }
-    const requiredFields = stage === 'stage_a'
+    const requiredFields = stage === 'stage-a'
       ? ['loss_kd', 'distill_stage']
       : ['loss_triplet', 'distill_stage', 'distill_triplet_margin'];
     for (const field of requiredFields) {
@@ -628,7 +628,7 @@ export async function runDistillStageTest(stage, options = {}) {
 }
 
 export async function runDistillStageATest(options = {}) {
-  return runDistillStageTest('stage_a', options);
+  return runDistillStageTest('stage-a', options);
 }
 
 export async function runDistillStageBTest(options = {}) {
@@ -639,10 +639,10 @@ export async function runDistillStageBTest(options = {}) {
   if (!stageAArtifact) {
     const stageA = await runDistillStageATest({
       ...options,
-      trainingStage: 'stage_a',
+      trainingStage: 'stage-a',
     });
     if (!stageA?.passed || !stageA?.artifact?.manifestPath) {
-      return { passed: false, error: 'Distill stage_b preflight failed to generate stage_a artifact.' };
+      return { passed: false, error: 'Distill stage-b preflight failed to generate stage-a artifact.' };
     }
     stageAArtifact = stageA.artifact.manifestPath;
     stageAArtifactHash = stageA.artifact.manifestHash;
@@ -653,7 +653,7 @@ export async function runDistillStageBTest(options = {}) {
     }
   }
 
-  return runDistillStageTest('stage_b', {
+  return runDistillStageTest('stage-b', {
     ...options,
     stageAArtifact,
     stageAArtifactHash,
@@ -708,15 +708,15 @@ export async function runTrainingSuite(options = {}) {
   const availableTests = trainingHarness.listTests();
   const requestedTestsFromOptions = normalizeTrainingTestNames(options.trainingTests);
   const requestedStage = normalizeTrainingStage(options.trainingStage);
-  const stageDefaultTests = requestedStage === 'stage1_joint'
+  const stageDefaultTests = requestedStage === 'stage1-joint'
     ? ['ul-stage1']
     : (
-      requestedStage === 'stage2_base'
+      requestedStage === 'stage2-base'
         ? ['ul-stage2']
         : (
-          requestedStage === 'stage_a'
+          requestedStage === 'stage-a'
             ? ['distill-stage-a']
-            : (requestedStage === 'stage_b' ? ['distill-stage-b'] : null)
+            : (requestedStage === 'stage-b' ? ['distill-stage-b'] : null)
         )
     );
   const requestedTests = requestedTestsFromOptions || stageDefaultTests;

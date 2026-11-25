@@ -87,7 +87,7 @@ export interface ManifestFFNSchema {
   /** Whether activation is gated (e.g., SwiGLU, GeGLU) */
   gatedActivation: boolean;
   /** FFN branch composition. `auto` preserves legacy dense-or-MoE routing. */
-  branchMode: 'auto' | 'dense' | 'moe' | 'dense_plus_moe';
+  branchMode: 'auto' | 'dense' | 'moe' | 'dense-plus-moe';
   /** Double the FFN intermediate width on KV-shared layers. */
   useDoubleWideMlp: boolean;
   /** Clamp SwiGLU output (null = disabled) */
@@ -138,7 +138,7 @@ export interface ManifestSequencePoolingSchema {
 }
 
 export interface ManifestSequenceSchema {
-  alphabet: 'amino_acid' | 'nucleotide';
+  alphabet: 'amino-acid' | 'nucleotide';
   tokenEmbeddings: boolean;
   pooledEmbedding: ManifestSequencePoolingSchema | null;
   logits: boolean;
@@ -165,12 +165,12 @@ export interface ManifestEmbeddingPostprocessorSchema {
  */
 export interface ManifestLayerPatternSchema {
   /** Pattern type */
-  type: 'uniform' | 'alternating' | 'every_n' | 'custom';
+  type: 'uniform' | 'alternating' | 'every-n' | 'custom';
   /** For alternating: which layers are global ('odd' or 'even'), null if not applicable */
   globalPattern: 'odd' | 'even' | null;
-  /** For every_n: period of global layers, null if not applicable */
+  /** For every-n: period of global layers, null if not applicable */
   period: number | null;
-  /** For every_n: first global layer index modulo period, null if not applicable */
+  /** For every-n: first global layer index modulo period, null if not applicable */
   offset: number | null;
   /** For custom: explicit per-layer architecture tags, null if not applicable */
   layerTypes: LayerType[] | null;
@@ -234,7 +234,7 @@ export interface ManifestDiffusionGemmaSchema {
 }
 
 export interface ManifestRerankSchema {
-  format: 'qwen3_yes_no_logit' | string;
+  format: 'qwen3-yes-no-logit' | string;
   instruction: string;
   inputTemplate: string;
   prefix: string;
@@ -243,7 +243,7 @@ export interface ManifestRerankSchema {
   trueTokenId: number;
   falseToken: string;
   falseTokenId: number;
-  score: 'logit_difference' | 'true_logit' | string;
+  score: 'logit-difference' | 'true-logit' | string;
   probability: 'sigmoid' | string;
 }
 

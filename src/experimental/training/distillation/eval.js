@@ -160,9 +160,9 @@ export async function evaluateDistillationModel(options) {
   const checkpointStep = options.checkpointStep;
   const distillRuntime = options.distillRuntime;
   const model = options.model;
-  if (distillRuntime.studentGraphMode !== 'transformer_full') {
+  if (distillRuntime.studentGraphMode !== 'transformer-full') {
     throw new Error(
-      `Distillation eval requires studentGraphMode="transformer_full"; got "${distillRuntime.studentGraphMode}".`
+      `Distillation eval requires studentGraphMode="transformer-full"; got "${distillRuntime.studentGraphMode}".`
     );
   }
   const evalDatasets = resolveEvalDatasets(workload, options.evalDatasetId || null);

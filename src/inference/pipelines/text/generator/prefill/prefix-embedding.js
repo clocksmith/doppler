@@ -44,7 +44,7 @@ export function resolvePrefixEmbeddingOverrideTransitionDeclaredBy(executionV1St
     const fromDtype = normalizeExecutionDtype(step.fromDtype ?? step.precision?.inputDtype);
     const toDtype = normalizeExecutionDtype(step.toDtype ?? step.precision?.outputDtype);
     if (fromDtype === 'f32' && toDtype === 'f16') {
-      return 'explicit_cast_step';
+      return 'explicit-cast-step';
     }
   }
   return null;

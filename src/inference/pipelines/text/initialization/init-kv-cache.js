@@ -46,13 +46,13 @@ function resolveRuntimeKVConfig(runtimeInput) {
 }
 
 function assertSupportedTurboQuantMode(mode, label) {
-  if (String(mode ?? '').trim().toLowerCase() !== 'turboquant_outlier') {
+  if (String(mode ?? '').trim().toLowerCase() !== 'turboquant-outlier') {
     return;
   }
   throw new Error(
-    `${label}="turboquant_outlier" is not supported yet. ` +
+    `${label}="turboquant-outlier" is not supported yet. ` +
     'TurboQuant outlier high-precision buffers and decode kernels are not wired end to end; ' +
-    'use "turboquant" or "turboquant_prod".'
+    'use "turboquant" or "turboquant-prod".'
   );
 }
 
@@ -165,7 +165,7 @@ function resolveTieredRequestedQuantMode(runtimeKV) {
     gating.mode,
     'runtime.inference.session.kvcache.tiering.gating.mode'
   ).toLowerCase();
-  if (gatingMode === 'force_off') {
+  if (gatingMode === 'force-off') {
     return 'none';
   }
   return compressionMode;
@@ -188,7 +188,7 @@ function resolveContiguousRequestedQuantMode(runtimeKV) {
 }
 
 function assertQuantizedKVKernelSupport(modelConfig, cacheLayout, cacheMaxSeqLen, runtimeKV) {
-  if (cacheLayout === 'contiguous_quantized') {
+  if (cacheLayout === 'contiguous-quantized') {
     if (modelConfig.headDim > 256) {
       throw new Error(
         `Contiguous quantized KV cache requires headDim <= 256; got ${modelConfig.headDim}.`
@@ -241,7 +241,7 @@ function assertQuantizedKVKernelSupport(modelConfig, cacheLayout, cacheMaxSeqLen
 
 export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig, layerRange = null) {
   let allocatedLayerCount = resolveKVCacheLayerCount(modelConfig.numLayers, layerRange);
-  if (modelConfig?.decodeStrategy === 'replay_prefill') {
+  if (modelConfig?.decodeStrategy === 'replay-prefill') {
     throw new Error(
       'Live KV cache creation is not supported for models that require replay-prefill decode. ' +
       'Skip createKVCache() when the model config does not resolve explicit layerTypes for mixed-geometry/shared-KV decode.'
@@ -306,7 +306,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig,
   }
   const quantMode = resolveContiguousRequestedQuantMode(runtimeKV);
   if (forceContiguousKVCache && cacheLayout === 'contiguous' && quantMode !== 'none') {
-    cacheLayout = 'contiguous_quantized';
+    cacheLayout = 'contiguous-quantized';
     layoutSource = 'quantization';
   }
   if (forceContiguousKVCache && cacheLayout === 'paged') {
@@ -380,14 +380,14 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig,
   if (cacheLayout === 'tiered' && kvDtype !== 'f16') {
     throw new Error('Tiered KV cache requires kvDtype="f16" (no f32 tiered kernels yet).');
   }
-  if (cacheLayout === 'contiguous_quantized' && kvDtype !== 'f16') {
+  if (cacheLayout === 'contiguous-quantized' && kvDtype !== 'f16') {
     throw new Error('Contiguous quantized KV cache requires kvDtype="f16".');
   }
-  if (cacheLayout === 'contiguous_quantized' && !useGPU) {
+  if (cacheLayout === 'contiguous-quantized' && !useGPU) {
     throw new Error('Contiguous quantized KV cache requires GPU.');
   }
 
-  if (useGPU && (cacheLayout === 'paged' || cacheLayout === 'tiered' || cacheLayout === 'bdpa' || cacheLayout === 'contiguous_quantized')) {
+  if (useGPU && (cacheLayout === 'paged' || cacheLayout === 'tiered' || cacheLayout === 'bdpa' || cacheLayout === 'contiguous-quantized')) {
     const limits = getDeviceLimits();
     if (limits) {
       const maxLayerHeadDim = Math.max(
@@ -458,7 +458,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig,
       ...cacheConfig,
       tiering: runtimeKV.tiering,
     });
-  } else if (cacheLayout === 'contiguous_quantized') {
+  } else if (cacheLayout === 'contiguous-quantized') {
     const quantCfg = requirePlainObject(
       runtimeKV.quantization,
       'runtime.inference.kvcache.quantization'

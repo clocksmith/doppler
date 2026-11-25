@@ -85,10 +85,10 @@ async function loadWorkloadFromRunRoot(runRoot) {
 function resolveStageEntry(workload, action) {
   const stagePlan = Array.isArray(workload.pipeline?.stagePlan) ? workload.pipeline.stagePlan : [];
   if (action === 'stage-a') {
-    return stagePlan.find((entry) => String(entry.trainingStage || entry.id || '').includes('stage_a')) || stagePlan[0];
+    return stagePlan.find((entry) => String(entry.trainingStage || entry.id || '').includes('stage-a')) || stagePlan[0];
   }
   if (action === 'stage-b') {
-    return stagePlan.find((entry) => String(entry.trainingStage || entry.id || '').includes('stage_b'))
+    return stagePlan.find((entry) => String(entry.trainingStage || entry.id || '').includes('stage-b'))
       || stagePlan[stagePlan.length - 1];
   }
   return null;
@@ -239,7 +239,7 @@ async function runResolvedDistillStage(options) {
   if (isSftDistillStage(stageEntry)) {
     return runDistillSftLoraStage(options);
   }
-  if (String(stageEntry.trainingStage || stageEntry.id || '').includes('stage_b')) {
+  if (String(stageEntry.trainingStage || stageEntry.id || '').includes('stage-b')) {
     return runDistillationStageB(options);
   }
   return runDistillationStageA(options);

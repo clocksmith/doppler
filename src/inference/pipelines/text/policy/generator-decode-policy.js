@@ -119,7 +119,7 @@ export function resolveTokenText(tokenizer, tokenIds, fallbackText = '?', render
 }
 
 export function usesReplayPrefillDecode(state) {
-  return state?.modelConfig?.decodeStrategy === 'replay_prefill';
+  return state?.modelConfig?.decodeStrategy === 'replay-prefill';
 }
 
 export function assertIncrementalDecodeSupport(state, operation) {

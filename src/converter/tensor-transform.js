@@ -316,7 +316,7 @@ export function resolvePerLayerEmbeddingQuant(options) {
 
 export function canInt4QuantizePerRow(tensor, options) {
   if (options?.skipInt4PlePerRow === true) return false;
-  if (resolvePerLayerEmbeddingQuant(options) !== 'int4_per_row') return false;
+  if (resolvePerLayerEmbeddingQuant(options) !== 'int4-per-row') return false;
   if (!Array.isArray(tensor.shape) || tensor.shape.length !== 2) return false;
   const [rows, cols] = tensor.shape;
   if (!Number.isInteger(rows) || rows <= 0) return false;
@@ -384,7 +384,7 @@ export function buildInt4PerRowPleTransform(tensor, bytes, sourceDtype, options 
       scheme: 'per_axis_affine',
       sourceDtype: 'INT4',
       targetDtype: 'F16',
-      storageEncoding: 'offset_binary',
+      storageEncoding: 'offset-binary',
       scaleSemantics: 'step',
       storageShape: [rows, cols],
       quantAxis: 1,

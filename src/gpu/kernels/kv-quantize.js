@@ -9,7 +9,7 @@ import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 
 
 function resolveQuantizeVariant(mode) {
-  if (mode === 'turboquant_outlier') {
+  if (mode === 'turboquant-outlier') {
     throw new Error(
       'TurboQuant outlier KV quantize is not supported yet. ' +
       'Outlier-mode high-precision buffers are not wired end to end.'
@@ -19,7 +19,7 @@ function resolveQuantizeVariant(mode) {
 }
 
 function isTurboQuantMode(mode) {
-  return mode === 'turboquant' || mode === 'turboquant_prod';
+  return mode === 'turboquant' || mode === 'turboquant-prod';
 }
 
 
@@ -54,7 +54,7 @@ function buildTurboQuantBindEntries(uniformBuffer, keys, values, outputKeys, out
     { binding: 8, resource: { buffer: options.codebookBoundariesBuffer } },
   ];
 
-  if (options.mode === 'turboquant_prod') {
+  if (options.mode === 'turboquant-prod') {
     // Prod mode: bindings 7-14 (residual + rotation + codebook + QJL)
     entries.length = 7;
     entries.push(

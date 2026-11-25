@@ -72,7 +72,7 @@
     },
     {
       "match": {
-        "kvLayout": "contiguous_quantized",
+        "kvLayout": "contiguous-quantized",
         "numTokens": {
           "gt": 1
         }
@@ -81,7 +81,7 @@
     },
     {
       "match": {
-        "kvLayout": "contiguous_quantized"
+        "kvLayout": "contiguous-quantized"
       },
       "value": "contiguousQuant"
     },

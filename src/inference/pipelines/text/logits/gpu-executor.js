@@ -206,7 +206,7 @@ async function recordLogitsTailGPU(
         ? await coerceTensorDtype(inputTensor, finalNormInputDtype, recorder, {
           executionPolicies: config.executionPolicies ?? null,
           op: 'final_norm',
-          transitionDeclaredBy: 'step_precision',
+          transitionDeclaredBy: 'step-precision',
         })
         : inputTensor;
       normInputOwned = normInputTensor !== inputTensor;
@@ -235,7 +235,7 @@ async function recordLogitsTailGPU(
         ? await coerceTensorDtype(normedTensor, finalNormOutputDtype, recorder, {
           executionPolicies: config.executionPolicies ?? null,
           op: 'final_norm',
-          transitionDeclaredBy: 'step_precision',
+          transitionDeclaredBy: 'step-precision',
         })
         : normedTensor;
     }
@@ -272,7 +272,7 @@ async function recordLogitsTailGPU(
     ? await coerceTensorDtype(logitInputTensor, lmHeadInputDtype, recorder, {
       executionPolicies: config.executionPolicies ?? null,
       op: 'lm_head',
-      transitionDeclaredBy: 'step_precision',
+      transitionDeclaredBy: 'step-precision',
     })
     : logitInputTensor;
   if (lmHeadInputTensor !== logitInputTensor) track(lmHeadInputTensor.buffer);

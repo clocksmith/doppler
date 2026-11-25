@@ -254,7 +254,7 @@ export function getPleHotCachePolicy(sessionConfig) {
   if (!hotCache || hotCache.mode === 'off') {
     return null;
   }
-  if (hotCache.mode === 'tokenizer_scores') {
+  if (hotCache.mode === 'tokenizer-scores') {
     const outputDtype = String(hotCache.outputDtype ?? '').toLowerCase();
     if (outputDtype !== 'f16' && outputDtype !== 'f32') {
       throw new Error(
@@ -271,13 +271,13 @@ export function getPleHotCachePolicy(sessionConfig) {
       throw new Error('Gemma 4 per-layer input hot vocabulary cache requires hotCache.maxBytes > 0.');
     }
     return {
-      mode: 'tokenizer_scores',
+      mode: 'tokenizer-scores',
       maxTokens,
       maxBytes,
       outputDtype,
     };
   }
-  if (hotCache.mode !== 'prepared_tokens') {
+  if (hotCache.mode !== 'prepared-tokens') {
     throw new Error(
       `Gemma 4 per-layer input hot cache mode "${String(hotCache.mode)}" is not implemented.`
     );
@@ -297,7 +297,7 @@ export function getPleHotCachePolicy(sessionConfig) {
   if (!Number.isFinite(maxBytes) || maxBytes <= 0) {
     throw new Error('Gemma 4 per-layer input hot cache requires hotCache.maxBytes > 0.');
   }
-  return { mode: 'prepared_tokens', maxTokens, maxBytes, outputDtype };
+  return { mode: 'prepared-tokens', maxTokens, maxBytes, outputDtype };
 }
 
 export function resolvePleHotVocabularyCapacity({
@@ -323,10 +323,10 @@ export function resolvePleHotVocabularyCapacity({
 }
 
 export function getPleSplitTablePolicy(sessionConfig) {
-  if (sessionConfig?.materialization !== 'gpu_split_tables') {
+  if (sessionConfig?.materialization !== 'gpu-split-tables') {
     return null;
   }
-  return { mode: 'gpu_split_tables' };
+  return { mode: 'gpu-split-tables' };
 }
 
 export function getPleRangeRowLoadConfig(embedTokensPerLayer, totalPerLayerHiddenSize) {
@@ -370,17 +370,17 @@ export async function ensurePleGpuSplitTablesRuntime(context) {
 
   const embedTokensPerLayer = perLayerInputWeights.embedTokensPerLayer;
   if (!isCpuWeightBuffer(embedTokensPerLayer) || !isRangeBackedCpuEmbeddingSource(embedTokensPerLayer.data)) {
-    throw new Error('Gemma 4 gpu_split_tables materialization requires a range-backed CPU embedTokensPerLayer source.');
+    throw new Error('Gemma 4 gpu-split-tables materialization requires a range-backed CPU embedTokensPerLayer source.');
   }
 
   const sourceDtype = requirePleSourceDtype(
     embedTokensPerLayer.data?.sourceDtype ?? embedTokensPerLayer.dtype,
-    'Gemma 4 gpu_split_tables materialization'
+    'Gemma 4 gpu-split-tables materialization'
   );
 
   const device = getDevice();
   if (!device) {
-    throw new Error('No GPU device available for Gemma 4 gpu_split_tables materialization.');
+    throw new Error('No GPU device available for Gemma 4 gpu-split-tables materialization.');
   }
 
   const bytesPerElement = sourceDtype === 'f16' ? 2 : 4;
@@ -522,7 +522,7 @@ export function mergePleHotVocabularyTokenIds(seedTokenIds, tokenizerHotTokenIds
 
 export async function ensurePleGpuHotVocabularyRuntime(context) {
   const policy = getPleHotCachePolicy(context?.perLayerInputsSession ?? null);
-  if (!policy || policy.mode !== 'tokenizer_scores') {
+  if (!policy || policy.mode !== 'tokenizer-scores') {
     return null;
   }
 
@@ -711,7 +711,7 @@ export async function ensurePleGpuHotVocabularyRuntime(context) {
   }
 
   const runtime = {
-    mode: 'tokenizer_scores',
+    mode: 'tokenizer-scores',
     maxTokens: capacity.maxHotTokens,
     maxBytes: policy.maxBytes,
     outputDtype: policy.outputDtype,

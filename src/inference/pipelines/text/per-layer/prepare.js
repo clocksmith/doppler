@@ -230,7 +230,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
       let scaledFused = null;
       try {
         // Per-layer-model projection: precision island. Source rows decoded
-        // from int4_per_row produce activations whose magnitude before
+        // from int4-per-row produce activations whose magnitude before
         // RMSNorm-mediated scale-down can exceed f16 max (~65504). When the
         // matmul kernel does not internally widen its accumulator (RDNA3 is
         // strict, Metal happens to widen), the f16 output saturates to Inf
@@ -587,7 +587,7 @@ export async function preparePerLayerInputs(tokenIds, inputEmbedsTensor, context
   // to submit immediately.
   if (pleCache) {
     const plePolicy = getPleHotCachePolicy(context.perLayerInputsSession ?? null);
-    if (plePolicy && plePolicy.mode === 'prepared_tokens'
+    if (plePolicy && plePolicy.mode === 'prepared-tokens'
         && pleCache.preparedTokenEntries instanceof Map
         && !tokenIdsAreGpuBuffer
         && numTokens > 0

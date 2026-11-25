@@ -6,7 +6,7 @@
         "debug": false,
         "disableCommandBatching": false,
         "kvLayout": {
-          "neq": "bdpa_paged"
+          "neq": "bdpa-paged"
         }
       },
       "value": true
@@ -22,7 +22,7 @@
         "hasDevice": true,
         "debug": false,
         "kvLayout": {
-          "neq": "bdpa_paged"
+          "neq": "bdpa-paged"
         }
       },
       "value": true

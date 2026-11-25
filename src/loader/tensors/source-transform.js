@@ -73,16 +73,16 @@ export function getSourceTransformSpec(location, tensorName) {
     if (transform.rowSumSource != null) {
       getLiteRTCompanionByteLength(transform.rowSumSource, tensorName, 'row-wise row-sum', rows * 4);
     }
-    if (transform.scaleSemantics !== 'step' && transform.scaleSemantics !== 'qmax_abs') {
+    if (transform.scaleSemantics !== 'step' && transform.scaleSemantics !== 'qmax-abs') {
       throw new Error(
         `[DopplerLoader] Tensor "${tensorName}" LiteRT row-wise transform has unsupported scaleSemantics "${transform.scaleSemantics}".`
       );
     }
-    if (transform.scaleSemantics === 'qmax_abs') {
+    if (transform.scaleSemantics === 'qmax-abs') {
       const scaleDivisor = Number(transform.scaleDivisor);
       if (!Number.isFinite(scaleDivisor) || scaleDivisor <= 0) {
         throw new Error(
-          `[DopplerLoader] Tensor "${tensorName}" LiteRT row-wise transform requires scaleDivisor > 0 for scaleSemantics="qmax_abs".`
+          `[DopplerLoader] Tensor "${tensorName}" LiteRT row-wise transform requires scaleDivisor > 0 for scaleSemantics="qmax-abs".`
         );
       }
     }
@@ -158,16 +158,16 @@ export function getSourceTransformSpec(location, tensorName) {
     if (transform.sumSource != null) {
       getLiteRTCompanionByteLength(transform.sumSource, tensorName, 'axis sum', rows * 4);
     }
-    if (transform.scaleSemantics !== 'step' && transform.scaleSemantics !== 'qmax_abs') {
+    if (transform.scaleSemantics !== 'step' && transform.scaleSemantics !== 'qmax-abs') {
       throw new Error(
         `[DopplerLoader] Tensor "${tensorName}" LiteRT axis transform has unsupported scaleSemantics "${transform.scaleSemantics}".`
       );
     }
-    if (transform.scaleSemantics === 'qmax_abs') {
+    if (transform.scaleSemantics === 'qmax-abs') {
       const scaleDivisor = Number(transform.scaleDivisor);
       if (!Number.isFinite(scaleDivisor) || scaleDivisor <= 0) {
         throw new Error(
-          `[DopplerLoader] Tensor "${tensorName}" LiteRT axis transform requires scaleDivisor > 0 for scaleSemantics="qmax_abs".`
+          `[DopplerLoader] Tensor "${tensorName}" LiteRT axis transform requires scaleDivisor > 0 for scaleSemantics="qmax-abs".`
         );
       }
     }
@@ -277,16 +277,16 @@ export function getSourceTransformSpec(location, tensorName) {
     if (transform.sumSource != null) {
       getLiteRTCompanionByteLength(transform.sumSource, tensorName, 'blocked axis sum', rows * 4);
     }
-    if (transform.scaleSemantics !== 'step' && transform.scaleSemantics !== 'qmax_abs') {
+    if (transform.scaleSemantics !== 'step' && transform.scaleSemantics !== 'qmax-abs') {
       throw new Error(
         `[DopplerLoader] Tensor "${tensorName}" LiteRT blocked axis transform has unsupported scaleSemantics "${transform.scaleSemantics}".`
       );
     }
-    if (transform.scaleSemantics === 'qmax_abs') {
+    if (transform.scaleSemantics === 'qmax-abs') {
       const scaleDivisor = Number(transform.scaleDivisor);
       if (!Number.isFinite(scaleDivisor) || scaleDivisor <= 0) {
         throw new Error(
-          `[DopplerLoader] Tensor "${tensorName}" LiteRT blocked axis transform requires scaleDivisor > 0 for scaleSemantics="qmax_abs".`
+          `[DopplerLoader] Tensor "${tensorName}" LiteRT blocked axis transform requires scaleDivisor > 0 for scaleSemantics="qmax-abs".`
         );
       }
     }

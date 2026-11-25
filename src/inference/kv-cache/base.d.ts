@@ -31,7 +31,7 @@ export class KVCache {
   readonly numHeads: number;
   readonly headDim: number;
   readonly maxSeqLen: number;
-  readonly layout: 'contiguous' | 'paged' | 'bdpa_paged';
+  readonly layout: 'contiguous' | 'paged' | 'bdpa-paged';
   readonly pageSize: number;
   readonly kvDtype: 'f16' | 'f32';
   readonly bytesPerElem: number;

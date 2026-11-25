@@ -257,7 +257,7 @@ export async function runDenseFFNGPU(
     sharedInputTensor = await coerceTensorDtype(inputTensor, sharedInputDtype, recorder, {
       executionPolicies: context.executionPolicies ?? null,
       op: 'ffn_shared_input',
-      transitionDeclaredBy: 'step_precision',
+      transitionDeclaredBy: 'step-precision',
     });
     sharedInputOwned = sharedInputTensor !== inputTensor;
   }
@@ -307,7 +307,7 @@ export async function runDenseFFNGPU(
       downInputTensor = await coerceTensorDtype(fused, downInputDtype, recorder, {
         executionPolicies: context.executionPolicies ?? null,
         op: 'ffn_down_input',
-        transitionDeclaredBy: 'step_precision',
+        transitionDeclaredBy: 'step-precision',
       });
       downInputOwned = downInputTensor !== fused;
     }
@@ -529,7 +529,7 @@ export async function runDenseFFNGPU(
     downInputTensor = await coerceTensorDtype(activatedOutput, downInputDtype, recorder, {
       executionPolicies: context.executionPolicies ?? null,
       op: 'ffn_down_input',
-      transitionDeclaredBy: 'step_precision',
+      transitionDeclaredBy: 'step-precision',
     });
     downInputOwned = downInputTensor !== activatedOutput;
   }

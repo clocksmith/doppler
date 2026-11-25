@@ -24,8 +24,8 @@ export interface SourceRuntimeTensor {
     scheme: 'per_row_affine';
     sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
     targetDtype: 'F16';
-    storageEncoding: 'signed' | 'offset_binary';
-    scaleSemantics: 'step' | 'qmax_abs';
+    storageEncoding: 'signed' | 'offset-binary';
+    scaleSemantics: 'step' | 'qmax-abs';
     scaleDivisor?: number;
     scaleSourcePath: string;
     scaleOffset: number;
@@ -38,8 +38,8 @@ export interface SourceRuntimeTensor {
     scheme: 'per_axis_affine';
     sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
     targetDtype: 'F16';
-    storageEncoding: 'signed' | 'offset_binary';
-    scaleSemantics: 'step' | 'qmax_abs';
+    storageEncoding: 'signed' | 'offset-binary';
+    scaleSemantics: 'step' | 'qmax-abs';
     scaleDivisor?: number;
     storageShape: [number, number];
     quantAxis: 0 | 1;
@@ -59,8 +59,8 @@ export interface SourceRuntimeTensor {
     scheme: 'per_axis_affine';
     sourceDtype: 'INT8' | 'UINT8' | 'INT4' | 'INT2';
     targetDtype: 'F16';
-    storageEncoding: 'signed' | 'offset_binary';
-    scaleSemantics: 'step' | 'qmax_abs';
+    storageEncoding: 'signed' | 'offset-binary';
+    scaleSemantics: 'step' | 'qmax-abs';
     scaleDivisor?: number;
     storageShape: [number, number];
     quantAxis: 0;

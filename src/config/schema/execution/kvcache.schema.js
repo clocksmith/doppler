@@ -32,9 +32,9 @@ export const DEFAULT_KVCACHE_CONFIG = {
     },
   },
   // Contiguous quantized KV cache controls (for full-attention models)
-  // Activates when layout is auto-resolved to 'contiguous_quantized' or set explicitly.
+  // Activates when layout is auto-resolved to 'contiguous-quantized' or set explicitly.
   quantization: {
-    mode: 'none',       // none | turboquant | turboquant_prod
+    mode: 'none',       // none | turboquant | turboquant-prod
     bitWidth: 4,
     prodMode: false,
   },

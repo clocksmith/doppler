@@ -1,5 +1,5 @@
-export type DistillTrainingStage = 'stage_a' | 'stage_b';
-export type DistillStudentGraphMode = 'projection_head' | 'transformer_full';
+export type DistillTrainingStage = 'stage-a' | 'stage-b';
+export type DistillStudentGraphMode = 'projection-head' | 'transformer-full';
 
 export interface DistillFreezeConfigSchema {
   encoder: boolean;

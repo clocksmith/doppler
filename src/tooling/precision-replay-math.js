@@ -2,10 +2,10 @@ import { f16ToF32Bits, f32ToF16Bits } from '../inference/kv-cache/types.js';
 
 export const PRECISION_REPLAY_MODES = Object.freeze([
   'exact',
-  'f32_forward',
-  'f32_reverse',
-  'f32_tree64',
-  'f16_forward',
+  'f32-forward',
+  'f32-reverse',
+  'f32-tree64',
+  'f16-forward',
 ]);
 
 const f32Scratch = new Float32Array(1);
@@ -73,20 +73,20 @@ export function forwardDotF16(hidden, weights) {
 export function scoreDotProductModes(hidden, weights) {
   return {
     exact: exactDot(hidden, weights),
-    f32_forward: forwardDotF32(hidden, weights),
-    f32_reverse: reverseDotF32(hidden, weights),
-    f32_tree64: tree64DotF32(hidden, weights),
-    f16_forward: forwardDotF16(hidden, weights),
+    'f32-forward': forwardDotF32(hidden, weights),
+    'f32-reverse': reverseDotF32(hidden, weights),
+    'f32-tree64': tree64DotF32(hidden, weights),
+    'f16-forward': forwardDotF16(hidden, weights),
   };
 }
 
 export function buildModeScoreMaps(hidden, rows) {
   const perModeScores = {
     exact: new Map(),
-    f32_forward: new Map(),
-    f32_reverse: new Map(),
-    f32_tree64: new Map(),
-    f16_forward: new Map(),
+    'f32-forward': new Map(),
+    'f32-reverse': new Map(),
+    'f32-tree64': new Map(),
+    'f16-forward': new Map(),
   };
   for (const [tokenId, row] of rows.entries()) {
     const scores = scoreDotProductModes(hidden, row);

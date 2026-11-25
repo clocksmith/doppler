@@ -4,7 +4,7 @@ export type ToolingCommand = 'convert' | 'refresh-integrity' | 'release' | 'debu
 export type ToolingSurface = 'browser' | 'node';
 export type ToolingWorkload = 'kernels' | 'inference' | 'embedding' | 'rerank' | 'training' | 'diffusion' | 'energy';
 export type ToolingIntent = 'verify' | 'investigate' | 'calibrate' | null;
-export type ToolingTrainingStage = 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';
+export type ToolingTrainingStage = 'stage1-joint' | 'stage2-base' | 'stage-a' | 'stage-b';
 export type ToolingDistillAction = 'run' | 'stage-a' | 'stage-b' | 'eval' | 'watch' | 'compare' | 'quality-gate' | 'subsets';
 export type ToolingLoraAction = 'run' | 'eval' | 'watch' | 'export' | 'compare' | 'quality-gate' | 'activate';
 
@@ -50,12 +50,12 @@ export interface ToolingInferenceInput {
   softTokenBudget?: number | null;
   /** Exact biological sequence input; it cannot be combined with prompt or image input. */
   sequence?: string | null;
-  sequenceAlphabet?: 'amino_acid' | 'nucleotide' | null;
+  sequenceAlphabet?: 'amino-acid' | 'nucleotide' | null;
   includeTokenEmbeddings?: boolean | null;
   includeLogits?: boolean | null;
   probePositions?: number[] | null;
   /** Qualification-only cancellation probe; not part of ordinary model input. */
-  sequenceQualificationAbort?: 'before_execution' | 'after_start' | null;
+  sequenceQualificationAbort?: 'before-execution' | 'after-start' | null;
   /** Qualification-only late-result probe; not part of ordinary model input. */
   sequenceQualificationStaleAfterStart?: boolean | null;
 }
@@ -66,11 +66,11 @@ export interface ToolingNormalizedInferenceInput {
   maxTokens: number | null;
   softTokenBudget: number | null;
   sequence?: string | null;
-  sequenceAlphabet?: 'amino_acid' | 'nucleotide' | null;
+  sequenceAlphabet?: 'amino-acid' | 'nucleotide' | null;
   includeTokenEmbeddings?: boolean | null;
   includeLogits?: boolean | null;
   probePositions?: number[] | null;
-  sequenceQualificationAbort?: 'before_execution' | 'after_start' | null;
+  sequenceQualificationAbort?: 'before-execution' | 'after-start' | null;
   sequenceQualificationStaleAfterStart?: boolean | null;
 }
 

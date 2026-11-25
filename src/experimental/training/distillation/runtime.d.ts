@@ -2,7 +2,7 @@ import type { LoadedTrainingWorkload, DistillStagePlanEntry } from '../workloads
 
 export declare function resolveInternalDistillStage(
   stageEntry: DistillStagePlanEntry | Record<string, unknown>
-): 'stage_a' | 'stage_b';
+): 'stage-a' | 'stage-b';
 
 export declare function buildDistillationTrainingConfigFromWorkload(
   loadedWorkload: LoadedTrainingWorkload,
@@ -14,7 +14,7 @@ export declare function buildDistillationTrainingConfigFromWorkload(
     stageAArtifactHash?: string | null;
   }
 ): {
-  internalStage: 'stage_a' | 'stage_b';
+  internalStage: 'stage-a' | 'stage-b';
   trainingConfig: Record<string, unknown>;
   trainingConfigHash: string;
 };

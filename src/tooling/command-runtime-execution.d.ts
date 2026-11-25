@@ -55,7 +55,7 @@ export declare function buildSuiteOptions(
   expectedModelType?: 'embedding' | 'rerank';
   modelId?: string;
   trainingTests?: string[];
-  trainingStage?: 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';
+  trainingStage?: 'stage1-joint' | 'stage2-base' | 'stage-a' | 'stage-b';
   trainingConfig?: Record<string, unknown>;
   stage1Artifact?: string;
   stage1ArtifactHash?: string;

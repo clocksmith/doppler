@@ -20,9 +20,9 @@ import { resolveEmbeddingScale } from "../../../../inference/pipelines/text/embe
 import { isSlidingLayerType } from '../../../../inference/pipelines/text/attention/dispatch-params.js';
 import { createDistillStudentProjectionModelFixture, ensureTrainableTensor, normalizeTransformerLoraConfig, releaseTensor, resolvePhasePrompts, resolveTensorDtype } from './model.js';
 
-export const DISTILL_STUDENT_GRAPH_PROJECTION = 'projection_head';
+export const DISTILL_STUDENT_GRAPH_PROJECTION = 'projection-head';
 
-export const DISTILL_STUDENT_GRAPH_FULL = 'transformer_full';
+export const DISTILL_STUDENT_GRAPH_FULL = 'transformer-full';
 
 export function makeTensorFromUint32(values, shape, label) {
   const data = values instanceof Uint32Array ? values : new Uint32Array(values);
@@ -51,7 +51,7 @@ export function normalizeDistillStudentGraphMode(value) {
   const normalized = normalizeOptionalString(value);
   if (!normalized) return DISTILL_STUDENT_GRAPH_FULL;
   const compact = normalized.toLowerCase().replace(/[-\s]/g, '_');
-  if (compact === 'projection_head' || compact === 'projection') {
+  if (compact === 'projection-head' || compact === 'projection') {
     return DISTILL_STUDENT_GRAPH_PROJECTION;
   }
   return DISTILL_STUDENT_GRAPH_FULL;

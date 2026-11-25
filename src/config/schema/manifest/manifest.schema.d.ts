@@ -132,7 +132,7 @@ export interface QuantizationInfoSchema {
   audio?: QuantizationValue;       // Audio encoder (Whisper, wav2vec)
   tts?: QuantizationValue;         // TTS decoder
   projector?: QuantizationValue;   // Cross-modal projection layers
-  perLayerEmbeddings?: 'int4_per_row';
+  perLayerEmbeddings?: 'int4-per-row';
 
   // Runtime hints. `compute` may be included in variantTag when artifact naming
   // treats activation dtype as part of the published variant identity.
@@ -331,8 +331,8 @@ export interface TensorSchema {
     scheme: 'per_row_affine';
     sourceDtype: 'INT8' | 'INT4' | 'INT2' | 'UINT8';
     targetDtype: 'F16';
-    storageEncoding: 'signed' | 'offset_binary';
-    scaleSemantics: 'step' | 'qmax_abs';
+    storageEncoding: 'signed' | 'offset-binary';
+    scaleSemantics: 'step' | 'qmax-abs';
     scaleDivisor?: number;
     scaleSource: {
       shard: number;
@@ -353,8 +353,8 @@ export interface TensorSchema {
     scheme: 'per_axis_affine';
     sourceDtype: 'INT8' | 'INT4' | 'INT2' | 'UINT8';
     targetDtype: 'F16';
-    storageEncoding: 'signed' | 'offset_binary';
-    scaleSemantics: 'step' | 'qmax_abs';
+    storageEncoding: 'signed' | 'offset-binary';
+    scaleSemantics: 'step' | 'qmax-abs';
     scaleDivisor?: number;
     storageShape: [number, number];
     quantAxis: 0 | 1;

@@ -57,7 +57,7 @@ export function shouldDisablePrefillCommandBatching(state, opts, multimodalBidir
   if (state?.dopplerLoader?.getRoutedExpertPolicy?.()?.enabled === true) {
     return true;
   }
-  if (state?.kvCache?.layout === 'bdpa_paged') {
+  if (state?.kvCache?.layout === 'bdpa-paged') {
     return true;
   }
   if (resolveEffectivePrefillTokenChunkSize(state) != null && (call.startPos > 0 || call.returnHidden)) {

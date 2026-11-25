@@ -134,17 +134,17 @@ export interface ExecutionV1DecodeLoopSchema {
 
 export type PerLayerInputMaterializationMode =
   'auto'
-  | 'range_backed'
-  | 'cpu_resident'
-  | 'gpu_resident'
-  | 'gpu_split_tables';
+  | 'range-backed'
+  | 'cpu-resident'
+  | 'gpu-resident'
+  | 'gpu-split-tables';
 
 export type PerLayerInputRowCacheMode = 'off' | 'lru';
 
-export type PerLayerInputPrefetchMode = 'off' | 'next_token';
+export type PerLayerInputPrefetchMode = 'off' | 'next-token';
 
-export type PerLayerInputGpuUploadMode = 'per_step_slices' | 'per_batch_slices';
-export type PerLayerInputHotCacheMode = 'off' | 'prepared_tokens' | 'tokenizer_scores';
+export type PerLayerInputGpuUploadMode = 'per-step-slices' | 'per-batch-slices';
+export type PerLayerInputHotCacheMode = 'off' | 'prepared-tokens' | 'tokenizer-scores';
 
 export interface ExecutionV1PerLayerInputsRowCacheSchema {
   mode: PerLayerInputRowCacheMode;
@@ -276,7 +276,7 @@ export interface ExecutionV1SessionSchema {
 
 export interface ExecutionV1PoliciesSchema {
   unsupportedPrecision: 'error';
-  dtypeTransition: 'require_cast_step';
+  dtypeTransition: 'require-cast-step';
   unresolvedKernel: 'error';
 }
 
@@ -407,11 +407,11 @@ export interface ExecutionV1ExpandedStepSchema {
 export declare const EXECUTION_V1_SCHEMA_ID: string;
 export declare const READBACK_MODES: readonly ['sequential', 'overlapped', 'auto'];
 export declare const PREFILL_CHUNK_SUBMIT_MODES: readonly ['sync', 'async'];
-export declare const PER_LAYER_INPUT_MATERIALIZATION_MODES: readonly ['auto', 'range_backed', 'cpu_resident', 'gpu_resident'];
+export declare const PER_LAYER_INPUT_MATERIALIZATION_MODES: readonly ['auto', 'range-backed', 'cpu-resident', 'gpu-resident'];
 export declare const PER_LAYER_INPUT_ROW_CACHE_MODES: readonly ['off', 'lru'];
-export declare const PER_LAYER_INPUT_PREFETCH_MODES: readonly ['off', 'next_token'];
-export declare const PER_LAYER_INPUT_GPU_UPLOAD_MODES: readonly ['per_step_slices', 'per_batch_slices'];
-export declare const PER_LAYER_INPUT_HOT_CACHE_MODES: readonly ['off', 'prepared_tokens', 'tokenizer_scores'];
+export declare const PER_LAYER_INPUT_PREFETCH_MODES: readonly ['off', 'next-token'];
+export declare const PER_LAYER_INPUT_GPU_UPLOAD_MODES: readonly ['per-step-slices', 'per-batch-slices'];
+export declare const PER_LAYER_INPUT_HOT_CACHE_MODES: readonly ['off', 'prepared-tokens', 'tokenizer-scores'];
 export declare const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS: ExecutionV1ComputeDefaultsSchema;
 export declare const DEFAULT_EXECUTION_V1_SESSION: ExecutionV1SessionSchema;
 export declare const DEFAULT_EXECUTION_V1_POLICIES: ExecutionV1PoliciesSchema;

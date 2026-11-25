@@ -60,7 +60,7 @@ export function validateLiteRTTransformTarget(location, tensorName, transform, l
 }
 
 export function validateLiteRTStorageEncoding(storageEncoding, tensorName) {
-  if (storageEncoding !== 'signed' && storageEncoding !== 'offset_binary') {
+  if (storageEncoding !== 'signed' && storageEncoding !== 'offset-binary') {
     throw new Error(
       `[DopplerLoader] Tensor "${tensorName}" has unsupported LiteRT storageEncoding "${storageEncoding}".`
     );

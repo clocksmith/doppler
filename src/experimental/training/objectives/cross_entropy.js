@@ -16,7 +16,7 @@ export function createCrossEntropyObjective(options = {}) {
   }
 
   return createTrainingObjective({
-    name: 'cross_entropy',
+    name: 'cross-entropy',
     async forward({ model, batch, tape }) {
       const logits = await model.forward(batch.input, tape);
       return { logits };

@@ -5,7 +5,7 @@ import { normalizeTensorName } from "../tokenizer-contract.js";
 
 export function validateInt4PleMaterializationContract(tensorLocations, inference, modelId) {
   const materialization = inference?.session?.perLayerInputs?.materialization;
-  if (materialization !== 'gpu_split_tables') {
+  if (materialization !== 'gpu-split-tables') {
     return;
   }
   for (const [name, location] of Object.entries(tensorLocations ?? {})) {
@@ -17,8 +17,8 @@ export function validateInt4PleMaterializationContract(tensorLocations, inferenc
     ) {
       throw new Error(
         `Manifest "${modelId}" Gemma 4 INT4 PLE tensor "${name}" cannot use ` +
-        'inference.session.perLayerInputs.materialization="gpu_split_tables". ' +
-        'Use materialization="range_backed" or disable INT4 PLE quantization.'
+        'inference.session.perLayerInputs.materialization="gpu-split-tables". ' +
+        'Use materialization="range-backed" or disable INT4 PLE quantization.'
       );
     }
   }

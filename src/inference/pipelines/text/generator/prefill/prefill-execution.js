@@ -303,10 +303,10 @@ export async function _prefill(inputIds, opts) {
 
     // Chunked recorder submission: submit every N layers to release tracked intermediate
     // buffers, preventing unbounded memory growth during large prefills. Critical for
-    // replay_prefill models where each decode step re-runs a prefill-style layer pass.
+    // replay-prefill models where each decode step re-runs a prefill-style layer pass.
     const prefillRecorderChunkLayers = resolvePrefillRecorderChunkLayers({
       configuredPrefillChunkLayers: this._state.runtimeConfig?.inference?.session?.prefillChunkLayers,
-      hasGpuSplitPerLayerInputs: context.perLayerInputsSession?.materialization === 'gpu_split_tables',
+      hasGpuSplitPerLayerInputs: context.perLayerInputsSession?.materialization === 'gpu-split-tables',
       numTokens,
     });
 

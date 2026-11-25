@@ -92,10 +92,10 @@ function buildProfileLabel(options = {}) {
 
 function resolveLiteRTInt4StorageEncoding(weight, label) {
   const storageEncoding = String(getWeightMetadata(weight)?.storageEncoding ?? '').toLowerCase();
-  if (storageEncoding !== 'signed' && storageEncoding !== 'offset_binary') {
+  if (storageEncoding !== 'signed' && storageEncoding !== 'offset-binary') {
     throw new Error(
       `[Matmul] LiteRT INT4 weight "${label ?? 'unknown'}" requires metadata.storageEncoding ` +
-      `"signed" or "offset_binary", got "${storageEncoding || 'missing'}".`
+      `"signed" or "offset-binary", got "${storageEncoding || 'missing'}".`
     );
   }
   return storageEncoding;
@@ -357,7 +357,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     const storageEncoding = resolveLiteRTInt4StorageEncoding(resolvedWeight, weightLabel);
     constants = {
       ...(constants ?? {}),
-      STORAGE_OFFSET_BINARY: storageEncoding === 'offset_binary' ? 1 : 0,
+      STORAGE_OFFSET_BINARY: storageEncoding === 'offset-binary' ? 1 : 0,
     };
   }
   let w4a16ScaleBuffer = null;

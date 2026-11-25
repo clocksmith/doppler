@@ -48,10 +48,10 @@ function isPerLayerEmbeddingTensor(name) {
 
 function normalizeLiteRTInt4StorageEncoding(transform, name) {
   const storageEncoding = String(transform?.storageEncoding ?? '').toLowerCase();
-  if (storageEncoding !== 'signed' && storageEncoding !== 'offset_binary') {
+  if (storageEncoding !== 'signed' && storageEncoding !== 'offset-binary') {
     throw new Error(
       `[Loader] Embedding "${name}" LiteRT INT4 sourceTransform.storageEncoding must be ` +
-      `"signed" or "offset_binary", got "${transform?.storageEncoding ?? 'missing'}".`
+      `"signed" or "offset-binary", got "${transform?.storageEncoding ?? 'missing'}".`
     );
   }
   return storageEncoding;

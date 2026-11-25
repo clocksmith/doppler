@@ -20,7 +20,7 @@ export interface TrainingSuiteSummary {
     testsRun: number;
     selectedTests: string[];
     availableTests: string[];
-    trainingStage: 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b' | null;
+    trainingStage: 'stage1-joint' | 'stage2-base' | 'stage-a' | 'stage-b' | null;
     trainingSchemaVersion: number;
     adapterActivation?: {
       activated: boolean;
@@ -122,7 +122,7 @@ export interface RunTrainingSuiteOptions {
   runtimeProfile?: string | null;
   workloadType?: string;
   trainingTests?: string[];
-  trainingStage?: 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';
+  trainingStage?: 'stage1-joint' | 'stage2-base' | 'stage-a' | 'stage-b';
   trainingConfig?: Record<string, unknown>;
   trainingSchemaVersion?: number;
   stage1Artifact?: string;
@@ -205,7 +205,7 @@ export interface DistillDatasetReport {
 }
 
 export interface DistillRuntimeContext {
-  stage: 'stage_a' | 'stage_b';
+  stage: 'stage-a' | 'stage-b';
   teacherPipeline: Record<string, unknown>;
   studentPipeline: Record<string, unknown>;
   teacherModelId: string;

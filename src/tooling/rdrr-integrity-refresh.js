@@ -45,15 +45,15 @@ async function readJsonObject(filePath, label) {
 }
 
 const EXACTNESS_CLASS_CANONICAL = new Set([
-  'bit_exact_solo',
-  'algorithm_exact',
-  'tolerance_bounded',
+  'bit-exact-solo',
+  'algorithm-exact',
+  'tolerance-bounded',
 ]);
 
 const EXACTNESS_CLASS_LEGACY_HYPHENATED = {
-  'bit-exact-solo': 'bit_exact_solo',
-  'algorithm-exact': 'algorithm_exact',
-  'tolerance-bounded': 'tolerance_bounded',
+  'bit-exact-solo': 'bit-exact-solo',
+  'algorithm-exact': 'algorithm-exact',
+  'tolerance-bounded': 'tolerance-bounded',
 };
 
 function normalizeHashString(value, label) {
@@ -90,7 +90,7 @@ function normalizeExactness(value, label) {
   const canonical = EXACTNESS_CLASS_LEGACY_HYPHENATED[text] ?? text;
   if (!EXACTNESS_CLASS_CANONICAL.has(canonical)) {
     throw new Error(
-      `${label}.class must be bit_exact_solo, algorithm_exact, tolerance_bounded, `
+      `${label}.class must be bit-exact-solo, algorithm-exact, tolerance-bounded, `
       + `or the Doppler-legacy hyphenated equivalent.`,
     );
   }

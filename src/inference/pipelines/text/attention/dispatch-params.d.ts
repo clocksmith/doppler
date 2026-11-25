@@ -23,7 +23,7 @@ export interface KVCacheDispatchState {
   causalForAttention: boolean;
   startPosForMask: number;
   kvStart: number;
-  kvLayout: 'contiguous' | 'contiguous_quantized' | 'ring' | 'paged' | 'tiered' | 'bdpa';
+  kvLayout: 'contiguous' | 'contiguous-quantized' | 'ring' | 'paged' | 'tiered' | 'bdpa';
   kvPageTable: GPUBuffer | null;
   kvPageSize: number;
   cachedKHot: GPUBuffer | undefined;

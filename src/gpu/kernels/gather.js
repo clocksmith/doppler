@@ -60,7 +60,7 @@ function selectGatherPipeline(flags, storageEncoding) {
   const variant = selectGatherVariant(flags.useF16Input, flags.useBF16Input, flags.useF16Output, flags.useVec4,
     flags.useLiteRTInt4Input);
   const constants = flags.useLiteRTInt4Input
-    ? { STORAGE_OFFSET_BINARY: resolveLiteRTInt4StorageEncoding(storageEncoding) === 'offset_binary' ? 1 : 0 }
+    ? { STORAGE_OFFSET_BINARY: resolveLiteRTInt4StorageEncoding(storageEncoding) === 'offset-binary' ? 1 : 0 }
     : null;
   return { operation: 'gather', variant, constants };
 }
@@ -87,9 +87,9 @@ export function resolveSplitGatherPipeline(splitEmbedding, outputDtype, splitGat
 
 function resolveLiteRTInt4StorageEncoding(storageEncoding) {
   const normalized = String(storageEncoding ?? '').toLowerCase();
-  if (normalized !== 'signed' && normalized !== 'offset_binary') {
+  if (normalized !== 'signed' && normalized !== 'offset-binary') {
     throw new Error(
-      `[Gather] LiteRT INT4 embeddings require storageEncoding "signed" or "offset_binary", ` +
+      `[Gather] LiteRT INT4 embeddings require storageEncoding "signed" or "offset-binary", ` +
       `got "${normalized || 'missing'}".`
     );
   }

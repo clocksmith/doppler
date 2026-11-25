@@ -138,7 +138,7 @@ async function executeAttentionContiguousQuant(
     throw new Error('Contiguous quant attention requires codebookCentroidsBuffer.');
   }
 
-  const isProd = mode === 'turboquant_prod';
+  const isProd = mode === 'turboquant-prod';
   const variant = selectKernelRuleValue('attention', 'contiguousQuantVariant', { mode });
   const caps = getKernelCapabilities();
   const config = getKernelConfig('attention_contiguous_quant', variant);

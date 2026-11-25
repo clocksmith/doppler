@@ -507,7 +507,7 @@ export interface SequenceEncodeOptions extends GenerateOptions {
 }
 
 export interface SequenceEncodeResult {
-  alphabet: 'amino_acid' | 'nucleotide';
+  alphabet: 'amino-acid' | 'nucleotide';
   tokens: number[];
   tokenMask: Uint8Array;
   includedTokenCount: number;

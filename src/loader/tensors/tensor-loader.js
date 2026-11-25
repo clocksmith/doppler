@@ -248,7 +248,7 @@ export function isLiteRTAffineInt4FusedEligible(location, config) {
   const storageEncoding = String(transform.storageEncoding || '').toLowerCase();
   const scale = Number(transform.scale);
   const zeroPoint = Number(transform.zeroPoint);
-  const storageEncodingSupported = storageEncoding === 'signed' || storageEncoding === 'offset_binary';
+  const storageEncodingSupported = storageEncoding === 'signed' || storageEncoding === 'offset-binary';
 
   return transform.kind === 'affine_dequant'
     && transform.scheme === 'per_tensor_affine'
@@ -404,7 +404,7 @@ export async function loadLiteRTInt4Fused(shardData, location, name, config = nu
   if (!isLiteRTAffineInt4FusedEligible(location, config ?? { gpuCapabilities: getKernelCapabilities() })) {
     throw new Error(
       `LiteRT INT4 tensor "${name}" does not match the fused fixed-affine contract ` +
-      '(INT4 -> F16, storageEncoding=signed|offset_binary, per_tensor_affine, scale=0.0625, zeroPoint=0, 2D matmul/lm_head role).'
+      '(INT4 -> F16, storageEncoding=signed|offset-binary, per_tensor_affine, scale=0.0625, zeroPoint=0, 2D matmul/lm_head role).'
     );
   }
 

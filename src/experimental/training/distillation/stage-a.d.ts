@@ -12,7 +12,7 @@ export declare function runDistillationStage(options: {
   parentArtifacts?: Array<Record<string, unknown>>;
 }): Promise<{
   stageId: string;
-  trainingStage: 'stage_a' | 'stage_b';
+  trainingStage: 'stage-a' | 'stage-b';
   metrics: Record<string, unknown>[];
   checkpointArtifacts: Array<Record<string, unknown>>;
   evalReports: Array<Record<string, unknown>>;
@@ -34,7 +34,7 @@ export declare function runDistillationStageA(options: {
   parentArtifacts?: Array<Record<string, unknown>>;
 }): Promise<{
   stageId: string;
-  trainingStage: 'stage_a' | 'stage_b';
+  trainingStage: 'stage-a' | 'stage-b';
   metrics: Record<string, unknown>[];
   checkpointArtifacts: Array<Record<string, unknown>>;
   evalReports: Array<Record<string, unknown>>;

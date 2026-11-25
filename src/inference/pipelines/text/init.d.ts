@@ -186,7 +186,7 @@ export interface KVCacheConfig {
   headDim: number;
   maxSeqLen: number;
   useGPU: boolean;
-  layout: 'contiguous' | 'contiguous_quantized' | 'paged' | 'tiered' | 'bdpa';
+  layout: 'contiguous' | 'contiguous-quantized' | 'paged' | 'tiered' | 'bdpa';
   kvDtype: 'f16' | 'f32';
   pageSize?: number;
   slidingWindow?: number;

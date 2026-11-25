@@ -495,9 +495,9 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
           const { runMoEFFNGPU } = await (moeFfnModule ??= import("../ffn/moe.js"));
 const { runDenseFFNGPU } = await import("../ffn/dense.js");
 
-          if (config.ffnBranchMode === 'dense_plus_moe') {
+          if (config.ffnBranchMode === 'dense-plus-moe') {
             throw new Error(
-              `Layer ${layerIdx} uses ffn.branchMode="dense_plus_moe", but execution-v1 generic ffn steps ` +
+              `Layer ${layerIdx} uses ffn.branchMode="dense-plus-moe", but execution-v1 generic ffn steps ` +
               'cannot express separate dense, expert, and router inputs. Use the sandwich FFN runtime path or add a dedicated plan op.'
             );
           }

@@ -12,7 +12,7 @@ export function computeGlobalLayers(
   }
 
   const patternType = pattern.type ?? null;
-  const globalPattern = pattern.globalPattern ?? (patternType === 'every_n' ? 'every_n' : null);
+  const globalPattern = pattern.globalPattern ?? (patternType === 'every-n' ? 'every-n' : null);
 
   if (!globalPattern) {
     // Default: all layers are global
@@ -24,10 +24,10 @@ export function computeGlobalLayers(
       return Array.from({ length: numLayers }, (_, i) => i).filter(i => i % 2 === 0);
     case 'odd':
       return Array.from({ length: numLayers }, (_, i) => i).filter(i => i % 2 === 1);
-    case 'every_n': {
+    case 'every-n': {
       const n = pattern.period;
       if (!Number.isFinite(n) || n <= 0) {
-        throw new Error('layerPattern.period must be a positive number for every_n patterns.');
+        throw new Error('layerPattern.period must be a positive number for every-n patterns.');
       }
       const rawOffset = Number.isFinite(pattern.offset) ? Math.trunc(pattern.offset) : 0;
       const offset = ((rawOffset % n) + n) % n;

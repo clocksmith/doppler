@@ -13,7 +13,7 @@
     "audio": "f16",
     "computePrecision": "f32",
     "q4kLayout": "row",
-    "perLayerEmbeddings": "int4_per_row"
+    "perLayerEmbeddings": "int4-per-row"
   },
   "manifest": {
     "visionConfig": {
@@ -143,7 +143,7 @@
       "logitInputScale": 1
     },
     "layerPattern": {
-      "type": "every_n",
+      "type": "every-n",
       "globalPattern": null,
       "period": 5,
       "offset": 4,
@@ -201,7 +201,7 @@
       "disableCommandBatching": false
     },
     "perLayerInputs": {
-      "materialization": "range_backed",
+      "materialization": "range-backed",
       "rowCache": {
         "mode": "lru",
         "maxRows": 512,
@@ -209,15 +209,15 @@
         "decodedDtype": "f32"
       },
       "prefetch": {
-        "mode": "next_token",
+        "mode": "next-token",
         "rowsAhead": 1
       },
       "gpuUpload": {
-        "mode": "per_step_slices",
+        "mode": "per-step-slices",
         "stagingRows": 2
       },
       "hotCache": {
-        "mode": "prepared_tokens",
+        "mode": "prepared-tokens",
         "maxTokens": 4096,
         "maxBytes": 268435456,
         "outputDtype": "f32"
@@ -600,7 +600,7 @@
     ],
     "policies": {
       "unsupportedPrecision": "error",
-      "dtypeTransition": "require_cast_step",
+      "dtypeTransition": "require-cast-step",
       "unresolvedKernel": "error"
     }
   },

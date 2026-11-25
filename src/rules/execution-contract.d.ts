@@ -11,8 +11,8 @@ export interface ExecutionContractSessionFacts {
   decodeBatchSize: number;
   headDim: number;
   kvLen: number;
-  coldQuantMode: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant_prod';
-  contiguousQuantMode: 'none' | 'turboquant' | 'turboquant_prod';
+  coldQuantMode: 'none' | 'int8' | 'int4' | 'turboquant' | 'turboquant-prod';
+  contiguousQuantMode: 'none' | 'turboquant' | 'turboquant-prod';
 }
 
 export interface ExecutionContractFacts {

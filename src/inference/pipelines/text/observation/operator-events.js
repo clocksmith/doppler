@@ -229,7 +229,7 @@ export function findFirstDivergence(baselineTimeline, observedTimeline, getDrift
 
     if (baseline.opId !== observed.opId) {
       return {
-        type: 'sequence_mismatch',
+        type: 'sequence-mismatch',
         index: i,
         baseline,
         observed,
@@ -244,7 +244,7 @@ export function findFirstDivergence(baselineTimeline, observedTimeline, getDrift
         const drift = compareCaptureArtifacts(baseline.capture, observed.capture);
         if (!drift) {
           driftCheckNeeded ??= {
-            type: 'drift_check_needed',
+            type: 'drift-check-needed',
             index: i,
             opId: baseline.opId,
             opType: baseline.opType,
@@ -273,7 +273,7 @@ export function findFirstDivergence(baselineTimeline, observedTimeline, getDrift
 
   if (baselineTimeline.length !== observedTimeline.length) {
     return {
-      type: 'length_mismatch',
+      type: 'length-mismatch',
       index: len,
       baselineLength: baselineTimeline.length,
       observedLength: observedTimeline.length,

@@ -257,7 +257,7 @@ export function buildLoadTimingDiagnostics(modelLoadMs, loadTiming, pipelineLoad
 }
 
 export function buildTimingDiagnostics(timing = {}, options = {}) {
-  const prefillSemantics = String(options.prefillSemantics || 'internal_prefill_phase');
+  const prefillSemantics = String(options.prefillSemantics || 'internal-prefill-phase');
   const decodeSemantics = String(options.decodeSemantics || 'time after first token');
   const source = String(options.source || 'doppler');
   const modelLoadMs = Number.isFinite(timing.modelLoadMs) ? toTimingNumber(timing.modelLoadMs) : null;

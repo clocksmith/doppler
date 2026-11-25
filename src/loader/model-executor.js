@@ -420,7 +420,7 @@ export async function _loadLayer(layerIdx, _onProgress) {
       isMoE: this.isMoE,
       expertFormat: this.manifest?.moeConfig?.expertFormat ?? null,
       isExpertLayer: (idx) => this._isExpertLayer(idx),
-      loadDenseFfnForMoeLayers: this.manifest?.inference?.ffn?.branchMode === 'dense_plus_moe',
+      loadDenseFfnForMoeLayers: this.manifest?.inference?.ffn?.branchMode === 'dense-plus-moe',
       numHeads: this.manifest?.architecture?.numAttentionHeads ?? null,
       numKVHeads: this.manifest?.architecture?.numKeyValueHeads ?? null,
       headDim: this.manifest?.architecture?.headDim ?? null,

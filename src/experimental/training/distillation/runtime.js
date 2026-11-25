@@ -16,24 +16,24 @@ export function resolveInternalDistillStage(stageEntry) {
   const objective = normalizeStageLabel(stageEntry?.objective || '');
   if (trainingStage === 'sft' || objective === 'sft') {
     throw new Error(
-      'Distillation workload stage uses "sft", but the current JS distill runner only supports the KD-oriented stage_a contract. Use objective="kd" / trainingStage="stage_a" explicitly.'
+      'Distillation workload stage uses "sft", but the current JS distill runner only supports the KD-oriented stage-a contract. Use objective="kd" / trainingStage="stage-a" explicitly.'
     );
   }
   if (
-    trainingStage === 'stage_b'
+    trainingStage === 'stage-b'
     || trainingStage === 'post_sft_distill'
     || trainingStage === 'post_sft_triplet'
     || objective === 'triplet'
   ) {
-    return 'stage_b';
+    return 'stage-b';
   }
   if (
-    trainingStage === 'stage_a'
+    trainingStage === 'stage-a'
     || trainingStage === 'kd'
     || objective === 'kd'
-    || objective === 'cross_entropy'
+    || objective === 'cross-entropy'
   ) {
-    return 'stage_a';
+    return 'stage-a';
   }
   throw new Error(
     `Unsupported distillation stage "${stageEntry?.trainingStage || stageEntry?.id || 'unknown'}".`
@@ -66,7 +66,7 @@ export function buildDistillationTrainingConfigFromWorkload(loadedWorkload, stag
     tripletMargin: workload.pipeline.tripletMargin,
     studentGraphMode: workload.pipeline.studentGraphMode,
   };
-  if (internalStage === 'stage_b') {
+  if (internalStage === 'stage-b') {
     distillTraining.freeze = {
       encoder: true,
       prior: true,

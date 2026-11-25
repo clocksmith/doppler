@@ -171,7 +171,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     type: 'uniform',  // All layers same type
     globalPattern: null,  // No alternating pattern (null = not applicable)
     period: null,  // No periodic pattern (null = not applicable)
-    offset: null,  // For every_n: first global layer index modulo period
+    offset: null,  // For every-n: first global layer index modulo period
     layerTypes: null,  // For custom: explicit per-layer tags
     residualBranchScale: 1,
   },

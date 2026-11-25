@@ -11,12 +11,12 @@ const TIERED_QUANT_MODES = new Set([
   'int8',
   'int4',
   'turboquant',
-  'turboquant_prod',
+  'turboquant-prod',
 ]);
 const CONTIGUOUS_QUANT_MODES = new Set([
   'none',
   'turboquant',
-  'turboquant_prod',
+  'turboquant-prod',
 ]);
 const ATTENTION_OPS = new Set(['attention']);
 const EMBED_OPS = new Set(['embed', 'gather']);
@@ -24,7 +24,7 @@ const SAMPLE_OPS = new Set(['sample']);
 const BDPA_MAX_HEAD_DIM = 256;
 const BDPA_MAX_KV_LEN = 2048;
 const QUANTIZED_KV_MAX_HEAD_DIM = 256;
-const UNSUPPORTED_TURBOQUANT_OUTLIER_MODE = 'turboquant_outlier';
+const UNSUPPORTED_TURBOQUANT_OUTLIER_MODE = 'turboquant-outlier';
 
 function assertManifestObject(manifest) {
   if (!isPlainObject(manifest)) {
@@ -54,7 +54,7 @@ function assertSupportedTurboQuantMode(mode, label) {
   throw new Error(
     `execution contract: ${label}="${mode}" is not supported. ` +
     'TurboQuant outlier high-precision buffers and decode kernels are not wired end to end; ' +
-    'use "turboquant" or "turboquant_prod".'
+    'use "turboquant" or "turboquant-prod".'
   );
 }
 
@@ -122,7 +122,7 @@ function normalizeTieredQuantMode(kvcache) {
   const gatingMode = String(
     assertRequiredValue(kvcache?.tiering?.gating?.mode, 'session.kvcache.tiering.gating.mode')
   ).trim().toLowerCase();
-  if (gatingMode === 'force_off' || tieringMode === 'off' || tieringMode === 'fp16') {
+  if (gatingMode === 'force-off' || tieringMode === 'off' || tieringMode === 'fp16') {
     return 'none';
   }
   const compressionMode = String(

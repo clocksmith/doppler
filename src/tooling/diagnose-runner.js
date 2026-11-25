@@ -93,10 +93,10 @@ function summarizeDivergence(difference) {
     };
   }
 
-  if (difference.type === 'drift_check_needed') {
+  if (difference.type === 'drift-check-needed') {
     return {
       found: false,
-      type: 'drift_check_needed',
+      type: 'drift-check-needed',
       opId: difference.opId ?? null,
       opType: difference.opType ?? null,
       tolerance: difference.tolerance ?? null,

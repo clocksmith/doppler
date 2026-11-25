@@ -1,10 +1,10 @@
-const UL_STAGE_SET = new Set(['stage1_joint', 'stage2_base']);
-const DISTILL_STAGE_SET = new Set(['stage_a', 'stage_b']);
+const UL_STAGE_SET = new Set(['stage1-joint', 'stage2-base']);
+const DISTILL_STAGE_SET = new Set(['stage-a', 'stage-b']);
 const OBJECTIVE_SET = new Set([
-  'cross_entropy',
-  'causal_lm_cross_entropy',
-  'ul_stage1_joint',
-  'ul_stage2_base',
+  'cross-entropy',
+  'causal-lm-cross-entropy',
+  'ul-stage1-joint',
+  'ul-stage2-base',
   'kd',
   'triplet',
 ]);
@@ -69,7 +69,7 @@ export const DEFAULT_TRAINING_METRICS_REPORT = Object.freeze({
   step: 0,
   epoch: 0,
   batch: 0,
-  objective: 'cross_entropy',
+  objective: 'cross-entropy',
   total_loss: 0,
   step_time_ms: 0,
   forward_ms: 0,
@@ -239,7 +239,7 @@ export function validateTrainingMetricsEntry(entry) {
   assertNullableFiniteNumber(entry.distill_stage_a_step_count, 'distill_stage_a_step_count');
   assertNullableFiniteNumber(entry.distill_stage_a_kd_mean, 'distill_stage_a_kd_mean');
   if (entry.distill_stage !== undefined && entry.distill_stage !== null && !DISTILL_STAGE_SET.has(entry.distill_stage)) {
-    throw new Error('training metrics: distill_stage must be "stage_a", "stage_b", or null.');
+    throw new Error('training metrics: distill_stage must be "stage-a", "stage-b", or null.');
   }
   if (entry.trainable_groups !== undefined) {
     assertStringArray(entry.trainable_groups, 'trainable_groups');
@@ -293,10 +293,10 @@ export function validateTrainingMetricsEntry(entry) {
     throw new Error('training metrics: progress_global_step must be <= progress_global_steps.');
   }
   if (entry.ul_stage !== undefined && entry.ul_stage !== null && !UL_STAGE_SET.has(entry.ul_stage)) {
-    throw new Error('training metrics: ul_stage must be "stage1_joint", "stage2_base", or null.');
+    throw new Error('training metrics: ul_stage must be "stage1-joint", "stage2-base", or null.');
   }
 
-  if (entry.objective === 'cross_entropy' || entry.objective === 'causal_lm_cross_entropy') {
+  if (entry.objective === 'cross-entropy' || entry.objective === 'causal-lm-cross-entropy') {
     if (entry.ul_stage != null) {
       throw new Error('training metrics: cross-entropy objectives must not set ul_stage.');
     }
@@ -314,8 +314,8 @@ export function validateTrainingMetricsEntry(entry) {
     assertFiniteNumber(entry.distill_alpha_kd, 'distill_alpha_kd');
     assertFiniteNumber(entry.distill_alpha_ce, 'distill_alpha_ce');
     assertFiniteNumber(entry.distill_loss_total, 'distill_loss_total');
-    if (entry.distill_stage !== 'stage_a') {
-      throw new Error('training metrics: kd objective requires distill_stage="stage_a".');
+    if (entry.distill_stage !== 'stage-a') {
+      throw new Error('training metrics: kd objective requires distill_stage="stage-a".');
     }
   }
 
@@ -326,20 +326,20 @@ export function validateTrainingMetricsEntry(entry) {
     assertFiniteNumber(entry.loss_triplet, 'loss_triplet');
     assertFiniteNumber(entry.distill_triplet_margin, 'distill_triplet_margin');
     assertIntegerGte(entry.distill_triplet_active_count, 0, 'distill_triplet_active_count');
-    if (entry.distill_stage !== 'stage_b') {
-      throw new Error('training metrics: triplet objective requires distill_stage="stage_b".');
+    if (entry.distill_stage !== 'stage-b') {
+      throw new Error('training metrics: triplet objective requires distill_stage="stage-b".');
     }
   }
 
-  if (entry.objective === 'ul_stage1_joint' || entry.objective === 'ul_stage2_base') {
+  if (entry.objective === 'ul-stage1-joint' || entry.objective === 'ul-stage2-base') {
     if (entry.distill_stage != null) {
       throw new Error('training metrics: UL objectives must not set distill_stage.');
     }
-    if (entry.objective === 'ul_stage1_joint' && entry.ul_stage !== 'stage1_joint') {
-      throw new Error('training metrics: ul_stage1_joint objective requires ul_stage="stage1_joint".');
+    if (entry.objective === 'ul-stage1-joint' && entry.ul_stage !== 'stage1-joint') {
+      throw new Error('training metrics: ul-stage1-joint objective requires ul_stage="stage1-joint".');
     }
-    if (entry.objective === 'ul_stage2_base' && entry.ul_stage !== 'stage2_base') {
-      throw new Error('training metrics: ul_stage2_base objective requires ul_stage="stage2_base".');
+    if (entry.objective === 'ul-stage2-base' && entry.ul_stage !== 'stage2-base') {
+      throw new Error('training metrics: ul-stage2-base objective requires ul_stage="stage2-base".');
     }
     assertFiniteNumber(entry.lambda, 'lambda');
     assertFiniteNumber(entry.loss_total, 'loss_total');
@@ -351,7 +351,7 @@ export function validateTrainingMetricsEntry(entry) {
     assertFiniteNumber(entry.coeff_prior, 'coeff_prior');
     assertFiniteNumber(entry.coeff_decoder, 'coeff_decoder');
     assertFiniteNumber(entry.coeff_recon, 'coeff_recon');
-    if (entry.objective === 'ul_stage1_joint') {
+    if (entry.objective === 'ul-stage1-joint') {
       assertIntegerGte(entry.schedule_step_index, 0, 'schedule_step_index');
       assertFiniteNumber(entry.latent_clean_mean, 'latent_clean_mean');
       assertFiniteNumber(entry.latent_clean_std, 'latent_clean_std');
@@ -360,7 +360,7 @@ export function validateTrainingMetricsEntry(entry) {
       assertFiniteNumber(entry.latent_noisy_mean, 'latent_noisy_mean');
       assertFiniteNumber(entry.latent_noisy_std, 'latent_noisy_std');
     }
-    if (entry.objective === 'ul_stage2_base') {
+    if (entry.objective === 'ul-stage2-base') {
       assertIntegerGte(entry.stage1_latent_count, 1, 'stage1_latent_count');
     }
   }

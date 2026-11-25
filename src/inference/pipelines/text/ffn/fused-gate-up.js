@@ -67,7 +67,7 @@ export async function runFusedGateUpFFNGPU({
     fusedInput = await coerceTensorDtype(inputTensor, fusedGateUpInputDtype, recorder, {
       executionPolicies: context.executionPolicies ?? null,
       op: 'ffn_gate_up_input',
-      transitionDeclaredBy: 'step_precision',
+      transitionDeclaredBy: 'step-precision',
     });
     fusedInputOwned = fusedInput !== inputTensor;
   }
@@ -98,7 +98,7 @@ export async function runFusedGateUpFFNGPU({
     downInput = await coerceTensorDtype(fusedOutput, downInputDtype, recorder, {
       executionPolicies: context.executionPolicies ?? null,
       op: 'ffn_down_input',
-      transitionDeclaredBy: 'step_precision',
+      transitionDeclaredBy: 'step-precision',
     });
     if (recorder) {
       recorder.trackTemporaryBuffer(downInput.buffer);

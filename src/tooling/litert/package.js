@@ -54,29 +54,29 @@ export function resolveLiteRTScaleContract(sourceDtype, tensorName, options = {}
         scaleSemantics: 'step',
       };
     }
-    if (explicitScaleSemantics === 'qmax_abs') {
+    if (explicitScaleSemantics === 'qmax-abs') {
       const explicitScaleDivisor = Number(options.scaleDivisor);
       if (Number.isFinite(explicitScaleDivisor) && explicitScaleDivisor > 0) {
         return {
-          scaleSemantics: 'qmax_abs',
+          scaleSemantics: 'qmax-abs',
           scaleDivisor: explicitScaleDivisor,
         };
       }
       if (sourceDtype === 'INT8' || sourceDtype === 'UINT8') {
         return {
-          scaleSemantics: 'qmax_abs',
+          scaleSemantics: 'qmax-abs',
           scaleDivisor: 128,
         };
       }
       if (sourceDtype === 'INT4') {
         return {
-          scaleSemantics: 'qmax_abs',
+          scaleSemantics: 'qmax-abs',
           scaleDivisor: 8,
         };
       }
       if (sourceDtype === 'INT2') {
         return {
-          scaleSemantics: 'qmax_abs',
+          scaleSemantics: 'qmax-abs',
           scaleDivisor: 2,
         };
       }
@@ -95,19 +95,19 @@ export function resolveLiteRTScaleContract(sourceDtype, tensorName, options = {}
   }
   if (sourceDtype === 'INT8' || sourceDtype === 'UINT8') {
     return {
-      scaleSemantics: 'qmax_abs',
+      scaleSemantics: 'qmax-abs',
       scaleDivisor: 128,
     };
   }
   if (sourceDtype === 'INT4') {
     return {
-      scaleSemantics: 'qmax_abs',
+      scaleSemantics: 'qmax-abs',
       scaleDivisor: 8,
     };
   }
   if (sourceDtype === 'INT2') {
     return {
-      scaleSemantics: 'qmax_abs',
+      scaleSemantics: 'qmax-abs',
       scaleDivisor: 2,
     };
   }
@@ -169,7 +169,7 @@ export function inferLiteRTBlockedAxisLayout(
         sourceDtype,
         storageEncoding: sourceDtype === 'INT8' || sourceDtype === 'UINT8'
           ? 'signed'
-          : (preferSignedPacked ? 'signed' : 'offset_binary'),
+          : (preferSignedPacked ? 'signed' : 'offset-binary'),
       };
     }
   }
@@ -207,7 +207,7 @@ export function inferLiteRTRowwiseLayout(
         sourceDtype,
         storageEncoding: sourceDtype === 'INT8' || sourceDtype === 'UINT8'
           ? 'signed'
-          : (preferSignedPacked ? 'signed' : 'offset_binary'),
+          : (preferSignedPacked ? 'signed' : 'offset-binary'),
       };
     }
   }
@@ -220,7 +220,7 @@ export function inferLiteRTRowwiseLayout(
 
 export function isGemma4GlobalLayer(runtimeProfile, layerIndex) {
   const layerPattern = runtimeProfile?.manifestInference?.layerPattern ?? null;
-  if (!layerPattern || layerPattern.type !== 'every_n') {
+  if (!layerPattern || layerPattern.type !== 'every-n') {
     return false;
   }
   const period = Number(layerPattern.period);

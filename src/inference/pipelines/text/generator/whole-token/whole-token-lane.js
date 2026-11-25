@@ -329,7 +329,7 @@ export async function prepareWholeTokenBatch(state, currentIds, requestedCount) 
     })();
     lane.verifiedAhead = null;
     state.batchingStats.batchedForwardCalls += 1;
-    state.stats.decodeMode = 'batched_gpu'; state.stats.batchGuardReason = null;
+    state.stats.decodeMode = 'batched-gpu'; state.stats.batchGuardReason = null;
     state.batchingStats.requestedBatchTokens = Math.max(state.batchingStats.requestedBatchTokens ?? 0, requestedCount);
     state.batchingStats.effectiveBatchTokens = Math.max(state.batchingStats.effectiveBatchTokens ?? 0, count);
     return {

@@ -1,6 +1,6 @@
 const SUPPORTED_SOURCE_DTYPES = new Set(['INT8', 'UINT8', 'INT4', 'INT2']);
-const SUPPORTED_LITERT_STORAGE_ENCODINGS = new Set(['signed', 'offset_binary']);
-const SUPPORTED_LITERT_SCALE_SEMANTICS = new Set(['step', 'qmax_abs']);
+const SUPPORTED_LITERT_STORAGE_ENCODINGS = new Set(['signed', 'offset-binary']);
+const SUPPORTED_LITERT_SCALE_SEMANTICS = new Set(['step', 'qmax-abs']);
 
 function fail(errorPrefix, message) {
   throw new Error(`${errorPrefix} ${message}`);
@@ -99,7 +99,7 @@ function normalizeScaleSemantics(transform, tensorName, errorPrefix, label) {
       `Tensor "${tensorName}" ${label} has unsupported scaleSemantics "${transform?.scaleSemantics}".`
     );
   }
-  const scaleDivisor = scaleSemantics === 'qmax_abs'
+  const scaleDivisor = scaleSemantics === 'qmax-abs'
     ? normalizePositiveNumber(transform?.scaleDivisor, tensorName, errorPrefix, `${label} scaleDivisor`)
     : (transform?.scaleDivisor == null ? undefined : Number(transform.scaleDivisor));
   return {

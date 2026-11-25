@@ -21,9 +21,9 @@ export const LITERT_PACKAGE_SOURCE_KIND_LITERTLM = 'litertlm';
 
 function normalizeLiteRTStorageEncoding(value, fieldName) {
   const storageEncoding = normalizeText(value).toLowerCase();
-  if (storageEncoding !== 'signed' && storageEncoding !== 'offset_binary') {
+  if (storageEncoding !== 'signed' && storageEncoding !== 'offset-binary') {
     throw new Error(
-      `direct-source runtime: ${fieldName} must be "signed" or "offset_binary", got "${value ?? 'missing'}".`
+      `direct-source runtime: ${fieldName} must be "signed" or "offset-binary", got "${value ?? 'missing'}".`
     );
   }
   return storageEncoding;

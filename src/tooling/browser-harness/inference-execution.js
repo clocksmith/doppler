@@ -465,7 +465,7 @@ export async function runInferenceSuite(options = {}) {
   });
   const timingDiagnostics = buildTimingDiagnostics(timing, {
     source: 'doppler',
-    prefillSemantics: 'internal_prefill_phase',
+    prefillSemantics: 'internal-prefill-phase',
     loadTiming: loadTimings.loadTiming,
     pipelineLoadTiming: loadTimings.pipelineLoadTiming,
   });

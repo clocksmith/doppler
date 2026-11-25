@@ -136,7 +136,7 @@ export interface FFNSchema {
   /** Whether activation is gated (e.g., SwiGLU, GeGLU) */
   gatedActivation?: boolean;
   /** FFN branch composition. */
-  branchMode?: 'auto' | 'dense' | 'moe' | 'dense_plus_moe';
+  branchMode?: 'auto' | 'dense' | 'moe' | 'dense-plus-moe';
   /** Double the FFN intermediate width on KV-shared layers. */
   useDoubleWideMlp?: boolean;
   /** Clamp SwiGLU output (null = disabled) */
@@ -284,17 +284,17 @@ export type LinearNormGateActivation =
 export type GlobalLayerPattern =
   | 'even'       // Layers 0, 2, 4, ... are global (Gemma 2)
   | 'odd'        // Layers 1, 3, 5, ... are global
-  | 'every_n';   // Every Nth layer is global (Gemma 3: every 6th)
+  | 'every-n';   // Every Nth layer is global (Gemma 3: every 6th)
 
 /** Layer pattern for hybrid architectures */
 export interface LayerPatternSchema {
-  /** Pattern type: 'all_attention', 'alternating', 'every_n', 'custom' */
-  type: 'all_attention' | 'alternating' | 'every_n' | 'custom';
+  /** Pattern type: 'all-attention', 'alternating', 'every-n', 'custom' */
+  type: 'all-attention' | 'alternating' | 'every-n' | 'custom';
   /** For 'alternating': pattern for global/full attention layers */
   globalPattern?: GlobalLayerPattern;
-  /** For 'every_n': the period value (e.g., 6 for Gemma 3) */
+  /** For 'every-n': the period value (e.g., 6 for Gemma 3) */
   period?: number;
-  /** For 'every_n': first global layer index modulo period (default: 0) */
+  /** For 'every-n': first global layer index modulo period (default: 0) */
   offset?: number;
   /** @deprecated Use globalPattern/period instead */
   attentionLayers?: number[];

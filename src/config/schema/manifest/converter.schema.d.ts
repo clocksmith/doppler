@@ -47,7 +47,7 @@ export interface ConverterQuantizationConfigSchema {
   vision: QuantizationValue | null;
   audio: QuantizationValue | null;
   projector: QuantizationValue | null;
-  perLayerEmbeddings: 'int4_per_row' | null;
+  perLayerEmbeddings: 'int4-per-row' | null;
   modulesToNotConvert: string[] | null;
   q4kLayout: Q4KLayout;
   computePrecision: ComputePrecision;

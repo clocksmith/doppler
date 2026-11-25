@@ -62,7 +62,7 @@ export interface ExecutionFacts {
 }
 
 export interface DivergenceResult {
-  type: 'sequence_mismatch' | 'drift_check_needed' | 'length_mismatch';
+  type: 'sequence-mismatch' | 'drift-check-needed' | 'length-mismatch';
   index: number;
   opId?: string;
   opType?: OperatorClass | null;

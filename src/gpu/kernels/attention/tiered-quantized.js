@@ -112,15 +112,15 @@ async function executeAttentionTieredQuant(
     qjlMatrixBuffer = null,
   } = options;
 
-  if (mode === 'turboquant_outlier') {
+  if (mode === 'turboquant-outlier') {
     throw new Error(
       'TurboQuant outlier attention is not supported yet. ' +
       'Outlier-mode decode kernels are not wired end to end.'
     );
   }
 
-  const isTurboQuant = mode === 'turboquant' || mode === 'turboquant_prod';
-  const isProd = mode === 'turboquant_prod';
+  const isTurboQuant = mode === 'turboquant' || mode === 'turboquant-prod';
+  const isProd = mode === 'turboquant-prod';
 
   const totalLen = coldLen + hotLen;
   const maxKVLen = getTieredQuantMaxKVLen();

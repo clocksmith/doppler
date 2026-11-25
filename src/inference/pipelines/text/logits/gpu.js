@@ -291,7 +291,7 @@ export async function computeChunkedLogitsTensorGPU(
     ? await coerceTensorDtype(normedTensor, lmHeadInputDtype, null, {
       executionPolicies,
       op: 'lm_head',
-      transitionDeclaredBy: 'step_precision',
+      transitionDeclaredBy: 'step-precision',
     })
     : normedTensor;
 
@@ -422,7 +422,7 @@ export async function computeSplitLogitsTensorGPU(
       ? await coerceTensorDtype(normedTensor, lmHeadInputDtype, null, {
         executionPolicies,
         op: 'lm_head',
-        transitionDeclaredBy: 'step_precision',
+        transitionDeclaredBy: 'step-precision',
       })
       : normedTensor;
     matmulInputOwned = matmulInput !== normedTensor;
@@ -617,7 +617,7 @@ export async function computeLogitsGPU(
           ? await coerceTensorDtype(inputTensor, finalNormInputDtype, null, {
             executionPolicies: config.executionPolicies ?? null,
             op: 'final_norm',
-            transitionDeclaredBy: 'step_precision',
+            transitionDeclaredBy: 'step-precision',
           })
           : inputTensor;
         normInputOwned = normInputTensor !== inputTensor;
@@ -642,7 +642,7 @@ export async function computeLogitsGPU(
           ? await coerceTensorDtype(normedTensor, finalNormOutputDtype, null, {
             executionPolicies: config.executionPolicies ?? null,
             op: 'final_norm',
-            transitionDeclaredBy: 'step_precision',
+            transitionDeclaredBy: 'step-precision',
           })
           : normedTensor;
       }
@@ -684,7 +684,7 @@ export async function computeLogitsGPU(
       ? await coerceTensorDtype(logitInputTensor, lmHeadInputDtype, null, {
         executionPolicies: config.executionPolicies ?? null,
         op: 'lm_head',
-        transitionDeclaredBy: 'step_precision',
+        transitionDeclaredBy: 'step-precision',
       })
       : logitInputTensor;
     lmHeadInputOwned = lmHeadInputTensor !== logitInputTensor;

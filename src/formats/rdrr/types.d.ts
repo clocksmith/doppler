@@ -63,8 +63,8 @@ export interface TensorSourceTransform {
   targetDtype: 'F16';
   scale?: number;
   zeroPoint?: number;
-  storageEncoding?: 'signed' | 'offset_binary';
-  scaleSemantics?: 'step' | 'qmax_abs';
+  storageEncoding?: 'signed' | 'offset-binary';
+  scaleSemantics?: 'step' | 'qmax-abs';
   scaleDivisor?: number;
   storageShape?: number[];
   quantAxis?: 0 | 1;
@@ -190,9 +190,9 @@ export interface IntegrityExtensionsBlockMerkle {
  *   - tolerance-bounded: declared metric within declared epsilon.
  */
 export type LoweringExactnessClass =
-  | 'bit_exact_solo'
-  | 'algorithm_exact'
-  | 'tolerance_bounded';
+  | 'bit-exact-solo'
+  | 'algorithm-exact'
+  | 'tolerance-bounded';
 
 /**
  * One lowering receipt for a (kernel, backend) pair. Either digests are populated

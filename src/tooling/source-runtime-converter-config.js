@@ -204,7 +204,7 @@ function applyLayerPatternConfig(inference, rawConfig) {
 
   const slidingWindowPattern = asFinitePositiveNumber(readRawConfigField(rawConfig, 'sliding_window_pattern'));
   if (slidingWindowPattern != null) {
-    inference.layerPattern.type = 'every_n';
+    inference.layerPattern.type = 'every-n';
     inference.layerPattern.globalPattern = null;
     inference.layerPattern.period = Math.trunc(slidingWindowPattern);
     inference.layerPattern.offset = null;
@@ -307,7 +307,7 @@ function createSourceRuntimeExecution() {
     postLayer: [],
     policies: {
       unsupportedPrecision: 'error',
-      dtypeTransition: 'require_cast_step',
+      dtypeTransition: 'require-cast-step',
       unresolvedKernel: 'error',
     },
   };

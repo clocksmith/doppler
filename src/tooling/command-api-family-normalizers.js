@@ -185,9 +185,9 @@ function normalizeInferenceInput(value, workload) {
       inferenceInput.sequenceAlphabet,
       'inferenceInput.sequenceAlphabet'
     );
-    if (sequenceAlphabet != null && sequenceAlphabet !== 'amino_acid' && sequenceAlphabet !== 'nucleotide') {
+    if (sequenceAlphabet != null && sequenceAlphabet !== 'amino-acid' && sequenceAlphabet !== 'nucleotide') {
       throw new Error(
-        'tooling command: inferenceInput.sequenceAlphabet must be "amino_acid" or "nucleotide" when provided.'
+        'tooling command: inferenceInput.sequenceAlphabet must be "amino-acid" or "nucleotide" when provided.'
       );
     }
     const sequenceQualificationAbort = (() => {
@@ -195,9 +195,9 @@ function normalizeInferenceInput(value, workload) {
         inferenceInput.sequenceQualificationAbort,
         'inferenceInput.sequenceQualificationAbort'
       );
-      if (value != null && value !== 'before_execution' && value !== 'after_start') {
+      if (value != null && value !== 'before-execution' && value !== 'after-start') {
         throw new Error(
-          'tooling command: inferenceInput.sequenceQualificationAbort must be "before_execution" or "after_start".'
+          'tooling command: inferenceInput.sequenceQualificationAbort must be "before-execution" or "after-start".'
         );
       }
       return value;

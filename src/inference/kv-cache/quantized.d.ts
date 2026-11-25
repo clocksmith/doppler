@@ -6,9 +6,9 @@ export class QuantizedKVCache {
   headDim: number;
   maxSeqLen: number;
   useGPU: boolean;
-  layout: 'contiguous_quantized';
+  layout: 'contiguous-quantized';
   kvDtype: 'f16' | 'f32';
-  quantMode: 'turboquant' | 'turboquant_prod';
+  quantMode: 'turboquant' | 'turboquant-prod';
   bitWidth: number;
   prodMode: boolean;
   capsuleFactor: number;
@@ -26,7 +26,7 @@ export class QuantizedKVCache {
   qjlMatrixBuffer: GPUBuffer | null;
 
   constructor(config: KVCacheConfig & {
-    quantMode: 'turboquant' | 'turboquant_prod';
+    quantMode: 'turboquant' | 'turboquant-prod';
     bitWidth?: number;
     prodMode?: boolean;
   });

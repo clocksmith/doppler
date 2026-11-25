@@ -93,7 +93,7 @@ export async function processFFNStandard(
     : null;
 
   const useLegacyMoeOnlyFFN = config.ffnBranchMode !== 'dense'
-    && config.ffnBranchMode !== 'dense_plus_moe'
+    && config.ffnBranchMode !== 'dense-plus-moe'
     && config.useMoE
     && isMoELayer(layerIdx, config);
   // A declared moe_norm_router step moves this norm into the MoE's router dispatch.

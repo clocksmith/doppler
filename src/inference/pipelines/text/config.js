@@ -245,10 +245,10 @@ function toParsedConfigFromMerged(merged, manifest) {
         );
       }
 
-      // Fail fast if every_n pattern lacks required period
-      if (patternType === 'every_n' && inf.layerPattern.period == null) {
+      // Fail fast if every-n pattern lacks required period
+      if (patternType === 'every-n' && inf.layerPattern.period == null) {
         throw new Error(
-          `Manifest "${merged.modelId}" has layerPattern.type='every_n' but period is missing. ` +
+          `Manifest "${merged.modelId}" has layerPattern.type='every-n' but period is missing. ` +
           `Re-convert the model to include layerPattern.period.`
         );
       }
@@ -269,7 +269,7 @@ function toParsedConfigFromMerged(merged, manifest) {
       if (patternKind) {
         layerTypes = Array.from({ length: numLayers }, (_, i) => {
           const isEven = i % 2 === 0;
-          // For every_n pattern: global at layer "offset" and every N thereafter.
+          // For every-n pattern: global at layer "offset" and every N thereafter.
           // e.g. period=6, offset=5 => indices 5,11,17,...
           const isStride = period == null ? false : (((i - offset) % period + period) % period) === 0;
           return selectRuleValue(
@@ -526,7 +526,7 @@ function toParsedConfigFromMerged(merged, manifest) {
   const hasSharedKvLayers = archNumKvSharedLayers > 0;
   const hasExplicitLayerTypes = Array.isArray(layerTypes) && layerTypes.length === arch.numLayers;
   const decodeStrategy = (hasMixedAttentionGeometry || hasSharedKvLayers) && !hasExplicitLayerTypes
-    ? 'replay_prefill'
+    ? 'replay-prefill'
     : 'incremental';
   const perLayerInputsSession = resolvePerLayerInputsSession(inf, merged.modelId);
   const sessionSettings = resolveSessionSettings(inf, merged.modelId);

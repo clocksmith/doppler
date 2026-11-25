@@ -11,12 +11,12 @@ function normalizeDtype(value, label) {
 
 export function assertImplicitDtypeTransitionAllowed(options = {}) {
   const policy = options.executionPolicies?.dtypeTransition ?? null;
-  if (policy !== 'require_cast_step') {
+  if (policy !== 'require-cast-step') {
     return;
   }
   if (
-    options.transitionDeclaredBy === 'step_precision'
-    || options.transitionDeclaredBy === 'explicit_cast_step'
+    options.transitionDeclaredBy === 'step-precision'
+    || options.transitionDeclaredBy === 'explicit-cast-step'
   ) {
     return;
   }

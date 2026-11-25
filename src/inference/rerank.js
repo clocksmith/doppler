@@ -1,6 +1,6 @@
 import { isPlainObject } from '../formats/plain-object.js';
 
-const SCORE_POLICIES = new Set(['logit_difference', 'true_logit']);
+const SCORE_POLICIES = new Set(['logit-difference', 'true-logit']);
 
 function requireTokenId(value, label) {
   const tokenId = Number(value);
@@ -23,7 +23,7 @@ export function resolveRerankScoringConfig(pipeline) {
     throw new Error('Rerank workload requires manifest.inference.rerank scoring config.');
   }
   const format = requireText(config.format, 'format');
-  if (format !== 'qwen3_yes_no_logit') {
+  if (format !== 'qwen3-yes-no-logit') {
     throw new Error(`Unsupported rerank scoring format "${format}".`);
   }
   const trueTokenId = requireTokenId(config.trueTokenId, 'trueTokenId');
@@ -80,8 +80,8 @@ export function formatRerankPrompt(query, document, scoringConfig) {
 }
 
 function computeScore(scoringConfig, trueLogit, falseLogit) {
-  if (scoringConfig.score === 'logit_difference') return trueLogit - falseLogit;
-  if (scoringConfig.score === 'true_logit') return trueLogit;
+  if (scoringConfig.score === 'logit-difference') return trueLogit - falseLogit;
+  if (scoringConfig.score === 'true-logit') return trueLogit;
   throw new Error(`Unsupported rerank score policy "${scoringConfig.score}".`);
 }
 
