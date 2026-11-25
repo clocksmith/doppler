@@ -33,7 +33,8 @@ func TestSourceBoundaries(t *testing.T) {
 }
 
 func TestInsecureProfileNeedsFlag(t *testing.T) {
-	err := runRequester(profiles["dev-insecure-n12"], false, []string{"127.0.0.1:1"}, "sha256:x", "ace", 4, &requesterReport{})
+	err := runRequester(requesterOptions{prof: profiles["dev-insecure-n12"], evaluators: []string{"127.0.0.1:1"}, modelID: "sha256:x",
+		prompt: "ace", generate: 4}, &requesterReport{}, time.Now())
 	if err == nil || !strings.Contains(err.Error(), "insecure") {
 		t.Fatalf("got %v", err)
 	}
@@ -41,6 +42,10 @@ func TestInsecureProfileNeedsFlag(t *testing.T) {
 
 // End-to-end runs with separate evaluator processes on the insecure development ring (fast, not a security run).
 func e2e(t *testing.T, misbehave []string) (requesterReport, error) {
+	return e2eState(t, misbehave, "", nil)
+}
+
+func e2eState(t *testing.T, misbehave []string, reqState string, evalStates []string) (requesterReport, error) {
 	if os.Getenv("DOPPLER_PROTECTED_E2E") != "1" {
 		t.Skip("set DOPPLER_PROTECTED_E2E=1 to run the process tests")
 	}
@@ -58,7 +63,11 @@ func e2e(t *testing.T, misbehave []string) (requesterReport, error) {
 	var addrs []string
 	for i, mb := range misbehave {
 		ready := filepath.Join(dir, "ready"+string(rune('a'+i)))
-		cmd := exec.Command(bin, "evaluator", "--model", model, "--ready-file", ready, "--misbehave", mb)
+		eargs := []string{"evaluator", "--model", model, "--ready-file", ready, "--misbehave", mb}
+		if evalStates != nil {
+			eargs = append(eargs, "--state-dir", evalStates[i])
+		}
+		cmd := exec.Command(bin, eargs...)
 		if err := cmd.Start(); err != nil {
 			t.Fatal(err)
 		}
@@ -75,6 +84,9 @@ func e2e(t *testing.T, misbehave []string) (requesterReport, error) {
 	}
 	args := []string{"requester", "--profile", "dev-insecure-n12", "--allow-insecure-dev", "--model-identity", id,
 		"--prompt", "bdf", "--generate", "2", "--report", filepath.Join(dir, "report.json")}
+	if reqState != "" {
+		args = append(args, "--state-dir", reqState)
+	}
 	for _, a := range addrs {
 		args = append(args, "--evaluator", a)
 	}
@@ -115,5 +127,18 @@ func TestMisboundResultRefused(t *testing.T) {
 	rep, err := e2e(t, []string{"wrong-seq"})
 	if err == nil || rep.DecryptCalls != 0 || !strings.Contains(rep.Error, "not bound") {
 		t.Fatalf("err %v decrypts %d error %q", err, rep.DecryptCalls, rep.Error)
+	}
+}
+
+func TestKeyEpochReusedWithoutUpload(t *testing.T) {
+	base := t.TempDir()
+	req, evs := filepath.Join(base, "req"), []string{filepath.Join(base, "e1"), filepath.Join(base, "e2")}
+	first, err := e2eState(t, []string{"", ""}, req, evs)
+	if err != nil || first.KeyBytes == 0 || first.KeysReusedFromEvaluators || first.Text != "hj" {
+		t.Fatalf("first: err %v keys %d reused %v text %q", err, first.KeyBytes, first.KeysReusedFromEvaluators, first.Text)
+	}
+	second, err := e2eState(t, []string{"", ""}, req, evs)
+	if err != nil || second.KeyBytes != 0 || !second.KeysReusedFromEvaluators || second.KeyEpoch != first.KeyEpoch || second.Text != "hj" {
+		t.Fatalf("second: err %v keys %d reused %v epoch %s text %q", err, second.KeyBytes, second.KeysReusedFromEvaluators, second.KeyEpoch, second.Text)
 	}
 }

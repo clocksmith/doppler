@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -56,27 +57,33 @@ type stepReport struct {
 }
 
 type requesterReport struct {
-	Schema           string       `json:"schema"`
-	Protocol         string       `json:"protocol"`
-	Profile          string       `json:"profile"`
-	ProfileDigest    string       `json:"profileDigest"`
-	Insecure         bool         `json:"insecureDevelopmentProfile"`
-	Model            string       `json:"model"`
-	Integrity        string       `json:"integrity"`
-	Evaluators       int          `json:"evaluators"`
-	Prompt           string       `json:"prompt"`
-	PromptTokens     []int        `json:"promptTokens"`
-	Generated        []int        `json:"generatedTokens"`
-	Text             string       `json:"generatedText"`
-	KeygenSeconds    float64      `json:"keygenSeconds"`
-	KeyBytes         int64        `json:"evaluationKeyBytesPerEvaluator"`
-	KeyUploadSeconds float64      `json:"keyUploadSeconds"`
-	Steps            []stepReport `json:"steps"`
-	DecryptCalls     int          `json:"decryptCalls"`
-	PeakRSSBytes     int64        `json:"requesterPeakRSSBytes"`
-	TotalSeconds     float64      `json:"totalSeconds"`
-	Outcome          string       `json:"outcome"`
-	Error            string       `json:"error,omitempty"`
+	Schema                   string           `json:"schema"`
+	Protocol                 string           `json:"protocol"`
+	Profile                  string           `json:"profile"`
+	ProfileDigest            string           `json:"profileDigest"`
+	Insecure                 bool             `json:"insecureDevelopmentProfile"`
+	Model                    string           `json:"model"`
+	Integrity                string           `json:"integrity"`
+	Evaluators               int              `json:"evaluators"`
+	Prompt                   string           `json:"prompt"`
+	PromptTokens             []int            `json:"promptTokens"`
+	Generated                []int            `json:"generatedTokens"`
+	Text                     string           `json:"generatedText"`
+	KeygenSeconds            float64          `json:"keygenSeconds"`
+	KeyBytes                 int64            `json:"evaluationKeyBytesPerEvaluator"`
+	KeyUploadSeconds         float64          `json:"keyUploadSeconds"`
+	Steps                    []stepReport     `json:"steps"`
+	DecryptCalls             int              `json:"decryptCalls"`
+	KeyEpoch                 string           `json:"keyEpoch"`
+	KeyEpochExpires          int64            `json:"keyEpochExpires"`
+	KeyEpochReused           bool             `json:"keyEpochReusedFromStore"`
+	KeysReusedFromEvaluators bool             `json:"evaluationKeysReusedNoUpload"`
+	TimeToFirstTokenSeconds  float64          `json:"timeToFirstTokenSeconds"`
+	SessionBytes             []map[string]any `json:"sessionBytesPerEvaluator"`
+	PeakRSSBytes             int64            `json:"requesterPeakRSSBytes"`
+	TotalSeconds             float64          `json:"totalSeconds"`
+	Outcome                  string           `json:"outcome"`
+	Error                    string           `json:"error,omitempty"`
 }
 
 type requester struct {
@@ -196,6 +203,17 @@ func toFloat(v any) float64 {
 	return f
 }
 
+type requesterOptions struct {
+	prof          profile
+	allowInsecure bool
+	evaluators    []string
+	modelID       string
+	prompt        string
+	generate      int
+	stateDir      string // key epoch store; empty: a fresh key for this session only
+	keyTTL        time.Duration
+}
+
 func requesterMain(args []string) error {
 	fs := flag.NewFlagSet("requester", flag.ExitOnError)
 	var evals multiFlag
@@ -205,6 +223,8 @@ func requesterMain(args []string) error {
 	prompt := fs.String("prompt", "ace", "prompt text")
 	generate := fs.Int("generate", 4, "tokens to generate (fixed, public schedule; no early stop)")
 	allowInsecure := fs.Bool("allow-insecure-dev", false, "permit the insecure development profile")
+	stateDir := fs.String("state-dir", "", "requester key-epoch store (secret key, 0600); reused until it expires")
+	keyTTL := fs.Duration("key-ttl", 24*time.Hour, "lifetime of a new key epoch")
 	out := fs.String("report", "requester-report.json", "client-local report")
 	fs.Parse(args)
 	start := time.Now()
@@ -218,7 +238,8 @@ func requesterMain(args []string) error {
 	if len(evals) >= 2 {
 		rep.Integrity = "dual-evaluation: byte-identical results required before decryption"
 	}
-	runErr := runRequester(prof, *allowInsecure, evals, *modelID, *prompt, *generate, rep)
+	runErr := runRequester(requesterOptions{prof: prof, allowInsecure: *allowInsecure, evaluators: evals, modelID: *modelID,
+		prompt: *prompt, generate: *generate, stateDir: *stateDir, keyTTL: *keyTTL}, rep, start)
 	rep.PeakRSSBytes, rep.TotalSeconds = peakRSSBytes(), time.Since(start).Seconds()
 	rep.Outcome = "completed"
 	if runErr != nil {
@@ -232,36 +253,97 @@ func requesterMain(args []string) error {
 	return runErr
 }
 
-func runRequester(prof profile, allowInsecure bool, evals []string, modelID, prompt string, generate int, rep *requesterReport) error {
-	if prof.Insecure && !allowInsecure {
-		return fmt.Errorf("profile %s is insecure and only allowed with --allow-insecure-dev", prof.ID)
+// keyEpoch: one secret key and the evaluation keys made from it, reused across sessions until Expires.
+type keyEpoch struct {
+	Epoch         string `json:"epoch"`
+	ProfileDigest string `json:"profileDigest"`
+	Created       int64  `json:"created"`
+	Expires       int64  `json:"expires"`
+	KeysDigest    string `json:"keysDigest"` // of the evaluation keys the evaluators were last sent; "" before upload
+}
+
+func loadOrCreateEpoch(o requesterOptions, params ckks.Parameters) (*keyEpoch, *rlwe.SecretKey, bool, error) {
+	now := time.Now().Unix()
+	if o.stateDir != "" {
+		raw, err1 := os.ReadFile(filepath.Join(o.stateDir, "key-epoch.json"))
+		skRaw, err2 := os.ReadFile(filepath.Join(o.stateDir, "key-epoch.sk"))
+		var ep keyEpoch
+		if err1 == nil && err2 == nil && json.Unmarshal(raw, &ep) == nil && ep.ProfileDigest == o.prof.digest() && ep.Expires > now+300 {
+			sk := new(rlwe.SecretKey)
+			if err := sk.UnmarshalBinary(skRaw); err == nil {
+				return &ep, sk, true, nil
+			}
+		}
 	}
-	if len(evals) == 0 || !strings.HasPrefix(modelID, "sha256:") {
+	var id [16]byte
+	rand.Read(id[:])
+	ep := &keyEpoch{Epoch: hex.EncodeToString(id[:]), ProfileDigest: o.prof.digest(), Created: now, Expires: now + int64(o.keyTTL.Seconds())}
+	sk := rlwe.NewKeyGenerator(params).GenSecretKeyNew()
+	if o.stateDir != "" {
+		if err := os.MkdirAll(o.stateDir, 0o700); err != nil {
+			return nil, nil, false, err
+		}
+		b, err := sk.MarshalBinary()
+		if err != nil {
+			return nil, nil, false, err
+		}
+		if err := os.WriteFile(filepath.Join(o.stateDir, "key-epoch.sk"), b, 0o600); err != nil {
+			return nil, nil, false, err
+		}
+		if err := saveEpoch(o.stateDir, ep); err != nil {
+			return nil, nil, false, err
+		}
+	}
+	return ep, sk, false, nil
+}
+
+func saveEpoch(dir string, ep *keyEpoch) error {
+	if dir == "" {
+		return nil
+	}
+	raw, _ := json.Marshal(ep)
+	return os.WriteFile(filepath.Join(dir, "key-epoch.json"), raw, 0o600)
+}
+
+func runRequester(o requesterOptions, rep *requesterReport, start time.Time) error {
+	if o.prof.Insecure && !o.allowInsecure {
+		return fmt.Errorf("profile %s is insecure and only allowed with --allow-insecure-dev", o.prof.ID)
+	}
+	if len(o.evaluators) == 0 || !strings.HasPrefix(o.modelID, "sha256:") {
 		return fmt.Errorf("an evaluator address and a pinned model identity are required")
 	}
-	toks, err := tokenize(prompt)
+	toks, err := tokenize(o.prompt)
 	if err != nil {
 		return err
 	}
-	if len(toks) == 0 || generate < 1 || len(toks)+generate-1 > context {
-		return fmt.Errorf("prompt of %d tokens plus %d generated exceeds the %d-position context", len(toks), generate, context)
+	if len(toks) == 0 || o.generate < 1 || len(toks)+o.generate-1 > context {
+		return fmt.Errorf("prompt of %d tokens plus %d generated exceeds the %d-position context", len(toks), o.generate, context)
 	}
 	rep.PromptTokens = toks
-	params, err := prof.params()
+	params, err := o.prof.params()
 	if err != nil {
 		return err
 	}
 	r := &requester{params: params, ecd: ckks.NewEncoder(params), rep: rep}
 	defer func() {
-		for _, p := range r.peers {
+		for i, p := range r.peers {
+			rep.SessionBytes = append(rep.SessionBytes, map[string]any{"evaluator": i + 1, "sent": p.sent, "received": p.received})
 			p.c.Close()
 		}
 	}()
+	ep, sk, reused, err := loadOrCreateEpoch(o, params)
+	if err != nil {
+		return err
+	}
+	r.sk = sk
+	r.enc, r.dec = rlwe.NewEncryptor(params, r.sk), rlwe.NewDecryptor(params, r.sk)
+	rep.KeyEpoch, rep.KeyEpochExpires, rep.KeyEpochReused = ep.Epoch, ep.Expires, reused
 	var sid [16]byte
 	rand.Read(sid[:])
 	session := hex.EncodeToString(sid[:])
 	// Admission before upload: each evaluator must state exactly the pinned profile, model and rotations.
-	for _, addr := range evals {
+	allHold := reused && ep.KeysDigest != ""
+	for i, addr := range o.evaluators {
 		nc, err := net.DialTimeout("tcp", addr, 30*time.Second)
 		if err != nil {
 			return err
@@ -269,7 +351,8 @@ func runRequester(prof profile, allowInsecure bool, evals []string, modelID, pro
 		p := &conn{c: nc, deadline: 30 * time.Minute}
 		r.peers = append(r.peers, p)
 		if err := p.send(header{Kind: "hello", Session: session, Fields: map[string]any{
-			"profile": prof.ID, "model": modelID, "promptTokens": len(toks), "generatedTokens": generate}}); err != nil {
+			"profile": o.prof.ID, "model": o.modelID, "promptTokens": len(toks), "generatedTokens": o.generate,
+			"keyEpoch": ep.Epoch, "keyEpochExpires": ep.Expires}}); err != nil {
 			return err
 		}
 		h, _, err := p.recv("manifest")
@@ -277,47 +360,56 @@ func runRequester(prof profile, allowInsecure bool, evals []string, modelID, pro
 			return err
 		}
 		f := h.Fields
-		if h.Session != session || f["profile"] != prof.ID || f["profileDigest"] != prof.digest() || f["model"] != modelID ||
+		if h.Session != session || f["profile"] != o.prof.ID || f["profileDigest"] != o.prof.digest() || f["model"] != o.modelID ||
 			fmt.Sprint(f["rotations"]) != fmt.Sprint(rotationSteps()) || toFloat(f["inputLevel"]) != float64(params.MaxLevel()) ||
 			toFloat(f["logSlots"]) != logSlots {
-			return fmt.Errorf("evaluator %s does not match the pinned profile, model or layout; nothing uploaded", addr)
+			return fmt.Errorf("evaluator %d does not match the pinned profile, model or layout; nothing uploaded", i+1)
 		}
+		allHold = allHold && f["heldKeysDigest"] == ep.KeysDigest
 	}
-	// Keys: the secret key never leaves this process. Each evaluation key is generated, sent and dropped.
 	t0 := time.Now()
-	kgen := rlwe.NewKeyGenerator(params)
-	r.sk = kgen.GenSecretKeyNew()
-	r.enc, r.dec = rlwe.NewEncryptor(params, r.sk), rlwe.NewDecryptor(params, r.sk)
-	var kd [][]byte
 	var genSecs float64
-	sendKey := func(b []byte) error {
-		rep.KeyBytes += int64(len(b))
-		kd = append(kd, []byte(digest(b)))
-		return r.broadcast(header{Kind: "key", Session: session}, b)
-	}
-	g0 := time.Now()
-	rlk, err := kgen.GenRelinearizationKeyNew(r.sk).MarshalBinary()
-	if err != nil {
-		return err
-	}
-	genSecs += time.Since(g0).Seconds()
-	if err := sendKey(rlk); err != nil {
-		return err
-	}
-	rlk = nil
-	for _, rot := range rotationSteps() {
-		g := time.Now()
-		gk, err := kgen.GenGaloisKeyNew(params.GaloisElement(rot), r.sk).MarshalBinary()
+	want := ep.KeysDigest
+	if allHold {
+		// Every evaluator still holds this epoch's exact evaluation keys: nothing is uploaded.
+		if err := r.broadcast(header{Kind: "keys-held", Session: session}); err != nil {
+			return err
+		}
+		rep.KeysReusedFromEvaluators = true
+	} else {
+		// The secret key never leaves this process. Each evaluation key is generated, sent to every evaluator and
+		// dropped, so all evaluators hold identical keys (their results must agree byte for byte).
+		kgen := rlwe.NewKeyGenerator(params)
+		var kd [][]byte
+		sendKey := func(b []byte) error {
+			rep.KeyBytes += int64(len(b))
+			kd = append(kd, []byte(digest(b)))
+			return r.broadcast(header{Kind: "key", Session: session}, b)
+		}
+		g0 := time.Now()
+		rlk, err := kgen.GenRelinearizationKeyNew(r.sk).MarshalBinary()
 		if err != nil {
 			return err
 		}
-		genSecs += time.Since(g).Seconds()
-		if err := sendKey(gk); err != nil {
+		genSecs += time.Since(g0).Seconds()
+		if err := sendKey(rlk); err != nil {
 			return err
 		}
-		runtime.GC()
+		rlk = nil
+		for _, rot := range rotationSteps() {
+			g := time.Now()
+			gk, err := kgen.GenGaloisKeyNew(params.GaloisElement(rot), r.sk).MarshalBinary()
+			if err != nil {
+				return err
+			}
+			genSecs += time.Since(g).Seconds()
+			if err := sendKey(gk); err != nil {
+				return err
+			}
+			runtime.GC()
+		}
+		want = digest(kd...)
 	}
-	want := digest(kd...)
 	for _, p := range r.peers {
 		h, _, err := p.recv("ready")
 		if err != nil {
@@ -327,6 +419,12 @@ func runRequester(prof profile, allowInsecure bool, evals []string, modelID, pro
 			return fmt.Errorf("evaluator acknowledged different keys")
 		}
 	}
+	if !allHold {
+		ep.KeysDigest = want
+		if err := saveEpoch(o.stateDir, ep); err != nil {
+			return err
+		}
+	}
 	rep.KeygenSeconds = genSecs
 	rep.KeyUploadSeconds = time.Since(t0).Seconds() - genSecs
 	// Fixed public schedule: one prefill message with every prompt token, then generate-1 single-token steps.
@@ -334,8 +432,9 @@ func runRequester(prof profile, allowInsecure bool, evals []string, modelID, pro
 	if err != nil {
 		return err
 	}
+	rep.TimeToFirstTokenSeconds = time.Since(start).Seconds()
 	gen := []int{tok}
-	for seq := 2; seq <= generate; seq++ {
+	for seq := 2; seq <= o.generate; seq++ {
 		if tok, err = r.step(session, seq, "decode", []int{tok}); err != nil {
 			return err
 		}

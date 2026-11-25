@@ -5,10 +5,18 @@ package main
 // for one session and answers each step with one ciphertext of logits.
 
 import (
+	"bufio"
+	"encoding/binary"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"net"
 	"os"
+	"path/filepath"
+	"regexp"
+	"runtime"
+	"strings"
 	"time"
 
 	"github.com/tuneinsight/lattigo/v6/circuits/ckks/polynomial"
@@ -341,14 +349,81 @@ func importInput(params ckks.Parameters, raw []byte) (*rlwe.Ciphertext, error) {
 	return ct, nil
 }
 
+// evaluatorReport is the evaluator's own record: sizes, timings and digests, never plaintext.
+type evaluatorReport struct {
+	Schema         string           `json:"schema"`
+	Arch           string           `json:"arch"`
+	CPUs           int              `json:"cpus"`
+	Profile        string           `json:"profile"`
+	KeyEpoch       string           `json:"keyEpoch"`
+	KeysFromStore  bool             `json:"keysFromStore"`
+	KeysDigest     string           `json:"keysDigest"`
+	KeyLoadSeconds float64          `json:"keyLoadSeconds"`
+	Steps          []map[string]any `json:"steps"`
+	Ops            map[string]int   `json:"ops"`
+	BytesReceived  int64            `json:"bytesReceived"`
+	BytesSent      int64            `json:"bytesSent"`
+	PeakRSSBytes   int64            `json:"peakRSSBytes"`
+	Misbehave      string           `json:"misbehave"`
+	EncodingPrec   uint             `json:"encodingPrecisionBits"`
+	Outcome        string           `json:"outcome"`
+	Error          string           `json:"error,omitempty"`
+}
+
 func evaluatorMain(args []string) error {
 	fs := flag.NewFlagSet("evaluator", flag.ExitOnError)
 	listen := fs.String("listen", "127.0.0.1:0", "address to listen on")
 	modelPath := fs.String("model", "tiny-model.json", "public model fixture")
 	misbehave := fs.String("misbehave", "", "test only: ask-decrypt | tamper | wrong-seq")
 	ready := fs.String("ready-file", "", "write the bound address here once listening")
+	stateDir := fs.String("state-dir", "", "where evaluation keys of unexpired key epochs are kept between sessions")
+	reportPath := fs.String("report", "", "write the evaluator report here")
+	encPrec := fs.Uint("encoding-precision", deterministicEncodingPrecision, "test only: plaintext encoding precision (53 = float64 FFT)")
 	fs.Parse(args)
-	m, modelID, err := loadModel(*modelPath)
+	encodingPrecision = *encPrec
+	rep := &evaluatorReport{Schema: "doppler.protected-evaluator-report/v0", Arch: runtime.GOOS + "/" + runtime.GOARCH,
+		CPUs: runtime.NumCPU(), Misbehave: *misbehave, EncodingPrec: encodingPrecision, Outcome: "completed"}
+	err := runEvaluator(*listen, *modelPath, *misbehave, *ready, *stateDir, rep)
+	if err != nil {
+		rep.Outcome, rep.Error = "failed", err.Error()
+	}
+	rep.PeakRSSBytes = peakRSSBytes()
+	if *reportPath != "" {
+		raw, _ := json.MarshalIndent(rep, "", " ")
+		os.WriteFile(*reportPath, raw, 0o600)
+	}
+	return err
+}
+
+// keyEpochFiles: evaluation keys a requester uploaded once, kept until the expiry that requester set.
+func keyEpochPath(dir, epoch string) string { return filepath.Join(dir, "epoch-"+epoch) }
+
+type storedEpoch struct {
+	Epoch, ProfileDigest, KeysDigest string
+	Expires                          int64
+}
+
+// pruneEpochs deletes every stored key epoch whose expiry has passed.
+func pruneEpochs(dir string) {
+	entries, _ := os.ReadDir(dir)
+	for _, e := range entries {
+		if !strings.HasSuffix(e.Name(), ".json") {
+			continue
+		}
+		var se storedEpoch
+		raw, err := os.ReadFile(filepath.Join(dir, e.Name()))
+		if err != nil || json.Unmarshal(raw, &se) != nil || time.Now().Unix() >= se.Expires {
+			base := strings.TrimSuffix(filepath.Join(dir, e.Name()), ".json")
+			os.Remove(base + ".json")
+			os.Remove(base + ".keys")
+		}
+	}
+}
+
+var epochName = regexp.MustCompile(`^[a-f0-9]{32}$`)
+
+func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *evaluatorReport) error {
+	m, modelID, err := loadModel(modelPath)
 	if err != nil {
 		return err
 	}
@@ -356,13 +431,19 @@ func evaluatorMain(args []string) error {
 	if err != nil {
 		return err
 	}
-	ln, err := net.Listen("tcp", *listen)
+	if stateDir != "" {
+		if err := os.MkdirAll(stateDir, 0o700); err != nil {
+			return err
+		}
+		pruneEpochs(stateDir)
+	}
+	ln, err := net.Listen("tcp", listen)
 	if err != nil {
 		return err
 	}
 	defer ln.Close()
-	if *ready != "" {
-		if err := os.WriteFile(*ready, []byte(ln.Addr().String()), 0o600); err != nil {
+	if ready != "" {
+		if err := os.WriteFile(ready, []byte(ln.Addr().String()), 0o600); err != nil {
 			return err
 		}
 	}
@@ -372,8 +453,9 @@ func evaluatorMain(args []string) error {
 	}
 	defer nc.Close()
 	c := &conn{c: nc, deadline: 30 * time.Minute}
+	defer func() { rep.BytesReceived, rep.BytesSent = c.received, c.sent }()
 	log := func(f string, a ...any) {
-		fmt.Fprintf(os.Stderr, "[evaluator %s] "+f+"\n", append([]any{ln.Addr()}, a...)...)
+		fmt.Fprintf(os.Stderr, "[evaluator %s] "+f+"\n", append([]any{rep.Arch}, a...)...)
 	}
 
 	h, _, err := c.recv("hello")
@@ -384,6 +466,7 @@ func evaluatorMain(args []string) error {
 	if err != nil {
 		return err
 	}
+	rep.Profile = prof.ID
 	if h.Fields["model"] != modelID {
 		return fmt.Errorf("requester pinned model %v, this evaluator serves %s", h.Fields["model"], modelID)
 	}
@@ -392,46 +475,98 @@ func evaluatorMain(args []string) error {
 		return err
 	}
 	session := h.Session
+	epoch, _ := h.Fields["keyEpoch"].(string)
+	expires := int64(toFloat(h.Fields["keyEpochExpires"]))
+	if !epochName.MatchString(epoch) || expires <= time.Now().Unix() {
+		return fmt.Errorf("key epoch missing or expired")
+	}
+	rep.KeyEpoch = epoch
+	held := ""
+	var stored storedEpoch
+	if stateDir != "" {
+		if raw, err := os.ReadFile(keyEpochPath(stateDir, epoch) + ".json"); err == nil && json.Unmarshal(raw, &stored) == nil &&
+			stored.ProfileDigest == prof.digest() && stored.Expires > time.Now().Unix() {
+			held = stored.KeysDigest
+		}
+	}
 	if err := c.send(header{Kind: "manifest", Session: session, Fields: map[string]any{
 		"profile": prof.ID, "profileDigest": prof.digest(), "model": modelID, "rotations": rotationSteps(),
-		"inputLevel": params.MaxLevel(), "logSlots": logSlots,
+		"inputLevel": params.MaxLevel(), "logSlots": logSlots, "heldKeysDigest": held,
 	}}); err != nil {
 		return err
 	}
-	// Keys: one relinearization key, then one Galois key per pinned rotation, each in its own message.
-	var kd [][]byte
-	_, blobs, err := c.recv("key")
+	// Keys: either "keys-held" (reuse the stored epoch) or one relinearization key, then one Galois key per pinned
+	// rotation, each in its own message.
+	t0 := time.Now()
+	kh, blobs, err := c.recv("key", "keys-held")
 	if err != nil {
 		return err
 	}
-	rlk := new(rlwe.RelinearizationKey)
-	if err := rlk.UnmarshalBinary(blobs[0]); err != nil {
-		return err
-	}
-	kd = append(kd, []byte(digest(blobs[0])))
-	var gks []*rlwe.GaloisKey
-	for _, r := range rotationSteps() {
-		_, blobs, err := c.recv("key")
-		if err != nil {
+	var keyBlobs [][]byte
+	if kh.Kind == "keys-held" {
+		if held == "" {
+			return fmt.Errorf("requester asked to reuse keys this evaluator does not hold")
+		}
+		if keyBlobs, err = readKeyFile(keyEpochPath(stateDir, epoch) + ".keys"); err != nil {
 			return err
 		}
+		rep.KeysFromStore = true
+	} else {
+		keyBlobs = append(keyBlobs, blobs[0])
+		for range rotationSteps() {
+			_, b, err := c.recv("key")
+			if err != nil {
+				return err
+			}
+			keyBlobs = append(keyBlobs, b[0])
+		}
+	}
+	if len(keyBlobs) != 1+len(rotationSteps()) {
+		return fmt.Errorf("wrong number of evaluation keys")
+	}
+	var kd [][]byte
+	rlk := new(rlwe.RelinearizationKey)
+	if err := rlk.UnmarshalBinary(keyBlobs[0]); err != nil {
+		return err
+	}
+	kd = append(kd, []byte(digest(keyBlobs[0])))
+	var gks []*rlwe.GaloisKey
+	for i, r := range rotationSteps() {
 		gk := new(rlwe.GaloisKey)
-		if err := gk.UnmarshalBinary(blobs[0]); err != nil {
+		if err := gk.UnmarshalBinary(keyBlobs[1+i]); err != nil {
 			return err
 		}
 		if gk.GaloisElement != params.GaloisElement(r) {
 			return fmt.Errorf("galois key for element %d, expected rotation %d", gk.GaloisElement, r)
 		}
-		kd = append(kd, []byte(digest(blobs[0])))
+		kd = append(kd, []byte(digest(keyBlobs[1+i])))
 		gks = append(gks, gk)
 	}
 	keysDigest := digest(kd...)
+	if rep.KeysFromStore && keysDigest != held {
+		return fmt.Errorf("stored keys do not match their recorded digest")
+	}
+	if !rep.KeysFromStore && stateDir != "" {
+		if err := writeKeyFile(keyEpochPath(stateDir, epoch)+".keys", keyBlobs); err != nil {
+			return err
+		}
+		meta, _ := json.Marshal(storedEpoch{Epoch: epoch, ProfileDigest: prof.digest(), KeysDigest: keysDigest, Expires: expires})
+		if err := os.WriteFile(keyEpochPath(stateDir, epoch)+".json", meta, 0o600); err != nil {
+			return err
+		}
+	}
+	keyBlobs = nil
+	rep.KeysDigest, rep.KeyLoadSeconds = keysDigest, time.Since(t0).Seconds()
 	ev := ckks.NewEvaluator(params, rlwe.NewMemEvaluationKeySet(rlk, gks...))
+	// Plaintext encoding with big-float arithmetic: float64 FFTs can round differently across CPU architectures
+	// (fused multiply-add), which would make honest evaluators disagree byte for byte.
+	ev.Encoder = ckks.NewEncoder(params, encodingPrecision)
 	cir := &circuit{params: params, eval: ev, poly: polynomial.NewEvaluator(params, ev), pl: pl, ops: map[string]int{}}
+	defer func() { rep.Ops = cir.ops }()
 	if err := c.send(header{Kind: "ready", Session: session, Fields: map[string]any{"keysDigest": keysDigest}}); err != nil {
 		return err
 	}
-	log("ready: %d keys, digest %s", len(kd), keysDigest)
+	log("ready: keys digest %s (from store: %v)", keysDigest, rep.KeysFromStore)
 
 	pos := 0
 	for seq := 1; ; seq++ {
@@ -471,12 +606,16 @@ func evaluatorMain(args []string) error {
 		}
 		compute := time.Since(t0).Seconds()
 		fields := map[string]any{"computeSeconds": compute, "outputLevel": logits.Level(), "position": pos - 1}
-		switch *misbehave {
+		rep.Steps = append(rep.Steps, map[string]any{"seq": seq, "kind": h.Kind, "position": pos - 1,
+			"computeSeconds": compute, "resultDigest": digest(out)})
+		switch misbehave {
 		case "ask-decrypt":
 			// An attack: ask the requester to decrypt a ciphertext of the evaluator's choice.
+			log("misbehave: sending a forged decrypt-request at step %d", seq)
 			return c.send(header{Kind: "decrypt-request", Session: session, Seq: seq}, blobs[0])
 		case "tamper":
 			out[len(out)/2] ^= 1
+			log("misbehave: flipped one bit of the result at step %d", seq)
 		case "wrong-seq":
 			seq++
 		}
@@ -484,5 +623,55 @@ func evaluatorMain(args []string) error {
 			return err
 		}
 		log("step %d (%s, position %d): %.1fs, output level %d", seq, h.Kind, pos-1, compute, logits.Level())
+	}
+}
+
+const deterministicEncodingPrecision = 64
+
+var encodingPrecision uint = deterministicEncodingPrecision
+
+func writeKeyFile(path string, blobs [][]byte) error {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
+	if err != nil {
+		return err
+	}
+	w := bufio.NewWriter(f)
+	for _, b := range blobs {
+		var n [8]byte
+		binary.LittleEndian.PutUint64(n[:], uint64(len(b)))
+		w.Write(n[:])
+		w.Write(b)
+	}
+	if err := w.Flush(); err != nil {
+		f.Close()
+		return err
+	}
+	return f.Close()
+}
+
+func readKeyFile(path string) ([][]byte, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	r := bufio.NewReader(f)
+	var out [][]byte
+	for {
+		var n [8]byte
+		if _, err := io.ReadFull(r, n[:]); err == io.EOF {
+			return out, nil
+		} else if err != nil {
+			return nil, err
+		}
+		size := binary.LittleEndian.Uint64(n[:])
+		if size > maxKeyBytes || len(out) > len(rotationSteps()) {
+			return nil, fmt.Errorf("stored key file is malformed")
+		}
+		b := make([]byte, size)
+		if _, err := io.ReadFull(r, b); err != nil {
+			return nil, err
+		}
+		out = append(out, b)
 	}
 }

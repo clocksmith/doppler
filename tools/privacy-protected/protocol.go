@@ -24,7 +24,7 @@ const (
 )
 
 var kindCeiling = map[string]int64{
-	"hello": 0, "manifest": 0, "key": maxKeyBytes, "ready": 0, "prefill": maxStepBytes, "decode": maxStepBytes,
+	"hello": 0, "manifest": 0, "key": maxKeyBytes, "keys-held": 0, "ready": 0, "prefill": maxStepBytes, "decode": maxStepBytes,
 	"result": maxResultBytes, "bye": 0,
 }
 

@@ -1,0 +1,53 @@
+{
+ "schema": "doppler.protected-two-machine-context/v0",
+ "date": "2026-11-25",
+ "sourceDigest": "sha256:97f66e698924f634e1ce4aad3fcd9a3b2b40b511c68c65b13cea623a081a1979 (sha256 of *.go in name order, go.mod, go.sum; the committed sources)",
+ "baseCommit": "ba2c59215 (protected-backend) plus the key-epoch, deterministic-encoder and report changes committed with these receipts",
+ "binaries": {
+  "linux/amd64": "sha256:2755c511dfaafcf76bec46912af61869457be782c4c28d3c37db715b7fc36a7f",
+  "linux/arm64": "sha256:97b367fc47d291891d44cdf71ee571dea9b5c154c33aad967986a319044ce085",
+  "darwin/arm64": "sha256:117161744c45b07255881c7fc7151cf320a1a7a050af433d29154a9d34dcb1cb",
+  "build": "CGO_ENABLED=0 go build -trimpath, go1.26.1, Lattigo v6.2.0"
+ },
+ "model": "sha256:90d4efb8e2e05df08082a2dc1a2d8ad49479e1750467f70ee2b0759d3578ae92",
+ "profile": "research-n16",
+ "placement": {
+  "requester": "mac-host (Apple M3, 8 CPUs, 24 GB)",
+  "evaluator-1": "intel-host (linux/amd64, 4 CPUs, 31 GB; 26 GB available before the run)",
+  "evaluator-2": "arm64-host (Jetson AGX Orin CPU, linux/arm64, 12 CPUs, 61 GB; 38 GB available before the run)",
+  "priority": "nice 10 on all three; the hosts' standing Reploid providers kept running",
+  "network": "home Wi-Fi LAN, plain TCP, no transport authentication or encryption",
+  "stateDirectory": "fresh protected-proof-20261125 on each evaluator"
+ },
+ "disclosures": [
+  "All three machines belong to one owner: the dual-evaluator integrity check ran under a single operator and shows the mechanism, not independence.",
+  "The pinned reference is the approximate circuit's output; the approximation differs from the float64 model on 2.5% of arbitrary three-letter prompts (plaintext audit).",
+  "Evaluation keys are reused across sessions until the requester's 24-hour epoch expiry; the requester's secret key is stored as a 0600 file for that period.",
+  "Prompts were chosen at run time and were not used in any earlier run or test.",
+  "No independent cryptographic review has taken place."
+ ],
+ "crossArchitectureCheck": {
+  "note": "Insecure development ring (N = 2^12), prompt bdf, two steps, before the proof.",
+  "float64Encoding": {
+   "linux/amd64": [
+    "sha256:5161f094de0a6e989b25e1e9c4c8fc1f23c87d1e0599a04582a089979810c617",
+    "sha256:bdba0fee7312cc94262d2cf7de7dd6df3c161e0e3de92df80cbab71fec0c8e7f"
+   ],
+   "linux/arm64": [
+    "sha256:5161f094de0a6e989b25e1e9c4c8fc1f23c87d1e0599a04582a089979810c617",
+    "sha256:bdba0fee7312cc94262d2cf7de7dd6df3c161e0e3de92df80cbab71fec0c8e7f"
+   ]
+  },
+  "bigFloat64BitEncoding": {
+   "linux/amd64": [
+    "sha256:44b92f3e8d8296bf0cefbf169d4bf4fe8a878016a2a73940509cea2f81ab7c91",
+    "sha256:32a44d1bb13a8384b9ebcc1074ddea9c21c4ea75e785fe87a034f318014a192c"
+   ],
+   "linux/arm64": [
+    "sha256:44b92f3e8d8296bf0cefbf169d4bf4fe8a878016a2a73940509cea2f81ab7c91",
+    "sha256:32a44d1bb13a8384b9ebcc1074ddea9c21c4ea75e785fe87a034f318014a192c"
+   ]
+  },
+  "result": "Both encoders gave byte-identical results across linux/amd64 and linux/arm64 here; the proof used the big-float encoder because float64 agreement is not guaranteed."
+ }
+}
