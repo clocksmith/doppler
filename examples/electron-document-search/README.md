@@ -193,11 +193,12 @@ the qualified Qwen Capsule and a connected physical application episode.
 
 ## Source-qualified Capsule evaluation
 
-The repository tools `capture-reranker-source-reference.py`,
-`qualify-reranker-electron.js`, and `build-reranker-evaluation-capsule.js` retain
+The externally captured source reference (see the workflow; Doppler is
+JavaScript-only and does not ship the capture script) and the repository tools
+`qualify-reranker-electron.js` and `build-reranker-evaluation-capsule.js` retain
 separate source-reference, model-qualification, build, and Capsule-execution
 artifacts. See [the evaluation workflow](../../docs/integration/reranker-evaluation.md).
-The Python reference is build/evaluation tooling, not a runtime dependency.
+The source reference is evaluation input, not a runtime dependency.
 
 Rerank qualification binds the actual input tokens, yes/no logits, scoring
 policy, numerical tolerances, and exact ranking. A generation transcript or a

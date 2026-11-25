@@ -2,7 +2,7 @@ import type { OnboardingInput } from './model-onboarding.js';
 export type OnboardingStage = 'conversion' | 'source-reference' | 'model-qualification' | 'capsule-construction' | 'capsule-qualification';
 export interface OnboardingExecutionConfig {
   schema: 'doppler.model-onboarding-execution/v1'; operation: 'embed'; stages: OnboardingStage[];
-  inputs: Record<'sourcePolicy' | 'frozenReference' | 'qualificationConfig' | 'capsuleConfig' | 'driver'
+  inputs: Record<'sourcePolicy' | 'frozenReference' | 'sourceReferenceCapture' | 'qualificationConfig' | 'capsuleConfig' | 'driver'
     | 'installedPackageReceipt' | 'installedPackageArchive' | 'license' | 'application', OnboardingInput>;
   sourceFiles: Array<OnboardingInput & { sizeBytes: number }>;
 }

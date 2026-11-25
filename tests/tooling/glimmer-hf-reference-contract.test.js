@@ -4,7 +4,11 @@ import fs from 'node:fs/promises';
 
 const policyRaw = await fs.readFile('src/config/forge/reference/glimmer-30b-text.json');
 const policy = JSON.parse(policyRaw.toString('utf8'));
-const source = await fs.readFile('tools/glimmer-hf-text-reference.py', 'utf8');
+// The Python capture script is retired (Doppler is JavaScript-only). Its bytes at
+// commit 3e485ca93, tools/glimmer-hf-text-reference.py, are pinned here; that script
+// loaded local files only, without remote code or CUDA, and recorded loaded and
+// preserved parameters. The retained transcript is the golden fixture.
+const RETIRED_CAPTURE_SCRIPT_SHA256 = 'sha256:298abcf77a770436be9de09292183f0c625912d720b74ee3f50af10bb1aefb4b';
 const transcript = JSON.parse(await fs.readFile(policy.output, 'utf8'));
 const acquisition = JSON.parse(await fs.readFile(policy.sourceAcquisitionReceipt, 'utf8'));
 const sha256 = (value) => `sha256:${createHash('sha256').update(value).digest('hex')}`;
@@ -22,11 +26,6 @@ assert.equal(policy.execution.attentionImplementation, 'eager');
 assert.deepEqual(policy.boundaryGenerationSteps, [0, 7]);
 assert.deepEqual(policy.boundaryLayers, [0, 13, 26, 39, 51]);
 assert.equal(policy.author.kind, 'ai');
-assert.match(source, /local_files_only=True/);
-assert.match(source, /trust_remote_code=False/);
-assert.match(source, /loadedTextParameters/);
-assert.match(source, /preservedAuxiliaryParameters/);
-assert.doesNotMatch(source, /\.to\(["']cuda["']\)/);
 
 assert.equal(transcript.schema, 'doppler.pinned-source-transcript/v1');
 assert.equal(transcript.model, policy.model);
@@ -56,7 +55,7 @@ assert.equal(transcript.loadEvidence.weightShardCount, 2);
 assert.equal(transcript.loadEvidence.sourceParameterDtype, 'bfloat16');
 assert.equal(transcript.loadEvidence.executionParameterDtype, 'bfloat16');
 assert.equal(transcript.identity.policySha256, sha256(policyRaw));
-assert.equal(transcript.identity.scriptSha256, sha256(source));
+assert.equal(transcript.identity.scriptSha256, RETIRED_CAPTURE_SCRIPT_SHA256);
 assert.equal(transcript.identity.promptSha256, sha256(policy.prompt));
 assert.equal(transcript.identity.configSha256, acquisitionDigest('config.json'));
 assert.equal(transcript.identity.generationConfigSha256, acquisitionDigest('generation_config.json'));

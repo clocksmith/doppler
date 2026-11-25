@@ -15,7 +15,7 @@ try {
   await fs.writeFile(path.join(root, 'conversion.json'), '{}');
   const input = { path: 'input.json', digest: await hashOnboardingFile(path.join(root, 'input.json')) };
   const config = { schema: 'doppler.model-onboarding-execution/v1', operation: 'embed', stages,
-    inputs: Object.fromEntries(['sourcePolicy', 'frozenReference', 'qualificationConfig', 'capsuleConfig', 'driver',
+    inputs: Object.fromEntries(['sourcePolicy', 'frozenReference', 'sourceReferenceCapture', 'qualificationConfig', 'capsuleConfig', 'driver',
       'installedPackageReceipt', 'installedPackageArchive', 'license', 'application'].map(key => [key, input])),
     sourceFiles: [{ path: 'weights.bin', sizeBytes: 3, digest: await hashOnboardingFile(path.join(root, 'weights.bin')) }] };
   const calls = [];

@@ -10,7 +10,6 @@ import { getCapsuleIdentity, verifyCapsuleMetadata } from "../src/config/capsule
 import { qualifyEmbeddingBrowser } from './qualify-embedding-browser.js';
 import { buildEmbeddingEvaluationCapsule } from './build-reranker-evaluation-capsule.js';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const json = async filename => JSON.parse(await fs.readFile(filename, 'utf8'));
 const equal = (actual, expected, label) => assert.equal(computeCanonicalSha256(actual), computeCanonicalSha256(expected), label);
 const write = (filename, value) => fs.writeFile(filename, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
@@ -58,9 +57,13 @@ export async function runEmbeddingOnboardingStage(context) {
       path.resolve(context.sourceRoot, policy.source.sourceDirectory), '--config', context.conversionPath, '--output-dir', modelDir]);
     receipt.data = { modelDir, manifestPath: path.join(modelDir, 'manifest.json') };
   } else if (stage === 'source-reference') {
+    // The independent source-stack reference is captured outside Doppler with the
+    // pinned upstream framework (Doppler is JavaScript-only) and pinned by digest as
+    // inputs.sourceReferenceCapture; this stage retains it and verify compares it.
     const referencePath = path.join(outputDir, 'reference.json');
-    await command(context, 'python3', [path.join(ROOT, 'tools/capture-embedding-source-reference.py'), '--policy', inputs.sourcePolicy, '--out', referencePath]);
-    receipt.data = { referencePath };
+    const captured = assertEmbeddingReference(await json(inputs.sourceReferenceCapture));
+    await write(referencePath, captured);
+    receipt.data = { referencePath, capturedFrom: inputs.sourceReferenceCapture };
   } else if (stage === 'capsule-construction') {
     const config = { ...await json(inputs.capsuleConfig), qualificationPath: completed['model-qualification'].data.qualificationPath,
       conversionConfigPath: context.conversionPath, modelIRReceiptPath: path.join(path.dirname(context.conversionPath), 'model-ir-receipt.json'),

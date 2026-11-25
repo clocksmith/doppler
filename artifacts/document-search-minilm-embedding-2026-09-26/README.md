@@ -7,7 +7,7 @@ Doppler MiniLM implementation or installed mixed-pair acceptance.
 The selected source is `sentence-transformers/all-MiniLM-L6-v2` at revision
 `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`. The full source snapshot was copied
 from temporary memory storage to `/var/tmp/doppler-minilm-embedding-20260926/source`.
-The existing [capture harness](../../tools/capture-embedding-source-reference.py)
+The existing [capture harness](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/capture-embedding-source-reference.py)
 now admits its explicit mean-pooling/L2 contract alongside the unchanged Qwen
 last-token reference. It validates source module order, dimensions, revision,
 and the 256-token bound; it rejects oversized inputs instead of truncating.

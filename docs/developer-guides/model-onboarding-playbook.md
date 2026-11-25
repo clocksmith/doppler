@@ -140,7 +140,8 @@ orchestration: it uses local source files, a previously tested installed archive
 Python source references, Chromium WebGPU, and local signing custody.
 
 The plan follows `src/config/forge/model-onboarding-execution.schema.json` and
-pins the source policy, frozen reference, qualification policy, Capsule policy,
+pins the source policy, frozen reference, externally captured source reference
+(`sourceReferenceCapture`), qualification policy, Capsule policy,
 driver, installed archive and receipt, license, and application by byte SHA-256.
 Its `sourceFiles` inventory pins the checkpoint files and download metadata.
 The declared order is conversion, source-reference, model-qualification,
@@ -156,7 +157,11 @@ stage gets a new attempt directory; its earlier failure remains available.
 Changed completed outputs are rejected. Use one writer per output directory.
 Retain the source worktree and execution dependencies alongside these receipts
 when reproducing repository tooling; an archive hash alone does not pin the
-Python environment or repository tools.
+repository tools. Doppler is JavaScript-only: the independent source reference
+is captured outside the repository with the pinned upstream framework (the
+retired capture script is at commit 3e485ca93,
+`tools/capture-embedding-source-reference.py`) and pinned by digest; the
+source-reference stage retains it and compares it in JavaScript.
 
 Only passing independent source comparison and physical model and signed Capsule
 execution produce `doppler.model-onboarding-result/v2` with

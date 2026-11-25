@@ -1,5 +1,7 @@
 # Canonical Qwen3.5 export investigation
 
+> **Python removed, 2026-11-25.** Doppler is JavaScript-only. The Python export, ONNX lowering and native-reference scripts below were removed; they remain at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/transformers-canonical-qwen35). The JavaScript runners, policies and `evidence/` receipts stay.
+
 Internal, untimed tools for the exact 321-tensor canonical F32 text checkpoint.
 The full-model Transformers.js runner is diagnostic tooling under validation.
 It never downloads model weights or substitutes a published ONNX checkpoint.
@@ -168,3 +170,5 @@ comparison remain required work. Full-model
 diagnostic configuration is retained on amd-host at
 `$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-full-gpu-diagnostic-06-config.json`;
 its model and CPU receipt paths are frozen by `evidence/full-tjs-gpu-identity.json`.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `audit_graph_ops.py`, `binding.py`, `combine_buckets.py`, `diagnose_state.py`, `export_bucket.py`, `export_layer.py`, `export_onnx.py`, `export_text.py`, `inspect_canonical.py`, `materialization_graphs.py`, `onnx_lower.py`, `reference_native.py`, `teacher_native.py`, `test_binding.py`, `validate_layer.py`, `validate_text.py`, `variant_f32kv.py`, `variant_gpu_indices.py`, `variant_host_shapes.py`, `variant_rotary_lookup.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/transformers-canonical-qwen35); the recorded receipts here are unchanged.

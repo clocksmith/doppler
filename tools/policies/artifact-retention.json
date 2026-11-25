@@ -100,8 +100,8 @@
     "artifacts/document-search-minilm-embedding-2026-09-26": {
       "retentionClass": "frozen-evidence",
       "files": 21,
-      "bytes": 426040,
-      "inventoryHash": "sha256:6f0433ed0b4500502b73eb68da5d9d3bd5b1eef781c034eb0aa56a93fbe2ab9b"
+      "bytes": 426118,
+      "inventoryHash": "sha256:32f0cbd80561405f89aac930589e8d52363dcf1925f4d1057a93d207cb814efd"
     },
     "artifacts/embedding-subdivision-20261011": {
       "retentionClass": "frozen-evidence",

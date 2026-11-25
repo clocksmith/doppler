@@ -1,121 +1,34 @@
-# Reference Model Debug Scripts
+# External reference checks
 
-Purpose: PyTorch-based reference checks for validating Doppler inference outputs.
+Doppler is JavaScript-only. It no longer ships the PyTorch/Transformers debug
+scripts that used to live here (`hf_embed_check.py`, `hf_layer_out.py`,
+`hf_attn_debug.py`, `hf_weights.py`, `hf_rope_check.py`,
+`hf_qwen35_linear_attn_debug.py`) or the boundary provider adapter
+`tools/qwen35-hf-boundary-reference.py`. They remain at commit
+[`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/src/debug/reference)
+for anyone who wants to run them in their own Python environment.
 
-## Scope
+## Comparing Doppler with an upstream framework
 
-- Scripted comparisons for embeddings, attention, weights, and layer outputs.
-- Debug workflow for isolating divergence sources.
+1. Run the original SafeTensors checkpoint in the upstream framework, outside
+   this repository, at a pinned framework and model revision.
+2. Emit the observed boundary tensors as a `doppler.boundary-provider-capture/v1`
+   document (the retired adapter above shows one way to do it).
+3. Bind the capture with `doppler boundary source-capsule` and compare it with
+   the canonical boundary workflow. The comparison and all acceptance decisions
+   run in JavaScript.
 
-These scripts run the original SafeTensor model weights via PyTorch/transformers to compare against DOPPLER's quantized inference. Use these to isolate whether bugs are in DOPPLER's kernels, weight loading, or architecture implementation. They are config-only and accept a single JSON config path (no flags).
+Retained reference outputs under `artifacts/`, `reports/` and
+`tests/fixtures/` are the golden inputs for the JavaScript comparers; they do
+not need the framework to be installed.
 
-These scripts are diagnostic adapters, not an independent promotion workflow.
-For promotion, a source-runtime script must emit
-`doppler.boundary-provider-capture/v1`; bind it with
-`doppler boundary source-capsule`, then compare it using the canonical boundary
-workflow. `tools/qwen35-hf-boundary-reference.py` is the reference provider
-adapter.
+## Isolating a divergence
 
-## Setup
+1. Find the first layer whose output diverges from the reference capture.
+2. Check embeddings and their scaling.
+3. Check attention at the diverging layer, then RoPE if Q/K differ after
+   position 0.
+4. Compare dequantized weight values for the affected tensors.
 
-```bash
-pip install torch transformers
-```
-
-## Scripts
-
-### hf_embed_check.py
-Compare embeddings and layer 0 outputs.
-
-```json
-// tmp-hf-embed.json
-{
-  "model": "google/gemma-2-2b-it",
-  "prompt": "The color of the sky is"
-}
-```
-
-```bash
-python hf_embed_check.py ./tmp-hf-embed.json
-```
-
-### hf_attn_debug.py
-Full attention debug: traces input_norm -> Q/K/V projections.
-
-```json
-// tmp-hf-attn.json
-{
-  "model": "google/gemma-2-2b-it",
-  "prompt": "The color of the sky is",
-  "layer": 0
-}
-```
-
-```bash
-python hf_attn_debug.py ./tmp-hf-attn.json
-```
-
-### hf_weights.py
-Dump Q/K/V/O projection weights for comparison.
-
-```json
-// tmp-hf-weights.json
-{
-  "model": "google/gemma-2-2b-it",
-  "layer": 0,
-  "proj": "v"
-}
-```
-
-```bash
-python hf_weights.py ./tmp-hf-weights.json
-```
-
-### hf_rope_check.py
-Verify RoPE frequencies and rotations.
-
-```json
-// tmp-hf-rope.json
-{
-  "model": "google/gemma-2-2b-it",
-  "pos": 6,
-  "dim": 256,
-  "theta": 10000.0
-}
-```
-
-```bash
-python hf_rope_check.py ./tmp-hf-rope.json
-```
-
-### hf_layer_out.py
-Compare hidden states at specific layers.
-
-```json
-// tmp-hf-layer.json
-{
-  "model": "google/gemma-2-2b-it",
-  "prompt": "The color of the sky is",
-  "layers": [0, 12, 25],
-  "token": -1
-}
-```
-
-```bash
-python hf_layer_out.py ./tmp-hf-layer.json
-```
-
-## Debugging Process
-
-1. **Identify divergence layer**: Run `hf_layer_out.py` to find where DOPPLER diverges from reference
-2. **Check embeddings**: Run `hf_embed_check.py` to verify embedding scaling
-3. **Debug attention**: Run `hf_attn_debug.py` at the diverging layer
-4. **Check weights**: Run `hf_weights.py` to compare dequantized weight values
-5. **Verify RoPE**: Run `hf_rope_check.py` if Q/K values diverge after position 0
-
-## Common Issues
-
-- **Embedding scale**: Gemma uses `sqrt(hidden_size)` scaling
-- **RMSNorm offset**: Gemma uses `(1 + weight) * x` formula
-- **Q4K dequant**: Check for repeated values (indexing bug)
-- **Attention softcapping**: Gemma 2 uses `attn_logit_soft_capping=50`
+The [debug protocol](../../../docs/agents/debug-protocol.md) covers Doppler's
+own trace and probe tooling for each step.

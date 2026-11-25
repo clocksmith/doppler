@@ -9,8 +9,11 @@ workflow, not an external adopter or a claim of general model equivalence.
    from its exact Hugging Face commit, retaining the snapshot metadata and model
    license. The capture tool checks each file's recorded source revision and
    records byte hashes. Install the declared reference dependencies separately.
-2. Run `python tools/capture-reranker-source-reference.py --policy <policy.json> --out <new-reference.json>`.
-   This executes the pinned source using CPU float32, retaining inputs, actual
+2. Capture the reference outside Doppler with the pinned Transformers stack.
+   Doppler is JavaScript-only, so it no longer ships the capture script; the
+   one used for the retained reference is
+   [capture-reranker-source-reference.py at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/capture-reranker-source-reference.py).
+   Run it in your own Python environment. It executes the pinned source using CPU float32, retaining inputs, actual
    token IDs, source logits, scores, probabilities, dependency versions, and the
    predeclared acceptance policy. It does not use Doppler outputs as its oracle.
 3. Convert the source with `tools/convert-safetensors-node.js` and an explicit

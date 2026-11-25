@@ -10,10 +10,11 @@
     "stages": { "const": ["conversion", "source-reference", "model-qualification", "capsule-construction", "capsule-qualification"] },
     "inputs": {
       "type": "object", "additionalProperties": false,
-      "required": ["sourcePolicy", "frozenReference", "qualificationConfig", "capsuleConfig", "driver", "installedPackageReceipt", "installedPackageArchive", "license", "application"],
+      "required": ["sourcePolicy", "frozenReference", "sourceReferenceCapture", "qualificationConfig", "capsuleConfig", "driver", "installedPackageReceipt", "installedPackageArchive", "license", "application"],
       "properties": {
         "sourcePolicy": { "$ref": "#/$defs/input" },
         "frozenReference": { "$ref": "#/$defs/input" },
+        "sourceReferenceCapture": { "$ref": "#/$defs/input", "description": "Independent source-stack reference captured outside Doppler with the pinned upstream framework; Doppler compares it in JavaScript." },
         "qualificationConfig": { "$ref": "#/$defs/input" },
         "capsuleConfig": { "$ref": "#/$defs/input" },
         "driver": { "$ref": "#/$defs/input" },
