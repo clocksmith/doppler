@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import { normGate, pairLinearCaptures, recurrentReference, SIGMOID_NORM_GATE_REFERENCE } from './recurrent-reference.js';
 import { recurrentInterventionOperands, interveneRecurrentShader } from './recurrent-intervention.js';
 import { observeRecurrentShader } from './recurrent-observation.js';
@@ -116,9 +115,10 @@ assert.equal(flashNextReceipt.alternativeSemantics['norm-weight-one-plus'].disti
 assert.deepEqual(flashNextReceipt.qwen35Comparison.RMSNormGated.changedLines.filter(line => line.startsWith('+')),
   ['+    def __init__(self, hidden_size: int, eps: float = 1e-6, activation: str = "silu") -> None:',
     '+        self.activation = activation'], 'only the activation parameter separates the two gated norms');
-const modelingSource = await readFile(new URL('../../artifacts/qwen38-flash-next-20261013/source/modeling_qwen4_exp.py', import.meta.url));
-assert.equal(createHash('sha256').update(modelingSource).digest('hex'), SIGMOID_NORM_GATE_REFERENCE.sourceSha256);
-assert(modelingSource.toString('utf8').includes('activation=config.output_gate_type or config.hidden_act'));
+// The pinned source excerpt fixture stands in for the retired vendored modeling file.
+const modelingExcerpt = JSON.parse(await readFile(new URL('../fixtures/qwen4-exp-source-excerpts.json', import.meta.url), 'utf8')).files['modeling_qwen4_exp.py'];
+assert.equal(modelingExcerpt.sha256, SIGMOID_NORM_GATE_REFERENCE.sourceSha256);
+assert(modelingExcerpt.lines.normGateActivation.includes('activation=config.output_gate_type or config.hidden_act'));
 
 // Exact gate values: sigmoid(0)=1/2 while silu(0)=0; negative z keeps a positive
 // sigmoid gate but a negative silu gate; at z=1 the two coincide.

@@ -126,7 +126,7 @@ evidence file:
 
 The CPU fixture is the existing `doppler.flash-next-routing-selection-fixture/v1`
 format, written by
-[prepare-routing-fixture.py](../reports/flash-next-forced-routing-20261112/prepare-routing-fixture.py).
+[prepare-routing-fixture.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-forced-routing-20261112/prepare-routing-fixture.py).
 Task-quality results use `doppler.routing-aware-task-quality/v1`:
 
 - `caseTokenCounts`
@@ -162,11 +162,11 @@ Task-quality results use `doppler.routing-aware-task-quality/v1`:
    neutrality.
 5. **Forced-indices control.** Run each case with `mode: "indices"`. Score the
    final logits with
-   [compare-forced-routing.py](../reports/flash-next-forced-routing-20261112/compare-forced-routing.py)
+   [compare-forced-routing.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-forced-routing-20261112/compare-forced-routing.py)
    under unchanged quantized-v1. Take the router-logit envelope and
    `ownSelectionDifferences` from `control.json`.
 6. **Same-input operator checks.** Use the
-   [same-input audit](../reports/flash-next-new-prompts-20261110/audit-same-input-operators.py)
+   [same-input audit](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-new-prompts-20261110/audit-same-input-operators.py)
    method on one pinned long case, extended to all 48 layers, final norm and LM
    head. Record quantized-v1 violation counts for each family.
 7. **Task quality.** Run teacher-forced prefill at the sampled positions and

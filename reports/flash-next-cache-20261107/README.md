@@ -47,7 +47,7 @@ backend/driver caches and metadata are outside the retained-payload limit.
 
 ## Correctness and lifecycle
 
-[summarize.py](summarize.py) rehashed the actual retained binary files, checked
+[summarize.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-cache-20261107/summarize.py) rehashed the actual retained binary files, checked
 their lengths and compared tokens and every logit byte across **44 requests,
 704 logit rows and 174,817,280 values**. All were identical. The count includes
 the earlier rejected cache variants below; it is not 44 independent workloads.
@@ -181,3 +181,5 @@ Component: `doppler.runtime-source.loader`, `doppler.runtime-source.config`,
 `doppler.tests`, `doppler.internal-tools`, `doppler.docs`.
 Intent: preserved. Boundary effects: explicit optional host cache policy and
 statistics; no storage backend or inference-selection authority change.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `retain.py`, `summarize.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-cache-20261107); the recorded receipts here are unchanged.

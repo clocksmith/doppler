@@ -17,7 +17,7 @@ nothing is released. The limits were frozen for this test only.
        ([loader](../../tests/helpers/moe-shared-split-observation-loader.js));
      - the root mixer;
      - the last-position logits.
-   - [`audit-same-input-all-layers.py`](audit-same-input-all-layers.py) feeds
+   - [`audit-same-input-all-layers.py`](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/audit-same-input-all-layers.py) feeds
      each captured GPU input to the pinned CPU source and scores the result
      against quantized-v1. It covers these families: token embedding,
      hyper-connection, gated delta, full attention, routed MoE, shared expert,
@@ -32,10 +32,10 @@ nothing is released. The limits were frozen for this test only.
        ([loader](../../tests/helpers/prefill-logit-rows-loader.js)); the last
        row must be byte-identical to the production prefill logits;
      - the greedy continuation.
-   - [`cpu-reference.py`](cpu-reference.py) runs the pinned producer
+   - [`cpu-reference.py`](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/cpu-reference.py) runs the pinned producer
      (`f6bc0f15…`). It adds two observations only: router rows and
      sampled-position logits. It then runs cache-free greedy rounds.
-   - [`build-evidence.py`](build-evidence.py) writes the evidence and
+   - [`build-evidence.py`](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/build-evidence.py) writes the evidence and
      task-quality files. The evaluator alone decides.
 
 Supporting tools:
@@ -45,8 +45,8 @@ Supporting tools:
   Flash-Next GPU process spends about 12 minutes verifying n-gram table pieces
   on this host.
 - [`prepare-runs.js`](prepare-runs.js) resolves the named runtime profile.
-- [`freeze-inputs.py`](freeze-inputs.py) freezes the prompt tokens.
-- [`run-fresh.sh`](run-fresh.sh) runs the procedure.
+- [`freeze-inputs.py`](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/freeze-inputs.py) freezes the prompt tokens.
+- [`run-fresh.sh`](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/run-fresh.sh) runs the procedure.
 
 **Smoke tests.** These ran before the freeze, on the retained non-pinned
 `marbles` and `inventory` prompts only.
@@ -90,3 +90,5 @@ The freeze record also pre-registers these procedure choices:
 
 Component: `doppler.tests`, `doppler.repository-tooling`. Intent: preserved.
 Boundary effects: none.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `audit-same-input-all-layers.py`, `build-evidence.py`, `cpu-reference.py`, `freeze-inputs.py`, `run-fresh.sh` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112); the recorded receipts here are unchanged.

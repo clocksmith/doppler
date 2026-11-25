@@ -67,3 +67,5 @@ neither an unavoidable numerical tradeoff nor an upstream defect.
 
 Component: `doppler.repository-tooling`, `doppler.tests`. Intent: preserved.
 Boundary effects: isolated runtime experiment only; no production or acceptance change.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `prepare-candidate.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-route-order-20261110); the recorded receipts here are unchanged.

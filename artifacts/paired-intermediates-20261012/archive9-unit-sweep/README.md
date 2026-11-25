@@ -42,3 +42,5 @@ to complete private metadata; no source test started until all identities passed
 `prepare.py` and `run.py` retain the exact preparation/execution scripts.
 `summary.json` and `file-results.json` retain each trial and its actual disposition.
 Original uncompressed logs and the frozen export remain at the paths in the binding.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `prepare.py`, `run.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/artifacts/paired-intermediates-20261012/archive9-unit-sweep); the recorded receipts here are unchanged.

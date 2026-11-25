@@ -136,3 +136,5 @@ config single-source checks; package closure inventory. Four new runtime modules
 with declarations and one profile are inventoried; no budget ceiling was raised.
 No serving/catalog promotion, INT8 work, F32 KV experiment or correctness-policy
 change is included.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `compare.py`, `verify-final.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/routed-expert-loading-20261106); the recorded receipts here are unchanged.

@@ -27,7 +27,7 @@ also remain different contracts. The reference decision is pending explicit
 approval under canonical TODO ALL-4. Neither approving a reference nor this
 incompatibility result turns the existing failed candidates into passes.
 
-[check.py](check.py) verifies all retained vector shards, evaluator/contract
+[check.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/artifacts/reference-target-compatibility-20261011/check.py) verifies all retained vector shards, evaluator/contract
 identities, coverage, finite values and the original historical archive before
 comparing all coordinates. [result.json](result.json) retains the witness and
 each prefix. Reproduce from the Doppler root on the host retaining the indexed
@@ -40,3 +40,5 @@ PYTHONPATH=/tmp/doppler-reference-deps OPENBLAS_NUM_THREADS=1 \
 
 Component: independent numerical evidence. Intent: preserved. Boundary effects:
 none. No acceptance reference is activated and no package is promoted.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `check.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/artifacts/reference-target-compatibility-20261011); the recorded receipts here are unchanged.

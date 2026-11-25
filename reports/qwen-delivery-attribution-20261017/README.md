@@ -15,7 +15,7 @@ three untraced requests, then three instrumented requests per invocation. Every
 request checks all generated token IDs against its retained reference. Every
 served runtime file is verified against the immutable archive inventory.
 
-[Summary](summary.json), [reducer](summarize.py), and [probe](browser-trace.js)
+[Summary](summary.json), [reducer](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/qwen-delivery-attribution-20261017/summarize.py), and [probe](browser-trace.js)
 retain exact source hashes, receipts, per-request timings and coverage. These are
 controlled diagnostic measurements with a DOM/stream fixture, not replacement
 Transformers.js comparison numbers or Reploid rendering evidence.
@@ -109,3 +109,5 @@ not close earlier CI failures, establish full release acceptance, or promote an
 artifact.
 
 Filename-only migration (2026-11-14): `browser-trace.mjs` → `browser-trace.js`. Driver bytes and their SHA-256 digests are unchanged; captured outputs retain their original historical filenames. Current indexes below resolve the `.js` names.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `summarize.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/qwen-delivery-attribution-20261017); the recorded receipts here are unchanged.

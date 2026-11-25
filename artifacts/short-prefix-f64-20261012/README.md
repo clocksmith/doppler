@@ -51,3 +51,5 @@ python3 artifacts/short-prefix-f64-20261012/compare-distribution.py --capture re
 Thirteen focused Python checks pass (five capture/error controls and eight existing F64 equation controls), alongside restored kernel/configuration digest checks. These are correctness diagnostics, not latency or contributor-memory acceptance. No Mac candidate run, package adoption, signed application acceptance, or deployment is claimed.
 
 Next: use the retained current-source request-2/step-3 boundaries and its step-15 maximum to identify a causal producer correction; do not repeat the already resolved short-prefix final-head/storage checks or promote an average-only improvement.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `compare-distribution.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/artifacts/short-prefix-f64-20261012); the recorded receipts here are unchanged.

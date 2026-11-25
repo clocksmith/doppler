@@ -127,3 +127,5 @@ Still open: this successor's physical Vulkan lane, optional M3 27B closure,
 separate scratch planning, and any optimized package acceptance. Representation
 planning stays closed within its tested scope. The rejected four-token delivery
 experiment remains rejected. Reploid and WAN work remain outside this campaign.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `prepare-successor.py`, `summarize.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/qwen-bind-group-reuse-20261017); the recorded receipts here are unchanged.

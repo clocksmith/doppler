@@ -160,3 +160,5 @@ investigation; report digests bind each invocation to its actual code.
 
 Component: `doppler.repository-tooling`. Intent: preserved. Boundary effects:
 none. These controls cannot close integrated application or deployment gates.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `evaluator-boundary-check.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/artifacts/qwen3-17b-application-policy-20261011); the recorded receipts here are unchanged.

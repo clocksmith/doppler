@@ -138,3 +138,5 @@ before returning to the next kernel. It does not prove a particular Mesa/Dawn
 internal batching mechanism. The production repair declares paired-variant
 completion in the immutable kernel registry and needs a newly packaged installed
 run, the complete prefix campaign and application/lifecycle acceptance.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `compare-stage.py`, `compare.py`, `reference-layer17.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/artifacts/ordered-partitions-20261013/long-prefill-boundary); the recorded receipts here are unchanged.

@@ -127,3 +127,5 @@ pin assertions passed separately; numerical failures remain failures.
 Component: `doppler.repository-tooling`, `doppler.tests`. Intent: preserved.
 Boundary effects: none; no runtime, kernel, manifest or active reference changed
 in this evidence batch.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `compare.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/artifacts/whole-model-f64-complete-20261011); the recorded receipts here are unchanged.

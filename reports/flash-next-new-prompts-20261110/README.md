@@ -88,7 +88,7 @@ scales changes 4,748,325 of 13,436,928 common-input CPU values, with relative
 RMS difference 5.06e-8. That is another bounded arithmetic sensitivity, not a
 demonstrated model fix.
 
-[compare-gdn-algorithms.py](compare-gdn-algorithms.py) loads the unchanged
+[compare-gdn-algorithms.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-new-prompts-20261110/compare-gdn-algorithms.py) loads the unchanged
 pinned source definitions and independently decoded artifact weights. It runs
 CPU-only, exports a hash-bound optional standalone fixture, and never feeds
 modified tensors into model execution. An initial attempt incorrectly assumed
@@ -122,7 +122,7 @@ full 2,187-token `inventory` prompt (`M = 2,187`) at position 112:
 ## Full-prefix same-input operator controls (Layers 0–24)
 
 [same-input-operator-controls.json](same-input-operator-controls.json) and
-[audit-same-input-operators.py](audit-same-input-operators.py) capture full
+[audit-same-input-operators.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-new-prompts-20261110/audit-same-input-operators.py) capture full
 `[113, ...]` GPU stage boundaries across Layers 0–24 on `inventory_prefix113`
 under `profiles/flash-next-routed-f32kv-qualification` (matching the retained
 prepared-plan prefix router inputs bit-for-bit across all `64,000` F32 values at
@@ -221,3 +221,5 @@ configuration, F16 cache and other platforms remain separate work.
 
 Component: `doppler.repository-tooling`, `doppler.tests`. Intent: preserved.
 Boundary effects: input preparation and evidence validation only.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `audit-same-input-operators.py`, `compare-gdn-algorithms.py`, `prepare-run.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-new-prompts-20261110); the recorded receipts here are unchanged.

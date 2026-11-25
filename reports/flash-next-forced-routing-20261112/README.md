@@ -98,3 +98,5 @@ in [comparison.json](comparison.json).
 
 Component: `doppler.tests`, `doppler.repository-tooling`. Intent: preserved.
 Boundary effects: none.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `compare-forced-routing.py`, `prepare-routing-fixture.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-forced-routing-20261112); the recorded receipts here are unchanged.

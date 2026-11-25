@@ -154,3 +154,5 @@ the historical `waitForReceipt` field, then execute
 `run-campaign.py metal|vulkan COPIED_CONTRACT`. The runner refuses to overwrite an
 existing case. Preserve the new contract and receipts separately; adapt the
 reducer's contract path for that run. Never benchmark mutable working-tree files.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `extract-runtime.py`, `run-campaign.py`, `summarize.py`, `verify-model.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/weight-representation-20261017); the recorded receipts here are unchanged.

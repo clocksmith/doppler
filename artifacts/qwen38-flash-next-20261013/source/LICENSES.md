@@ -15,3 +15,5 @@ checkpoint repository, so it is under Apache-2.0.
 The Qwen Community License requires its notice in all copies or substantial
 portions of the Software (clause 1). Copies of these files, and artifacts
 converted from the checkpoint, keep `LICENSE` with them.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `activations.py`, `cache_utils.py`, `configuration_qwen4_exp.py`, `conversion_mapping.py`, `core_model_loading.py`, `integrations_accelerate.py`, `integrations_hub_kernels.py`, `integrations_moe.py`, `masking_utils.py`, `modeling_qwen3_5.py`, `modeling_qwen4_exp.py`, `modeling_rope_utils.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/artifacts/qwen38-flash-next-20261013/source); the recorded receipts here are unchanged.

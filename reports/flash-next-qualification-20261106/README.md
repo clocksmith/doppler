@@ -424,3 +424,5 @@ Acceptance evidence: seven tensor-integrity regressions (normal and `-O`),
 MoE observation ownership/source-integrity tests, verified retained-data replays,
 the physical AMD capture and independent CPU controls. Boundary effects:
 test-only readbacks and fail-closed evidence readers; no runtime changes.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `check-linear-branch-same-input-layer.py`, `verified_tensor_io.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-qualification-20261106); the recorded receipts here are unchanged.

@@ -13,16 +13,16 @@ const prep = '../../artifacts/qwen38-flash-next-20261013/';
 const flashNext = await readJson(`${prep}source/config.json`);
 const headers = await readJson(`${prep}checkpoint-headers.json`);
 const binding = await readJson(`${prep}source-binding.json`);
-const configClassSource = await readFile(new URL(`${prep}source/configuration_qwen4_exp.py`, import.meta.url), 'utf8');
+// The vendored Python source is retired from the tree; this pinned excerpt
+// fixture records the Qwen4ExpTextConfig class-level default lines.
+const configExcerpt = (await readJson('../fixtures/qwen4-exp-source-excerpts.json')).files['configuration_qwen4_exp.py'];
 
 // The defaults mirror names the bound configuration class and equals its literals.
 const bound = binding.referenceImplementation.files.find((entry) => entry.path === 'configuration_qwen4_exp.py');
 assert.equal(sourceDefaults.source.sha256, bound.sha256);
 assert.equal(sourceDefaults.source.url, bound.url);
-const textClass = configClassSource.slice(
-  configClassSource.indexOf('class Qwen4ExpTextConfig'),
-  configClassSource.indexOf('class Qwen4ExpVisionConfig'),
-);
+assert.equal(configExcerpt.sha256, bound.sha256);
+assert.equal(configExcerpt.url, bound.url);
 const pythonLiteral = (text) => {
   if (text === 'None') return null;
   if (text === 'True') return true;
@@ -30,7 +30,7 @@ const pythonLiteral = (text) => {
   return JSON.parse(text.replaceAll('_', ''));
 };
 for (const [field, value] of Object.entries(sourceDefaults.defaults)) {
-  const match = textClass.match(new RegExp(`^    ${field}: [^=\\n]+ = (.+)$`, 'm'));
+  const match = (configExcerpt.lines[field] ?? '').match(new RegExp(`^    ${field}: [^=\\n]+ = (.+)$`));
   assert.ok(match, `${field} has a class-level default`);
   assert.deepEqual(pythonLiteral(match[1].trim()), value, `${field} default`);
 }

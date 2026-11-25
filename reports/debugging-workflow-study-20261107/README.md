@@ -122,3 +122,5 @@ source bytes change by 370. No dependency/budget change was needed. Local closur
 architecture and installed-package smoke checks passed; GitHub Smoke run
 [42419785491](https://github.com/clocksmith/doppler/actions/runs/42419785491) passed.
 This package check is not physical learned-model qualification.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `command.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/debugging-workflow-study-20261107); the recorded receipts here are unchanged.

@@ -104,3 +104,5 @@ Still open: broad answer-quality acceptance; a qualified recurring movie-selecti
 Component: installed generation, serving and verification evidence. Intent: preserved. Acceptance: scoped eight-lane lifecycle, scalar recurrent equality, physical partial tiles and retained failed quality results. Boundary effects: no new execution/application ownership; no universal support, quality or promotion claim.
 
 Filename-only migration (2026-11-14): `tjs-service-control.mjs` → `tjs-service-control.js`. Driver bytes and their SHA-256 digests are unchanged; captured outputs retain their original historical filenames. Current indexes below resolve the `.js` names.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `reproduce.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/qwen-service-qualification-20261017); the recorded receipts here are unchanged.

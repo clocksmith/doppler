@@ -40,7 +40,7 @@ A narrower-tile candidate measured 438.6 ms wall, 224.80 ms GPU and 160.4 ms CPU
 
 ## Reproduction
 
-[reproduce.py](reproduce.py) reconstructs the measured source from base commit `5beddd5d3afafa0c4cbe1c6c4b9d6b3d7f950dad` plus the small [source overrides](source-overrides.tar.gz), checks source hashes and provisioned model identities, and invokes the recorded comparison contract. It downloads no models. Use the pinned Node dependencies from that source's lockfile, including Transformers.js 4.2.0; model revisions and file hashes are in [comparator-pins.json](comparator-pins.json) and [doppler-model-pins.json](doppler-model-pins.json). Provision Git LFS tokenizer files where needed. Model roots must contain the exact signed manifests and shards, not a reconversion.
+[reproduce.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/qwen-competition-20261017/reproduce.py) reconstructs the measured source from base commit `5beddd5d3afafa0c4cbe1c6c4b9d6b3d7f950dad` plus the small [source overrides](source-overrides.tar.gz), checks source hashes and provisioned model identities, and invokes the recorded comparison contract. It downloads no models. Use the pinned Node dependencies from that source's lockfile, including Transformers.js 4.2.0; model revisions and file hashes are in [comparator-pins.json](comparator-pins.json) and [doppler-model-pins.json](doppler-model-pins.json). Provision Git LFS tokenizer files where needed. Model roots must contain the exact signed manifests and shards, not a reconversion.
 
 ```sh
 python3 reports/qwen-competition-20261017/reproduce.py --size 08 \
@@ -77,3 +77,5 @@ The prior recurrent-prefill, GPU-resident clone and uniform-validation-cache imp
 Vulkan zero-warmup first requests, longer prompts, extended quality tasks, transfer/import/export latency, and current-build native coverage remain open. Existing full-test fake-tokenizer failure and the untouched attention architecture budget failure are not passing release gates.
 
 Component: Doppler benchmark evidence. Intent: preserved. Acceptance: four local matched browser lanes, two fresh-profile M3 observations, retained source/model hashes and focused implementation checks. Boundary effects: none from this report; no kernel profile or model artifact is changed by publication.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `reproduce.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/qwen-competition-20261017); the recorded receipts here are unchanged.

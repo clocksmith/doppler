@@ -29,7 +29,7 @@ No threshold, prompt, input, policy value or acceptance rule has been changed.
 ## Run layout
 
 The run directory is `ROOT=/home/x/flash-next-routing-aware-fresh-20261112`. It is the `ROOT`
-that [run-fresh.sh](run-fresh.sh) expects.
+that [run-fresh.sh](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/run-fresh.sh) expects.
 
 Every job's start time is in
 [run-20261112/run-starts.jsonl](run-20261112/run-starts.jsonl), and every start is after the
@@ -67,9 +67,9 @@ Each deviation is recorded with a timestamp in
 input or rule.
 
 1. **Host-safety wrappers.**
-   - [gpu-track.sh](run-20261112/gpu-track.sh),
-     [gpu-track-part2.sh](run-20261112/gpu-track-part2.sh) and
-     [gpu-track-part3.sh](run-20261112/gpu-track-part3.sh) run the `run-fresh.sh gpu` commands
+   - [gpu-track.sh](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/run-20261112/gpu-track.sh),
+     [gpu-track-part2.sh](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/run-20261112/gpu-track-part2.sh) and
+     [gpu-track-part3.sh](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/run-20261112/gpu-track-part3.sh) run the `run-fresh.sh gpu` commands
      word for word. Before each GPU job they check four things: MemAvailable is at least 30 GiB,
      swap use is at most 1 GiB, there are no `BO_VA` kernel messages, and no amdgpu process is
      in D state.
@@ -97,7 +97,7 @@ input or rule.
      | `ledger-02` | L21 | t1023 |
      | `ledger-04` | L13 | t2583 |
 
-   - [prepare-routing-fixture-tie-aware.py](run-20261112/prepare-routing-fixture-tie-aware.py)
+   - [prepare-routing-fixture-tie-aware.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/run-20261112/prepare-routing-fixture-tie-aware.py)
      (`62a7592f…`) replaces that check with a value check: no unselected logit may exceed the
      smallest selected logit.
    - The fixture's experts, scores, logits and margins are byte-for-byte unchanged. Only
@@ -147,7 +147,7 @@ cd "$ROOT" && sh "$F/run-fresh.sh" audit
 
 `run-fresh.sh cpu` needs a fresh `cpu/all`, and the fixtures and comparisons already reference
 `cpu/all/round-0`. So resume from the two completed steps instead.
-[resume-cpu-chain.py](run-20261112/resume-cpu-chain.py) runs the frozen script's `round` mode
+[resume-cpu-chain.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/run-20261112/resume-cpu-chain.py) runs the frozen script's `round` mode
 with the same command line, inputs and stop rule as `run_chain`.
 
 ```sh
@@ -184,3 +184,5 @@ mkdir -p "$ROOT/gpu/unforced-strict" && for id in ...; do python3 -P "$SNAPSHOT/
 ```
 
 Component: `doppler.tests`, `doppler.repository-tooling`. Intent: preserved. Boundary effects: none.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `cpu-reference.py`, `run-20261112/gpu-track-part2.sh`, `run-20261112/gpu-track-part3.sh`, `run-20261112/gpu-track.sh`, `run-20261112/prepare-routing-fixture-tie-aware.py`, `run-20261112/resume-cpu-chain.py`, `run-fresh.sh` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112); the recorded receipts here are unchanged.

@@ -35,3 +35,5 @@ Run only on x128 CPUs4–7, four threads, nice10, with no GPU. Exact source/eval
 checkpoint/tokenizer, fixture and preflight hashes are in `freeze.json`.
 
 Completed result: [all four pairs rejected](RESULTS.md); natural completion passed, factual acceptance did not.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `preflight.py`, `run.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/artifacts/qwen3-direct-bathroom-20261012); the recorded receipts here are unchanged.

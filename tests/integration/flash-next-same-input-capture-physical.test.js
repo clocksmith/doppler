@@ -14,7 +14,7 @@ import { installMoeSharedSplitObservation } from '../helpers/moe-shared-split-ob
 // sequence mixer's complete input, executed top-k indices and weights, the routed-expert
 // output before the shared-expert add, the root mixer and the last-position logits.
 // Observation only: awaited readbacks, no replacement. The CPU replay is
-// reports/flash-next-routing-aware-fresh-20261112/audit-same-input-all-layers.py.
+// reports/flash-next-routing-aware-fresh-20261112/audit-same-input-all-layers.py (removed; at commit 3e485ca93).
 const runPath = process.env.DOPPLER_FLASH_NEXT_SAME_INPUT_CAPTURE;
 if (!runPath) {
   assert(!process.argv.includes('--require-model'), 'Set DOPPLER_FLASH_NEXT_SAME_INPUT_CAPTURE.');

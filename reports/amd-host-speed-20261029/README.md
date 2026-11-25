@@ -221,3 +221,5 @@ Intent: preserved. Acceptance evidence: frozen contract, 40 scored requests,
 checks above. Boundary effects: explicit opt-in profile and versioned observation
 semantics; no arithmetic, resource-lifetime, default, signed-artifact or application
 policy change.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `prepare-gates.py`, `summarize.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/amd-host-speed-20261029); the recorded receipts here are unchanged.

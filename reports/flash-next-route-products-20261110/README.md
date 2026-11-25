@@ -127,3 +127,5 @@ From the prepared runtime, run the provisioned learned-model harness with
 preparation, original policy and reference and does not authorize promotion.
 The learned weights and raw captures remain operator-local; this report is not
 a self-contained model distribution.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `compare-source-delta.py`, `seal-receipt.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-route-products-20261110); the recorded receipts here are unchanged.

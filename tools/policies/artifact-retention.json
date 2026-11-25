@@ -153,9 +153,9 @@
     },
     "artifacts/kernel-completion-repair-20261013": {
       "retentionClass": "frozen-evidence",
-      "files": 46,
-      "bytes": 5828561,
-      "inventoryHash": "sha256:57ed9b7a19c5fe2cf08ff0152825d6612a5de1afb9470d5c209393848363ec17"
+      "files": 41,
+      "bytes": 5814655,
+      "inventoryHash": "sha256:ffdf2efb9d23aea4336c49e8e6428b762b4d75267f1746b3f04cb9bfaaabeedf"
     },
     "artifacts/main-integration-2026-09-19": {
       "retentionClass": "frozen-evidence",
@@ -171,9 +171,9 @@
     },
     "artifacts/model-repairs-20261109": {
       "retentionClass": "frozen-evidence",
-      "files": 88,
-      "bytes": 1789339,
-      "inventoryHash": "sha256:ab0ceaefa500f3fcab202a5bad9ae3618879de5fa628e92fefb8f2c5c97d3d65"
+      "files": 85,
+      "bytes": 1782395,
+      "inventoryHash": "sha256:e36f83867a8a6a4e2c3df12086cb0b06aa0a34fee78f5a31c02322f15a6f1283"
     },
     "artifacts/numerical-20261010": {
       "retentionClass": "frozen-evidence",
@@ -183,9 +183,9 @@
     },
     "artifacts/ordered-partitions-20261013": {
       "retentionClass": "frozen-evidence",
-      "files": 440,
-      "bytes": 166218745,
-      "inventoryHash": "sha256:cf9d182289049e3955849cae213584b6cce96938af4bad7b54c12b923d8cd632"
+      "files": 434,
+      "bytes": 166186616,
+      "inventoryHash": "sha256:6bd26c30a8e74cf5392c6396a0a044c6edfd7d24c27593ce1627066fca22bffc"
     },
     "artifacts/package-budget-20261014": {
       "retentionClass": "frozen-evidence",
@@ -207,9 +207,9 @@
     },
     "artifacts/paired-intermediates-20261012": {
       "retentionClass": "frozen-evidence",
-      "files": 213,
-      "bytes": 469872708,
-      "inventoryHash": "sha256:2a6b09788ba6654b1b32412bced8d98645c1fd8fc50a1aad62f6d6639a6f169f"
+      "files": 209,
+      "bytes": 469860402,
+      "inventoryHash": "sha256:7e2df13627bbf9e10a552bd9b5bf930989aa933c79012ec76245b93a30a193b2"
     },
     "artifacts/paired-logits-20261012": {
       "retentionClass": "frozen-evidence",
@@ -237,15 +237,15 @@
     },
     "artifacts/q4-accumulation-repair-20261011": {
       "retentionClass": "frozen-evidence",
-      "files": 32,
-      "bytes": 34221597,
-      "inventoryHash": "sha256:7e3b2b345edeb1fe2a21a722454620aa1d06c746d17dc08303292e983624595a"
+      "files": 31,
+      "bytes": 34220378,
+      "inventoryHash": "sha256:437f643caf68c92d4d7b2847a0d19f56fa69b60e2776b38871ed7253e4ad6114"
     },
     "artifacts/qwen08-m3-mlx-20261015": {
       "retentionClass": "frozen-evidence",
-      "files": 27,
-      "bytes": 885914,
-      "inventoryHash": "sha256:ac4da043258939b14731dbd121c1831ee9680468778bcd18249c8d081b79dd66"
+      "files": 22,
+      "bytes": 872407,
+      "inventoryHash": "sha256:87503f900fa8ac15eb2e8039705aaf29801c489d94ed365ea3793c9cc081bc38"
     },
     "artifacts/qwen08-perf-20261015": {
       "retentionClass": "frozen-evidence",
@@ -261,9 +261,9 @@
     },
     "artifacts/qwen3-17b-application-policy-20261011": {
       "retentionClass": "frozen-evidence",
-      "files": 21,
-      "bytes": 98424,
-      "inventoryHash": "sha256:377d7d36659ad64a29ad9b47f5ef26a0936b204d5044f9a7979f7d0c18b8c0f9"
+      "files": 20,
+      "bytes": 95332,
+      "inventoryHash": "sha256:4eb6b4ec2fde7caf4a00efdfb00213b046fe471067991cd1e9a2c5e8d35cb2b2"
     },
     "artifacts/qwen3-citation-policy-20261012": {
       "retentionClass": "frozen-evidence",
@@ -273,9 +273,9 @@
     },
     "artifacts/qwen3-direct-bathroom-20261012": {
       "retentionClass": "frozen-evidence",
-      "files": 15,
-      "bytes": 90937,
-      "inventoryHash": "sha256:5aa35418303b2914fa91152326d6d828546ef7301dd36bb525d90e29afe00140"
+      "files": 12,
+      "bytes": 85218,
+      "inventoryHash": "sha256:3211ca07d925022d1b54c3e077253343051b6c1dae7704b0ff37b7ffd8207efe"
     },
     "artifacts/qwen3-nonthinking-documents-20261012": {
       "retentionClass": "frozen-evidence",
@@ -291,15 +291,15 @@
     },
     "artifacts/qwen35-08b-attachment-layout-20261012": {
       "retentionClass": "frozen-evidence",
-      "files": 26,
-      "bytes": 202710,
-      "inventoryHash": "sha256:76a8f0440248f0087f71da9573eaac70b80b241d1115a013010943c89d666687"
+      "files": 25,
+      "bytes": 199967,
+      "inventoryHash": "sha256:853fb4a34c744c773a5da560b0d56a697d8c74722346cde71e2cf9123e585526"
     },
     "artifacts/qwen35-08b-attachment-source-20261012": {
       "retentionClass": "frozen-evidence",
-      "files": 36,
-      "bytes": 79723,
-      "inventoryHash": "sha256:0d7937328b3ce839ac3b49cda9bb10230e6c1349b4a7d00704f385cf30e5224f"
+      "files": 33,
+      "bytes": 71632,
+      "inventoryHash": "sha256:cdd0cf7db4e93cf850f072ffb9d957fd4c4b57de329a4a6ee098309a0e030a4a"
     },
     "artifacts/qwen35-08b-capsule-intake-20261012": {
       "retentionClass": "frozen-evidence",
@@ -327,21 +327,21 @@
     },
     "artifacts/qwen38-27b-q4-qualification-20261016": {
       "retentionClass": "frozen-evidence",
-      "files": 215,
-      "bytes": 205583217,
-      "inventoryHash": "sha256:9c6dc5b312df6a47bf5e2ae47fbdb448f579456e03c96a60b3374a611715f16f"
+      "files": 200,
+      "bytes": 205536069,
+      "inventoryHash": "sha256:0f9b30b8b1ffd842bfcc36258918539350f717b5783d27d80e51d588b9448c9e"
     },
     "artifacts/qwen38-27b-webgpu-20261015": {
       "retentionClass": "frozen-evidence",
-      "files": 70,
-      "bytes": 1951042,
-      "inventoryHash": "sha256:60ec45846e05d9d850c54a982318fbcfd92e43cd9077e1a6996e5021a8c0b1e8"
+      "files": 68,
+      "bytes": 1948105,
+      "inventoryHash": "sha256:d858eee923fec11897d91475e21f6290145713a66beb9019811332931992d836"
     },
     "artifacts/qwen38-flash-next-20261013": {
       "retentionClass": "frozen-evidence",
-      "files": 75,
-      "bytes": 16385229,
-      "inventoryHash": "sha256:e06a7bf3a9cbbf26ebeeb1a187c9f9846d44ae80b307fb36de41176780cb7e7b"
+      "files": 35,
+      "bytes": 15284640,
+      "inventoryHash": "sha256:d4e21c7a930fe7d6ea47f64d6c8f3a990dee334e783bf2284d7ffb13425723c9"
     },
     "artifacts/recovery-20261009": {
       "retentionClass": "frozen-evidence",
@@ -357,9 +357,9 @@
     },
     "artifacts/reference-target-compatibility-20261011": {
       "retentionClass": "frozen-evidence",
-      "files": 3,
-      "bytes": 25104,
-      "inventoryHash": "sha256:7974e4816f3ef5d4f2059c14448ac8080e4027d6b23232e3a0997408eb6905bb"
+      "files": 2,
+      "bytes": 21896,
+      "inventoryHash": "sha256:be44225ce654e061a737db72a1d128d753bdbd71276158d98bc0765276081569"
     },
     "artifacts/release-acceptance-2026-09-19": {
       "retentionClass": "frozen-evidence",
@@ -423,9 +423,9 @@
     },
     "artifacts/short-prefix-f64-20261012": {
       "retentionClass": "frozen-evidence",
-      "files": 14,
-      "bytes": 307392,
-      "inventoryHash": "sha256:1448b1467d4cbc378724c42b029ee8d95e5ac880c91dbd35bc1043935679ba5f"
+      "files": 13,
+      "bytes": 303563,
+      "inventoryHash": "sha256:3e118f61bf83f11252324b7c2049116c153fa4b9b32bb8a93681de8fb5caf7d7"
     },
     "artifacts/signed-blake3-reader-20261012": {
       "retentionClass": "frozen-evidence",
@@ -459,9 +459,9 @@
     },
     "artifacts/source-prefix-correction-20261012": {
       "retentionClass": "frozen-evidence",
-      "files": 193,
-      "bytes": 109607267,
-      "inventoryHash": "sha256:2f41108454eec166add1bf26dd328cf3e06de5056585dc3450e289edbfc5375c"
+      "files": 189,
+      "bytes": 109598445,
+      "inventoryHash": "sha256:247e9110cd7b21d0106c6dbf0f342dc1906c4e3f29118877d5855e167275960b"
     },
     "artifacts/startup-verification-2026-09-20": {
       "retentionClass": "frozen-evidence",
@@ -519,21 +519,21 @@
     },
     "artifacts/whole-model-f64-complete-20261011": {
       "retentionClass": "frozen-evidence",
-      "files": 30,
-      "bytes": 2182617,
-      "inventoryHash": "sha256:928a229242767e7c8ecc7036cb634efe2fb572ea0e49696f4ddee88770e95a13"
+      "files": 29,
+      "bytes": 2177615,
+      "inventoryHash": "sha256:7c86b8749a7d3f5e10c685be6367157a9e33c7328c3dcf0ef2488514ed034231"
     },
     "reports/amd-host-speed-20261029": {
       "retentionClass": "frozen-evidence",
-      "files": 28,
-      "bytes": 66626086,
-      "inventoryHash": "sha256:6733debdc55aa563be82641d0df6f8a619083449ce500136245b5aba84bc999e"
+      "files": 24,
+      "bytes": 66611819,
+      "inventoryHash": "sha256:fa86f9c1e8b3be9b8ad93792ec266b2f513feeb5a9af63cb39c75367dacab165"
     },
     "reports/amd-host-tuning-20261029": {
       "retentionClass": "frozen-evidence",
-      "files": 70,
-      "bytes": 235159862,
-      "inventoryHash": "sha256:6378b05ff86411a616a4ccbcdf3652a76b74fc7e44d2b3b56b11eda185a3b3e5"
+      "files": 68,
+      "bytes": 235153849,
+      "inventoryHash": "sha256:442fb4cf546224d503437c2803863565d9a9d392e810158c92c42eec001598ff"
     },
     "reports/architecture-consolidation": {
       "retentionClass": "frozen-evidence",
@@ -603,9 +603,9 @@
     },
     "reports/debugging-workflow-study-20261107": {
       "retentionClass": "frozen-evidence",
-      "files": 33,
-      "bytes": 1760415,
-      "inventoryHash": "sha256:295a94f9728a87d0aac97a202f51460784f85658ba169bc64d9c3251c0210f99"
+      "files": 32,
+      "bytes": 1759414,
+      "inventoryHash": "sha256:abfd1205457babd7a8d049009ea9c072972c85f1ff3c321b7978bd06ea930b0b"
     },
     "reports/decision-benchmark-20261022": {
       "retentionClass": "frozen-evidence",
@@ -699,21 +699,21 @@
     },
     "reports/flash-next-cache-20261107": {
       "retentionClass": "frozen-evidence",
-      "files": 149,
-      "bytes": 1047886,
-      "inventoryHash": "sha256:2ea93791ea8fe0afa221496963eb20fc91702e19c6bcb09f43e424d67222e5f8"
+      "files": 146,
+      "bytes": 1041306,
+      "inventoryHash": "sha256:30ae22065c124d2e96c513b65d8fa458b75e2d4f7a55cd828885e4cd276c0abd"
     },
     "reports/flash-next-decode-20261110": {
       "retentionClass": "frozen-evidence",
-      "files": 8,
-      "bytes": 128880,
-      "inventoryHash": "sha256:94a145b41c65e469fcb74c319b2f499ec0a83093aff2739855bf03293a37bddd"
+      "files": 7,
+      "bytes": 119177,
+      "inventoryHash": "sha256:c8504b937fd4842e4381a4ac127ebcd9bbe205e3ed58fae6612614dfc4549029"
     },
     "reports/flash-next-forced-routing-20261112": {
       "retentionClass": "frozen-evidence",
-      "files": 4,
-      "bytes": 75459,
-      "inventoryHash": "sha256:f9d568c6ce25e9deab57251d4d6684573105b9892da8300c07e6d7d75a7460a9"
+      "files": 2,
+      "bytes": 67613,
+      "inventoryHash": "sha256:71afe4b3743eba9199e594becf573316f43e3710a36bba377a5997bdf4b69aba"
     },
     "reports/flash-next-installed-20261110": {
       "retentionClass": "frozen-evidence",
@@ -729,39 +729,39 @@
     },
     "reports/flash-next-new-prompts-20261110": {
       "retentionClass": "frozen-evidence",
-      "files": 25,
-      "bytes": 1001243,
-      "inventoryHash": "sha256:05c150e0272a267370bf555b4df2b5d79a6b81b8ad70db10b6a878d485530f19"
+      "files": 19,
+      "bytes": 921928,
+      "inventoryHash": "sha256:ee7f5f93a639fd6ce69c7fb484569de377b912b173339171c8ace47166b43af9"
     },
     "reports/flash-next-origin-20261109": {
       "retentionClass": "frozen-evidence",
-      "files": 23,
-      "bytes": 195809,
-      "inventoryHash": "sha256:e08ddc35bf0f7334ee8fdc19ce0d5dac8be2c551d6269e743b3623f0d3e70f9f"
+      "files": 18,
+      "bytes": 174570,
+      "inventoryHash": "sha256:4c1f755f72e580da20fb9641613f8599c0e6403c5f045ccceb473a58af716fa6"
     },
     "reports/flash-next-qualification-20261105": {
       "retentionClass": "frozen-evidence",
-      "files": 85,
-      "bytes": 6282755,
-      "inventoryHash": "sha256:d26e01f9e1b92f9dcc4faa4aa1178f2f38c974fb2f83c8fa4ea33b8e1d585dbc"
+      "files": 84,
+      "bytes": 6279432,
+      "inventoryHash": "sha256:45e149a19ffbb604575c435c6eed6c954ad4afef3e9ca4ad5b6fe2850598a4fa"
     },
     "reports/flash-next-qualification-20261106": {
       "retentionClass": "frozen-evidence",
-      "files": 131,
-      "bytes": 3866688,
-      "inventoryHash": "sha256:3a6a02fc344e7eb5414c84694987026ad7a3e9ea0babbd31c5e0f45c33f3722d"
+      "files": 111,
+      "bytes": 3759274,
+      "inventoryHash": "sha256:2d94765324f7a1f14dbd9f77e209132e2281a3f923be5308c692f93f624f4a99"
     },
     "reports/flash-next-qualification-20261107": {
       "retentionClass": "frozen-evidence",
-      "files": 86,
-      "bytes": 4149168,
-      "inventoryHash": "sha256:f185ffd8d88c53a18f3ff8bf2e923aef8de46cbebb5efb06805944c78a56fee8"
+      "files": 77,
+      "bytes": 4105799,
+      "inventoryHash": "sha256:7286aad8e5bce1ecc301304329c747fe696b8f34891137160113d9540d99de8c"
     },
     "reports/flash-next-qualification-20261109": {
       "retentionClass": "frozen-evidence",
       "files": 17,
-      "bytes": 137126,
-      "inventoryHash": "sha256:9bce07b90ff0d770b25e5119f2ea93b89d1d9ed0b8023ca544dfbd4833935310"
+      "bytes": 137579,
+      "inventoryHash": "sha256:46e4f785ae273c018a11876331e0d751d9cf4bf2c67a251ad37dbab1fcecdeca"
     },
     "reports/flash-next-reference-controls-20261110": {
       "retentionClass": "frozen-evidence",
@@ -771,21 +771,21 @@
     },
     "reports/flash-next-route-order-20261110": {
       "retentionClass": "frozen-evidence",
-      "files": 9,
-      "bytes": 33754,
-      "inventoryHash": "sha256:9c51a1844510d7de378ae9d169fa159fe0c16c9d6042d504eaa53b0804682fa3"
+      "files": 8,
+      "bytes": 27975,
+      "inventoryHash": "sha256:2996363c2dec22c5af0cd64a626e3d8fb4c33d3094cd20122b929611b0985aea"
     },
     "reports/flash-next-route-products-20261110": {
       "retentionClass": "frozen-evidence",
-      "files": 17,
-      "bytes": 49361,
-      "inventoryHash": "sha256:da3b919d4b92b7e77c2a3b7a7b75d038321b52202f8366f78afbf119ba727aa0"
+      "files": 15,
+      "bytes": 40040,
+      "inventoryHash": "sha256:16666da4831b8939959d85d7c53a06e370cae5f241c54c8aa8fa6c7a32c067f7"
     },
     "reports/flash-next-routing-aware-fresh-20261112": {
       "retentionClass": "frozen-evidence",
-      "files": 20,
-      "bytes": 107112,
-      "inventoryHash": "sha256:0b7a3bbe697f3c7735ecc702230148c40705e26d35fde1fdd76900a073eee282"
+      "files": 10,
+      "bytes": 49582,
+      "inventoryHash": "sha256:b765e75b3abdc584dc633c895f7adb56ccdf0eceb2ee21ebf0fe1331a5a1e05f"
     },
     "reports/flash-next-routing-aware-gate-20261112": {
       "retentionClass": "frozen-evidence",
@@ -997,21 +997,21 @@
     },
     "reports/qwen-bind-group-reuse-20261017": {
       "retentionClass": "frozen-evidence",
-      "files": 14,
-      "bytes": 4291231,
-      "inventoryHash": "sha256:9bdeb1650678fe052eb81db7602f48ad3391d40f90ac5baa60ddfa9e1b12d449"
+      "files": 12,
+      "bytes": 4280869,
+      "inventoryHash": "sha256:e3b658ecda8d250a841a81be0ead857dbcbb415cdd23bce7e3e8eaa76eac9a1f"
     },
     "reports/qwen-competition-20261017": {
       "retentionClass": "frozen-evidence",
-      "files": 9,
-      "bytes": 4701005,
-      "inventoryHash": "sha256:df7ce74486f8e24ec63c76750111925d9baab9e5c9a1feb61fe8c4673303f38f"
+      "files": 8,
+      "bytes": 4696197,
+      "inventoryHash": "sha256:d9f96bb1e7f991f106c5fda38cf81863330d7fd422d3022251ff537494398c33"
     },
     "reports/qwen-delivery-attribution-20261017": {
       "retentionClass": "frozen-evidence",
-      "files": 8,
-      "bytes": 644406,
-      "inventoryHash": "sha256:5fd670a54903c0dd3aef4ce4536d7a466944c84afe2ccd4cfcfb6b11aea65e80"
+      "files": 7,
+      "bytes": 641348,
+      "inventoryHash": "sha256:b6f891615c2e46f146c5fe32ee3807efee7e625961fd7f267a305941749e6b91"
     },
     "reports/qwen-installed-20261107": {
       "retentionClass": "frozen-evidence",
@@ -1033,9 +1033,9 @@
     },
     "reports/qwen-numerical-localization-20261022": {
       "retentionClass": "frozen-evidence",
-      "files": 7,
-      "bytes": 65977,
-      "inventoryHash": "sha256:d58b774fcd6ff1a241c4765bf14efe01a6512e0f664a22e9faaa329161cfa751"
+      "files": 6,
+      "bytes": 62811,
+      "inventoryHash": "sha256:c7f6226ea0ae794511385ef789598fe896ebe2904972ca96d0891549fa8cc5bc"
     },
     "reports/qwen-operator-attribution-20261018": {
       "retentionClass": "frozen-evidence",
@@ -1051,9 +1051,9 @@
     },
     "reports/qwen-package-candidate-20261017": {
       "retentionClass": "frozen-evidence",
-      "files": 9,
-      "bytes": 4196727,
-      "inventoryHash": "sha256:6a994dba5ac2dfd1eb488fa05d608c371c10c5ee30778a8a241a86daa9b14e5c"
+      "files": 8,
+      "bytes": 4194612,
+      "inventoryHash": "sha256:f118d04aed6ff759d371382364ae40435802de34fcf33a2392e336ed5605bb60"
     },
     "reports/qwen-prepared-execution-20261017": {
       "retentionClass": "frozen-evidence",
@@ -1069,9 +1069,9 @@
     },
     "reports/qwen-profile-correction-20261017": {
       "retentionClass": "frozen-evidence",
-      "files": 13,
-      "bytes": 1622866,
-      "inventoryHash": "sha256:43913205c39fdf19bbe0e6529d31bf400f808810f93f76787419dd4579a78db7"
+      "files": 8,
+      "bytes": 1613433,
+      "inventoryHash": "sha256:84d13e15cad027f3926b37aa936923905b95a9497eeaae593a2c4b74825b6e6c"
     },
     "reports/qwen-qualification-next-20261017": {
       "retentionClass": "frozen-evidence",
@@ -1087,27 +1087,27 @@
     },
     "reports/qwen-sampling-correction-20261017": {
       "retentionClass": "frozen-evidence",
-      "files": 19,
-      "bytes": 14066588,
-      "inventoryHash": "sha256:29ed19bdccbc95bf717c2309f01ee79f4868025cb71a4dfefae874b184c0d58a"
+      "files": 15,
+      "bytes": 14054029,
+      "inventoryHash": "sha256:9672b726da8ac5aa4cc9af0ff4af46dbc8ec58598951970b205a622cff5fee4c"
     },
     "reports/qwen-scratch-reuse-20261018": {
       "retentionClass": "frozen-evidence",
-      "files": 14,
-      "bytes": 6084669,
-      "inventoryHash": "sha256:38c1f0911971c616a170d530e9fd0fe464e0bb1ec0059477733324a727c8ca02"
+      "files": 12,
+      "bytes": 6077803,
+      "inventoryHash": "sha256:81d665b77170094b9003ee34d2e21deb1be60c7b3746a1dfb4b3cf004c8e2340"
     },
     "reports/qwen-service-qualification-20261017": {
       "retentionClass": "frozen-evidence",
-      "files": 25,
-      "bytes": 13357361,
-      "inventoryHash": "sha256:24310b7ea094b9c8f199c41e2ac89ed7dddd65577b35665c9690a49de8703a47"
+      "files": 24,
+      "bytes": 13354300,
+      "inventoryHash": "sha256:c817680be5ff7b8d7cb9620595eba28e36a3a7b87b9d76dd91d01160f8cd3723"
     },
     "reports/qwen-shared-performance-20261102": {
       "retentionClass": "frozen-evidence",
-      "files": 163,
-      "bytes": 4957088,
-      "inventoryHash": "sha256:8f5539aa397c4e990bbf3ebcf2fb34e4cfb191f20648d81de4632165d0850a37"
+      "files": 157,
+      "bytes": 4917075,
+      "inventoryHash": "sha256:ab7c7560633ba21d0c6d38ef4645c27a776d93399eaadeec244a6975f62bc2e3"
     },
     "reports/qwen08-cache-repair-20261107": {
       "retentionClass": "frozen-evidence",
@@ -1225,9 +1225,9 @@
     },
     "reports/routed-expert-loading-20261106": {
       "retentionClass": "frozen-evidence",
-      "files": 28,
-      "bytes": 181083,
-      "inventoryHash": "sha256:6a24f0e17f9259b09633507815d362da3d8964f65261da41d57246c9a87afa11"
+      "files": 26,
+      "bytes": 173356,
+      "inventoryHash": "sha256:116d8ab9945e849be371fc5382f940b0f219d298d9dcc00722d0f86a7d77fdcc"
     },
     "reports/runtime-isolation-20261104": {
       "retentionClass": "frozen-evidence",
@@ -1297,9 +1297,9 @@
     },
     "reports/weight-representation-20261017": {
       "retentionClass": "frozen-evidence",
-      "files": 18,
-      "bytes": 34270504,
-      "inventoryHash": "sha256:9aa4ddfef220cf061b6948c64d8bc20d6af226c258301e59841619a706b366c5"
+      "files": 14,
+      "bytes": 34258749,
+      "inventoryHash": "sha256:9558b4b0fa7f3b6d92eaba62279282f95e5b6cddc438ed72de2070ab95bca9d3"
     },
     "reports/weight-representation-closure-20261017": {
       "retentionClass": "frozen-evidence",

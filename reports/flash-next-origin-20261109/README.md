@@ -171,3 +171,5 @@ The source demo shell independently exceeds its unchanged byte budget:
 10,006,898 > 10,000,000 bytes. Comparing every listed shell file with the base
 commit finds zero byte growth from this task. No budget was raised and no demo
 or runtime was deployed.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `assess-router-inputs.py`, `compare-controls.py`, `compare-softplus.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-origin-20261109); the recorded receipts here are unchanged.

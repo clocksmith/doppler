@@ -1,5 +1,5 @@
 // Float64 reference of the pinned qwen4_exp gated residual
-// (artifacts/qwen38-flash-next-20261013/source/modeling_qwen4_exp.py,
+// (upstream modeling_qwen4_exp.py pinned in artifacts/qwen38-flash-next-20261013/source-binding.json,
 // Qwen4ExpTextGatedResidual and Qwen4ExpTextDecoderLayer injection) with
 // first-order forward error bounds for F32 execution in any summation order.
 // Test-only: never a runtime fallback.
@@ -19,7 +19,7 @@ const sigmoid = (x) => 1 / (1 + Math.exp(-x));
 const silu = (x) => x * sigmoid(x);
 
 /**
- * Deterministic recipes of artifacts/qwen38-flash-next-20261013/prepare-reference.py:
+ * Deterministic recipes of artifacts/qwen38-flash-next-20261013/prepare-reference.py (removed; at commit 3e485ca93):
  * parameter p (ordinal o) = ((i * (o + 1)) % 31 - 15) / 4096; input = ((i % 43) - 21) / 16.
  */
 export function fixtureParameter(count, ordinal) {

@@ -123,7 +123,7 @@ run's explicit kernel path with
 `tests/integration/flash-next-learned-physical.test.js --require-model`.
 Update operator-local file paths only, preserving model, input, reference,
 source and execution identities. Use the unchanged
-[F32 comparator](../flash-next-qualification-20261107/compare-f32kv-reference.py)
+[F32 comparator](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-qualification-20261107/compare-f32kv-reference.py)
 and its original reference binding. Both short and long rows must be present;
 the verdict covers prefill only.
 
@@ -135,3 +135,5 @@ Component: `doppler` (qualification observations). Intent: preserved.
 Acceptance evidence: bound prefix comparison, physical same-input controls and
 the two retained failing full-prefill verdicts. Boundary effects: none at
 runtime; experimental diffs and retained observations only.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `../flash-next-qualification-20261107/compare-f32kv-reference.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-qualification-20261109); the recorded receipts here are unchanged.

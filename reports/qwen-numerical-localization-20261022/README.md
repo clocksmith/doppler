@@ -7,7 +7,7 @@ decode step 2 of "The capital of France is": unprofiled requests chose `.` (13),
 
 ## Oracle
 
-[f64-oracle.py](f64-oracle.py) runs the existing `tools/qwen35-f64-reference.py` equations in
+[f64-oracle.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/qwen-numerical-localization-20261022/f64-oracle.py) runs the existing `tools/qwen35-f64-reference.py` equations in
 F64 over the deployed Q4_K weights, after checking every shard against the independently retained
 SHA-256 inventory. Prompt tokens `[760, 6511, 314, 9338, 369]` plus `11751` (" Paris") match
 Doppler's 5-token prefill. The next token is `.` (13) at 20.931, then `,` (11) at 20.151
@@ -60,3 +60,5 @@ Component: `doppler.runtime-source.inference`, `doppler.tests`, `doppler` (evide
 Intent: preserved.
 Acceptance evidence: this directory, `tests/inference/batch-retry-policy.test.js`, decode-related `tests/inference/*.test.js`, `typecheck:source`, `source:style:check`.
 Boundary effects: profiled batched decode on recurrent models now rejects instead of returning corrupted tokens.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `f64-oracle.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/qwen-numerical-localization-20261022); the recorded receipts here are unchanged.

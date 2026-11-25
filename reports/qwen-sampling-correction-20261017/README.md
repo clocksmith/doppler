@@ -26,8 +26,8 @@ that receipt and verifying the **same archive** passes. Initial receipt retained
 Size: 1,959 files; 3,483,987 packed bytes; 14,168,991 unpacked bytes. All original
 limits remain unchanged.
 
-Matched comparison evidence is produced by [the retained driver](run-matched.py)
-and [deterministic summary](summarize-matched.py). See [all measurements](comparison-table.md)
+Matched comparison evidence is produced by [the retained driver](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/qwen-sampling-correction-20261017/run-matched.py)
+and [deterministic summary](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/qwen-sampling-correction-20261017/summarize-matched.py). See [all measurements](comparison-table.md)
 and [machine-readable summary](comparison-summary.json); the summary's `complete`
 field, individual status, and fairness verdicts own completion. Each GPU runs both
 Qwen3.5 sizes, both engine orders, 64-token cold/warm input, and 1,024-token warm
@@ -105,3 +105,5 @@ in that order; reusable bindings/scratch follow their measurement. No WAN,
 LoRA, prefix-cache or new-model work is part of this cycle.
 
 Filename-only migration (2026-11-14): `browser-lifecycle.mjs` → `browser-lifecycle.js`. Driver bytes and their SHA-256 digests are unchanged; captured outputs retain their original historical filenames. Current indexes below resolve the `.js` names.
+
+> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `prepare-harness.py`, `run-matched.py`, `summarize-matched.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/qwen-sampling-correction-20261017); the recorded receipts here are unchanged.
