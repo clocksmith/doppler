@@ -7,6 +7,16 @@ import { fileURLToPath } from 'node:url';
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const tracked = new Set(execFileSync('git', ['ls-files', '-z'], { cwd: repo, encoding: 'utf8' }).split('\0'));
+// Script members (.py) were removed from the tree when Doppler became JavaScript-only
+// (430b97ade); their recorded bytes are still checked against the last commit
+// that tracked them.
+const JS_ONLY_ARCHIVE_COMMIT = '3e485ca93';
+const REMOVED_SCRIPT_MEMBER = /\.py$/;
+function readMember(filename, repoPath) {
+  if (tracked.has(repoPath)) return readFileSync(filename);
+  assert.ok(REMOVED_SCRIPT_MEMBER.test(repoPath), `Receipt member must be tracked: ${repoPath}`);
+  return execFileSync('git', ['show', `${JS_ONLY_ARCHIVE_COMMIT}:${repoPath}`], { cwd: repo, maxBuffer: 1 << 26 });
+}
 let packets = 0;
 for (const directory of readdirSync(join(repo, 'artifacts')).filter(name => name.startsWith('model-repairs-'))) {
   for (const packet of readdirSync(join(repo, 'artifacts', directory), { withFileTypes: true })) {
@@ -21,8 +31,7 @@ for (const directory of readdirSync(join(repo, 'artifacts')).filter(name => name
       assert.ok(!seen.has(entry.path), `${root}: duplicate member ${entry.path}`); seen.add(entry.path);
       const filename = join(root, entry.path);
       const repoPath = relative(repo, filename).split('\\').join('/');
-      assert.ok(tracked.has(repoPath), `Receipt member must be tracked: ${repoPath}`);
-      const bytes = readFileSync(filename);
+      const bytes = readMember(filename, repoPath);
       assert.equal(bytes.length, entry.bytes, `${filename}: size mismatch`);
       assert.equal(createHash('sha256').update(bytes).digest('hex'), entry.sha256, `${filename}: digest mismatch`);
     }

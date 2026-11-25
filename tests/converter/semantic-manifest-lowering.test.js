@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { registerHooks } from 'node:module';
 import { sha256Hex } from '../../src/formats/sha256.js';
@@ -21,7 +22,10 @@ const checkedInConfig = await readJson(recipe.output);
 // merely because a current shader changed.
 const historicalDigests = Object.fromEntries(checkedInReceipt.dispositions
   .filter(row => row.kind === 'kernel-digest-binding').map(row => [row.kernelRef, row.digest.slice(7)]));
-const historicalTemplate = structuredClone(template);
+// The receipt also predates the kebab-case enum rename (8c6c79f6e), so it replays
+// over the template bytes it was recorded from.
+const PRE_KEBAB_COMMIT = '8c6c79f6e^';
+const historicalTemplate = JSON.parse(execFileSync('git', ['show', `${PRE_KEBAB_COMMIT}:${recipe.template}`], { encoding: 'utf8', maxBuffer: 1 << 26 }));
 const templateDigests = new Map(checkedInReceipt.dispositions
   .filter(row => row.kind === 'kernel-digest-binding').map(row => [row.kernelRef, row.templateDigest]));
 for (const kernel of Object.values(historicalTemplate.execution.kernels)) {

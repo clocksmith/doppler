@@ -3,6 +3,7 @@
 // with the pipelines execution binds; it is not GPU arithmetic evidence.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { canonicalizeLegacyEnumValues } from '../../src/config/legacy-enum-values.js';
 import { gunzipSync } from 'node:zlib';
 
 globalThis.GPUBufferUsage ??= { MAP_READ: 1, MAP_WRITE: 2, COPY_SRC: 4, COPY_DST: 8, INDEX: 16, VERTEX: 32,
@@ -73,7 +74,8 @@ function createRecordingDevice() {
 // The frozen Qwen3.5 0.8B manifest with the deployed paired program (prefill
 // chunked at 16 tokens). Layers 0, 1 (linear) and 3 (full) become a 3-layer model
 // with real per-layer geometry and encodings; zero bytes stand in for weights.
-const baseline = JSON.parse(gunzipSync(readFileSync(new URL('../fixtures/qwen35-frozen-reference-manifest.json.gz', import.meta.url))));
+// The frozen manifest keeps its published enum spellings; readers canonicalize them on load.
+const baseline = canonicalizeLegacyEnumValues(JSON.parse(gunzipSync(readFileSync(new URL('../fixtures/qwen35-frozen-reference-manifest.json.gz', import.meta.url)))));
 const graph = JSON.parse(readFileSync(new URL('../../artifacts/chunked-prefill-capsule-20261014/source-execution.json', import.meta.url)));
 const SOURCE_LAYERS = [0, 1, 3], VOCAB = 512;
 const manifest = structuredClone(baseline);

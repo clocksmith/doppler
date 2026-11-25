@@ -6,6 +6,7 @@
 // Tuning values (decode loop sizes, kernel choices) stay owned by the configs.
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import { canonicalizeLegacyEnumValues } from '../../src/config/legacy-enum-values.js';
 
 import { validateRequiredInferenceFields } from '../../src/inference/pipelines/text/config.js';
 import { inferLinearNormMode } from "../../src/inference/pipelines/text/linear-attention/linear-attention.js";
@@ -107,7 +108,8 @@ for (const config of convConfigs) {
 const localManifests = QWEN_MODEL_IDS
   .map((modelId, index) => ({ path: `models/local/${modelId}/manifest.json`, config: convConfigs[index] }))
   .filter(({ path }) => existsSync(path))
-  .map(({ path, config }) => ({ manifest: readJson(path), config }));
+  // Published manifests keep legacy enum spellings; readers canonicalize them on load.
+  .map(({ path, config }) => ({ manifest: canonicalizeLegacyEnumValues(readJson(path)), config }));
 
 if (localManifests.length === 0) {
   console.log('qwen-manifest-completeness.test: ok (conversion-config contract only; local qwen manifests unavailable)');
