@@ -16,7 +16,8 @@ import { openDevice, createRingMatVec } from './ring-matvec.js';
 
 const MAGIC = 0x31535352;
 const { values: args } = parseArgs({ options: { plan: { type: 'string' }, 'model-dir': { type: 'string' }, stage: { type: 'string' },
-  share: { type: 'string' }, listen: { type: 'string' }, gate: { type: 'boolean' } } });
+  share: { type: 'string' }, listen: { type: 'string' }, gate: { type: 'boolean' },
+  threads: { type: 'string' } } });  // --threads is the CPU operator's flag; accepted so a supervisor can launch either
 const token = process.env.SS_TOKEN;
 if (!args.plan || !args['model-dir'] || !args.stage || !args.share || !args.listen || !token) {
   console.error('usage: operator-gpu.js --plan P --model-dir D --stage S --share 0|1 --listen HOST:PORT [--gate], with SS_TOKEN set');

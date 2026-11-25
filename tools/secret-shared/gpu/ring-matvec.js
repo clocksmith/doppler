@@ -52,26 +52,29 @@ fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_index) t
   let blocks = p.cols / 256u;
   for (var c = 0u; c < p.n; c++) {
     var acc = vec2<u32>(0u, 0u);
-    for (var b = tid; b < blocks; b += WG) {
+    // Threads split the row's 32-weight sub-blocks (8 per Q4_K block), so even a 1024-wide row keeps 32 threads busy.
+    for (var sb = tid; sb < blocks * 8u; sb += WG) {
+      let b = sb / 8u; let j = sb % 8u;
       let base = (row * blocks + b) * 36u;
       let dm = unpack2x16float(q4k[base]);
-      for (var j = 0u; j < 8u; j++) {
-        let sm = scaleMin(base, j);
-        let A = u32(round(dm.x * f32(sm.x) * p.fwScale));
-        let B = u32(round(dm.y * f32(sm.y) * p.fwScale));
-        var S = vec4<u32>(0u); var T = vec4<u32>(0u);
-        let qbase = 16u + (j / 2u) * 32u;
-        let xbase = c * p.cols + b * 256u + j * 32u;
-        for (var l = 0u; l < 32u; l++) {
-          var q = byteAt(base, qbase + l);
-          if ((j & 1u) == 1u) { q = q >> 4u; } else { q = q & 0xfu; }
-          let v = x[xbase + l];
+      let sm = scaleMin(base, j);
+      let A = u32(round(dm.x * f32(sm.x) * p.fwScale));
+      let B = u32(round(dm.y * f32(sm.y) * p.fwScale));
+      var S = vec4<u32>(0u); var T = vec4<u32>(0u);
+      let qword = base + 4u + (j / 2u) * 8u;
+      let shift = (j & 1u) * 4u;
+      let xbase = c * p.cols + b * 256u + j * 32u;
+      for (var w = 0u; w < 8u; w++) {
+        let packed = q4k[qword + w];
+        for (var e = 0u; e < 4u; e++) {
+          let q = (packed >> (e * 8u + shift)) & 0xfu;
+          let v = x[xbase + w * 4u + e];
           let limbs = vec4<u32>(v.x & 0xffffu, v.x >> 16u, v.y & 0xffffu, v.y >> 16u);
           S += limbs * q; T += limbs;
         }
-        for (var k = 0u; k < 4u; k++) {
-          acc = add64(acc, shl64(add64(mul32(A, S[k]), neg64(mul32(B, T[k]))), 16u * k));
-        }
+      }
+      for (var k = 0u; k < 4u; k++) {
+        acc = add64(acc, shl64(add64(mul32(A, S[k]), neg64(mul32(B, T[k]))), 16u * k));
       }
     }
     partial[tid] = acc;
