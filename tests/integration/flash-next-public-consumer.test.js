@@ -5,9 +5,9 @@ import http from 'node:http';
 import { once } from 'node:events';
 import { createHash } from 'node:crypto';
 import { pathToFileURL, fileURLToPath } from 'node:url';
-import { load } from 'doppler-gpu/compat';
-import { applyRuntimeProfile, applyRuntimeConfigFromUrl } from 'doppler-gpu/tooling/runtime';
-import { getDevice, destroyDevice } from 'doppler-gpu/tooling/device';
+import { load } from 'dopplerx/compat';
+import { applyRuntimeProfile, applyRuntimeConfigFromUrl } from 'dopplerx/tooling/runtime';
+import { getDevice, destroyDevice } from 'dopplerx/tooling/device';
 
 // Copy this provisioned consumer outside the source tree, beside an extracted
 // npm package. Runtime imports intentionally use only published exports.
@@ -32,7 +32,7 @@ if (!runPath) {
   if (run.packageTarballPath) {
     assert.equal(hash(await fs.readFile(run.packageTarballPath)), run.expectedPackageSha256);
     assert.ok(packageReceipt.files?.length, 'installed candidate needs a complete package-file inventory');
-    const packageRoot = fileURLToPath(new URL('../', import.meta.resolve('doppler-gpu/compat')));
+    const packageRoot = fileURLToPath(new URL('../', import.meta.resolve('dopplerx/compat')));
     for (const file of packageReceipt.files) {
       const installed = path.resolve(packageRoot, file.path);
       assert.ok(installed.startsWith(packageRoot), 'package inventory must remain within the installed root');
@@ -42,7 +42,7 @@ if (!runPath) {
   assert.notEqual(Boolean(run.runtimeProfile), Boolean(run.runtimeConfigPath), 'Choose one explicit prepared configuration or named profile');
   const preparedBytes = run.runtimeConfigPath ? await fs.readFile(run.runtimeConfigPath) : null;
   if (preparedBytes) assert.equal(hash(preparedBytes), run.expectedRuntimeConfigSha256, 'Prepared configuration identity mismatch');
-  const runtimeRoot = fileURLToPath(new URL('./config/runtime/', import.meta.resolve('doppler-gpu/compat')));
+  const runtimeRoot = fileURLToPath(new URL('./config/runtime/', import.meta.resolve('dopplerx/compat')));
   const server = http.createServer(async (request, response) => {
     try {
       const name = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);

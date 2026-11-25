@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   buildManifestVersionSet as buildPackageManifestVersionSet,
   inspectModelDownloadResume as inspectPackageModelDownloadResume,
-} from 'doppler-gpu/tooling/storage';
+} from 'dopplerx/tooling/storage';
 
 import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 import { parseManifest } from '../../src/formats/rdrr/index.js';

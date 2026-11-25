@@ -10,9 +10,9 @@ import {
   prepareDocumentSearchReleaseOptions,
 } from '../../examples/electron-document-search/release-storage.js';
 import { createSignedCapsuleFixture } from '../helpers/capsule-v2-fixture.js';
-import { buildCapsuleV3, signCapsuleV3, getCapsuleIdentity, signCapsuleReleaseEvent } from 'doppler-gpu/host';
-import { createElectronReleaseStateCoordinator } from 'doppler-gpu/host/electron';
-import { createDopplerRuntime } from 'doppler-gpu';
+import { buildCapsuleV3, signCapsuleV3, getCapsuleIdentity, signCapsuleReleaseEvent } from 'dopplerx/host';
+import { createElectronReleaseStateCoordinator } from 'dopplerx/host/electron';
+import { createDopplerRuntime } from 'dopplerx';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 
 const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-release-storage-'));

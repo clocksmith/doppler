@@ -10,7 +10,7 @@ function runInline(args, source) {
 
 {
   const result = runInline([], `
-    const mod = await import('doppler-gpu/tooling');
+    const mod = await import('dopplerx/tooling');
     if (typeof mod.runNodeCommand !== 'function') {
       throw new Error('expected runNodeCommand on default tooling import');
     }
@@ -32,7 +32,7 @@ function runInline(args, source) {
 
 {
   const result = runInline(['--conditions=browser'], `
-    const mod = await import('doppler-gpu/tooling');
+    const mod = await import('dopplerx/tooling');
     if (typeof mod.normalizeToolingCommandRequest !== 'function') {
       throw new Error('expected normalizeToolingCommandRequest on browser tooling import');
     }

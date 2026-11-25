@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { dr } from 'doppler-gpu/compat';
+import { dr } from 'dopplerx/compat';
 import { boot } from '../../demo/boot.js';
 import { state } from '../../demo/ui/state.js';
 import { DEFAULT_DEMO_MODEL_ID } from '../../demo/models.js';
