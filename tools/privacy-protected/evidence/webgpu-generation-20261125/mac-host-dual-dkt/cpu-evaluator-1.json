@@ -1,0 +1,70 @@
+{
+ "schema": "doppler.protected-evaluator-report/v0",
+ "arch": "darwin/arm64",
+ "cpus": 8,
+ "profile": "research-n16-u32",
+ "keyEpoch": "d80d2abb747aed70c57e407da2bd7cdd",
+ "keysFromStore": true,
+ "keysDigest": "sha256:03218a675d912155ce439ea3166a902ae383bc3060536f44dedc5356e2ef4f73",
+ "keyLoadSeconds": 0.631323667,
+ "steps": [
+  {
+   "computeSeconds": 43.656965292,
+   "kind": "prefill",
+   "position": 2,
+   "resultDigest": "sha256:d243868ae506e59e9d9389d28ffb5caa28aac6411619d0a62a5ae682a9cffb44",
+   "seq": 1
+  },
+  {
+   "computeSeconds": 47.074396375,
+   "kind": "decode",
+   "position": 3,
+   "resultDigest": "sha256:b9b21796fe872e6c90d1cbbe4d255e1682e64332f5832e73cc0b97ab8f44b2b0",
+   "seq": 2
+  },
+  {
+   "computeSeconds": 81.647576917,
+   "kind": "decode",
+   "position": 4,
+   "resultDigest": "sha256:69325611257b440f5f7644d1b740669a969b08b5ef152afee9954676f3feba71",
+   "seq": 3
+  },
+  {
+   "computeSeconds": 62.39066225,
+   "kind": "decode",
+   "position": 5,
+   "resultDigest": "sha256:d905162d3c20b0bc686a069b06ab262e9b3a6bf0637906943208d8bcc0b0b9d0",
+   "seq": 4
+  },
+  {
+   "computeSeconds": 53.9329465,
+   "kind": "decode",
+   "position": 6,
+   "resultDigest": "sha256:f773cda5cc89ce8326c5dbd92b17e329cbedfaca584c057da98f2a33d45d0ad8",
+   "seq": 5
+  },
+  {
+   "computeSeconds": 55.834499416,
+   "kind": "decode",
+   "position": 7,
+   "resultDigest": "sha256:b0a6d00e3bb408988536f3fcf3b7c7fdc3f5f21fc6100cf8d33778b06f0edc47",
+   "seq": 6
+  }
+ ],
+ "ops": {
+  "mul-plain": 1472,
+  "mul-relin": 123,
+  "poly-exp": 33,
+  "poly-gelu": 6,
+  "poly-inverse": 6,
+  "poly-ln2-inverse-sqrt": 6,
+  "poly-lnf-inverse-sqrt": 6,
+  "rotate": 594
+ },
+ "bytesReceived": 155191052,
+ "bytesSent": 6293674,
+ "peakRSSBytes": 5631049728,
+ "misbehave": "",
+ "encodingPrecisionBits": 64,
+ "outcome": "completed"
+}

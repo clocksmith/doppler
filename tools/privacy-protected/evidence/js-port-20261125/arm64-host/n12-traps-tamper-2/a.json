@@ -1,0 +1,74 @@
+{
+ "schema": "doppler.protected-evaluator-report/v1",
+ "backend": "webgpu",
+ "arch": "linux/arm64",
+ "misbehave": "tamper-lane=0",
+ "timing": "per-layer",
+ "role": "whole",
+ "outcome": "completed",
+ "sessions": [
+  {
+   "steps": [
+    {
+     "seq": 1,
+     "kind": "prefill",
+     "position": 2,
+     "lanes": 3,
+     "computeSeconds": 1.0328728319999996,
+     "gpuProgramMs": 1009.2310350000002,
+     "hostMs": 115.96330300001,
+     "gpuWaitMs": 164.852535,
+     "dispatches": 10479,
+     "kvEntries": 6,
+     "liveBufferBytes": 228616124,
+     "layers": [],
+     "resultDigest": "sha256:1778de27679a3a9b8185de1724ad2046db7aaaa36b324ffbf735926dfd52c0f2",
+     "resultBytes": 196704
+    }
+   ],
+   "role": "whole",
+   "lanes": 3,
+   "keyEpoch": "db5be8fea132456b0b335b559e7fffcf",
+   "schedule": {
+    "promptTokens": 3,
+    "generatedTokens": 6
+   },
+   "keysFrom": "upload",
+   "keysDigest": "sha256:1cf771af76fe1f18cf463eb0f545ddad5d98f44e9423bdf8acd8e5f20badbabb",
+   "keyLoadSeconds": 1.7454107959999998,
+   "peakBufferBytes": 228616124,
+   "outcome": "failed",
+   "error": "connection closed",
+   "bytesReceived": 45320245,
+   "bytesSent": 197641
+  }
+ ],
+ "provider": "webgpu",
+ "adapter": {
+  "vendor": "nvidia",
+  "architecture": "ampere",
+  "device": "nvidia-tegra-orin-nvgpu-",
+  "description": "NVIDIA: 540.4.0 540.4.0.0"
+ },
+ "programs": [
+  "sha256:ef2bb3ceefe61dc820c0bfc3c3789828f678995e839b3f1ec9f9519e9fb697f1"
+ ],
+ "steps": [
+  "prefill:0:2",
+  "decode:3:3",
+  "decode:4:4",
+  "decode:5:5",
+  "decode:6:6",
+  "decode:7:7"
+ ],
+ "setupSeconds": 0.8113131,
+ "programBufferBytes": 30582716,
+ "gpu": {
+  "dispatches": 31444,
+  "submits": 7,
+  "peakBufferBytes": 228616124,
+  "evaluationKeyBytesResident": 34406400,
+  "uploadBytes": 10911744,
+  "readbackBytes": 196608
+ }
+}

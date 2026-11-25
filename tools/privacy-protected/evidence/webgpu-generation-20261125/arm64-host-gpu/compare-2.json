@@ -1,0 +1,33 @@
+{
+ "approximateReferenceTokens": [
+  15,
+  17,
+  19,
+  21,
+  23,
+  25
+ ],
+ "encryptedTokens": [
+  15,
+  17,
+  19,
+  21,
+  23,
+  25
+ ],
+ "exactReferenceTokens": [
+  15,
+  17,
+  19,
+  21,
+  23,
+  25
+ ],
+ "matchesApproximateReference": true,
+ "matchesExactReference": true,
+ "maxLogitErrorVsApproximate": 0.64565023401404,
+ "maxLogitErrorVsExact": 1.288385682130131,
+ "minEncryptedTop1Margin": 2.1297182570583946,
+ "model": "sha256:90d4efb8e2e05df08082a2dc1a2d8ad49479e1750467f70ee2b0759d3578ae92",
+ "prompt": "efn"
+}

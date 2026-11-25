@@ -1,0 +1,33 @@
+{
+ "approximateReferenceTokens": [
+  22,
+  23,
+  24,
+  25,
+  2,
+  5
+ ],
+ "encryptedTokens": [
+  22,
+  23,
+  24,
+  25,
+  0,
+  1
+ ],
+ "exactReferenceTokens": [
+  22,
+  23,
+  24,
+  25,
+  2,
+  5
+ ],
+ "matchesApproximateReference": false,
+ "matchesExactReference": false,
+ "maxLogitErrorVsApproximate": 16.68167078823225,
+ "maxLogitErrorVsExact": 16.73218458106126,
+ "minEncryptedTop1Margin": 0.08280583046500123,
+ "model": "sha256:90d4efb8e2e05df08082a2dc1a2d8ad49479e1750467f70ee2b0759d3578ae92",
+ "prompt": "dkt"
+}

@@ -11,6 +11,14 @@ Goal: a protected backend in which the machine doing the work cannot read the in
 unauthenticated LAN transport. Independent review (section 7) and an authenticated transport are still required
 before anything advertises the capability.
 
+2026-11-25: one encrypted token computed on WebGPU (section 8): every layer of the fixture runs on ciphertexts in WGSL,
+on an Apple M3 and on a Jetson AGX Orin GPU, and the GPU's result ciphertext is byte-identical to the CPU (Lattigo)
+evaluator's.
+
+2026-11-25: autonomous encrypted generation on WebGPU (section 9): the encrypted KV cache stays on the GPU, every
+chosen token is fed back freshly encrypted, and one compiled decode program per position runs on both GPUs, byte-identical
+to the CPU circuit at every step. No real model is started: section 9 states the go/no-go.
+
 ## 1. Survey
 
 ### What Doppler already has
@@ -110,6 +118,9 @@ The smallest design that honestly meets `requester-only` for a small model gener
 
 ## 3. Prototype (`tools/privacy-protected/`)
 
+> **2026-11-25: the Go binary described in sections 3-10 was replaced by JavaScript (section 11).** Commands in those
+> sections are historical; section 11 lists the current ones.
+
 `requester`, `evaluator`, `audit`, `compare` and `bootstrap-probe` are subcommands of one Go binary; the requester and each evaluator
 run as separate processes over TCP. `evaluator.go` never constructs a secret key, encryptor, decryptor or key
 generator, and `requester.go` never loads a model; `TestSourceBoundaries` checks both, and that the requester only
@@ -204,6 +215,7 @@ in the retained run under memory pressure; bootstrapping keys were 7.9 GB serial
   satisfies every listed condition, at research scale. Next, a 2-4 layer d = 64 encryption-friendly model with
   bootstrapping on a large-memory CPU evaluator, at minutes per token. Seconds-per-token on a real catalogued model
   needs a Blackwell-class GPU evaluator and either a Perseus commercial licence or an own GPU CKKS implementation.
+  An own WebGPU implementation now exists for this leveled circuit (section 8); it has no bootstrapping.
 - **Cheap wins before then**: seeded ciphertexts and keys (halve upload and keys), encrypting the one-hot at the
   lowest usable level, caching encoded plaintext diagonals, packing all attention scores into one ciphertext (one
   exp evaluation instead of one per position), and moving argmax and feedback onto the evaluator.
@@ -307,7 +319,381 @@ channels on the requester), and the Reploid integration (no readable fallback, s
 Doppler's availability gate stays closed and Reploid keeps `CONFIDENTIAL_EXECUTION_UNAVAILABLE` until that review
 and the two-machine proof are both done.
 
-## 8. Reploid route support (branch `protected-route`)
+## 8. One encrypted token on WebGPU (2026-11-25)
+
+Phase 1 of the owner's step 1: the evaluator's GPU computes every layer of the fixture on ciphertexts in WGSL, the
+requester encrypts, decrypts and picks the token, and the CPU (Lattigo) circuit is only the test reference. Prefill of
+a 3-token prompt, one generated token. Code: `tools/privacy-protected/gpu_*.go` and `tools/privacy-protected/webgpu/`.
+Evidence: [`tools/privacy-protected/evidence/webgpu-one-token-20261125/`](../tools/privacy-protected/evidence/webgpu-one-token-20261125/).
+
+### Parameters and representation
+
+Profile `research-n16-u32`: N = 2^16, 64 slots, scale 2^31, 37 Q primes and 13 P primes, each a ~31-bit NTT prime
+(2.11e9 to 2.19e9, alternating around 2^31 as Lattigo generates them), so one RNS limb is one u32. Same depth as
+`research-n16` (36 rescalings, output at level 1); key switching has ceil(37/13) = 3 digits; log QP = 1550 (below the
+commonly cited 1772-bit ceiling, not independently estimated). `research-n16`'s 50-bit first prime and 61-bit special
+primes cannot be u32 limbs; that is the only reason for the new profile. `dev-insecure-n12-u32` is the same chain on
+N = 2^12 for tests.
+
+WGSL has no 64-bit integers and no multiply-high. A 32 x 32 -> 64-bit product is built from four 16-bit partial
+products, and reduction is Montgomery with R = 2^32. Because the moduli exceed 2^31, sums and Montgomery
+intermediates carry explicitly. Every kernel reads and writes canonical residues, so outputs equal Lattigo's bit for bit.
+Multipliers known ahead (twiddles, evaluation keys, scalar constants, plaintexts) are kept in Montgomery form, so one
+Montgomery multiply gives the canonical product. Lattigo's basis extension estimates its overflow count in float64; the
+GPU computes it in 96-bit fixed point, which can differ only when the fraction is within 13 x 2^-64 of an integer.
+
+A ciphertext is one GPU buffer of (degree + 1) x (level + 1) x N u32 in Lattigo's NTT order, and that is also the wire
+format (`raw-u32/v0`, `gpu_codec.go`), so uploads go to the GPU unchanged. The 7 evaluation keys (1 relinearization,
+6 rotations) stay resident: 550.5 MB. WebGPU limits that matter: one key is 78.6 MB and one ciphertext at most 29 MB
+(3 components), under the default 128 MiB storage-binding limit, and the evaluator requests the adapter's limits anyway
+(4 GiB on both GPUs); workgroups are 256 invocations; the fused NTT tile uses 8 KiB of workgroup memory; at most
+12,800 workgroups per dispatch. Integer arithmetic is u32 only; neither shader-f16 nor subgroups is used.
+
+### Circuit to kernels
+
+`pp gpu-compile` records the CPU circuit itself, including Lattigo's polynomial evaluator, through a recording
+evaluator. Each Lattigo call is lowered to RNS operations; each lowering is checked bit for bit against Lattigo's result
+when it is recorded; and the whole program, replayed from the inputs, must reproduce the circuit's output ciphertext
+exactly. The GPU therefore runs the CPU circuit, polynomial approximations included, and not a re-derivation of it. The
+3-token prefill is 1,440 operations: 352 plaintext products, 79 tensor products with 72 relinearizations, 114 rotations
+(186 key switches), 136 rescalings, and additions and scalar operations. 35 of 37 levels are used, so bootstrapping is
+not needed for one token. Public weights are folded and encoded once, at compile time: a 64-slot plaintext in the NTT
+domain is constant on blocks of N/128 coefficients (checked), so each limb is 128 words, 5.5 MB of constants in all,
+and nothing is encoded on the GPU.
+
+| Kernel (`webgpu/kernels/`) | Used for | Status |
+| --- | --- | --- |
+| `ntt_fwd_global`, `ntt_fwd_local`, `ntt_inv_local`, `ntt_inv_global` | negacyclic NTT/INTT in Lattigo's order; strides >= 2048 one pass each, the last 11 stages fused in workgroup memory | bit-exact vs Lattigo, all 50 moduli |
+| `conv_y`, `conv_sum`, `conv_copy1` | basis extension Q digit -> Q and P, and P -> Q (ModUp, ModDown) | bit-exact (inside relin and rotate cases) |
+| `ew_mmul`, `ew_mmac`, `ew_sub_smul` | key inner product with resident keys; ModDown and rescale combine | bit-exact |
+| `rescale_prep` | rescale (with INTT, NTT, `ew_sub_smul`) | bit-exact, degrees 1 and 2 |
+| `ew_permute` | automorphism (rotation, with a key switch) | bit-exact, all 6 rotations |
+| `ew_add`, `ew_sub`, `ew_neg`, `ew_smul`, `ew_sadd`, `ew_smac`, `ew_pmul`, `ew_padd`, `ew_tensor`, `ew_copy`, `ew_to_mont` | the remaining operations | bit-exact |
+
+Kernel tests (`pp gpu-vectors`, `webgpu/test-vectors.js`): 121 cases (every op at levels 36, 27, 26, 25, 13, 3 and 1,
+including the one-prime key-switch digit, plus NTT and INTT under every modulus), compared byte for byte with Lattigo's
+output. All pass on the M3 at N = 2^12 and N = 2^16, and on the Orin GPU at N = 2^12.
+
+### One token: results
+
+The requester (Go, Lattigo's encoder and encryptor, on `mac-host`) encrypts the one-hot inputs; the evaluator holds
+only the compiled program, evaluation keys and ciphertexts. A JS port of the requester for the browser is not done; the
+earlier measurement that Lattigo's requester operations run as WebAssembly still applies. Prompt `hkn`, token 16
+(`q`) in every run, equal to the pinned approximate reference and to the float64 model.
+
+| | `mac-host` GPU (Apple M3, Metal) | `arm64-host` GPU (Jetson AGX Orin, Vulkan, MAXN) |
+| --- | --- | --- |
+| Agreement with the CPU (Lattigo) evaluator | result ciphertext byte-identical (dual check passed), so decrypted logits are identical | byte-identical (dual check with the CPU evaluator on `mac-host`) |
+| Logit error vs pinned approximate reference / float64 model | 0.469 / 0.093 (this is the CPU circuit's own error); top-1 margin 9.64 | same |
+| GPU program, 3-token prefill | 4.57-4.86 s in 3 clean runs (host encoding 0.1-0.4 s, the rest GPU); 3.3-6.0 s across all 9 runs | 3.44 s in 1 run (host 1.05 s, GPU 2.38 s) |
+| Per layer (one run) | embed 0.43 / 0.40 / 0.65 s, attention scores 0.89, softmax 0.18, attention values 0.12, LN2 0.38, MLP 1.31, LNf 0.20, head 0.03 s | embed 0.48 / 0.32 / 0.52 s, attention scores 0.86, softmax 0.25, attention values 0.11, LN2 0.29, MLP 0.43, LNf 0.16, head 0.03 s |
+| Dispatches per prefill | 19,407 | 19,407 |
+| Peak GPU buffers | 3.10 GB, of which keys 0.55 GB | same program and buffers |
+| CPU evaluator, same step (Lattigo, 8 cores of the M3) | 57.2 s | n/a (reference ran on `mac-host`: 82.9 s) |
+
+The embed layers include the one-hot lookups of all three positions, and the last one includes the query and residual
+rows; the "block" is one transformer layer. Mac GPU times vary by up to 2x between runs; treat them as a range.
+
+| Bytes and requester cost | Value |
+| --- | --- |
+| Evaluation keys per evaluator | 550,502,624 bytes (raw u32; `research-n16` in Lattigo's encoding: 1,937,800,240) |
+| Upload per prompt token | 19,398,688 bytes (`research-n16`: 38,798,206); 58,196,064 for the 3-token prefill |
+| Download (encrypted logits, level 1) | 1,048,608 bytes |
+| Requester key generation / encryption of 3 tokens / decryption | 2.19 s / 0.45 s / 5.5 ms; peak RSS 625 MB |
+| Remote key upload to `arm64-host` | 1,855 s through an SSH tunnel at under 1 MB/s; the host's Wi-Fi link was poor at the time (137-545 ms ping on the LAN). Network, not compute; keys are uploaded once per key epoch |
+
+Comparison with plaintext: Doppler has no pipeline for this fixture (a custom one-block GPT-2-shaped JSON model), so
+the comparison is the plaintext forward pass: about 9 microseconds per token on the M3 CPU (`pp plain-bench`), against
+3.4-4.9 s on the GPU encrypted, a ratio of 4-5 x 10^5. Against the CPU evaluator on the same Mac the GPU is about
+12x faster.
+
+### Leakage checks
+
+- The evaluator never receives the secret key: the protocol has no message that carries one, and the requester sends
+  only `hello`, the 7 evaluation keys, the step ciphertexts and `bye`. The WebGPU sources contain no key generation,
+  encryption or decryption code (`TestWebGPUSourceBoundaries`), and the evaluator accepts only `hello`, `key` and
+  the step kinds.
+- Decrypt requests are refused: a WebGPU evaluator that answers step 1 with a `decrypt-request` carrying a ciphertext of
+  its choice ends the session, `refused unsolicited "decrypt-request" message while waiting for [result]; session
+  ended without decrypting`, zero decryptions, no output.
+- Plaintext is never logged: the evaluator's log and report carry sizes, timings, digests and adapter identity only
+  (evidence `*-gpu-evaluator.log`, `*-gpu-evaluator.json`).
+- Dual evaluation, honestly labelled: a WebGPU evaluator that flips one bit closes the route, `evaluator results differ
+  at step 1; route closed without decrypting`, zero decryptions; its pre-flip digest equals the CPU evaluator's. This
+  detects one dishonest evaluator; two colluding evaluators defeat it (confidentiality still holds).
+
+### Integrity the requester could check instead (design notes for step 3)
+
+- **Trap ciphertexts.** The requester runs k extra sessions of exactly the same shape (prompt length, positions,
+  timing) whose answers it knows. They are indistinguishable from the real one under IND-CPA. It accepts the real
+  answer only if every trap decrypts to its known token, with logits within the circuit's tolerance. A cheating
+  evaluator escapes with probability about 1/(k+1) per cheated step. The requester holds no weights, so the known
+  answers need a publisher-signed table bound to the (model, program) digest. Accept/reject depends only on trap
+  values, never on the real input. Cost: k+1 evaluations.
+- **Duplicate inputs.** The real prompt is encrypted twice under fresh randomness, and both outputs must agree within
+  noise. This needs no table and catches inconsistent cheating, but not an evaluator that consistently runs a wrong
+  circuit.
+- **Random audit.** A third evaluator, drawn from a large pool after the fact, recomputes sampled steps byte for byte.
+  That is cheap now that GPU and CPU evaluators agree exactly. It raises the cost of collusion; it does not remove it.
+- **Verifiable computation.** The program is a fixed, data-oblivious list of RNS operations, which suits
+  sumcheck/GKR-style proofs over the NTT-domain arithmetic, bound to the program and key digests. Current verifiable-FHE
+  results (about 20 minutes to prove one TFHE bootstrap) put this orders of magnitude beyond one token here. Research
+  only.
+
+### Reproduce
+
+```sh
+cd tools/privacy-protected
+go build -o /tmp/pp . && /tmp/pp gpu-vectors --profile research-n16-u32 --out /tmp/vec16
+node webgpu/test-vectors.js --vectors /tmp/vec16                       # 121 byte-exact kernel cases
+/tmp/pp gpu-compile --profile research-n16-u32 --positions 3 --out /tmp/prog   # ~5 min, 4.6 GB, CPU
+PP=/tmp/pp PROGRAM=/tmp/prog OUT=/tmp/run DUAL=1 sh webgpu/run-one-token.sh   # GPU + CPU evaluators, prompt hkn
+DOPPLER_PROTECTED_WEBGPU=1 go test -count=1 -run TestWebGPUAndCPUEvaluatorsAgree .  # the same on N = 2^12
+```
+
+### What step 2 needs (estimate)
+
+- **Encrypted KV cache and multi-token decoding.** The cache already lives on the evaluator: the per-position key and
+  value ciphertexts are GPU registers. What is missing is decode programs per position (positions 3-7 here), with
+  cache registers persisting across programs. About a day. Expected decode cost is the block plus one embedding,
+  roughly 2.5-4 s per token on these GPUs at today's kernel efficiency.
+- **A real small catalog model** needs bootstrapping (CoeffsToSlots/SlotsToCoeffs are rotations and plaintext
+  products, already supported; EvalMod is a polynomial; ModRaise is a new kernel), several GB of bootstrapping keys,
+  and full-slot packing of d >= 512 activations. Perseus's GPT-2-small decode needs 416 bootstraps per token. At about
+  24 ms per key switch on the M3 and 13 ms on the Orin (today's unoptimised kernels, GPU-bound), and roughly 100-200
+  key switches per bootstrap, that is tens of minutes per token. Kernel work (hoisted rotations, fused key switching,
+  fewer NTT passes) might give 5-10x: minutes per token. Seconds per token is not in reach on these GPUs. Time to
+  first token scales with prompt length (each position's lookups, plus one block).
+
+## 9. Autonomous encrypted generation on WebGPU (2026-11-25)
+
+Step 2 on the tiny fixture only. Code: `gpu-compile --positions n --decode-through 7`, `webgpu/run-sessions.sh`.
+Evidence: [`tools/privacy-protected/evidence/webgpu-generation-20261125/`](../tools/privacy-protected/evidence/webgpu-generation-20261125/).
+
+### How it works
+
+- **One compiled program per step.** `gpu-compile` records a whole session (the prefill, then decode at every later
+  position) and cuts it into step programs. The replay check now covers every step. Bundle A is prefill(1) plus decode
+  at positions 1-7: 10,072 ops, 24 MB of constants, 31 min and 6.4 GB to compile. Bundles B and C are prefill(3) and
+  prefill(2); their decode steps come from A.
+- **Encrypted KV cache on the GPU.** Each position's key and value rows (two ciphertexts at level 35, 18.9 MB each)
+  are named registers (`k<j>`, `v<j>`) in the session state. Every step exports the entries it makes, so steps from
+  different compiled sessions compose. The cache never leaves the GPU and is freed at `bye`.
+- **Feedback.** The requester decrypts each step's logits, picks the argmax and sends that token freshly encrypted as
+  the next decode step (unchanged from section 6). Nothing derived from a decryption travels in the clear.
+- **Key reuse.** The WebGPU evaluator keeps evaluation keys resident across sessions of one key epoch, and stores
+  them on disk until the epoch's expiry, in evaluator.go's layout. The requester sends `keys-held` when every evaluator
+  holds the epoch. Only the first session on each GPU uploaded keys; the other 17 sessions uploaded 0 bytes, including
+  runs after the evaluators restarted (keys read from the store).
+
+### Results
+
+Prompts were drawn at random at run time (recorded in the evidence). Each session fills the 8-position context
+(8, 7 or 6 tokens).
+
+| Run | Prompts -> generated | Byte-identical to the CPU circuit | Pinned reference |
+| --- | --- | --- | --- |
+| `mac-host` dual | `f` -> `iloruxad`, `jm` -> `psvybeh`, `egj` -> `mpsvyb` | every step (21 of 21) | 2 of 3 |
+| `mac-host` dual | `tm` -> `nopqrst`, `in` -> `prtvxzb`, `ksw` -> `yacegi` | every step (20 of 20) | 3 of 3 |
+| `arm64-host` dual (GPU on the Orin, CPU reference on `mac-host`) | `s` -> `vybehknq`, `jb` -> `ehklmno`, `oxv` -> `yzabcd` | every step (21 of 21) | 2 of 3 |
+| `arm64-host` dual | `ja` -> `dgjmpsv`, `tlc` -> `svwxyz`, `buy` -> `behknq` | every step (19 of 19) | 3 of 3 |
+| `mac-host` GPU only | `jc` -> `filnprt`, `zie` -> `gikmoq`, `dkt` -> `wxyzab` | not checked; `dkt` re-run in dual mode: every step (6 of 6) | 2 of 3 |
+| `arm64-host` GPU only | `vv` -> `ybehknq`, `efn` -> `prtvxz`, `noy` -> `behknq` | not checked (single evaluator) | 3 of 3 |
+
+**Where the pinned reference is missed, the cause is a near tie in the circuit, not the GPU**; the GPU equals the CPU
+there too. Exactly three prompts miss it: `f`, `s` and `dkt` (`dkt` ran twice, GPU-only and then dual), so 15 of 18
+distinct prompts match. Every other prompt matches both references, with smallest top-1 margins of 0.48-8.94 (for
+example `jm` -> `psvybeh`: 8.94, byte-identical to the CPU at 7 of 7 steps). `f` and `s` are one-letter prompts, which give this letter-progression fixture no stride. Their first token
+is a near tie in every model: top-1 margin 0.02-0.04 in the float64 model and 0.02-0.09 encrypted. The pinned
+approximate reference and the encrypted circuit then break the tie differently, and greedy decoding diverges from
+there (hence logit errors of 30 against the reference's different sequence). The second-step margins are 7-10. `dkt`
+(a 3-letter prompt outside the fixture's stride family) agrees for four tokens, then meets a near tie at step 5
+(encrypted margin 0.083). A separate dual run of `dkt` confirmed that the GPU equals the CPU circuit at all six steps,
+with the same tokens `wxyzab`.
+Where the sequences agree, the largest logit error against the pinned reference is 0.38-0.76, and against the
+float64 model below 0.8.
+
+| Measure (keys reused, one evaluator) | `mac-host` (Apple M3, Metal) | `arm64-host` (Jetson AGX Orin GPU, Vulkan), requester on `mac-host` |
+| --- | --- | --- |
+| Time to first token (2-3 token prompts) | 3.5-5.2 s | 6.8-7.9 s |
+| Decode, round trip per token (median per session) | 4.1-5.1 s | 4.2 s |
+| of which GPU evaluator per token | 4.0-5.0 s | 2.7-2.8 s (the rest is about 1.4 s to send 19.4 MB through the SSH tunnel) |
+| Peak GPU buffers | 3.38-3.40 GB | 3.38-3.40 GB |
+| Upload per generated token / download | 19,398,688 / 1,048,608 bytes | same |
+| First session (keys uploaded) | key generation 4.1 s, upload 2.7 s (loopback) | key generation 7.9 s, upload 34.3 s |
+
+Peak GPU memory is keys 0.55 GB, program constants about 34 MB, the KV cache (up to 14 entries, 0.26 GB), and
+working ciphertexts and key-switch temporaries.
+
+In dual mode the round trip is set by the CPU evaluator (50-87 s per step on the M3), so dual-mode latency measures
+the reference, not the GPU.
+
+Network to `arm64-host` was re-measured, 64 MiB each: raw TCP over the LAN 20.4 MiB/s, raw TCP over the tailnet
+14.9 MiB/s, SSH tunnel 15.8 MiB/s. That makes the 550 MB key upload about 27 s on the LAN and 35 s through the tunnel.
+The 31-minute upload of section 8 reflected the network at that time, not the route. The runs used the SSH tunnel
+(authenticated, encrypted), about 22% slower than the unauthenticated LAN path. The LAN-address SSH variant was
+refused because no host key is pinned for that name.
+
+### Go/no-go for real models
+
+**No-go for any real catalogued model at interactive latency on these GPUs.** Go only for the tiny fixture, as a
+protocol and kernel testbed, and for one research step beyond it.
+
+The basis is measured, not assumed. Today's WebGPU kernels are GPU-bound (host encoding is 2-10% of a step), at about
+24 ms per key switch on the M3 and 13 ms on the Orin GPU, at N = 2^16 and 37 limbs. Any real model needs bootstrapping.
+
+| | Estimate (today's kernels) |
+| --- | --- |
+| One bootstrap (CoeffsToSlots and SlotsToCoeffs rotations, EvalMod polynomial; about 150-250 key switches, over more limbs) | 3.6-6 s on the M3, 2-3.3 s on the Orin |
+| GPT-2 small (124M; Perseus needs 416 bootstraps per token) | 25-42 min/token on the M3, 14-23 min on the Orin, before the linear layers |
+| Memory: bootstrapping keys (Lattigo's example: 7.9 GB serialized, about 4 GB as u32) plus rotation keys for d = 768 transforms | 10-20 GB: tight on the 24 GB M3, possible on the 64 GB Orin |
+| Reference point | Perseus: 1.55 s/token for GPT-2 small on a 96 GB Blackwell GPU with CUDA 64-bit integer multiplies, 63 GiB |
+
+What would change the verdict, and by how much:
+
+- **Kernel work** (hoisted rotations sharing one decomposition, fused key switching, radix-4/8 NTT with fewer global
+  passes, key-switch digits kept in workgroup memory): plausibly 5-10x. GPT-2 small would then take minutes per
+  token on the Orin: still not interactive. WebGPU's missing 64-bit integers and multiply-high cost about 2-4x against
+  CUDA whatever the kernel work.
+- **Different hardware:** a large discrete GPU with 10-20x the Orin's integer throughput, through WebGPU, plus the
+  kernel work: tens of seconds per token for GPT-2 small. Seconds per token needs Perseus-class engineering on
+  Blackwell-class hardware.
+- **A smaller real model:** about 4-6 layers with d = 256-384, at about 5-8 bootstraps per layer, is 20-50
+  bootstraps: 1-3 min/token on the Orin today, perhaps 15-30 s after the kernel work. The vocabulary head (d x vocab)
+  is a large linear layer but needs no bootstrap of its own. This is the nearest real-model target, and it is still not
+  interactive.
+- **Circuit redesign:** the largest lever. Use encryption-friendly training (polynomial activations, LayerNorm
+  folded or removed, low-degree softmax substitutes, bounded ranges, as the fixture does) and place bootstraps by depth
+  and magnitude (Perseus's placer), to cut bootstraps per token several-fold. Moving argmax and token feedback onto
+  the evaluator removes one round trip per token, at the cost of extra depth.
+
+Recommended next research step (not started): a 2-4 layer, d = 64-128 encryption-friendly model with bootstrapping on
+the Orin GPU, at minutes per token, so the kernel work has a target that needs it.
+
+## 10. Homomorphic split across two GPU evaluators (2026-11-25)
+
+The fixture's one block split across two WebGPU evaluators on different machines, with ciphertexts only between them.
+Code: `webgpu/split.js`, `evaluator.js --role stage-a|stage-b` (`--next`, `--hop-listen`, `--gate`), requester
+`--stage-a/--stage-b` (any `--evaluator` beside them is a whole-model dual reference) and `--events`.
+
+- **Cut.** Every compiled step is cut at the `ln2` layer. Stage A runs the embedding lookups, the first norm and
+  attention, and keeps the encrypted KV cache; stage B runs the second norm, MLP, final norm and head and keeps no
+  session state. Exactly one register crosses the cut in every step: one degree-1 ciphertext at level 24
+  (13,107,232 bytes at N = 2^16). Both stages run the same compiled program on their own operation ranges, so the
+  split's result is the whole program's result bit for bit. Nothing is refreshed: the block uses 35 of 36 levels.
+- **Flow.** The requester sends each step's input ciphertexts to stage A only; stage A sends the carry to stage B over
+  its own link, admitted by a one-time token the requester gives both stages in `hello`; stage B returns the result to
+  the requester. Both stages hold the same public evaluation keys; neither can decrypt.
+- **Checks.** Development ring on the arm64-host GPU: both stages plus a CPU (Lattigo) whole-model evaluator as the dual
+  reference, 6 of 6 steps byte-identical. That run followed `TestWebGPUSplitEqualsCPUEvaluator` by hand on that host; the Go test itself has not been run yet (it needs a GPU on a host with Go). The 121 kernel vectors pass on an Intel
+  Tiger Lake iGPU (Mesa) as well.
+- **N = 2^16, two machines** (stage A on the arm64-host GPU, stage B on an Intel iGPU, requester on a Mac): 6 of 6
+  tokens equal to both references; decode median 6.05 s per token round trip (stage A 2.17 s, stage B 2.57 s); per token
+  19.4 MB to stage A, 13.1 MB across the hop, 1.0 MB back; 550.5 MB of keys per stage; peak GPU buffers 2.54 GB (stage A)
+  and 1.73 GB (stage B); requester peak RSS 407 MB. The split is slower than the whole block on one GPU (3.7 s): the
+  stages run in sequence and the hop adds a transfer.
+- **What it does not change.** Splitting divides weights, constants and the KV cache, not the evaluation keys (each
+  stage key-switches), multiplies key upload by the number of stages, and adds a hop per stage boundary per token. The
+  go/no-go of section 9 stands.
+
+## 11. JavaScript only (2026-11-25)
+
+Owner decision: no Go and no Python in the protected route. The Go/Lattigo tools, `train_tiny.py` and the shell and
+Python harnesses are removed; everything runs on Node. `node tools/privacy-protected/pp.js <command>` replaces the
+`pp` binary (`requester`, `bridge`, `gpu-compile`, `compare`, `reference`, `audit`, `plain-bench`, `trapset`,
+`trap-oracle`); `webgpu/evaluator.js` is the evaluator, now with `--backend cpu` as well.
+
+| Module | Replaces | What it does |
+| --- | --- | --- |
+| `ckks/bigfloat.js` | Go `math/big.Float` | the semantics Lattigo's scales, coefficients and encoder rely on (precision rules, round to nearest even) |
+| `ckks/params.js`, `profiles.json` | `profile.go` | the u32 profiles with Lattigo's primes and roots pinned and checked; same profile digests |
+| `ckks/encoder.js` | Lattigo's encoder | the 64-slot arbitrary-precision embedding (64-bit big-float FFT) and the float64 decoder |
+| `ckks/keys.js`, `key-workers.js` | `requester.go` key code | ternary secret, Gaussian error (sigma 3.2, bound 19), gadget keys, encryption, decryption; node:crypto CSPRNG; worker threads |
+| `ckks/rns-exec.js`, `webgpu/cpu-device.js` | `rnsExec`, the CPU evaluator | every program op on the CPU, word for word as the WGSL kernels; the dual check's second evaluator |
+| `compiler.js` | `gpu_record.go` | the circuit compiled as Lattigo v6.2.0 evaluated it: scale matching, constants, Paterson-Stockmeyer in the Chebyshev basis |
+| `plan.js`, `ckks/gomath.js`, `tools.js` | `plan.go`, `reference.go`, `compare.go`, `audit.go` | plan, approximations, references; Go's arm64 `math.Exp` and `math.tanh` for the Chebyshev nodes |
+| `requester.js`, `trap-client.js` | `requester.go` | whole model, dual check, split, events, key epochs, and trap lanes |
+| `traps.js`, `trap-oracle.js`, `trapset.js`, `bridge.js` | `oracle.go`, `trapset.go`, `bridge.go` (branch `protected-route`) | trap oracle (v2), signed trap set (v1), the verifier, the stdio key holder |
+
+**Equivalence with the Go code.** `fixtures/go-golden.json` was exported once from the Go code before it was deleted;
+`npm run protected:check` (24 tests, about a minute) checks the port against it:
+
+- the two u32 profiles (moduli, roots, Galois elements, digests) and all 112 Chebyshev coefficients, bit for bit at
+  128 bits;
+- 16 reference prompts: identical tokens, logits within 1e-9;
+- 24 encodings, word for word;
+- the decryption of a Lattigo ciphertext with its exported secret key (within 1e-15 of Lattigo's own decoding);
+- 119 RNS operations on shared inputs, including key switching, rotation, relinearization and rescale, word for word;
+- whole programs: the compiler's output is byte-identical (JSON and constants) to the Go recorder's and to the receipt
+  programs `bundle12-a`, `bundle16-b` and `bundle16-c`. `bundle16-a` was made by an earlier Go build that did not keep
+  the last position's KV entries as step state; its constants are identical. Programs compiled on aarch64 and
+  x86_64 are byte-identical. Compiling takes 2-6 s (the Go recorder took 48-80 s at N = 2^12 and minutes at 2^16).
+
+Before the deletion, the JavaScript requester (JavaScript keys, encryption and decryption) also drove the Go CPU
+evaluator: `hkn` -> `qtwzcf`, equal to both references (evidence `mac-interop-go-cpu-evaluator/`).
+`webgpu/test-vectors.js` now checks the GPU against the JavaScript executor: 121 of 121 on the `arm64-host` GPU (Jetson AGX Orin) at
+N = 2^12 (on the golden inputs, so against Lattigo's digests as well) and at N = 2^16.
+
+**Results (all JavaScript; evidence in [`tools/privacy-protected/evidence/js-port-20261125/`](../tools/privacy-protected/evidence/js-port-20261125/), `summary.json`).**
+
+| Run | Tokens | Check |
+| --- | --- | --- |
+| N = 2^12, `arm64-host` GPU, `hkn` | `qtwzcf` | both references; also on the CPU backend (Mac) |
+| N = 2^16, `arm64-host` GPU, `kpd`, `cnr`, `ahg` | `fhjlnq`, `tvxzbd`, `ijklmn` | both references; `kpd` errors 0.905 / 1.943, margin 1.508 (the Go receipt: 0.91 / 1.95 / 1.51) |
+| N = 2^16, `arm64-host` GPU, `dkt` | `wxyzab` | misses the references, as in section 9 (a near tie in the circuit) |
+| N = 2^12 split on the `arm64-host` GPU, `gmq`, plus a whole-model evaluator | `rstuvy` | split equals whole byte for byte at 6 of 6 steps |
+| N = 2^12 split, stage A `arm64-host` GPU, stage B `intel-host` iGPU, plus a whole-model evaluator | `qtwzcf` | byte for byte at 6 of 6 steps |
+| N = 2^16 split, stage A `arm64-host` GPU, stage B `intel-host` iGPU, `kpd` | `fhjlnq` | both references; 13,107,232 bytes per hop |
+| N = 2^12, `arm64-host` GPU, 2 trap lanes from the JavaScript oracle | `pqrstu` | 12 of 12 trap checks passed (max error 0.0008) |
+| the same with one lane tampered (`--misbehave tamper-lane=0`), 3 sessions | refused, refused, `aapapp` | refused when the tampered lane was a trap (2 of 3, as expected for 2 trap lanes); the third accepted a wrong answer |
+
+**Decode on the Orin GPU (`arm64-host`), against the kill gate (section 9 and the Route 1 receipts).** Requester on `arm64-host` (the earlier
+figures had it on a Mac, so their round trip includes 19.4 MB per token over the network); another worker's CPU job
+used about 2.5 of its 12 cores throughout.
+
+| Measure (median per decode token, N = 2^16) | JavaScript, this run | Go requester, earlier |
+| --- | --- | --- |
+| Evaluator, whole block | 2.61-2.94 s (GPU wait 2.39-2.58 s) | 2.62-2.70 s (GPU wait 2.43 s) |
+| Round trip, whole block | 2.66-2.96 s (local requester) | 3.68-3.78 s (Mac requester) |
+| Round trip, two-machine split | 7.19 s (stage A 2.39 s, stage B 2.76 s) | 6.05 s (2.17 s, 2.57 s) |
+| Requester encryption | 0.16-0.23 s | 0.08-0.15 s |
+| Key generation (7 keys) | 4.7-7.0 s (4 worker threads) | 2.1-2.2 s |
+| Time to first token, fresh keys, local evaluator | 12.3-14.4 s | 36.2 s (Mac, 26.5 s upload) |
+| Requester peak RSS | 1.16 GB | 0.62 GB |
+
+The evaluator is the same JavaScript and WGSL as before, so its time is unchanged within the contention. The
+requester is slower than Go/Lattigo on one thread (key generation 22 s, encryption 0.7 s per token) and uses worker
+threads instead; four workers keep it near 1.2 GB.
+
+**What changed.**
+
+- Only the u32 profiles exist. `research-n16` and `dev-insecure-n12` used 61-bit special primes and the removed
+  Lattigo CPU evaluator; Reploid's parked protected route (`server/protected-route/go-*.js`) still spawns the Go binary
+  and must move to `pp.js bridge` with `research-n16-u32` and `webgpu/evaluator.js` (lanes and `--max-lanes` are
+  supported).
+- The requester's key-epoch secret is stored in a JavaScript format; epochs stored by the Go tools are not read (a new
+  epoch is made).
+- The CPU evaluator (`--backend cpu`) is slow: about 70-230 s per step at N = 2^12 on a loaded Mac, against a few
+  seconds for Lattigo. Dual checks on the research ring use a second WebGPU evaluator.
+- `tiny-model.json` is a pinned artifact (its sha256 is the model identity). It was trained by the removed PyTorch
+  script `train_tiny.py`; retraining is not part of the route.
+- The trap set (v1) uses SplitMix64 for its seeded prompts (recorded as `generator`), so a seed gives other traps than
+  Go's `math/rand` did; verification is unchanged.
+
+```sh
+npm run protected:check                                   # JavaScript-only guard and the 24 tests
+node tools/privacy-protected/pp.js gpu-compile --profile research-n16-u32 --positions 3 --decode-through 7 --out /tmp/prog
+node tools/privacy-protected/webgpu/evaluator.js --program /tmp/prog --ready-file /tmp/a &          # --backend cpu without a GPU
+node tools/privacy-protected/pp.js requester --profile research-n16-u32 --evaluator $(cat /tmp/a) \
+  --model-identity sha256:$(shasum -a 256 tools/privacy-protected/tiny-model.json | cut -d' ' -f1) --prompt kpd --generate 6 --report r.json
+node tools/privacy-protected/pp.js compare --report r.json
+node tools/privacy-protected/webgpu/test-vectors.js --profile dev-insecure-n12-u32                  # kernels against the reference
+```
+
+## 12. Reploid route support (branch `protected-route`, Go era)
+
+> The Go pieces of sections 12 and 13 (`bridge.go`, `oracle.go`, `trapset.go`, lanes in `evaluator.go`) are now
+> JavaScript: `bridge.js`, `trap-oracle.js`, `trapset.js`, `traps.js`, and lanes in `webgpu/evaluator.js` (section 11).
 
 Reploid's `reploid.protected-generation/v1` (in Reploid's `mesh/protected-generation.js`, documented in Reploid's
 `docs/confidential-execution.md`) drives this prototype from Node. It runs the session protocol itself, so this
@@ -343,7 +729,7 @@ Swapping in a GPU evaluator: implement the same engine port Reploid's evaluator 
 session hello/manifest, keys or `keys-held`, ready, one result per lane per step), compute the same circuit (same
 profile and circuit digests, so the published trap set still applies), and never construct a secret key.
 
-## 9. Trap verification v2: the trap oracle
+## 13. Trap verification v2: the trap oracle (Go era)
 
 A public trap set does not verify anything. An evaluator that reads it can compute, on ciphertext and without a key,
 I = sum over traps t of prod_p [token_p = t_p] from the encrypted one-hot prompt, and add (1 - I) * delta to the
