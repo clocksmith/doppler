@@ -3,7 +3,9 @@
 // value. Doppler-owned enum values are kebab-case (lowercase letters, digits
 // and hyphens). Values that mirror an external format (GGUF/SafeTensors keys,
 // Hugging Face config fields, WGSL/WebGPU identifiers, dtype names) are listed
-// in tools/policies/kebab-enum-values.json.
+// in tools/policies/kebab-enum-values.json; there is no allowlist for values
+// that are merely published: those are renamed and read through
+// src/config/legacy-enum-values.js.
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -40,10 +42,7 @@ function walkJson(value, key, visit) {
 
 export function checkKebabEnumValues({ root, policy }) {
   const violations = [];
-  const externalValues = new Set([
-    ...Object.values(policy.externalValues).flat(),
-    ...Object.values(policy.publishedValues ?? {}).flat(),
-  ]);
+  const externalValues = new Set(Object.values(policy.externalValues).flat());
   const legacyLiteralFiles = policy.legacyLiteralAllowedFiles ?? [];
   const enumFields = new Set([...LEGACY_ENUM_VALUE_FIELDS, ...(policy.extraEnumFields ?? [])]);
   const legacy = LEGACY_ENUM_VALUE_ALIASES;
@@ -59,8 +58,11 @@ export function checkKebabEnumValues({ root, policy }) {
       continue;
     }
     walkJson(parsed, null, (key, value) => {
-      if (Object.prototype.hasOwnProperty.call(legacy, value) && !matchesAny(file, legacyLiteralFiles)) {
-        violations.push(`${file}: legacy value "${value}" (use "${legacy[value]}")`);
+      if (Object.prototype.hasOwnProperty.call(legacy, value)) {
+        // Legacy spellings are allowed only in files that must keep them (read-time aliases, digest-bound inputs).
+        if (!matchesAny(file, legacyLiteralFiles)) {
+          violations.push(`${file}: legacy value "${value}" (use "${legacy[value]}")`);
+        }
       } else if (key && enumFields.has(key) && isNonKebab(value) && !externalValues.has(value)) {
         violations.push(`${file}: ${key}="${value}" is not kebab-case`);
       }

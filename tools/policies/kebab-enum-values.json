@@ -40,7 +40,8 @@
       "qwen3_5_moe_text",
       "qwen4_exp",
       "qwen4_exp_text",
-      "gemma3_text"
+      "gemma3_text",
+      "diffusion_gemma"
     ],
     "huggingFaceLayerTypes": [
       "linear_attention",
@@ -49,7 +50,7 @@
       "gated_delta",
       "gated_delta_net"
     ],
-    "tensorAndOpProbeStages": [
+    "executionGraphOpAndProbeStages": [
       "embed_out",
       "layer_in",
       "attn_input",
@@ -85,24 +86,15 @@
   },
   "legacyLiteralAllowedFiles": [
     "^src/converter/quantization-info\\.js$",
-    "^src/rules/kernels/kv_quantize\\.rules\\.json$"
+    "^src/rules/kernels/kv_quantize\\.rules\\.json$",
+    "^src/config/schema/policy/trainer-artifact-handoff\\.schema\\.json$",
+    "^tools/policies/nativekd2-bf16-baseline-handoff\\.json$"
   ],
-  "publishedValues": {
-    "structuredHeadModelTypes": [
-      "structured_json_head",
-      "dream_structured",
-      "dream_intent_posterior_head",
-      "dream_d1_to2_bridge",
-      "dream_synthesis",
-      "dream_energy_compose",
-      "energy_row_head",
-      "dream_energy_head"
-    ],
-    "trainerHandoffContract": [
-      "huggingface_safetensors"
-    ],
-    "translationCompetitionReceipt": [
-      "selective_f16"
-    ]
-  }
+  "externalValuesNotes": {
+    "ggufDtypes": "GGUF quantization type names.",
+    "huggingFaceModelTypes": "Hugging Face config.json model_type values.",
+    "huggingFaceLayerTypes": "Hugging Face config.json layer_types values.",
+    "executionGraphOpAndProbeStages": "Execution-graph op ids and probe stage names. Most mirror Hugging Face module names (q_proj, gate_proj) and the rest share that namespace; they are bound into published manifests, executionGraphHash digests of capsules and program bundles, and recorded operator-attribution receipts, so they keep their spelling."
+  },
+  "legacyLiteralAllowedFilesNotes": "quantization-info and kv_quantize rules predate this list; the trainer handoff schema accepts the Gamma spelling huggingface_safetensors on read, and the nativekd2 handoff is a digest-bound Gamma input kept byte-for-byte."
 }
