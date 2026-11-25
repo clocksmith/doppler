@@ -23,7 +23,7 @@ not mandatory next work. Preserve model identity, compatibility, trust/checkpoin
 protections, and scoped qualification. Verification supports useful, fast,
 simple, portable execution.
 
-**File Extensions:** Always use `.js`; never create `.mjs`. `package.json` sets `"type": "module"`, so every `.js` file is already an ES module.
+**File Extensions:** Always use `.js`; never create `.mjs`. `package.json` sets `"type": "module"`, so every `.js` file is already an ES module. Code is JavaScript only (WGSL shaders are fine): no Python or Go files, and no scripts that run them. `npm run js-only:check`, part of `check:fast`, enforces this; run vendor or reference stacks that need Python outside the repository and import their JSON.
 
 **See also:** [REPLOID](https://github.com/clocksmith/reploid) for browser-native AI agent orchestration.
 

@@ -999,6 +999,7 @@
         "tools/check-inference-boundaries.js",
         "tools/check-installed-capabilities.js",
         "tools/check-javascript-style.js",
+        "tools/check-js-only.js",
         "tools/check-json-style.js",
         "tools/check-kebab-enum-values.js",
         "tools/check-kernel-negative-results.js",
@@ -1157,6 +1158,7 @@
         "tools/measure-capsule-retention.js",
         "tools/measure-capsule-streaming.js",
         "tools/migrate-rdrr-shard-hashes.js",
+        "tools/model-atlas/gen.js",
         "tools/model-onboarding-embedding-driver.js",
         "tools/node-test-file-bootstrap.js",
         "tools/node-test-runtime-setup.js",
@@ -6098,6 +6100,7 @@
         "tests/tooling/inspect-prefill-logits-receipt.test.js",
         "tests/tooling/installed-gpu-observation.test.js",
         "tests/tooling/javascript-dependency-graph.test.js",
+        "tests/tooling/js-only-check.test.js",
         "tests/tooling/kernel-negative-results.test.js",
         "tests/tooling/kernel-path-builder-entry.test.js",
         "tests/tooling/kernel-review-lint.test.js",
@@ -7707,12 +7710,6 @@
       "expression": "new URL(path, import.meta.url)"
     },
     {
-      "file": "tests/converter/qwen4-exp-source.test.js",
-      "kind": "asset",
-      "line": 16,
-      "expression": "new URL(`${prep}source/configuration_qwen4_exp.py`, import.meta.url)"
-    },
-    {
       "file": "tests/converter/semantic-manifest-lowering.test.js",
       "kind": "dynamic",
       "line": 39,
@@ -8513,7 +8510,7 @@
     {
       "file": "tests/kernels/recurrent-reference.test.js",
       "kind": "asset",
-      "line": 111,
+      "line": 110,
       "expression": "new URL(`../../${SIGMOID_NORM_GATE_REFERENCE.receipt}`, import.meta.url)"
     },
     {
