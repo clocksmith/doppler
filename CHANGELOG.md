@@ -4,6 +4,33 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## Unreleased
+
+### Breaking: Doppler-owned enum values are kebab-case
+
+Doppler now emits only kebab-case for the values it owns. The old snake_case spellings are still read
+(through `src/config/legacy-enum-values.js`), so existing manifests, runtime configs and policies keep
+loading; code that compares emitted values must use the new spellings.
+
+- Provider failure classes (`failureClass`, receipts, `fallbackDecision.reason`): `gpu-device-lost`,
+  `gpu-oom`, `gpu-timeout`, `gpu-unsupported`, `gpu-unavailable`, `model-load-failed`, `policy-denied`,
+  `runtime-internal`, `fallback-failed`. `policy.fallbackOn` accepts both spellings. The fallback surface is
+  `openai-compat`, and the policy reasons are `policy-local-only`, `policy-cloud-only`,
+  `policy-prefer-cloud` and `no-fallback-configured`. Error codes (`DOPPLER_*`) are unchanged.
+- Structured-head model types: `structured-json-head`, `dream-structured`, `dream-intent-posterior-head`,
+  `dream-d1-to2-bridge`, `dream-synthesis`, `dream-energy-compose`, `energy-row-head`, `dream-energy-head`.
+- Diffusion scheduler types: `flowmatch-euler`, `euler-a`, `dpmpp-2m`.
+- Shard loader fallback reasons (`lastSource.fallback`): `custom-range-unavailable`,
+  `custom-range-not-supported`, `custom-stream-not-supported[-resume]`, `custom-stream-interrupted[-resume]`,
+  `custom-stream-partial-resume`, `custom-range-partial-retry`. These are output only.
+- Trainer handoff format: `huggingface-safetensors` (Gamma's `huggingface_safetensors` is still read).
+- Translation artifact lane: `selective-f16`. The recorded 2026-07-13 readiness receipt keeps its original
+  spelling and hash; `readTranslationArtifactCompetitionReceipt` verifies it and returns kebab-case lanes.
+
+Execution-graph op ids and probe stage names (`q_proj`, `input_norm`, `logits_final`) keep their spelling:
+they mirror Hugging Face module names and are bound into published manifests and `executionGraphHash`
+digests.
+
 ## DopplerX 0.1.7
 
 - Fix `scoreTargetSequence` (and `scoreChoices`) scoring against stale context: the prefill started at the
