@@ -10,7 +10,7 @@
  * The requester adds the two mod 2^(64-S), sign-extends, and estimates y as (sum + 1) * 2^S: the unknown carry out of
  * the dropped low bits is 0 or 1, so the estimate is within 2^S of y.
  */
-const TWO32 = 4294967296;
+const TWO32 = 4294967296, INV32 = 1 / TWO32;
 
 if (new Uint8Array(new Uint32Array([1]).buffer)[0] !== 1) throw Error('the ring code assumes a little-endian platform');
 
@@ -27,16 +27,16 @@ export function rint(v) {
 export function encodeAndShare(x, fx, x0, out) {
   const scale = 2 ** fx;
   let maxAbs = 0;
-  for (let i = 0; i < x.length; i++) {
-    const e = rint(x[i] * scale);
+  for (let i = 0, j = 0; i < x.length; i++, j += 2) {
+    const v = x[i] * scale;
+    let e = Math.round(v);
+    if (e - v === 0.5 && (e & 1) !== 0) e -= 1;  // Math.round sends ties up; numpy's rint sends them to even
     const a = e < 0 ? -e : e;
     if (a > maxAbs) maxAbs = a;
-    const lo = e - Math.floor(e / TWO32) * TWO32;          // in [0, 2^32)
-    const hi = Math.floor(e / TWO32);                        // signed; mod 2^32 below
-    const l = lo - x0[2 * i];
-    const borrow = l < 0 ? 1 : 0;
-    out[2 * i] = l + borrow * TWO32;
-    out[2 * i + 1] = (hi - x0[2 * i + 1] - borrow) >>> 0;
+    const hi = Math.floor(e * INV32);              // signed high word; exact for |e| < 2^53
+    const l = e - hi * TWO32 - x0[j];
+    out[j] = l;                                    // Uint32Array stores wrap mod 2^32
+    out[j + 1] = hi - x0[j + 1] - (l < 0 ? 1 : 0);
   }
   if (!(maxAbs < 2 ** 53)) throw Error('input outside the exact fixed-point range');
   return maxAbs;
@@ -61,11 +61,24 @@ export function recombine(a, b, width, shift, fx, fw, out) {
   let maxAbs = 0;
   if (width === 8) {
     const A = aligned32(a, n * 2), B = aligned32(b, n * 2);
-    for (let i = 0; i < n; i++) {
-      const lo = A[2 * i] + B[2 * i];
-      const carry = lo >= TWO32 ? 1 : 0;
-      const hi = (A[2 * i + 1] + B[2 * i + 1] + carry) | 0;
-      const v = (hi * TWO32 + (lo - carry * TWO32) + bump) * scale;
+    for (let i = 0, j = 0; i < n; i++, j += 2) {
+      let lo = A[j] + B[j], carry = 0;
+      if (lo >= TWO32) { lo -= TWO32; carry = 1; }
+      const hi = (A[j + 1] + B[j + 1] + carry) | 0;
+      const v = (hi * TWO32 + lo + bump) * scale;
+      const m = v < 0 ? -v : v;
+      if (m > maxAbs) maxAbs = m;
+      out[i] = v;
+    }
+    return maxAbs;
+  }
+  if (width === 5) {
+    const da = new DataView(a.buffer, a.byteOffset, a.byteLength), db = new DataView(b.buffer, b.byteOffset, b.byteLength);
+    for (let i = 0, p = 0; i < n; i++, p += 5) {
+      let lo = da.getUint32(p, true) + db.getUint32(p, true), carry = 0;
+      if (lo >= TWO32) { lo -= TWO32; carry = 1; }
+      const hi = ((a[p + 4] + b[p + 4] + carry) << 24) >> 24;   // 8-bit high part, sign-extended
+      const v = (hi * TWO32 + lo + bump) * scale;
       const m = v < 0 ? -v : v;
       if (m > maxAbs) maxAbs = m;
       out[i] = v;

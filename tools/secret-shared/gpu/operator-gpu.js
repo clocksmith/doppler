@@ -7,6 +7,8 @@
  *
  *   SS_TOKEN=... node operator-gpu.js --plan PLAN.json --model-dir DIR --stage S --share 0|1 --listen HOST:PORT
  *       [--device gpu|cpu] [--threads N] [--gate]
+ *   ... --connect HOST:PORT instead of --listen: the operator dials the requester (which accepts it) and then serves the
+ *       same protocol on that connection, for hosts that accept no inbound connections. It redials after each session.
  *
  * Session options (advertised in the hello's `caps`, off unless the requester sends `options` before its first round):
  * `returnShift` S returns only bits S..63 of each output share, packed in (64 - S) / 8 bytes little-endian; `prg`
@@ -24,11 +26,11 @@ import { createCpuRingMatVec, denseRows } from './ring-cpu.js';
 
 const MAGIC = 0x31535352;
 const { values: args } = parseArgs({ options: { plan: { type: 'string' }, 'model-dir': { type: 'string' }, stage: { type: 'string' },
-  share: { type: 'string' }, listen: { type: 'string' }, gate: { type: 'boolean' },
+  share: { type: 'string' }, listen: { type: 'string' }, connect: { type: 'string' }, gate: { type: 'boolean' },
   device: { type: 'string', default: 'gpu' }, threads: { type: 'string' } } });
 const token = process.env.SS_TOKEN;
-if (!args.plan || !args['model-dir'] || !args.stage || !args.share || !args.listen || !token) {
-  console.error('usage: operator-gpu.js --plan P --model-dir D --stage S --share 0|1 --listen HOST:PORT [--gate], with SS_TOKEN set');
+if (!args.plan || !args['model-dir'] || !args.stage || !args.share || !(args.listen || args.connect) || !token) {
+  console.error('usage: operator-gpu.js --plan P --model-dir D --stage S --share 0|1 --listen HOST:PORT|--connect HOST:PORT [--device gpu|cpu] [--gate], with SS_TOKEN set');
   process.exit(2);
 }
 const stageIndex = Number(args.stage), share = Number(args.share);
@@ -121,7 +123,7 @@ function frame(header, payload = Buffer.alloc(0)) {
   return Buffer.concat([head, js, len, payload]);
 }
 
-const server = net.createServer({ noDelay: true }, socket => {
+function session(socket, onEnd = () => {}) {
   let buffered = Buffer.alloc(0), authed = false, seed = null, busy = Promise.resolve();
   let prgKind = 'shake256', returnShift = 0, aesKey = null;
   const stats = { rounds: 0, columns: 0, macs: 0, computeNs: 0, gpuNs: 0, bytesIn: 0, bytesOut: 0 };
@@ -215,6 +217,22 @@ const server = net.createServer({ noDelay: true }, socket => {
     }
   });
   socket.on('error', () => {});
-});
-const [host, port] = [args.listen.slice(0, args.listen.lastIndexOf(':')), Number(args.listen.slice(args.listen.lastIndexOf(':') + 1))];
-server.listen(port, host, () => process.stdout.write(`READY ${host}:${port}\n`));
+  socket.on('close', onEnd);
+}
+
+const hostPort = value => [value.slice(0, value.lastIndexOf(':')), Number(value.slice(value.lastIndexOf(':') + 1))];
+if (args.listen) {
+  const [host, port] = hostPort(args.listen);
+  net.createServer({ noDelay: true }, socket => session(socket)).listen(port, host, () => process.stdout.write(`READY ${host}:${port}\n`));
+} else {
+  const [host, port] = hostPort(args.connect);
+  process.stdout.write(`READY dialing ${host}:${port}\n`);
+  const dial = () => {
+    const socket = net.createConnection({ host, port, noDelay: true });
+    let ended = false;
+    const again = () => { if (!ended) { ended = true; setTimeout(dial, 500); } };
+    socket.once('connect', () => session(socket, again));
+    socket.once('error', again);
+  };
+  dial();
+}
