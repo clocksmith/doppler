@@ -81,6 +81,7 @@ config/kernels/kernel-ref-digests.d.ts
 config/kernels/moe/gpt-oss.paths.json
 config/kernels/moe/mixtral.paths.json
 config/kernels/registry.d.ts
+config/legacy-enum-values.d.ts
 config/manifest-inference-validation.d.ts
 config/merge-contract-check.d.ts
 config/merge-contract-check.js

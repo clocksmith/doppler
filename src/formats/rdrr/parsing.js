@@ -9,6 +9,7 @@ import {
   isFunctionalDescriptorDtype,
 } from './functional-descriptor.js';
 import { log } from '../../debug/index.js';
+import { canonicalizeLegacyEnumValues } from '../../config/legacy-enum-values.js';
 
 const KNOWN_MANIFEST_VERSIONS = new Set([RDRR_VERSION]);
 
@@ -35,6 +36,10 @@ export function parseManifest(jsonString) {
   } catch (e) {
     throw new Error(`Failed to parse manifest JSON: ${e.message}`);
   }
+
+  // Manifests published before the kebab-case migration carry snake_case enum
+  // spellings; canonicalize them so runtime code only sees the kebab-case form.
+  manifest = canonicalizeLegacyEnumValues(manifest);
 
   // Warn on unknown manifest version so callers know they may be reading a
   // newer format than this parser understands.

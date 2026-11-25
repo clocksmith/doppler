@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { canonicalizeLegacyEnumValues } from '../src/config/legacy-enum-values.js';
 import fs from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -430,7 +431,9 @@ async function main() {
   const conversionConfigPath = path.resolve(args.conversionConfigPath);
   const manifestPath = path.resolve(args.manifestPath || path.join(modelDir, 'manifest.json'));
 
-  const manifest = await readJson(manifestPath, 'manifest.json');
+  // Published manifests may predate the kebab-case enum migration; refreshed
+  // manifests are written only in the kebab-case form.
+  const manifest = canonicalizeLegacyEnumValues(await readJson(manifestPath, 'manifest.json'));
   const rawConversionConfig = await readJson(conversionConfigPath, 'conversion config');
   const converterConfig = createConverterConfig(rawConversionConfig);
 

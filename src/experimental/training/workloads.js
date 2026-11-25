@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { canonicalizeLegacyEnumValue, canonicalizeLegacyEnumValues } from '../../config/legacy-enum-values.js';
 import { resolve } from 'node:path';
 
 import { isPlainObject } from '../../formats/plain-object.js';
@@ -615,6 +616,28 @@ async function readRegistryEntryById(registryPath, workloadId) {
   return resolve(relativePath);
 }
 
+// Registered workload capsules are sha256-pinned and keep their snake_case
+// stage spellings; canonicalize them to kebab-case after reading the bytes.
+function canonicalizeLegacyWorkloadEnums(workload) {
+  const canonical = canonicalizeLegacyEnumValues(workload);
+  const distill = canonical?.distill;
+  if (!distill || typeof distill !== 'object') return canonical;
+  return {
+    ...canonical,
+    distill: {
+      ...distill,
+      ...(distill.studentGraphMode !== undefined
+        ? { studentGraphMode: canonicalizeLegacyEnumValue(distill.studentGraphMode) }
+        : {}),
+      ...(Array.isArray(distill.stagePlan)
+        ? { stagePlan: distill.stagePlan.map((entry) => (entry && typeof entry === 'object'
+          ? { ...entry, id: canonicalizeLegacyEnumValue(entry.id) }
+          : entry)) }
+        : {}),
+    },
+  };
+}
+
 export async function loadTrainingWorkloadCapsule(input, options = {}) {
   const normalizedInput = asNonEmptyString(input, 'workload input');
   const looksLikePath = normalizedInput.endsWith('.json') || normalizedInput.includes('/') || normalizedInput.includes('\\');
@@ -625,7 +648,7 @@ export async function loadTrainingWorkloadCapsule(input, options = {}) {
       normalizedInput
     );
   const raw = await readFile(absolutePath, 'utf8');
-  const parsed = JSON.parse(raw);
+  const parsed = canonicalizeLegacyWorkloadEnums(JSON.parse(raw));
   const normalized = normalizeTrainingWorkloadCapsule(parsed, {
     label: absolutePath,
   });

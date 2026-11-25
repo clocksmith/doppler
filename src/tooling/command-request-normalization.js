@@ -1,5 +1,6 @@
 import { isPlainObject } from '../formats/plain-object.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
+import { canonicalizeLegacyEnumValue } from '../config/legacy-enum-values.js';
 import {
   TOOLING_COMMAND_SET,
   TOOLING_INTENT_SET,
@@ -60,8 +61,9 @@ export function asOptionalPositiveInteger(value, label) {
 }
 
 export function asOptionalTrainingStage(value, label) {
-  const stage = asOptionalString(value, label);
-  if (!stage) return null;
+  const rawStage = asOptionalString(value, label);
+  if (!rawStage) return null;
+  const stage = canonicalizeLegacyEnumValue(rawStage);
   if (!TRAINING_STAGE_SET.includes(stage)) {
     throw new Error(`tooling command: ${label} must be one of ${TRAINING_STAGE_SET.join(', ')}.`);
   }

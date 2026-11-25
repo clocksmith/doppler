@@ -70,6 +70,7 @@
     "tools/lib/profile-comparison.js",
     "tools/lib/evidence-fields.js",
     "src/config/layer-partition-plan.js",
+    "src/config/legacy-enum-values.js",
     "src/config/ordered-resident-qualification.js",
     "src/inference/pipelines/text/generator/whole-token/whole-token-program.js",
     "src/inference/pipelines/text/generator/decode/recorded-step-executor.js",

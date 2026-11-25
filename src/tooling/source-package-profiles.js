@@ -3,11 +3,13 @@ import gemma4E2BPackageProfile from '../config/source-packages/litert/gemma-4-e2
 import gemma4E4BPackageProfile from '../config/source-packages/litert/gemma-4-e4b-it.json' with { type: 'json' };
 import gemma412BPackageProfile from '../config/source-packages/litert/gemma-4-12b-it.json' with { type: 'json' };
 import { cloneJsonValue } from '../formats/clone-json.js';
+import { canonicalizeLegacyEnumValues } from '../config/legacy-enum-values.js';
 
 const PROFILE_MAP = new Map([
   ['litert/gemma-4-e2b-it', gemma4E2BPackageProfile],
-  ['litert/gemma-4-e4b-it', gemma4E4BPackageProfile],
-  ['litert/gemma-4-12b-it', gemma412BPackageProfile],
+  // Digest-bound source packages keep their published snake_case spellings.
+  ['litert/gemma-4-e4b-it', canonicalizeLegacyEnumValues(gemma4E4BPackageProfile)],
+  ['litert/gemma-4-12b-it', canonicalizeLegacyEnumValues(gemma412BPackageProfile)],
 ]);
 
 function normalizeText(value) {
@@ -40,7 +42,7 @@ function resolveProfileLayerTypes(profile) {
   const period = Number(layerPattern?.period ?? 0);
   const offset = Number(layerPattern?.offset ?? 0);
   if (
-    layerPattern?.type !== 'every_n'
+    layerPattern?.type !== 'every-n'
     || !Number.isInteger(numLayers)
     || numLayers <= 0
     || !Number.isInteger(period)
@@ -49,7 +51,7 @@ function resolveProfileLayerTypes(profile) {
   ) {
     throw new Error(
       `direct-source package profile "${profile?.id || '(unknown)'}" needs explicit layerPattern.layerTypes ` +
-      'or a valid every_n layerPattern before an execution template can be retargeted.'
+      'or a valid every-n layerPattern before an execution template can be retargeted.'
     );
   }
 
