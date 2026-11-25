@@ -9,10 +9,27 @@ import net from 'node:net';
 import path from 'node:path';
 import { float16ToFloat32 } from '../../../src/formats/float16.js';
 
-/** A framed byte stream over one TCP socket: write(bytes), read(n) -> Promise<Uint8Array>, close(). */
-export function connect(host, port) {
+/**
+ * A framed byte stream over one TCP socket: write(bytes), read(n) -> Promise<Uint8Array>, close(). The entry is
+ * { host, port } to dial an operator, or { accept: 'HOST:PORT' } to listen for one operator that dials in (an operator
+ * host that refuses inbound connections runs `operator-gpu.js --connect`).
+ */
+export async function connect(entry) {
+  if (entry.accept) {
+    const at = entry.accept.lastIndexOf(':');
+    const socket = await new Promise((resolve, reject) => {
+      const server = net.createServer({ noDelay: true }, s => { server.close(); resolve(s); });
+      server.once('error', reject);
+      server.listen(Number(entry.accept.slice(at + 1)), entry.accept.slice(0, at));
+      setTimeout(() => { server.close(); reject(Error(`no operator dialed ${entry.accept}`)); }, 60000).unref();
+    });
+    return stream(socket, true);
+  }
+  return stream(net.createConnection({ host: entry.host, port: entry.port, noDelay: true }), false);
+}
+
+function stream(socket, connected) {
   return new Promise((resolve, reject) => {
-    const socket = net.createConnection({ host, port, noDelay: true });
     const chunks = [];
     let have = 0, waiter = null, failed = null;
     const pump = () => {
@@ -40,11 +57,12 @@ export function connect(host, port) {
     socket.on('data', chunk => { chunks.push(new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.length)); have += chunk.length; pump(); });
     socket.on('error', error => { failed = error; pump(); reject(error); });
     socket.on('close', () => { failed ??= Error('operator closed the connection'); pump(); });
-    socket.once('connect', () => resolve({
+    const api = {
       write: bytes => socket.write(bytes),
       read: n => new Promise((res, rej) => { waiter = { n, resolve: res, reject: rej }; pump(); }),
       close: () => socket.destroy()
-    }));
+    };
+    if (connected) { socket.setNoDelay(true); resolve(api); } else socket.once('connect', () => resolve(api));
   });
 }
 

@@ -3,8 +3,8 @@
  * projection group, encode the input in Z_(2^64), split it into a PRG share for operator A and x~ - x0 for operator B,
  * send both, and recombine the two returned output shares.
  *
- * Environment-neutral: the transport (`connect(host, port)` -> { write(bytes), read(n) -> Promise<Uint8Array>,
- * close() }) and the crypto (`shake256(seed, round, size)`, optional; WebCrypto `subtle` and `getRandomValues`) are
+ * Environment-neutral: the transport (`connect(entry)` -> { write(bytes), read(n) -> Promise<Uint8Array>, close() },
+ * where entry is an operator entry of OPS.json: { host, port }, or { accept: 'HOST:PORT' } for an operator that dials in) and the crypto (`shake256(seed, round, size)`, optional; WebCrypto `subtle` and `getRandomValues`) are
  * injected, so the same code runs in Node and in a browser. A browser has no SHAKE-256, so it needs operators that
  * advertise the `prg:aes256-ctr` capability.
  *
@@ -62,8 +62,8 @@ export class OperatorConnection {
   }
 }
 
-export async function openOperator(connect, host, port, token) {
-  const op = new OperatorConnection(await connect(host, port));
+export async function openOperator(connect, entry, token) {
+  const op = new OperatorConnection(await connect(entry));
   const [hello] = await op.call({ op: 'hello', token });
   op.hello = hello;
   for (const cap of hello.caps ?? []) op.caps.add(cap);
@@ -83,9 +83,9 @@ function randomBytes(getRandomValues, size) {
   return out;
 }
 
-/** Hex SHA-256 prefix of a share, for the freshness evidence (WebCrypto digest). */
-async function digest(subtle, bytes) {
-  const h = new Uint8Array(await subtle.digest('SHA-256', bytes));
+/** Hex SHA-256 prefix of a share (of its first `limit` bytes, when set), for the freshness evidence (WebCrypto). */
+async function digest(subtle, bytes, limit) {
+  const h = new Uint8Array(await subtle.digest('SHA-256', limit && bytes.length > limit ? bytes.subarray(0, limit) : bytes));
   let s = '';
   for (let i = 0; i < 16; i++) s += h[i].toString(16).padStart(2, '0');
   return s;
@@ -103,7 +103,7 @@ export class SharedCluster {
     for (const stage of plan.stages) for (const group of stage.groups) {
       c.where.set(group.id, { stage: stage.index, in: group.in, out: group.tensors.reduce((s, t) => s + t.shape[0], 0) });
     }
-    c.pairs = await Promise.all(operators.stages.map(pair => Promise.all(pair.map(o => openOperator(env.connect, o.host, o.port, operators.token)))));
+    c.pairs = await Promise.all(operators.stages.map(pair => Promise.all(pair.map(o => openOperator(env.connect, o, operators.token)))));
     c.pairs.forEach((pair, index) => pair.forEach((op, share) => {
       const h = op.hello;
       if (h.stage !== index || h.share !== share || h.fx !== c.fx || h.fw !== c.fw) throw Error(`operator hello does not match the plan: ${JSON.stringify(h)}`);
@@ -132,6 +132,9 @@ export class SharedCluster {
     c.rounds = [];
     c.step = null;
     c.keepDigests = options.digests !== false;
+    // Shares are uniform, so a digest of the first 4 KiB already shows that no share-B vector repeats; fullDigests
+    // hashes every byte, as requester.py did.
+    c.digestLimit = options.fullDigests ? 0 : 4096;
     return c;
   }
 
@@ -173,14 +176,14 @@ export class SharedCluster {
     pair[1].write({ ...header, seeded: false }, shareB);
     const t1 = performance.now();
     const b = pair[1].read().then(r => { replied[1] = performance.now(); return r; });
-    const digestB = this.keepDigests ? digest(this.env.crypto.subtle, shareB) : null;
+    const digestB = this.keepDigests ? digest(this.env.crypto.subtle, shareB, this.digestLimit) : null;
     const [[h0, y0], [h1, y1]] = await Promise.all([a, b]);
     const t2 = performance.now();
     const y = new Float32Array(n * out);
     const maxAbs = recombine(y0, y1, s.width, s.shift, this.fx, this.fw, y);
     if (!(maxAbs < 2 ** (62 - this.fx - this.fw))) throw Error(`${gid}: output outside the fixed-point range`);
     const t3 = performance.now();
-    this.rounds.push({ group: gid, stage, n, counter, shareBSha256: digestB ? await digestB : null,
+    this.rounds.push({ group: gid, stage, n, counter, shareBSha256: digestB ? await digestB : null, digestBytes: Math.min(shareB.length, this.digestLimit || Infinity),
       encodeMs: t1 - t0, wireMs: t2 - t1, decodeMs: t3 - t2, replyMs: replied.map(r => r - t1),
       operatorMs: [h0.computeNs / 1e6, h1.computeNs / 1e6],
       up: pair.map((op, i) => op.sent - before[i][0]), down: pair.map((op, i) => op.received - before[i][1]) });

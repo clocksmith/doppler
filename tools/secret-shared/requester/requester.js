@@ -11,6 +11,8 @@
  *   node requester.js run --model DIR --plan PLAN.json --operators OPS.json --request REQUEST.json --out REPORT.json [...]
  *        One request for a supervisor: a JSON event per line on stdout (ready, token, end or failed); `stop` on stdin
  *        stops after the token in progress. REQUEST.json: {"messages": [{"role": "user", "content": ...}], "maxTokens": N}.
+ *   node requester.js bench-shape --shape 27b --operators NULL_OPS.json --out REPORT.json [--prompt-tokens 146]
+ *        [--max-tokens 32] [--embedding-file FILE] [...]   requester-only work at a model's shape, against null-operator.js
  *
  * Every option that changes the protocol (--return-shift, --prg, --pipeline-steps) is off by default, and is used only
  * with operators that advertise it; the report records what each stage actually used.
@@ -24,13 +26,14 @@ import { SharedCluster } from './cluster.js';
 import { QwenRequesterModel, configFrom } from './model.js';
 import { fileSource, nodeEnv, npyWriter } from './node.js';
 import { PlainLinear } from './plain.js';
+import { syntheticConfig, syntheticPlan, syntheticSource } from './synthetic.js';
 
 const { positionals, values: args } = parseArgs({ allowPositionals: true, options: {
   model: { type: 'string' }, plan: { type: 'string' }, operators: { type: 'string' }, prompts: { type: 'string' },
   request: { type: 'string' }, out: { type: 'string' }, forced: { type: 'string' }, 'logits-out': { type: 'string' },
   'max-tokens': { type: 'string', default: '32' }, 'return-shift': { type: 'string', default: '0' }, prg: { type: 'string', default: 'shake256' },
-  'pipeline-steps': { type: 'boolean' }, explicit: { type: 'boolean' }, 'keep-rounds': { type: 'boolean' }, strict: { type: 'boolean' },
-  'source-config': { type: 'string' }, 'exit-operators': { type: 'boolean' }, 'prompt-limit': { type: 'string' } } });
+  'pipeline-steps': { type: 'boolean' }, 'full-digests': { type: 'boolean' }, explicit: { type: 'boolean' }, 'keep-rounds': { type: 'boolean' }, strict: { type: 'boolean' },
+  'source-config': { type: 'string' }, shape: { type: 'string' }, 'embedding-file': { type: 'string' }, 'prompt-tokens': { type: 'string', default: '146' }, 'exit-operators': { type: 'boolean' }, 'prompt-limit': { type: 'string' } } });
 const command = positionals[0];
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 const cpuMs = () => { const u = process.cpuUsage(); return (u.user + u.system) / 1e3; };
@@ -47,7 +50,7 @@ async function openModel(linear) {
 
 async function openCluster(plan) {
   return SharedCluster.open(plan, readJson(args.operators), nodeEnv, {
-    seeded: !args.explicit, returnShift: Number(args['return-shift']), prg: args.prg, pipelineSteps: args['pipeline-steps'], strict: args.strict });
+    seeded: !args.explicit, returnShift: Number(args['return-shift']), prg: args.prg, pipelineSteps: args['pipeline-steps'], strict: args.strict, fullDigests: args['full-digests'] });
 }
 
 /** Greedy decode (or teacher-forced on `forced`): one prefill pass, then one position per step. */
@@ -112,7 +115,8 @@ async function runPrompts(model, config, tokenizer, cluster) {
 
 function freshness(cluster) {
   const digests = cluster.rounds.map(r => r.shareBSha256), counters = cluster.rounds.map(r => r.counter);
-  return { rounds: digests.length, distinctShareBDigests: new Set(digests).size, countersStrictlyIncreasing: counters.every((c, i) => i === 0 || c > counters[i - 1]) };
+  return { rounds: digests.length, distinctShareBDigests: new Set(digests).size, countersStrictlyIncreasing: counters.every((c, i) => i === 0 || c > counters[i - 1]),
+    digestOf: cluster.digestLimit ? `the first ${cluster.digestLimit} bytes of each share B (uniform, so distinct prefixes show distinct shares)` : 'every byte of each share B' };
 }
 
 async function cmdGenerate() {
@@ -179,8 +183,27 @@ async function cmdRun() {
   }
 }
 
-const commands = { generate: cmdGenerate, control: cmdControl, run: cmdRun };
-if (!commands[command] || !args.model || (command !== 'run' && !args.out)) {
+async function cmdBenchShape() {
+  const config = syntheticConfig(args.shape);
+  const plan = syntheticPlan(config, readJson(args.operators).stages.length);
+  const cluster = await openCluster(plan);
+  const source = syntheticSource(config, args['embedding-file']);
+  const model = new QwenRequesterModel(config, source, cluster);
+  const ids = Array.from({ length: Number(args['prompt-tokens']) }, (_, i) => (i * 7919) % config.vocab);
+  const forced = Array.from({ length: Number(args['max-tokens']) }, (_, i) => (i * 104729) % config.vocab);
+  const { steps } = await greedy(model, config, ids, forced.length, { cluster, forced });
+  await cluster.close();
+  const decode = steps.slice(1), med = key => decode.map(s => s[key]).sort((a, b) => a - b)[decode.length >> 1];
+  const report = { schema: 'doppler.secret-shared-requester-shape/v1', note: 'requester-only work at the shape, against null operators; not a model run',
+    shape: args.shape, config: { ...config, layerTypes: undefined }, protocol: { stages: cluster.describe(), pipelineSteps: Boolean(args['pipeline-steps']) },
+    prefill: steps[0], decodeMedian: { cpuMs: med('cpuMs'), wallMs: med('wallMs'), up: med('up'), down: med('down'), rounds: med('rounds'), encodeMs: med('encodeMs'), decodeMs: med('decodeMs') },
+    steps, requesterPeakRss: peakRss(), node: process.version };
+  fs.writeFileSync(args.out, JSON.stringify(report) + '\n');
+  console.error(JSON.stringify({ prefill: { columns: steps[0].columns, cpuMs: Math.round(steps[0].cpuMs), wallMs: Math.round(steps[0].wallMs) }, decodeMedian: report.decodeMedian, requesterPeakRss: report.requesterPeakRss }));
+}
+
+const commands = { generate: cmdGenerate, control: cmdControl, run: cmdRun, 'bench-shape': cmdBenchShape };
+if (!commands[command] || (!args.model && command !== 'bench-shape') || (command !== 'run' && !args.out)) {
   console.error('usage: requester.js generate|control|run --model DIR --plan PLAN ... (see the header)');
   process.exit(2);
 }
