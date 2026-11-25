@@ -83,7 +83,7 @@ func auditMain(args []string) error {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: privacy-protected audit|evaluator|requester|compare [flags]")
+		fmt.Fprintln(os.Stderr, "usage: privacy-protected audit|evaluator|requester|compare|bridge|trapset [flags]")
 		os.Exit(2)
 	}
 	var err error

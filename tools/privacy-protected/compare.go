@@ -70,6 +70,40 @@ func compareMain(args []string) error {
 	return nil
 }
 
+// referenceMain prints the pinned reference continuation of a prompt: the approximate circuit's greedy tokens (what
+// an honest encrypted evaluation must produce) and the float64 model's. It loads the public weights, so it is a
+// publisher or test tool and never part of a requester session.
+func referenceMain(args []string) error {
+	fs := flag.NewFlagSet("reference", flag.ExitOnError)
+	modelPath := fs.String("model", "tiny-model.json", "public model fixture")
+	prompt := fs.String("prompt", "", "prompt text")
+	generate := fs.Int("generate", 4, "tokens to generate")
+	fs.Parse(args)
+	m, id, err := loadModel(*modelPath)
+	if err != nil {
+		return err
+	}
+	pl, err := newPlan(m)
+	if err != nil {
+		return err
+	}
+	toks, err := tokenize(*prompt)
+	if err != nil || len(toks) == 0 || len(toks)+*generate-1 > context {
+		return fmt.Errorf("prompt must be 1 to %d alphabet symbols with the generated tokens", context)
+	}
+	apT, _ := greedy(toks, *generate, func(t []int) []float64 { return approxLogits(pl, t, nil) })
+	exT, _ := greedy(toks, *generate, func(t []int) []float64 { return exactLogits(m, t) })
+	text := func(t []int) string {
+		b := make([]byte, len(t))
+		for i, x := range t {
+			b[i] = alphabet[x]
+		}
+		return string(b)
+	}
+	return json.NewEncoder(os.Stdout).Encode(map[string]any{"model": id, "circuit": circuitDigest(pl, id), "prompt": *prompt,
+		"approximateText": text(apT), "exactText": text(exT)})
+}
+
 func dispatch(cmd string, args []string) error {
 	switch cmd {
 	case "evaluator":
@@ -80,6 +114,12 @@ func dispatch(cmd string, args []string) error {
 		return compareMain(args)
 	case "bootstrap-probe":
 		return bootstrapProbeMain(args)
+	case "bridge":
+		return bridgeMain(args)
+	case "trapset":
+		return trapsetMain(args)
+	case "reference":
+		return referenceMain(args)
 	}
 	return fmt.Errorf("unknown command %q", cmd)
 }

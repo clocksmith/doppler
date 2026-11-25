@@ -11,12 +11,15 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	mrand "math/rand"
 	"net"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/tuneinsight/lattigo/v6/circuits/ckks/polynomial"
@@ -365,6 +368,8 @@ type evaluatorReport struct {
 	BytesSent      int64            `json:"bytesSent"`
 	PeakRSSBytes   int64            `json:"peakRSSBytes"`
 	Misbehave      string           `json:"misbehave"`
+	Sessions       int              `json:"sessions"`
+	FailedSessions int              `json:"failedSessions"`
 	EncodingPrec   uint             `json:"encodingPrecisionBits"`
 	Outcome        string           `json:"outcome"`
 	Error          string           `json:"error,omitempty"`
@@ -374,16 +379,30 @@ func evaluatorMain(args []string) error {
 	fs := flag.NewFlagSet("evaluator", flag.ExitOnError)
 	listen := fs.String("listen", "127.0.0.1:0", "address to listen on")
 	modelPath := fs.String("model", "tiny-model.json", "public model fixture")
-	misbehave := fs.String("misbehave", "", "test only: ask-decrypt | tamper | wrong-seq")
+	misbehave := fs.String("misbehave", "", "test only: ask-decrypt | tamper | wrong-seq | lie-all | lie-random | lie-lane=N")
+	sessions := fs.Int("sessions", 1, "sessions to serve, one at a time (0: until stopped)")
+	maxLanes := fs.Int("max-lanes", 8, "most input lanes one session may use")
+	describe := fs.Bool("describe", false, "print this evaluator's manifest for --profile as JSON and exit")
+	profileID := fs.String("profile", "research-n16", "profile described by --describe")
+	exitWithStdin := fs.Bool("exit-with-stdin", false, "exit when standard input closes (a host process supervises this engine)")
 	ready := fs.String("ready-file", "", "write the bound address here once listening")
 	stateDir := fs.String("state-dir", "", "where evaluation keys of unexpired key epochs are kept between sessions")
 	reportPath := fs.String("report", "", "write the evaluator report here")
 	encPrec := fs.Uint("encoding-precision", deterministicEncodingPrecision, "test only: plaintext encoding precision (53 = float64 FFT)")
 	fs.Parse(args)
 	encodingPrecision = *encPrec
+	if *exitWithStdin {
+		go func() {
+			io.Copy(io.Discard, os.Stdin)
+			os.Exit(3)
+		}()
+	}
+	if *describe {
+		return describeEvaluator(*modelPath, *profileID, *maxLanes)
+	}
 	rep := &evaluatorReport{Schema: "doppler.protected-evaluator-report/v0", Arch: runtime.GOOS + "/" + runtime.GOARCH,
 		CPUs: runtime.NumCPU(), Misbehave: *misbehave, EncodingPrec: encodingPrecision, Outcome: "completed"}
-	err := runEvaluator(*listen, *modelPath, *misbehave, *ready, *stateDir, rep)
+	err := runEvaluator(*listen, *modelPath, *misbehave, *ready, *stateDir, *sessions, *maxLanes, rep)
 	if err != nil {
 		rep.Outcome, rep.Error = "failed", err.Error()
 	}
@@ -422,7 +441,35 @@ func pruneEpochs(dir string) {
 
 var epochName = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
-func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *evaluatorReport) error {
+// describeEvaluator prints what a host advertises for this evaluator: the exact profile, model, circuit and layout.
+func describeEvaluator(modelPath, profileID string, maxLanes int) error {
+	m, modelID, err := loadModel(modelPath)
+	if err != nil {
+		return err
+	}
+	pl, err := newPlan(m)
+	if err != nil {
+		return err
+	}
+	prof, err := lookupProfile(profileID)
+	if err != nil {
+		return err
+	}
+	params, err := prof.params()
+	if err != nil {
+		return err
+	}
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", " ")
+	return enc.Encode(map[string]any{"schema": "doppler.protected-evaluator-manifest/v1", "protocol": protocolID,
+		"scheme": "ckks-rns-single-key", "implementation": "lattigo/v6.2.0-cpu", "profile": prof.ID,
+		"profileDigest": prof.digest(), "insecureDevelopment": prof.Insecure, "model": modelID,
+		"circuit": circuitDigest(pl, modelID), "rotations": rotationSteps(), "inputLevel": params.MaxLevel(),
+		"logSlots": logSlots, "vocab": vocab, "context": context, "maxLanes": maxLanes,
+		"encodingPrecisionBits": encodingPrecision})
+}
+
+func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, sessions, maxLanes int, rep *evaluatorReport) error {
 	m, modelID, err := loadModel(modelPath)
 	if err != nil {
 		return err
@@ -447,16 +494,64 @@ func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *eva
 			return err
 		}
 	}
-	nc, err := ln.Accept()
-	if err != nil {
-		return err
-	}
-	defer nc.Close()
-	c := &conn{c: nc, deadline: 30 * time.Minute}
-	defer func() { rep.BytesReceived, rep.BytesSent = c.received, c.sent }()
 	log := func(f string, a ...any) {
 		fmt.Fprintf(os.Stderr, "[evaluator %s] "+f+"\n", append([]any{rep.Arch}, a...)...)
 	}
+	// One session per connection, one at a time. With sessions == 1 the first session's outcome is the process's.
+	for n := 0; sessions == 0 || n < sessions; n++ {
+		nc, err := ln.Accept()
+		if err != nil {
+			return err
+		}
+		err = serveSession(nc, pl, modelID, misbehave, stateDir, maxLanes, rep, log)
+		nc.Close()
+		rep.Sessions++
+		if sessions == 1 {
+			return err
+		}
+		if err != nil {
+			rep.FailedSessions++
+			log("session ended: %v", err)
+		}
+	}
+	return nil
+}
+
+// liarDelta is what a lying evaluator adds to the logits it returns: a valid ciphertext of a wrong answer.
+func liarDelta() []float64 {
+	d := make([]float64, vocab)
+	d[vocab-7] = 20 // the symbol 'z'
+	return replicate(d, vocab)
+}
+
+// lane runs one input stream of a session: its own encrypted KV cache and its own evaluator instance.
+func (c *circuit) lane(params ckks.Parameters, inputs [][]byte, pos int, lie bool) ([]byte, error) {
+	var q, x0 *rlwe.Ciphertext
+	for i, raw := range inputs {
+		ct, err := importInput(params, raw)
+		if err != nil {
+			return nil, err
+		}
+		if q, x0, err = c.lookup(ct, pos+i, i == len(inputs)-1); err != nil {
+			return nil, err
+		}
+	}
+	logits, err := c.forward(q, x0)
+	if err != nil {
+		return nil, err
+	}
+	if lie {
+		if err := c.eval.Add(logits, liarDelta(), logits); err != nil {
+			return nil, err
+		}
+	}
+	return logits.MarshalBinary()
+}
+
+func serveSession(nc net.Conn, pl *plan, modelID, misbehave, stateDir string, maxLanes int, rep *evaluatorReport,
+	log func(string, ...any)) error {
+	c := &conn{c: nc, deadline: 30 * time.Minute}
+	defer func() { rep.BytesReceived, rep.BytesSent = rep.BytesReceived+c.received, rep.BytesSent+c.sent }()
 
 	h, _, err := c.recv("hello")
 	if err != nil {
@@ -480,6 +575,15 @@ func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *eva
 	if !epochName.MatchString(epoch) || expires <= time.Now().Unix() {
 		return fmt.Errorf("key epoch missing or expired")
 	}
+	// Lanes: independent input streams of one session (the protected route mixes known-answer trap streams with
+	// the real one). Every lane gets the same schedule; the evaluator cannot tell them apart.
+	lanes := 1
+	if v, ok := h.Fields["lanes"]; ok {
+		lanes = int(toFloat(v))
+	}
+	if lanes < 1 || lanes > maxLanes {
+		return fmt.Errorf("lanes %d outside [1, %d]", lanes, maxLanes)
+	}
 	rep.KeyEpoch = epoch
 	held := ""
 	var stored storedEpoch
@@ -490,8 +594,9 @@ func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *eva
 		}
 	}
 	if err := c.send(header{Kind: "manifest", Session: session, Fields: map[string]any{
-		"profile": prof.ID, "profileDigest": prof.digest(), "model": modelID, "rotations": rotationSteps(),
-		"inputLevel": params.MaxLevel(), "logSlots": logSlots, "heldKeysDigest": held,
+		"profile": prof.ID, "profileDigest": prof.digest(), "model": modelID, "circuit": circuitDigest(pl, modelID),
+		"rotations": rotationSteps(), "inputLevel": params.MaxLevel(), "logSlots": logSlots, "heldKeysDigest": held,
+		"lanes": lanes,
 	}}); err != nil {
 		return err
 	}
@@ -503,14 +608,14 @@ func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *eva
 		return err
 	}
 	var keyBlobs [][]byte
-	if kh.Kind == "keys-held" {
+	fromStore := kh.Kind == "keys-held"
+	if fromStore {
 		if held == "" {
 			return fmt.Errorf("requester asked to reuse keys this evaluator does not hold")
 		}
 		if keyBlobs, err = readKeyFile(keyEpochPath(stateDir, epoch) + ".keys"); err != nil {
 			return err
 		}
-		rep.KeysFromStore = true
 	} else {
 		keyBlobs = append(keyBlobs, blobs[0])
 		for range rotationSteps() {
@@ -521,6 +626,7 @@ func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *eva
 			keyBlobs = append(keyBlobs, b[0])
 		}
 	}
+	rep.KeysFromStore = fromStore
 	if len(keyBlobs) != 1+len(rotationSteps()) {
 		return fmt.Errorf("wrong number of evaluation keys")
 	}
@@ -543,10 +649,10 @@ func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *eva
 		gks = append(gks, gk)
 	}
 	keysDigest := digest(kd...)
-	if rep.KeysFromStore && keysDigest != held {
+	if fromStore && keysDigest != held {
 		return fmt.Errorf("stored keys do not match their recorded digest")
 	}
-	if !rep.KeysFromStore && stateDir != "" {
+	if !fromStore && stateDir != "" {
 		if err := writeKeyFile(keyEpochPath(stateDir, epoch)+".keys", keyBlobs); err != nil {
 			return err
 		}
@@ -557,16 +663,45 @@ func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *eva
 	}
 	keyBlobs = nil
 	rep.KeysDigest, rep.KeyLoadSeconds = keysDigest, time.Since(t0).Seconds()
-	ev := ckks.NewEvaluator(params, rlwe.NewMemEvaluationKeySet(rlk, gks...))
-	// Plaintext encoding with big-float arithmetic: float64 FFTs can round differently across CPU architectures
-	// (fused multiply-add), which would make honest evaluators disagree byte for byte.
-	ev.Encoder = ckks.NewEncoder(params, encodingPrecision)
-	cir := &circuit{params: params, eval: ev, poly: polynomial.NewEvaluator(params, ev), pl: pl, ops: map[string]int{}}
-	defer func() { rep.Ops = cir.ops }()
+	evk := rlwe.NewMemEvaluationKeySet(rlk, gks...)
+	cirs := make([]*circuit, lanes)
+	for i := range cirs {
+		ev := ckks.NewEvaluator(params, evk)
+		// Plaintext encoding with big-float arithmetic: float64 FFTs can round differently across CPU architectures
+		// (fused multiply-add), which would make honest evaluators disagree byte for byte.
+		ev.Encoder = ckks.NewEncoder(params, encodingPrecision)
+		cirs[i] = &circuit{params: params, eval: ev, poly: polynomial.NewEvaluator(params, ev), pl: pl, ops: map[string]int{}}
+	}
+	defer func() {
+		if rep.Ops == nil {
+			rep.Ops = map[string]int{}
+		}
+		for _, cir := range cirs {
+			for k, v := range cir.ops {
+				rep.Ops[k] += v
+			}
+		}
+	}()
 	if err := c.send(header{Kind: "ready", Session: session, Fields: map[string]any{"keysDigest": keysDigest}}); err != nil {
 		return err
 	}
-	log("ready: keys digest %s (from store: %v)", keysDigest, rep.KeysFromStore)
+	log("ready: %d lane(s), keys digest %s (from store: %v)", lanes, keysDigest, fromStore)
+	// Test-only lying modes: return a valid ciphertext of a wrong answer for some lanes, on every step.
+	lies := make([]bool, lanes)
+	switch {
+	case misbehave == "lie-all":
+		for i := range lies {
+			lies[i] = true
+		}
+	case misbehave == "lie-random":
+		lies[mrand.Intn(lanes)] = true
+	case strings.HasPrefix(misbehave, "lie-lane="):
+		i, err := strconv.Atoi(strings.TrimPrefix(misbehave, "lie-lane="))
+		if err != nil || i < 0 || i >= lanes {
+			return fmt.Errorf("lie-lane outside the session's lanes")
+		}
+		lies[i] = true
+	}
 
 	pos := 0
 	for seq := 1; ; seq++ {
@@ -575,54 +710,59 @@ func runEvaluator(listen, modelPath, misbehave, ready, stateDir string, rep *eva
 			return err
 		}
 		if h.Kind == "bye" {
-			log("bye after %d steps; ops %v", seq-1, cir.ops)
+			log("bye after %d steps", seq-1)
 			return nil
 		}
 		if h.Session != session || h.Seq != seq {
 			return fmt.Errorf("step binding mismatch")
 		}
-		if h.Kind == "prefill" && seq != 1 || h.Kind == "decode" && (seq == 1 || len(blobs) != 1) || pos+len(blobs) > context {
+		per := 0
+		if len(blobs)%lanes == 0 {
+			per = len(blobs) / lanes
+		}
+		if per == 0 || h.Kind == "prefill" && seq != 1 || h.Kind == "decode" && (seq == 1 || per != 1) || pos+per > context {
 			return fmt.Errorf("unexpected %s at step %d", h.Kind, seq)
 		}
 		t0 := time.Now()
-		var q, x0 *rlwe.Ciphertext
-		for i, raw := range blobs {
-			ct, err := importInput(params, raw)
+		outs, errs := make([][]byte, lanes), make([]error, lanes)
+		var wg sync.WaitGroup
+		for l := 0; l < lanes; l++ {
+			wg.Add(1)
+			go func(l int) {
+				defer wg.Done()
+				outs[l], errs[l] = cirs[l].lane(params, blobs[l*per:(l+1)*per], pos, lies[l])
+			}(l)
+		}
+		wg.Wait()
+		for _, err := range errs {
 			if err != nil {
 				return err
 			}
-			if q, x0, err = cir.lookup(ct, pos, i == len(blobs)-1); err != nil {
-				return err
-			}
-			pos++
 		}
-		logits, err := cir.forward(q, x0)
-		if err != nil {
-			return err
-		}
-		out, err := logits.MarshalBinary()
-		if err != nil {
-			return err
-		}
+		pos += per
 		compute := time.Since(t0).Seconds()
-		fields := map[string]any{"computeSeconds": compute, "outputLevel": logits.Level(), "position": pos - 1}
-		rep.Steps = append(rep.Steps, map[string]any{"seq": seq, "kind": h.Kind, "position": pos - 1,
-			"computeSeconds": compute, "resultDigest": digest(out)})
+		fields := map[string]any{"computeSeconds": compute, "position": pos - 1, "lanes": lanes}
+		var digests []string
+		for _, o := range outs {
+			digests = append(digests, digest(o))
+		}
+		rep.Steps = append(rep.Steps, map[string]any{"seq": seq, "kind": h.Kind, "position": pos - 1, "lanes": lanes,
+			"computeSeconds": compute, "resultDigests": digests})
 		switch misbehave {
 		case "ask-decrypt":
 			// An attack: ask the requester to decrypt a ciphertext of the evaluator's choice.
 			log("misbehave: sending a forged decrypt-request at step %d", seq)
 			return c.send(header{Kind: "decrypt-request", Session: session, Seq: seq}, blobs[0])
 		case "tamper":
-			out[len(out)/2] ^= 1
+			outs[0][len(outs[0])/2] ^= 1
 			log("misbehave: flipped one bit of the result at step %d", seq)
 		case "wrong-seq":
 			seq++
 		}
-		if err := c.send(header{Kind: "result", Session: session, Seq: seq, Fields: fields}, out); err != nil {
+		if err := c.send(header{Kind: "result", Session: session, Seq: seq, Fields: fields}, outs...); err != nil {
 			return err
 		}
-		log("step %d (%s, position %d): %.1fs, output level %d", seq, h.Kind, pos-1, compute, logits.Level())
+		log("step %d (%s, position %d, %d lane(s)): %.1fs", seq, h.Kind, pos-1, lanes, compute)
 	}
 }
 

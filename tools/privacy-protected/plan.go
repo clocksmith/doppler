@@ -189,6 +189,18 @@ func newPlan(m *tinyModel) (*plan, error) {
 	return pl, nil
 }
 
+// circuitDigest identifies the exact approximate circuit an evaluator computes: the protocol, the model and every
+// polynomial approximation (interval and degree). Known-answer traps are generated for, and bound to, this digest.
+func circuitDigest(pl *plan, modelID string) string {
+	h := sha256.New()
+	fmt.Fprintf(h, "doppler.protected-circuit/v1|%s|%s|%d|%d|%d|%d|%v|%v", protocolID, modelID, vocab, context, dim, hidden,
+		expShift, pl.eps)
+	for _, p := range []approximation{pl.expP, pl.invP, pl.isq2P, pl.isqfP, pl.geluP} {
+		fmt.Fprintf(h, "|%s:%v:%v:%d", p.Name, p.A, p.B, p.Degree)
+	}
+	return "sha256:" + hex.EncodeToString(h.Sum(nil))
+}
+
 func layerNorm(x, g, b []float64, eps float64) []float64 {
 	var mu, v float64
 	for _, a := range x {

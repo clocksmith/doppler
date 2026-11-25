@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/ed25519"
+	"encoding/base64"
 	"encoding/json"
 	"os"
 	"os/exec"
@@ -23,6 +25,12 @@ func TestSourceBoundaries(t *testing.T) {
 	for _, bad := range []string{"loadModel", "newPlan", "tinyModel", "Weights", "tiny-model.json"} {
 		if strings.Contains(string(rq), bad) {
 			t.Errorf("requester.go references %s", bad)
+		}
+	}
+	br, _ := os.ReadFile("bridge.go")
+	for _, bad := range []string{"loadModel", "newPlan", "tinyModel", "Weights", "tiny-model.json", "net.Dial", "net.Listen"} {
+		if strings.Contains(string(br), bad) {
+			t.Errorf("bridge.go references %s", bad)
 		}
 	}
 	// The only kinds the requester ever waits for.
@@ -140,5 +148,45 @@ func TestKeyEpochReusedWithoutUpload(t *testing.T) {
 	second, err := e2eState(t, []string{"", ""}, req, evs)
 	if err != nil || second.KeyBytes != 0 || !second.KeysReusedFromEvaluators || second.KeyEpoch != first.KeyEpoch || second.Text != "hj" {
 		t.Fatalf("second: err %v keys %d reused %v epoch %s text %q", err, second.KeyBytes, second.KeysReusedFromEvaluators, second.KeyEpoch, second.Text)
+	}
+}
+
+// A trap set verifies under its publisher key, is bound to the circuit, and its expected logits are the approximate
+// circuit's own outputs along each trap's greedy trajectory.
+func TestTrapSetSignedAndBound(t *testing.T) {
+	dir := t.TempDir()
+	if err := trapsetMain([]string{"--key", filepath.Join(dir, "k"), "--new-key", "--out", filepath.Join(dir, "t.json"), "--per-length", "2"}); err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := os.ReadFile(filepath.Join(dir, "t.json"))
+	var env trapSetEnvelope
+	if err := json.Unmarshal(raw, &env); err != nil {
+		t.Fatal(err)
+	}
+	pub, _ := base64.RawURLEncoding.DecodeString(env.PublicKey)
+	sig, _ := base64.RawURLEncoding.DecodeString(env.Signature)
+	if !ed25519.Verify(pub, trapSigningBytes([]byte(env.Body)), sig) {
+		t.Fatal("signature does not verify")
+	}
+	if ed25519.Verify(pub, trapSigningBytes([]byte(env.Body+" ")), sig) {
+		t.Fatal("signature verifies a changed body")
+	}
+	var b trapSetBody
+	json.Unmarshal([]byte(env.Body), &b)
+	m, id, _ := loadModel("tiny-model.json")
+	pl, _ := newPlan(m)
+	if b.Model != id || b.Circuit != circuitDigest(pl, id) || len(b.Traps) == 0 {
+		t.Fatalf("model %s circuit %s traps %d", b.Model, b.Circuit, len(b.Traps))
+	}
+	for _, tr := range b.Traps {
+		toks := append(append([]int(nil), tr.Prompt...), tr.Continuation...)
+		for i, row := range tr.Expected {
+			want := approxLogits(pl, toks[:len(tr.Prompt)+i], nil)
+			for j := range row {
+				if d := row[j] - want[j]; d > 1e-4 || d < -1e-4 {
+					t.Fatalf("trap %s position %d differs from the reference", tr.ID, i)
+				}
+			}
+		}
 	}
 }

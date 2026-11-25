@@ -306,3 +306,39 @@ leakage), the implementation (Lattigo deserialization of untrusted ciphertexts a
 channels on the requester), and the Reploid integration (no readable fallback, state and log separation).
 Doppler's availability gate stays closed and Reploid keeps `CONFIDENTIAL_EXECUTION_UNAVAILABLE` until that review
 and the two-machine proof are both done.
+
+## 8. Reploid route support (branch `protected-route`)
+
+Reploid's `reploid.protected-generation/v1` (in Reploid's `mesh/protected-generation.js`, documented in Reploid's
+`docs/confidential-execution.md`) drives this prototype from Node. It runs the session protocol itself, so this
+branch adds engine-side pieces only; nothing here makes `assertExecutionBackendAvailable()` accept a cryptographic
+descriptor.
+
+- **Lanes.** `hello` may name `lanes` (1 to `--max-lanes`, default 8). A step then carries `lanes` x tokens
+  ciphertexts lane-major and the result carries one logits ciphertext per lane; each lane has its own encrypted KV
+  cache and evaluator instance and runs in its own goroutine. Reploid uses lanes for known-answer traps: one real
+  lane among T trap lanes, indistinguishable fresh encryptions. Without `lanes` a session is one lane, as before.
+- **`evaluator --sessions N`** serves N sessions one after another (0: until stopped); `--describe --profile P`
+  prints the manifest a host advertises (protocol, scheme, profile digest, model, circuit digest, layout);
+  `--exit-with-stdin` ties the engine's life to its host process. The manifest now includes `circuit`.
+- **Circuit identity** (`circuitDigest`, plan.go): the protocol, the model identity, the geometry and every
+  approximation's interval and degree. Trap sets are bound to it.
+- **`bridge`**: the requester's key holder for a host process, over stdin/stdout with the same framing. It creates
+  or loads the key epoch, streams evaluation keys one at a time, encrypts one-hot tokens and decrypts results to
+  little-endian float64 blobs after the shape check, counting every encryption and decryption. It loads no model
+  and opens no socket (`TestSourceBoundaries`).
+- **`trapset`**: the reference publisher's signed known-answer traps. For every prompt length it keeps prompts
+  (half letter progressions, half random letters) whose approximate-circuit trajectory stays inside every
+  interval with a top-1 margin of at least `--min-margin` (2.5), records the greedy continuation and the expected
+  logits at each generated position, and signs `"doppler.protected-trapset/v1\x00" || body` with Ed25519.
+  Single-symbol prompts never reach the margin on this fixture, so lengths 2 to 8 are covered. The default
+  tolerance is 0.75 logits against the approximate reference (measured errors: 0.26 on `research-n16`, 0.001 on
+  `dev-insecure-n12`). `TestTrapSetSignedAndBound` checks the signature and every expected row.
+- **`reference --prompt P --generate G`**: the pinned (approximate) and float64 continuations, for tests and the
+  two-machine check. It loads the weights and is never part of a session.
+- **Test-only misbehaviour**: `lie-all`, `lie-random` (one lane per session) and `lie-lane=N` add +20 to one logit
+  homomorphically, a valid ciphertext of a wrong answer, so only the trap check can catch it.
+
+Swapping in a GPU evaluator: implement the same engine port Reploid's evaluator peer uses (describe, then per
+session hello/manifest, keys or `keys-held`, ready, one result per lane per step), compute the same circuit (same
+profile and circuit digests, so the published trap set still applies), and never construct a secret key.
