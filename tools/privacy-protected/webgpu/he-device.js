@@ -387,6 +387,18 @@ export class HeDevice {
 
   // --- keys and ciphertexts ---
 
+  // Drops the resident evaluation keys (a new key epoch replaces them).
+  clearKeys() {
+    this.flush();
+    for (const key of [this.keys.relin, ...this.keys.galois.values()]) {
+      if (!key) continue;
+      this.stats.keyBytes -= key.buf.size;
+      this.destroy(key.buf);
+    }
+    this.keys = { relin: null, galois: new Map() };
+    this.bindGroups.clear();
+  }
+
   // A raw-u32 key (see gpu_codec.go). Residues are checked, uploaded and converted to Montgomery form on the GPU.
   loadKey(raw) {
     const v = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);

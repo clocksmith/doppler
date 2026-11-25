@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/binary"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -30,7 +32,7 @@ func TestWebGPUSourceBoundaries(t *testing.T) {
 	}
 	ev, _ := os.ReadFile("webgpu/evaluator.js")
 	got := regexp.MustCompile(`recv\(('[a-z-]+'(, )?)+\)`).FindAllString(string(ev), -1)
-	if strings.Join(got, ";") != `recv('hello');recv('key');recv('prefill', 'decode', 'bye')` {
+	if strings.Join(got, ";") != `recv('hello');recv('key', 'keys-held');recv('key');recv('prefill', 'decode', 'bye')` {
 		t.Errorf("WebGPU evaluator accepts %v", got)
 	}
 }
@@ -83,27 +85,38 @@ func TestRawCodecRoundTrip(t *testing.T) {
 	}
 }
 
-// The compiled program, replayed from the inputs alone, reproduces the CPU circuit's output exactly (checked inside
-// compileGPUProgram) and states the pinned output layout.
+// The compiled session, replayed from the inputs and the carried KV state alone, reproduces every step of the CPU
+// circuit exactly (checked inside compileGPUProgram); decode steps read exactly the earlier positions' cache.
 func TestGPUProgramReplay(t *testing.T) {
 	if testing.Short() {
 		t.Skip("compiles a program")
 	}
-	prog, blob, err := compileGPUProgram(profiles["dev-insecure-n12-u32"], "tiny-model.json", 2, func(string, ...any) {})
+	prog, blob, err := compileGPUProgram(profiles["dev-insecure-n12-u32"], "tiny-model.json", 2, 4, func(string, ...any) {})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if prog.OutputLevel < 1 || len(prog.Inputs) != 2 || prog.BlobWords != len(blob) || prog.Counts["rotate"] == 0 || prog.Counts["relin"] == 0 {
-		t.Fatalf("unexpected program: level %d inputs %d counts %v", prog.OutputLevel, len(prog.Inputs), prog.Counts)
+	if len(prog.Steps) != 4 || prog.BlobWords != len(blob) || prog.Counts["rotate"] == 0 || prog.Counts["relin"] == 0 {
+		t.Fatalf("unexpected program: steps %d counts %v", len(prog.Steps), prog.Counts)
 	}
-	for _, op := range prog.Ops {
-		if op.Op == "rotate" && op.Gal == 0 || op.Level > params36 {
-			t.Fatalf("bad op %+v", op)
+	for si, st := range prog.Steps {
+		if st.OutputLevel < 1 {
+			t.Fatalf("step %d output level %d", si, st.OutputLevel)
+		}
+		want := []string{}
+		for j := 0; j < st.First; j++ {
+			want = append(want, fmt.Sprintf("k%d", j), fmt.Sprintf("v%d", j))
+		}
+		var got []string
+		for _, sr := range st.StateIn {
+			got = append(got, sr.Name)
+		}
+		sort.Strings(want)
+		sort.Strings(got)
+		if strings.Join(got, ",") != strings.Join(want, ",") {
+			t.Fatalf("step %d reads state %v, want %v", si, got, want)
 		}
 	}
 }
-
-const params36 = 36
 
 // End to end with a WebGPU evaluator and a CPU evaluator as the two sides of the dual-evaluation check: the requester
 // decrypts only if both return byte-identical ciphertexts. Needs a GPU; set DOPPLER_PROTECTED_WEBGPU=1.
@@ -117,7 +130,7 @@ func TestWebGPUAndCPUEvaluatorsAgree(t *testing.T) {
 		t.Fatalf("build: %v %s", err, out)
 	}
 	prog := filepath.Join(dir, "prog")
-	if out, err := exec.Command(bin, "gpu-compile", "--profile", "dev-insecure-n12-u32", "--positions", "3", "--out", prog).CombinedOutput(); err != nil {
+	if out, err := exec.Command(bin, "gpu-compile", "--profile", "dev-insecure-n12-u32", "--positions", "3", "--decode-through", "7", "--out", prog).CombinedOutput(); err != nil {
 		t.Fatalf("compile: %v %s", err, out)
 	}
 	_, id, _ := loadModel("tiny-model.json")
@@ -142,7 +155,7 @@ func TestWebGPUAndCPUEvaluatorsAgree(t *testing.T) {
 	cpuAddr := start("cpu", bin, "evaluator", "--model", "tiny-model.json")
 	report := filepath.Join(dir, "report.json")
 	out, err := exec.Command(bin, "requester", "--profile", "dev-insecure-n12-u32", "--allow-insecure-dev", "--model-identity", id,
-		"--prompt", "hkn", "--generate", "1", "--evaluator", gpuAddr, "--evaluator", cpuAddr, "--report", report).CombinedOutput()
+		"--prompt", "hkn", "--generate", "6", "--evaluator", gpuAddr, "--evaluator", cpuAddr, "--report", report).CombinedOutput()
 	if err != nil {
 		raw, _ := os.ReadFile(report)
 		t.Fatalf("requester: %v %s %s", err, out, raw)

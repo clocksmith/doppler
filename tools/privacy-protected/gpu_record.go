@@ -32,7 +32,7 @@ import (
 	"github.com/tuneinsight/lattigo/v6/utils/bignum"
 )
 
-const gpuProgramSchema = "doppler.protected-gpu-program/v0"
+const gpuProgramSchema = "doppler.protected-gpu-program/v1"
 
 // compactWords: a 64-slot plaintext in the NTT domain is constant on blocks of N/128 coefficients, so one limb is
 // stored as 128 words (value of block b at index b).
@@ -70,31 +70,49 @@ type rnsOp struct {
 	From  string `json:"from"`
 }
 
+// gpuProgram is a compiled session: one op list and one constant blob, cut into steps (a prefill, then one decode
+// step per position). The encrypted KV cache crosses steps as named registers (k<j>, v<j>): a step's StateIn are read
+// from the evaluator's session state, its StateOut are kept there for later steps.
 type gpuProgram struct {
 	Schema        string         `json:"schema"`
 	Protocol      string         `json:"protocol"`
 	Profile       string         `json:"profile"`
 	ProfileDigest string         `json:"profileDigest"`
 	Model         string         `json:"model"`
-	Step          string         `json:"step"`
-	Positions     int            `json:"positions"`
 	LogN          int            `json:"logN"`
 	LogSlots      int            `json:"logSlots"`
 	Q             []uint64       `json:"q"`
 	P             []uint64       `json:"p"`
 	Psi           []uint64       `json:"psi"`
 	Galois        []uint64       `json:"galois"`
-	Inputs        []int          `json:"inputs"`
-	Output        int            `json:"output"`
 	InputScale    float64        `json:"inputScale"`
-	OutputLevel   int            `json:"outputLevel"`
-	OutputScale   float64        `json:"outputScale"`
 	Regs          []rnsReg       `json:"regs"`
 	Ops           []rnsOp        `json:"ops"`
+	Steps         []gpuStep      `json:"steps"`
 	BlobWords     int            `json:"blobWords"`
 	BlobDigest    string         `json:"blobDigest"`
 	Counts        map[string]int `json:"counts"`
-	Layers        []gpuLayer     `json:"layers"`
+}
+
+type namedReg struct {
+	Name string `json:"name"`
+	Reg  int    `json:"reg"`
+}
+
+type gpuStep struct {
+	Kind        string         `json:"kind"`     // prefill or decode
+	First       int            `json:"first"`    // position of the step's first input token
+	Position    int            `json:"position"` // position whose logits the step returns
+	OpFirst     int            `json:"opFirst"`
+	OpEnd       int            `json:"opEnd"`
+	Inputs      []int          `json:"inputs"`
+	StateIn     []namedReg     `json:"stateIn"`
+	StateOut    []namedReg     `json:"stateOut"`
+	Output      int            `json:"output"`
+	OutputLevel int            `json:"outputLevel"`
+	OutputScale float64        `json:"outputScale"`
+	Layers      []gpuLayer     `json:"layers"`
+	Counts      map[string]int `json:"counts"`
 }
 
 // gpuLayer marks the ops of one model stage, for per-layer GPU timing.
@@ -661,29 +679,99 @@ func (r *recorder) RotateNew(op0 *rlwe.Ciphertext, k int) (*rlwe.Ciphertext, err
 
 // --- program finishing and replay ---
 
-// finish computes, for every op, the registers whose last use it is (never the output).
-func (r *recorder) finish(output int) {
-	last := map[int]int{}
-	for i, op := range r.prog.Ops {
-		for _, in := range []int{op.A, op.B} {
-			if in >= 0 {
-				last[in] = i
+// finishSteps derives, per step, the KV state it reads and keeps (every register crossing a step boundary must be a
+// named cache entry) and the registers each op frees: registers defined in a step that no later step needs, at their
+// last use in that step (never a step's output).
+func (r *recorder) finishSteps(names map[int]string) error {
+	p := r.prog
+	def := map[int]int{}
+	for si, st := range p.Steps {
+		for _, in := range st.Inputs {
+			def[in] = si
+		}
+		for i := st.OpFirst; i < st.OpEnd; i++ {
+			def[p.Ops[i].Out] = si
+		}
+	}
+	lastStep := map[int]int{}
+	lastUse := map[int]int{}
+	for si, st := range p.Steps {
+		for i := st.OpFirst; i < st.OpEnd; i++ {
+			for _, in := range []int{p.Ops[i].A, p.Ops[i].B} {
+				if in < 0 {
+					continue
+				}
+				lastStep[in] = si
+				if def[in] == si {
+					lastUse[in] = i
+				}
 			}
 		}
 	}
-	for reg, i := range last {
-		if reg != output {
-			r.prog.Ops[i].Free = append(r.prog.Ops[i].Free, reg)
+	for si := range p.Steps {
+		st := &p.Steps[si]
+		seenIn := map[int]bool{}
+		for i := st.OpFirst; i < st.OpEnd; i++ {
+			for _, in := range []int{p.Ops[i].A, p.Ops[i].B} {
+				if in < 0 || def[in] == si || seenIn[in] {
+					continue
+				}
+				if names[in] == "" {
+					return fmt.Errorf("step %d reads register %d from an earlier step that is not a KV cache entry", si, in)
+				}
+				seenIn[in] = true
+				st.StateIn = append(st.StateIn, namedReg{Name: names[in], Reg: in})
+			}
+		}
+		// Every cache entry a step makes is kept: a later step may come from another compiled session.
+		for reg, d := range def {
+			if d != si {
+				continue
+			}
+			if names[reg] != "" {
+				st.StateOut = append(st.StateOut, namedReg{Name: names[reg], Reg: reg})
+			} else if lastStep[reg] > si {
+				return fmt.Errorf("register %d of step %d is used later but is not a KV cache entry", reg, si)
+			}
+		}
+		sortNamed(st.StateIn)
+		sortNamed(st.StateOut)
+		st.Counts = map[string]int{}
+		for i := st.OpFirst; i < st.OpEnd; i++ {
+			st.Counts[p.Ops[i].Op]++
 		}
 	}
-	for i := range r.prog.Ops {
-		sortInts(r.prog.Ops[i].Free)
+	for reg, d := range def {
+		if lastStep[reg] > d || reg == p.Steps[d].Output || names[reg] != "" {
+			continue
+		}
+		at, ok := lastUse[reg]
+		if !ok {
+			// Defined and never read (should not happen); free right after it is made.
+			for i := p.Steps[d].OpFirst; i < p.Steps[d].OpEnd; i++ {
+				if p.Ops[i].Out == reg {
+					at = i
+				}
+			}
+		}
+		p.Ops[at].Free = append(p.Ops[at].Free, reg)
 	}
-	r.prog.Output = output
+	for i := range p.Ops {
+		sortInts(p.Ops[i].Free)
+	}
 	for g := range r.gal {
-		r.prog.Galois = append(r.prog.Galois, g)
+		p.Galois = append(p.Galois, g)
 	}
-	sortU64(r.prog.Galois)
+	sortU64(p.Galois)
+	return nil
+}
+
+func sortNamed(v []namedReg) {
+	for i := 1; i < len(v); i++ {
+		for j := i; j > 0 && v[j].Reg < v[j-1].Reg; j-- {
+			v[j], v[j-1] = v[j-1], v[j]
+		}
+	}
 }
 
 func sortInts(v []int) {
@@ -702,29 +790,43 @@ func sortU64(v []uint64) {
 	}
 }
 
-// replay runs a program on the CPU reference executor and returns the output ciphertext.
-func replay(x *rnsExec, prog *gpuProgram, blob []uint32, inputs []*rlwe.Ciphertext) (*rlwe.Ciphertext, error) {
-	if len(inputs) != len(prog.Inputs) {
-		return nil, fmt.Errorf("program takes %d inputs, got %d", len(prog.Inputs), len(inputs))
-	}
-	regs := make([]*rlwe.Ciphertext, len(prog.Regs))
-	for i, id := range prog.Inputs {
-		regs[id] = inputs[i]
-	}
-	for _, op := range prog.Ops {
-		var a, b *rlwe.Ciphertext
-		if op.A >= 0 {
-			a = regs[op.A]
+// replaySteps runs every step of a session on the CPU reference executor, carrying the named KV state, and returns
+// each step's output.
+func replaySteps(x *rnsExec, prog *gpuProgram, blob []uint32, inputs [][]*rlwe.Ciphertext) ([]*rlwe.Ciphertext, error) {
+	state := map[string]*rlwe.Ciphertext{}
+	var outs []*rlwe.Ciphertext
+	for si, st := range prog.Steps {
+		if len(inputs[si]) != len(st.Inputs) {
+			return nil, fmt.Errorf("step %d takes %d inputs", si, len(st.Inputs))
 		}
-		if op.B >= 0 {
-			b = regs[op.B]
+		regs := map[int]*rlwe.Ciphertext{}
+		for i, id := range st.Inputs {
+			regs[id] = inputs[si][i]
 		}
-		regs[op.Out] = x.run(op, a, b, blob)
-		for _, f := range op.Free {
-			regs[f] = nil
+		for _, sr := range st.StateIn {
+			if regs[sr.Reg] = state[sr.Name]; regs[sr.Reg] == nil {
+				return nil, fmt.Errorf("step %d needs state %s", si, sr.Name)
+			}
 		}
+		for _, op := range prog.Ops[st.OpFirst:st.OpEnd] {
+			var a, b *rlwe.Ciphertext
+			if op.A >= 0 {
+				a = regs[op.A]
+			}
+			if op.B >= 0 {
+				b = regs[op.B]
+			}
+			regs[op.Out] = x.run(op, a, b, blob)
+			for _, f := range op.Free {
+				delete(regs, f)
+			}
+		}
+		for _, sr := range st.StateOut {
+			state[sr.Name] = regs[sr.Reg]
+		}
+		outs = append(outs, regs[st.Output])
 	}
-	return regs[prog.Output], nil
+	return outs, nil
 }
 
 func blobBytes(blob []uint32) []byte {
@@ -749,7 +851,7 @@ func loadGPUProgram(base string) (*gpuProgram, []uint32, error) {
 		return nil, nil, err
 	}
 	sum := sha256.Sum256(b)
-	if prog.Schema != gpuProgramSchema || len(b) != 4*prog.BlobWords || "sha256:"+hex.EncodeToString(sum[:]) != prog.BlobDigest {
+	if prog.Schema != gpuProgramSchema || len(prog.Steps) == 0 || len(b) != 4*prog.BlobWords || "sha256:"+hex.EncodeToString(sum[:]) != prog.BlobDigest {
 		return nil, nil, fmt.Errorf("program %s is malformed or its constants do not match their digest", base)
 	}
 	blob := make([]uint32, prog.BlobWords)
@@ -781,8 +883,9 @@ func sealOneHotWith(params ckks.Parameters, enc *rlwe.Encryptor, tok int) (*rlwe
 	return enc.EncryptNew(pt)
 }
 
-// compileGPUProgram records the prefill step for `positions` prompt tokens.
-func compileGPUProgram(prof profile, modelPath string, positions int, logf func(string, ...any)) (*gpuProgram, []uint32, error) {
+// compileGPUProgram records a session: the prefill of `prompt` tokens, then one decode step for every position up to
+// and including decodeThrough (no decode steps when decodeThrough < prompt).
+func compileGPUProgram(prof profile, modelPath string, prompt, decodeThrough int, logf func(string, ...any)) (*gpuProgram, []uint32, error) {
 	m, modelID, err := loadModel(modelPath)
 	if err != nil {
 		return nil, nil, err
@@ -803,8 +906,8 @@ func compileGPUProgram(prof profile, modelPath string, positions int, logf func(
 			return nil, nil, fmt.Errorf("modulus %d does not fit a u32 limb", q)
 		}
 	}
-	if positions < 1 || positions > context {
-		return nil, nil, fmt.Errorf("positions %d outside [1, %d]", positions, context)
+	if prompt < 1 || prompt > context || decodeThrough >= context {
+		return nil, nil, fmt.Errorf("prompt %d / decode-through %d outside the %d-position context", prompt, decodeThrough, context)
 	}
 	sk, evk := throwawayKeys(params)
 	enc := rlwe.NewEncryptor(params, sk)
@@ -814,67 +917,81 @@ func compileGPUProgram(prof profile, modelPath string, positions int, logf func(
 	pe := polynomial.NewEvaluator(params, ev)
 	pe.Evaluator.Evaluator = rec
 	cir := &circuit{params: params, eval: rec, poly: pe, copyCt: rec.alias, pl: pl, ops: map[string]int{}}
-	var inputs []*rlwe.Ciphertext
-	for i := 0; i < positions; i++ {
-		ct, err := sealOneHotWith(params, enc, (7*i+3)%vocab)
-		if err != nil {
-			return nil, nil, err
-		}
-		inputs = append(inputs, ct)
-		rec.prog.Inputs = append(rec.prog.Inputs, rec.input(ct))
-	}
 	t0 := time.Now()
-	stage := func(name string, f func() error) error {
-		first := len(rec.prog.Ops)
-		rec.from = name
-		if err := f(); err != nil {
-			return err
-		}
-		rec.prog.Layers = append(rec.prog.Layers, gpuLayer{Name: name, First: first, Last: len(rec.prog.Ops) - 1})
-		logf("recorded %s: ops %d..%d (%.1fs)", name, first, len(rec.prog.Ops)-1, time.Since(t0).Seconds())
-		return nil
-	}
-	var q, x0, logits *rlwe.Ciphertext
-	for i, ct := range inputs {
-		if err := stage(fmt.Sprintf("embed-%d", i), func() (err error) {
-			q, x0, err = cir.lookup(ct, i, i == len(inputs)-1)
-			return
-		}); err != nil {
-			return nil, nil, err
-		}
-	}
-	// forward() calls cir.mark at its stage boundaries; each mark closes the previous layer.
-	first := len(rec.prog.Ops)
-	cir.mark = func(name string) {
+	names := map[int]string{}
+	var inputs [][]*rlwe.Ciphertext
+	var outputs []*rlwe.Ciphertext
+	var layers []gpuLayer
+	first := 0
+	mark := func(name string) {
 		if len(rec.prog.Ops) > first {
-			rec.prog.Layers = append(rec.prog.Layers, gpuLayer{Name: rec.from, First: first, Last: len(rec.prog.Ops) - 1})
-			logf("recorded %s: ops %d..%d (%.1fs)", rec.from, first, len(rec.prog.Ops)-1, time.Since(t0).Seconds())
+			layers = append(layers, gpuLayer{Name: rec.from, First: first, Last: len(rec.prog.Ops) - 1})
 		}
 		first, rec.from = len(rec.prog.Ops), name
 	}
-	cir.mark("attention-scores")
-	if logits, err = cir.forward(q, x0); err != nil {
+	cir.mark = mark
+	record := func(kind string, from, to int) error {
+		st := gpuStep{Kind: kind, First: from, Position: to, OpFirst: len(rec.prog.Ops)}
+		layers = nil
+		var ins []*rlwe.Ciphertext
+		var q, x0 *rlwe.Ciphertext
+		for pos := from; pos <= to; pos++ {
+			ct, err := sealOneHotWith(params, enc, (7*pos+3)%vocab)
+			if err != nil {
+				return err
+			}
+			ins = append(ins, ct)
+			st.Inputs = append(st.Inputs, rec.input(ct))
+			mark(fmt.Sprintf("embed-%d", pos))
+			if q, x0, err = cir.lookup(ct, pos, pos == to); err != nil {
+				return err
+			}
+			names[rec.id(cir.keys[pos])] = fmt.Sprintf("k%d", pos)
+			names[rec.id(cir.vals[pos])] = fmt.Sprintf("v%d", pos)
+		}
+		mark("attention-scores")
+		logits, err := cir.forward(q, x0)
+		if err != nil {
+			return err
+		}
+		mark("end")
+		st.Output, st.OutputLevel, st.OutputScale = rec.id(logits), logits.Level(), logits.Scale.Float64()
+		st.OpEnd, st.Layers = len(rec.prog.Ops), layers
+		rec.prog.Steps = append(rec.prog.Steps, st)
+		inputs, outputs = append(inputs, ins), append(outputs, logits)
+		logf("recorded %s at position %d: ops %d..%d (%.1fs)", kind, to, st.OpFirst, st.OpEnd-1, time.Since(t0).Seconds())
+		return nil
+	}
+	if err := record("prefill", 0, prompt-1); err != nil {
 		return nil, nil, err
 	}
-	cir.mark("end")
-	rec.finish(rec.id(logits))
+	for pos := prompt; pos <= decodeThrough; pos++ {
+		if err := record("decode", pos, pos); err != nil {
+			return nil, nil, err
+		}
+	}
+	if err := rec.finishSteps(names); err != nil {
+		return nil, nil, err
+	}
 	p := rec.prog
 	p.Schema, p.Protocol, p.Profile, p.ProfileDigest, p.Model = gpuProgramSchema, protocolID, prof.ID, prof.digest(), modelID
-	p.Step, p.Positions, p.LogN, p.LogSlots, p.Q, p.P = "prefill", positions, params.LogN(), logSlots, params.Q(), params.P()
-	p.Psi = primitiveRoots(params)
-	p.OutputLevel, p.OutputScale, p.InputScale = logits.Level(), logits.Scale.Float64(), inputs[0].Scale.Float64()
+	p.LogN, p.LogSlots, p.Q, p.P, p.Psi = params.LogN(), logSlots, params.Q(), params.P(), primitiveRoots(params)
+	p.InputScale = inputs[0][0].Scale.Float64()
 	raw := blobBytes(rec.blob)
 	sum := sha256.Sum256(raw)
 	p.BlobWords, p.BlobDigest = len(rec.blob), "sha256:"+hex.EncodeToString(sum[:])
-	// Second check: the program alone, from the inputs, reproduces the circuit's output.
-	got, err := replay(rec.x, p, rec.blob, inputs)
+	// Second check: the steps alone, from the inputs and the carried KV state, reproduce every output of the circuit.
+	got, err := replaySteps(rec.x, p, rec.blob, inputs)
 	if err != nil {
 		return nil, nil, err
 	}
-	if err := sameCt(got, logits); err != nil {
-		return nil, nil, fmt.Errorf("replayed program differs from the circuit: %w", err)
+	for i := range got {
+		if err := sameCt(got[i], outputs[i]); err != nil {
+			return nil, nil, fmt.Errorf("replayed step %d differs from the circuit: %w", i, err)
+		}
 	}
-	logf("program: %d ops, %d registers, %d constant words, replay equals the circuit (%.1fs)", len(p.Ops), len(p.Regs), p.BlobWords, time.Since(t0).Seconds())
+	logf("session: %d steps, %d ops, %d registers, %d constant words; replay equals the circuit at every step (%.1fs)",
+		len(p.Steps), len(p.Ops), len(p.Regs), p.BlobWords, time.Since(t0).Seconds())
 	return p, rec.blob, nil
 }
 
@@ -883,13 +1000,14 @@ func gpuCompileMain(args []string) error {
 	profileID := fs.String("profile", "research-n16-u32", "u32 profile")
 	modelPath := fs.String("model", "tiny-model.json", "public model fixture")
 	positions := fs.Int("positions", 3, "prompt tokens in the prefill step")
+	decodeThrough := fs.Int("decode-through", -1, "compile decode steps for positions up to this one (-1: none)")
 	out := fs.String("out", "gpu-program", "output base name (.json and .bin)")
 	fs.Parse(args)
 	prof, err := lookupProfile(*profileID)
 	if err != nil {
 		return err
 	}
-	prog, blob, err := compileGPUProgram(prof, *modelPath, *positions, func(f string, a ...any) { fmt.Fprintf(os.Stderr, f+"\n", a...) })
+	prog, blob, err := compileGPUProgram(prof, *modelPath, *positions, *decodeThrough, func(f string, a ...any) { fmt.Fprintf(os.Stderr, f+"\n", a...) })
 	if err != nil {
 		return err
 	}
