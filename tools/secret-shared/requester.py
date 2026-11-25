@@ -180,6 +180,7 @@ class SharedCluster:
         self.rounds = []
         self.cache = {}
         self.step = None  # the requester's current step, sent with every round so operators can account per token
+        self.step_base = 0  # steps never go backwards on a connection: later prompts continue the count
 
     def run_group(self, gid, x):
         """x: float tensor [n, in]. Returns float32 [n, out] = W x, computed only on shares."""
@@ -368,12 +369,14 @@ def greedy(model, config, manifest, ids, max_tokens, cluster=None, forced=None, 
     if forced is not None:
         max_tokens = min(max_tokens, len(forced))
     tokens, steps, logits_rows = [], [], []
+    if cluster and cluster.step is not None:
+        cluster.step_base = cluster.step + 1
     inputs = list(ids)
     eos = set(manifest['eos_token_id'] if isinstance(manifest['eos_token_id'], list) else [manifest['eos_token_id']])
     for step in range(max_tokens):
         if cluster:
             cluster.cache.clear()
-            cluster.step = step
+            cluster.step = cluster.step_base + step
             before = len(cluster.rounds)
         t0, c0 = time.perf_counter(), time.process_time()
         with torch.inference_mode():
@@ -396,7 +399,7 @@ def greedy(model, config, manifest, ids, max_tokens, cluster=None, forced=None, 
         nxt = forced[step] if forced is not None else token
         done = forced is None and (token in eos or step + 1 == max_tokens)
         if cluster:
-            cluster.end_step(step)
+            cluster.end_step(cluster.step_base + step)
         if on_token:
             on_token(step, token, row, done)
         if forced is None and token in eos:
