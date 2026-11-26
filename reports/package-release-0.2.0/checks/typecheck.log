@@ -1,0 +1,5 @@
+
+> dopplerx@0.2.0 typecheck:source
+> tsc -p tsconfig.declarations.json --noEmit && node tools/check-source-types.js
+
+[source-types] 272 strict roots; 965 explicitly inventoried unchecked implementations; no debt growth

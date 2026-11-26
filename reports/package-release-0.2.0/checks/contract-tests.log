@@ -1,0 +1,693 @@
+TAP version 13
+# ✔ capsule-retained-local-use.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.589125
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 267.089917
+[node-tests] ok: tests/capsule/capsule-retained-local-use.test.js
+TAP version 13
+# ✔ capsule-v2.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.646333
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 168.523166
+[node-tests] ok: tests/capsule/capsule-v2.test.js
+TAP version 13
+# ✔ capsule-v3.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.507958
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 234.543709
+[node-tests] ok: tests/capsule/capsule-v3.test.js
+TAP version 13
+# error-taxonomy: common local identity preserves domain classes, names, codes, fields and causes
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.105667
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 515.82475
+[node-tests] ok: tests/config/error-taxonomy.test.js
+TAP version 13
+# public error contract: stable config/device codes, messages and cause preservation passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.317958
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 618.642209
+[node-tests] ok: tests/config/public-error-contract.test.js
+TAP version 13
+# public-version-exports.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.647167
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 65.195625
+[node-tests] ok: tests/config/public-version-exports.test.js
+TAP version 13
+# runtime-transform-ownership.test: compatibility identity and runtime boundaries passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.907625
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 190.43925
+[node-tests] ok: tests/config/runtime-transform-ownership.test.js
+TAP version 13
+# execution-backend-contract: exact support, untrusted claims, state isolation and content-free receipts passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.65
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 85.822917
+[node-tests] ok: tests/inference/execution-backend-contract.test.js
+TAP version 13
+# generator-abort-delivery.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.0475
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 464.250542
+[node-tests] ok: tests/inference/generator-abort-delivery.test.js
+TAP version 13
+# pipeline-load-cancellation.test: signal forwarding, settled cleanup and preloaded admission passed (contract doubles)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.606459
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 522.907667
+[node-tests] ok: tests/inference/pipeline-load-cancellation.test.js
+TAP version 13
+# Subtest: queued cancellation rejects before another model releases its paused stream, without bypassing its lease
+ok 1 - queued cancellation rejects before another model releases its paused stream, without bypassing its lease
+  ---
+  duration_ms: 4.757375
+  type: 'test'
+  ...
+# Subtest: aborting a paused stream closes it and releases its model context without another consumer pull
+ok 2 - aborting a paused stream closes it and releases its model context without another consumer pull
+  ---
+  duration_ms: 0.715875
+  type: 'test'
+  ...
+# Subtest: unload closes an abandoned paused iterator before draining owned resources
+ok 3 - unload closes an abandoned paused iterator before draining owned resources
+  ---
+  duration_ms: 0.989333
+  type: 'test'
+  ...
+# Subtest: cancellation retains the lease until active work and iterator cleanup settle
+ok 4 - cancellation retains the lease until active work and iterator cleanup settle
+  ---
+  duration_ms: 1.276584
+  type: 'test'
+  ...
+# Subtest: surviving waiters remain FIFO across a cancelled middle waiter
+ok 5 - surviving waiters remain FIFO across a cancelled middle waiter
+  ---
+  duration_ms: 0.737167
+  type: 'test'
+  ...
+# Subtest: shutdown reports background cleanup failure and still unloads under its context
+ok 6 - shutdown reports background cleanup failure and still unloads under its context
+  ---
+  duration_ms: 0.564417
+  type: 'test'
+  ...
+# Subtest: factory loading observes cancellation while waiting for another model scope
+ok 7 - factory loading observes cancellation while waiting for another model scope
+  ---
+  duration_ms: 0.519334
+  type: 'test'
+  ...
+# Subtest: factory preserves construction and cleanup failures
+ok 8 - factory preserves construction and cleanup failures
+  ---
+  duration_ms: 0.234542
+  type: 'test'
+  ...
+# Subtest: shutdown preserves the original unload failure for every caller
+ok 9 - shutdown preserves the original unload failure for every caller
+  ---
+  duration_ms: 0.313208
+  type: 'test'
+  ...
+# Subtest: cleanup that yields retains context until all of its work settles
+ok 10 - cleanup that yields retains context until all of its work settles
+  ---
+  duration_ms: 0.6915
+  type: 'test'
+  ...
+# Subtest: host evidence operations forward cancellation to lease acquisition
+ok 11 - host evidence operations forward cancellation to lease acquisition
+  ---
+  duration_ms: 0.399542
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 12 - test module initialization completed
+  ---
+  duration_ms: 0.032375
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 294.605958
+[node-tests] ok: tests/inference/pipeline-scope-cancellation.test.js
+TAP version 13
+# doppler-browser-api-parity.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 3.520834
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 569.054667
+[node-tests] ok: tests/integration/doppler-browser-api-parity.test.js
+TAP version 13
+# Subtest: generation contexts are capability-gated and pass unchanged to the runtime
+ok 1 - generation contexts are capability-gated and pass unchanged to the runtime
+  ---
+  duration_ms: 1.55475
+  type: 'test'
+  ...
+# Subtest: scoped session exposes explicit capabilities and stable results
+ok 2 - scoped session exposes explicit capabilities and stable results
+  ---
+  duration_ms: 0.40675
+  type: 'test'
+  ...
+# Subtest: stream emits semantic events instead of return-dependent unions
+ok 3 - stream emits semantic events instead of return-dependent unions
+  ---
+  duration_ms: 1.609708
+  type: 'test'
+  ...
+# Subtest: scoped completion preserves declared stopping reasons and raw token counts
+ok 4 - scoped completion preserves declared stopping reasons and raw token counts
+  ---
+  duration_ms: 1.258834
+  type: 'test'
+  ...
+# Subtest: scoped stream never invents completion on failure or early consumer return
+ok 5 - scoped stream never invents completion on failure or early consumer return
+  ---
+  duration_ms: 0.646459
+  type: 'test'
+  ...
+# Subtest: scoped completion rejects invalid reasons or counters instead of inferring EOS
+ok 6 - scoped completion rejects invalid reasons or counters instead of inferring EOS
+  ---
+  duration_ms: 0.351875
+  type: 'test'
+  ...
+# Subtest: specialized models reject generation and streaming capabilities
+ok 7 - specialized models reject generation and streaming capabilities
+  ---
+  duration_ms: 0.359
+  type: 'test'
+  ...
+# Subtest: unsupported observation policies fail closed on a generation session
+ok 8 - unsupported observation policies fail closed on a generation session
+  ---
+  duration_ms: 0.17475
+  type: 'test'
+  ...
+# Subtest: close is idempotent and blocks later work
+ok 9 - close is idempotent and blocks later work
+  ---
+  duration_ms: 0.574042
+  type: 'test'
+  ...
+# Subtest: concurrent close and disposal wait for the same unload
+ok 10 - concurrent close and disposal wait for the same unload
+  ---
+  duration_ms: 0.483084
+  type: 'test'
+  ...
+# Subtest: every close caller observes the original unload failure without retrying cleanup
+ok 11 - every close caller observes the original unload failure without retrying cleanup
+  ---
+  duration_ms: 0.403708
+  type: 'test'
+  ...
+# Subtest: guided and deep inspection disclose non-representative execution
+ok 12 - guided and deep inspection disclose non-representative execution
+  ---
+  duration_ms: 0.164667
+  type: 'test'
+  ...
+# Subtest: target scoring is capability-gated and returns the handle result unchanged
+ok 13 - target scoring is capability-gated and returns the handle result unchanged
+  ---
+  duration_ms: 0.144208
+  type: 'test'
+  ...
+# Subtest: target scoring rejects unsupported and specialized handles with a clear error
+ok 14 - target scoring rejects unsupported and specialized handles with a clear error
+  ---
+  duration_ms: 0.130667
+  type: 'test'
+  ...
+# Subtest: target scoring honors abort before and during the handle operation
+ok 15 - target scoring honors abort before and during the handle operation
+  ---
+  duration_ms: 0.153875
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 16 - test module initialization completed
+  ---
+  duration_ms: 0.033084
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 72.429041
+[node-tests] ok: tests/integration/doppler-scoped-session.test.js
+TAP version 13
+# execution-graph-transforms.test: 376 assertions passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.737958
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 81.912
+[node-tests] ok: tests/integration/execution-graph-transforms.test.js
+TAP version 13
+# Subtest: classifyProviderFailure — fine-grained classes
+    # Subtest: classifies OOM as gpu-oom
+    ok 1 - classifies OOM as gpu-oom
+      ---
+      duration_ms: 1.266292
+      type: 'test'
+      ...
+    # Subtest: classifies device lost as gpu-device-lost
+    ok 2 - classifies device lost as gpu-device-lost
+      ---
+      duration_ms: 0.144709
+      type: 'test'
+      ...
+    # Subtest: classifies timeout as gpu_timeout
+    ok 3 - classifies timeout as gpu_timeout
+      ---
+      duration_ms: 0.115
+      type: 'test'
+      ...
+    # Subtest: classifies unsupported adapter as gpu_unsupported
+    ok 4 - classifies unsupported adapter as gpu_unsupported
+      ---
+      duration_ms: 0.858208
+      type: 'test'
+      ...
+    # Subtest: classifies webgpu unavailable as gpu_unavailable
+    ok 5 - classifies webgpu unavailable as gpu_unavailable
+      ---
+      duration_ms: 0.218083
+      type: 'test'
+      ...
+    # Subtest: classifies model load errors as model_load_failed
+    ok 6 - classifies model load errors as model_load_failed
+      ---
+      duration_ms: 0.153792
+      type: 'test'
+      ...
+    # Subtest: classifies policy_denied from errors with a Doppler error code
+    ok 7 - classifies policy_denied from errors with a Doppler error code
+      ---
+      duration_ms: 0.063625
+      type: 'test'
+      ...
+    # Subtest: classifies fallback network errors as fallback_failed
+    ok 8 - classifies fallback network errors as fallback_failed
+      ---
+      duration_ms: 0.164625
+      type: 'test'
+      ...
+    # Subtest: classifies unclassifiable errors as unknown
+    ok 9 - classifies unclassifiable errors as unknown
+      ---
+      duration_ms: 0.309458
+      type: 'test'
+      ...
+    # Subtest: prefers errors with a Doppler error code over message regex
+    ok 10 - prefers errors with a Doppler error code over message regex
+      ---
+      duration_ms: 0.377167
+      type: 'test'
+      ...
+    # Subtest: detects simulated failures via __dopplerFaultInjected
+    ok 11 - detects simulated failures via __dopplerFaultInjected
+      ---
+      duration_ms: 0.078708
+      type: 'test'
+      ...
+    # Subtest: marks non-injected failures as not simulated
+    ok 12 - marks non-injected failures as not simulated
+      ---
+      duration_ms: 0.052334
+      type: 'test'
+      ...
+    # Subtest: infers stage from error message
+    ok 13 - infers stage from error message
+      ---
+      duration_ms: 0.105833
+      type: 'test'
+      ...
+    # Subtest: infers surface from error message
+    ok 14 - infers surface from error message
+      ---
+      duration_ms: 0.070584
+      type: 'test'
+      ...
+    # Subtest: accepts context overrides for every FailureRecord field
+    ok 15 - accepts context overrides for every FailureRecord field
+      ---
+      duration_ms: 0.057
+      type: 'test'
+      ...
+    # Subtest: handles non-Error inputs
+    ok 16 - handles non-Error inputs
+      ---
+      duration_ms: 0.039625
+      type: 'test'
+      ...
+    # Subtest: returns every FailureRecord field including runtimeProfile and kernelPathId
+    ok 17 - returns every FailureRecord field including runtimeProfile and kernelPathId
+      ---
+      duration_ms: 0.095542
+      type: 'test'
+      ...
+    # Subtest: defaults runtimeProfile and kernelPathId to null when not provided
+    ok 18 - defaults runtimeProfile and kernelPathId to null when not provided
+      ---
+      duration_ms: 0.042834
+      type: 'test'
+      ...
+    1..18
+ok 1 - classifyProviderFailure — fine-grained classes
+  ---
+  duration_ms: 5.273459
+  type: 'suite'
+  ...
+# Subtest: failure class spelling
+    # Subtest: emits kebab-case classes and reads the legacy snake_case spellings
+    ok 1 - emits kebab-case classes and reads the legacy snake_case spellings
+      ---
+      duration_ms: 0.230833
+      type: 'test'
+      ...
+    1..1
+ok 2 - failure class spelling
+  ---
+  duration_ms: 0.273917
+  type: 'suite'
+  ...
+# Subtest: test module initialization completed
+ok 3 - test module initialization completed
+  ---
+  duration_ms: 0.033083
+  type: 'test'
+  ...
+1..3
+# tests 20
+# suites 2
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 72.183875
+[node-tests] ok: tests/integration/failure-taxonomy.test.js
+TAP version 13
+# Subtest: legacy enum alias table
+    # Subtest: maps every legacy spelling to a kebab-case value and nothing back to snake_case
+    ok 1 - maps every legacy spelling to a kebab-case value and nothing back to snake_case
+      ---
+      duration_ms: 1.391583
+      type: 'test'
+      ...
+    # Subtest: leaves unknown values, op ids and non-enum fields untouched
+    ok 2 - leaves unknown values, op ids and non-enum fields untouched
+      ---
+      duration_ms: 0.549208
+      type: 'test'
+      ...
+    1..2
+ok 1 - legacy enum alias table
+  ---
+  duration_ms: 2.697042
+  type: 'suite'
+  ...
+# Subtest: runtime config overrides
+    # Subtest: reads legacy KV, tiering and diagnostics spellings through resolveRuntimeConfig
+    ok 1 - reads legacy KV, tiering and diagnostics spellings through resolveRuntimeConfig
+      ---
+      duration_ms: 1.238959
+      type: 'test'
+      ...
+    # Subtest: resolves legacy and kebab-case overrides to the same config
+    ok 2 - resolves legacy and kebab-case overrides to the same config
+      ---
+      duration_ms: 0.919875
+      type: 'test'
+      ...
+    # Subtest: still rejects values that were never valid
+    ok 3 - still rejects values that were never valid
+      ---
+      duration_ms: 0.425333
+      type: 'test'
+      ...
+    # Subtest: canonicalizes the override in mergeRuntimeValues without touching the base
+    ok 4 - canonicalizes the override in mergeRuntimeValues without touching the base
+      ---
+      duration_ms: 0.062042
+      type: 'test'
+      ...
+    1..4
+ok 2 - runtime config overrides
+  ---
+  duration_ms: 2.832875
+  type: 'suite'
+  ...
+# Subtest: manifests
+    # Subtest: parseManifest reads a manifest published with legacy spellings as kebab-case
+    ok 1 - parseManifest reads a manifest published with legacy spellings as kebab-case
+      ---
+      duration_ms: 7.155292
+      type: 'test'
+      ...
+    1..1
+ok 3 - manifests
+  ---
+  duration_ms: 7.423583
+  type: 'suite'
+  ...
+# Subtest: provider, pipeline and scheduler readers
+    # Subtest: normalizes legacy failure classes for policy.fallbackOn
+    ok 1 - normalizes legacy failure classes for policy.fallbackOn
+      ---
+      duration_ms: 0.126209
+      type: 'test'
+      ...
+    # Subtest: normalizes legacy structured-head model types
+    ok 2 - normalizes legacy structured-head model types
+      ---
+      duration_ms: 0.189167
+      type: 'test'
+      ...
+    # Subtest: accepts legacy diffusion scheduler types
+    ok 3 - accepts legacy diffusion scheduler types
+      ---
+      duration_ms: 0.291833
+      type: 'test'
+      ...
+    1..3
+ok 4 - provider, pipeline and scheduler readers
+  ---
+  duration_ms: 0.789417
+  type: 'suite'
+  ...
+# Subtest: test module initialization completed
+ok 5 - test module initialization completed
+  ---
+  duration_ms: 0.049792
+  type: 'test'
+  ...
+1..5
+# tests 11
+# suites 4
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 230.829792
+[node-tests] ok: tests/integration/legacy-enum-reads.test.js
+TAP version 13
+# ✔ capsule-artifact-source.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.758291
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 224.978375
+[node-tests] ok: tests/runtime/capsule-artifact-source.test.js
+TAP version 13
+# check-kebab-enum-values.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.675209
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 361.419209
+[node-tests] ok: tests/tooling/check-kebab-enum-values.test.js
+[node-tests] ok: 18 files

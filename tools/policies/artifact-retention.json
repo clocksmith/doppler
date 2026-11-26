@@ -563,7 +563,7 @@
       "retentionClass": "runtime-source-inventory",
       "files": 3,
       "bytes": 18125,
-      "inventoryHash": "sha256:323f0bdb23f80914c32f7bbd3ddc91ce5d466b80186eb7b56919a0f3fd654933"
+      "inventoryHash": "sha256:a28877df142910f7636c5b7d32de06d634d48a8eb096e94d90bd3b8ba2ae0edf"
     },
     "reports/channel-gain-20261112": {
       "retentionClass": "frozen-evidence",
@@ -918,6 +918,12 @@
       "files": 1,
       "bytes": 861,
       "inventoryHash": "sha256:4d194a7105eccacd8463bfac8d1962ec7522fec9c2b1d01d2cb6fcaffb43ef9a"
+    },
+    "reports/package-release-0.2.0": {
+      "retentionClass": "frozen-evidence",
+      "files": 13,
+      "bytes": 43028,
+      "inventoryHash": "sha256:07091eefe4ed0154a2e1e50b2b2bb1b263fadb2681d4e2030cd3cf07136d4973"
     },
     "reports/package-release-0.7.2": {
       "retentionClass": "frozen-evidence",

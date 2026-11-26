@@ -1,0 +1,76 @@
+{
+  "schema": "doppler.release-status/v1",
+  "package": "dopplerx",
+  "version": "0.2.0",
+  "state": "qualified-not-published",
+  "recordedAtUtc": "2026-11-26T20:12:00Z",
+  "sourceCommit": {
+    "packedFrom": "f79065045da672c77680667af2f4913d26b07ca3",
+    "packedTree": "2e34e55f647f33514096874500eed9098a57656a",
+    "landedAs": "ddd014d6c801731afe0a1384ae38f6c158f0057a",
+    "note": "Packed once from a clean worktree at f79065045 (parent 50abda0ae). Before landing it was rebased onto dd238e2fe, which changes only AGENTS.md (not in the package files list), so the landed commit's packed files are identical to the archive's. The archive was not re-packed."
+  },
+  "archive": {
+    "filename": "dopplerx-0.2.0.tgz",
+    "storedAs": "~/.cache/deco/dopplerx-0.2.0-rc/dopplerx-0.2.0-sha256-1ab392c3dadc554a6fd45e405d578d94263a980204dce34b413ae70c08b5df8c.tgz (on the Mac that prepared it; read-only)",
+    "sha256": "1ab392c3dadc554a6fd45e405d578d94263a980204dce34b413ae70c08b5df8c",
+    "integrity": "sha512-USjHspiS8VP3gHDOzWgiJN7njaEp04uj/bD8vzcKx/Z8/GnMxx4SfY/DAV1ZQTezv7kFm/bvNOTK+eGgQxfSrg==",
+    "shasum": "01c5a3cc12c1df68dda62f9178c3aa54e5d32e7a",
+    "size": 3892412,
+    "unpackedSize": 16436907,
+    "entryCount": 2070,
+    "packedAtUtc": "2026-11-26T19:59:04Z",
+    "packCommand": "npm pack --ignore-scripts (npm 10.9.3, Node v22.20.0, macOS arm64)",
+    "superseded": []
+  },
+  "baseline": {
+    "version": "0.1.7",
+    "registryIntegrity": "sha512-4oQ3wseowRHzmA/Ekl0AQAg/kuSjqWjJZVO41wEhI1NFSTlciDoA7sO9o0wZYTIMSpJuHQmo98376K7RHvBlzQ==",
+    "sha256": "09e9ce2cc27eeacaf3702efc6320882e849d3e0ce027687ebff7f7968e30a0b0",
+    "diffMethod": "Published 0.1.7 tarball fetched with npm pack dopplerx@0.1.7 (scripts not run) and compared file by file with the packed main; 197 files differ, all explained by the kebab-case rename, the legacy enum reader, the runtime-config reads, the version and the changelog/README."
+  },
+  "repositoryChecks": {
+    "check:fast": "pass",
+    "typecheck:source": "pass",
+    "contractTests": "pass (18 files: legacy-enum-reads, failure-taxonomy, public-version-exports, the AGENTS.md contract set and tests/capsule; none opens a GPU device)",
+    "runtime:closure:check": "pass (receipt resynced for the runtime-merge import)",
+    "package:closure:check": "pass",
+    "public:boundaries:check": "pass (3,892,412 of 3,892,672 packed bytes allowed)",
+    "release-claims:check": "pass",
+    "kernels:package-digests:check": "pass",
+    "preExistingFailures": "api:docs:check and source:dependencies:check fail on main 50abda0ae before this change; not touched here."
+  },
+  "nodeQualification": {
+    "result": "pass (no GPU)",
+    "packageSmoke": "node tools/check-packed-package.js --archive <exact archive>: pass, source provided-immutable-archive, same sha256 and integrity (checks/package-smoke.log)",
+    "freshConsumer": "npm init -y in a scratch directory outside any checkout, npm install <archive path> --omit=optional --ignore-scripts; lockfile integrity equals the archive's; all 18 export subpaths import; DOPPLER_VERSION 0.2.0; tsc 6.0.2 (nodenext, strict, skipLibCheck false) resolves every subpath's types and rejects a snake_case FailureClass (checks/node-consumer.log)",
+    "noGpuFailure": "dopplerx/compat dr.load() without a WebGPU provider fails with 'WebGPU is unavailable. Install a Node WebGPU provider or run in a WebGPU-capable browser.' (plain Error, no DOPPLER_ code)"
+  },
+  "browserQualification": {
+    "result": "pass (no GPU)",
+    "method": "Installed package served over loopback with an import map of the browser export conditions, headless Chromium 145.0.7632.6 (Playwright 1.58.2), navigator.gpu removed before page scripts; only the model manifest URL was allowed off-machine and none was requested (checks/browser-qualification.json)",
+    "entries": "18 of 18 subpaths import",
+    "noGpuFailure": "provider generate() (local-only, fallbackOn ['gpu_unavailable'] legacy spelling) fails with DOPPLER_PROVIDER_LOCAL_FAILED wrapping DOPPLER_GPU_UNAVAILABLE, failureClass 'gpu-unavailable'; compat dr.load() fails with the same 'WebGPU is unavailable' message (plain Error)"
+  },
+  "gpuQualification": {
+    "result": "pending",
+    "reason": "Not run: the Mac was not idle at 2026-11-26T20:02Z (load averages 11.49 18.48 14.82, other sessions active). A real generation in Node and in a WebGPU browser from this exact archive is still required before publishing."
+  },
+  "reploidVerification": {
+    "result": "pass",
+    "archiveInstalled": "Reploid worktree on main 9aa668035 plus the boundary change later landed as Reploid bd2d805fc: node scripts/sync-doppler.js <exact archive> (exact-archive mode, no re-pack) at 2026-11-26T20:03:59Z",
+    "integrityReadBack": {
+      "packageLock": "sha512-USjHspiS8VP3gHDOzWgiJN7njaEp04uj/bD8vzcKx/Z8/GnMxx4SfY/DAV1ZQTezv7kFm/bvNOTK+eGgQxfSrg==",
+      "nodeModulesPackageLock": "sha512-USjHspiS8VP3gHDOzWgiJN7njaEp04uj/bD8vzcKx/Z8/GnMxx4SfY/DAV1ZQTezv7kFm/bvNOTK+eGgQxfSrg==",
+      "sharedConfigDopplerPackage": "sha512-USjHspiS8VP3gHDOzWgiJN7njaEp04uj/bD8vzcKx/Z8/GnMxx4SfY/DAV1ZQTezv7kFm/bvNOTK+eGgQxfSrg==",
+      "npmLs": "dopplerx@0.2.0 (file:deploy/artifacts/dopplerx-0.2.0.tgz)",
+      "installedTree": "node_modules/dopplerx is byte-identical to the archive's package/ directory (diff -r); npm 10 writes no _integrity field into the installed package.json",
+      "sha256AfterRun": "1ab392c3dadc554a6fd45e405d578d94263a980204dce34b413ae70c08b5df8c (stored archive and Reploid's deploy/artifacts copy, 2026-11-26T20:08:46Z): unchanged"
+    },
+    "checks": "npm run lint, npm run build, verify:doppler-generation, verify:fleet-receipts, and vitest over doppler-runtime-service, doppler-partition-contract, doppler-partition-delivery, pool-doppler-runtime, all settlement-*, credit-ledger, partition-memory-settlement, pool-acceptance-settlement, whole-model-signed-charge, first-answer-defaults, pool-doppler-browser-observation, pool-evidence-network and doppler-kebab-enum-compat: 21 files, 314 tests, all pass",
+    "migrationNeeded": "encodeSequence alphabet amino-acid and browser qualification abort after-start reach Poolday comparisons; Reploid bd2d805fc maps both spellings (works on 0.1.7 and 0.2.0). Reploid's chat-models runtime config still carries tooling.diagnostics on_failure, which 0.2.0 reads through the runtime-config compatibility read added here.",
+    "receipt": "ouroboros docs/projects/doppler/dopplerx-0.2.0-rc-20261126/ (private): Reploid main is not repinned; the repin waits for the published archive"
+  },
+  "registryPublication": "Not attempted. Publishing needs the owner: npm publish <the stored archive> --access public, then npm view dopplerx@0.2.0 dist.integrity must equal the integrity above.",
+  "tagNote": "A git tag v0.2.0 already exists from the doppler-gpu line (92068f442, 2026-03-24), so this release needs another tag name (for example dopplerx-v0.2.0); no tag was pushed."
+}

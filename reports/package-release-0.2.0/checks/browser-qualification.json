@@ -1,0 +1,99 @@
+{
+  "navigatorGpu": false,
+  "entries": {
+    "dopplerx": {
+      "ok": true,
+      "exports": 21
+    },
+    "dopplerx/runtime": {
+      "ok": true,
+      "exports": 21
+    },
+    "dopplerx/generation-contract": {
+      "ok": true,
+      "exports": 5
+    },
+    "dopplerx/host": {
+      "ok": true,
+      "exports": 30
+    },
+    "dopplerx/host/electron": {
+      "ok": true,
+      "exports": 9
+    },
+    "dopplerx/compat": {
+      "ok": true,
+      "exports": 14
+    },
+    "dopplerx/provider": {
+      "ok": true,
+      "exports": 3
+    },
+    "dopplerx/tooling": {
+      "ok": true,
+      "exports": 124
+    },
+    "dopplerx/tooling/storage": {
+      "ok": true,
+      "exports": 39
+    },
+    "dopplerx/tooling/device": {
+      "ok": true,
+      "exports": 8
+    },
+    "dopplerx/tooling/manifest": {
+      "ok": true,
+      "exports": 7
+    },
+    "dopplerx/tooling/runtime": {
+      "ok": true,
+      "exports": 10
+    },
+    "dopplerx/tooling/evidence": {
+      "ok": true,
+      "exports": 31
+    },
+    "dopplerx/structured": {
+      "ok": true,
+      "exports": 13
+    },
+    "dopplerx/client/model-manager": {
+      "ok": true,
+      "exports": 10
+    },
+    "dopplerx/generation": {
+      "ok": true,
+      "exports": 5
+    },
+    "dopplerx/training": {
+      "ok": true,
+      "exports": 13
+    },
+    "dopplerx/partitions": {
+      "ok": true,
+      "exports": 48
+    }
+  },
+  "calls": {
+    "provider": {
+      "ok": false,
+      "name": "Error",
+      "code": "DOPPLER_PROVIDER_LOCAL_FAILED",
+      "message": "[DOPPLER_PROVIDER_LOCAL_FAILED] Local inference failed and policy is local-only: [DOPPLER_GPU_UNAVAILABLE] WebGPU is unavailable. Install a Node WebGPU provider or run in a WebGPU-capable browser.",
+      "causeCode": null,
+      "causeMessage": null,
+      "failureClass": "gpu-unavailable"
+    },
+    "compatLoad": {
+      "ok": false,
+      "name": "Error",
+      "code": null,
+      "message": "WebGPU is unavailable. Install a Node WebGPU provider or run in a WebGPU-capable browser."
+    }
+  },
+  "version": "0.2.0",
+  "browserVersion": "145.0.7632.6",
+  "allowedExternalRequests": [],
+  "blockedExternalRequests": [],
+  "pageErrors": []
+}

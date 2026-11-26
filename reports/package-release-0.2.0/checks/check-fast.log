@@ -1,0 +1,23 @@
+
+> dopplerx@0.2.0 check:fast
+> npm run source:style:check && npm run source:architecture:check && node tools/check-style-guides.js --changed && node tools/check-artifact-retention.js && node tools/check-kebab-enum-values.js && npm run js-only:check
+
+
+> dopplerx@0.2.0 source:style:check
+> node tools/check-unused-locals.js && node tools/check-source-style.js
+
+[unused-locals] 250 JavaScript roots; no unused declarations
+[source:style:check] 1232 governed JavaScript modules have sibling declarations, 251 reviewed numeric candidate(s), no runtime tensor compute, implementation annotations limited to checked strict roots, no undeclared raw console calls, and no banned geometry inference
+
+> dopplerx@0.2.0 source:architecture:check
+> node tools/check-source-architecture.js
+
+source architecture check passed: 18 owners, 3338 files, 0 governed oversize files, 28 reviewed soft-limit files, 7 reviewed generic modules (5 semantic owners, 2 facades, 0 legacy debt)
+[style:guides] changed-file checks 7/10019 inventoried {".json":2,".js":5}; 0 explicit retained violations; baseline coverage only, scoped and semantic rules remain separate
+artifact retention: 5529 tracked receipts in 214 exact campaign inventories
+[kebab-enum-values] Doppler-owned enum values are kebab-case
+
+> dopplerx@0.2.0 js-only:check
+> node tools/check-js-only.js
+
+js-only: no Python or Go files and no Python or Go invocations in tracked scripts
