@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValues } from '../../config/legacy-enum-values.js';
 import { log } from '../../debug/index.js';
 import { getManifestUrl, parseManifest } from '../../formats/rdrr/index.js';
 import {
@@ -276,7 +277,8 @@ export async function resolveModelSource(model) {
         `Inline manifest hash mismatch: expected ${expectedManifestHash}, got ${actualManifestHash}.`
       );
     }
-    const manifest = manifestText ? parseManifest(manifestText) : model.manifest;
+    // An inline manifest object written before 0.2.0 is read like manifest text (legacy spellings canonicalized).
+    const manifest = manifestText ? parseManifest(manifestText) : canonicalizeLegacyEnumValues(model.manifest);
     const declaredModelId = typeof model.manifest.modelId === 'string' ? model.manifest.modelId : '';
     if (declaredModelId && manifest.modelId && declaredModelId !== manifest.modelId) {
       throw new Error(

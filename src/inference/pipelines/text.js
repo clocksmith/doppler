@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValues } from '../../config/legacy-enum-values.js';
 import { InferencePipeline, EmbeddingPipeline } from './text/pipeline.js';
 export * from './text/pipeline.js';
 import { createInitializedPipeline } from './factory.js';
@@ -34,9 +35,12 @@ function resolveLazyPipelineModules(modelType, ruleRegistry) {
   return modules.filter((entry) => typeof entry === 'string' && entry.length > 0);
 }
 
-/** @param {import('../../config/schema/index.js').ManifestSchema} manifest
+/** @param {import('../../config/schema/index.js').ManifestSchema} input
  * @param {Record<string, unknown>} contexts */
-export async function createPipeline(manifest, contexts = {}) {
+export async function createPipeline(input, contexts = {}) {
+  // Manifest objects (not only manifest text) written before 0.2.0 carry snake_case values;
+  // they are read throughout 0.x, so canonicalize here as parseManifest does for text.
+  const manifest = /** @type {import('../../config/schema/index.js').ManifestSchema} */ (canonicalizeLegacyEnumValues(input));
   const { ruleRegistry, kernelRegistry } = resolvePipelineRegistries(contexts);
   const modelType = manifest?.modelType;
   if (typeof modelType !== 'string' || modelType.length === 0) {

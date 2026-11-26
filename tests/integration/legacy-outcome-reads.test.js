@@ -24,6 +24,9 @@ import { resolveUlScheduledLambda } from '../../src/experimental/training/ul_sch
 import { evaluateAgentHeldoutRows } from '../../src/experimental/training/operator-agent-eval.js';
 import { parseDiffusionGemmaConfig } from '../../src/inference/pipelines/diffusion-gemma/config.js';
 import { normalizeToolingCommandRequest } from '../../src/tooling/command-api.js';
+import { createPipeline } from '../../src/inference/pipelines/text.js';
+import { registerPipeline } from '../../src/inference/pipelines/registry.js';
+import { resolveModelSource } from '../../src/client/runtime/model-source.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const fixture = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests/fixtures/emitted-enum-values.json'), 'utf8'));
@@ -57,6 +60,29 @@ describe('converted outcome values: shared config reader', () => {
     assert.equal(merged.loading.decoderCacheMode, 'encoder-kv-readonly-canvas-concat');
     const resolved = resolveRuntimeConfig({ shared: { tooling: { diagnostics: 'on_failure' } } });
     assert.equal(resolved.shared.tooling.diagnostics, 'on-failure');
+  });
+});
+
+describe('manifest objects written before 0.2.0', () => {
+  const legacyManifest = () => JSON.parse(fs.readFileSync(
+    path.join(ROOT, 'models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json'), 'utf8'
+  ));
+
+  it('createPipeline canonicalizes a manifest object, not only manifest text', async () => {
+    const seen = [];
+    registerPipeline('legacy-read-probe', async (manifest) => { seen.push(manifest); return { manifest }; });
+    const input = { ...legacyManifest(), modelType: 'legacy-read-probe' };
+    assert.equal(input.inference.session.perLayerInputs.gpuUpload.mode, 'per_step_slices');
+    await createPipeline(input, {});
+    assert.equal(seen[0].inference.session.perLayerInputs.gpuUpload.mode, 'per-step-slices');
+    assert.equal(seen[0].inference.layerPattern.type, 'every-n');
+    assert.equal(input.inference.session.perLayerInputs.gpuUpload.mode, 'per_step_slices', 'input must not be mutated');
+  });
+
+  it('an inline { manifest } model source is read like manifest text', async () => {
+    const resolved = await resolveModelSource({ manifest: legacyManifest(), baseUrl: 'file:///tmp/legacy-model/' });
+    assert.equal(resolved.manifest.inference.session.perLayerInputs.gpuUpload.mode, 'per-step-slices');
+    assert.equal(resolved.manifest.inference.execution.policies.dtypeTransition, 'require-cast-step');
   });
 });
 
