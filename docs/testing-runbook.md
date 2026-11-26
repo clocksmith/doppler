@@ -7,7 +7,8 @@ Canonical guide for running Doppler tests.
 | Action | How | When |
 | --- | --- | --- |
 | Repository acceptance | `npm run check:green` | source, contract, or integration changes |
-| Behavior checks only | `npm run check:behavior` | quick local loop |
+| Fast source checks | `npm run check:fast` | before every push (about 22 s, no GPU) |
+| Behavior checks only | `npm run check:behavior` | includes the whole unit suite, which opens a GPU device; see [AGENTS.md](../AGENTS.md#style-guides) |
 | Full check sweep | `npm run check:all` | release preparation or gate-policy changes |
 | Node tests | `npm run test:unit` | all non-kernel test directories |
 | Kernel correctness | `tests/harness.html` mode `kernels` | after kernel changes |

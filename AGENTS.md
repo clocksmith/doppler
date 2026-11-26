@@ -29,11 +29,39 @@ simple, portable execution.
 
 ### Style guides
 
-Choose checks for the changed behavior. `npm run check:fast` covers source style,
-architecture, changed-file style rules and artifact retention;
-`npm run typecheck:source` checks source declarations. Use existing focused tests
-for the affected loader, pipeline or kernel. Full model/GPU qualification remains
-separate from these development checks.
+Match the check to the risk. Times are from one laptop; CI runs on Linux.
+
+| When | Run | Time |
+| --- | --- | --- |
+| Editing, once the behavior is ready to verify | The test file for the loader, pipeline or kernel you changed: `node tools/run-node-tests.js <file>` | under 2 s a file |
+| Before every push | `npm run check:fast` (source style, architecture, changed-file style rules, artifact retention, kebab-case enums, JavaScript-only); `npm run typecheck:source` when declarations or exports changed | 22 s; 7 s |
+| Before merge | The contract tests for the behavior you changed (below) and `npm run check:changed`, which runs only the policy checks your files select | seconds |
+| Every push and pull request | CI `Smoke` (`.github/workflows/check-green.yml`): contract tests, declaration types, `check:fast`, style guides, the installed-package smoke. No GPU, browser or model download | 2.5 min |
+| Release, hardware work, or a change that justifies it | `npm run check:green` and `npm run test:unit` (the whole unit suite), `test:unit:webgpu`, `test:gpu`, the browser harness and the manual workflows | not in CI |
+
+Contract tests that stay when their behavior changes:
+command and error contracts (`tests/inference/execution-backend-contract.test.js`,
+`tests/config/error-taxonomy.test.js`, `tests/config/public-error-contract.test.js`),
+config ownership (`tests/config/runtime-transform-ownership.test.js`,
+`tests/integration/execution-graph-transforms.test.js`), Capsule trust
+(`tests/capsule/`, `tests/runtime/capsule-artifact-source.test.js`), cancellation
+(`tests/inference/pipeline-load-cancellation.test.js`,
+`tests/inference/pipeline-scope-cancellation.test.js`,
+`tests/inference/generator-abort-delivery.test.js`), the consumer boundary Reploid calls
+(`tests/integration/doppler-scoped-session.test.js`,
+`tests/integration/doppler-browser-api-parity.test.js`, `npm run package:smoke`) and the
+privacy protocol (`npm test --prefix tools/privacy-demo`). Model parity is qualified on
+hardware, not by these.
+
+**What opens a GPU device.** A Node test gets a device only through the optional `webgpu`
+or `doe-gpu` package, so a checkout installed with `npm ci --omit=optional`, as CI installs,
+cannot open one (device tests fail there instead). In a default install, check a file before
+running it on a machine whose GPU someone is timing:
+`grep -lE "bootstrapNodeWebGPU|requestAdapter\(|initDevice\(|getDevice\(" <files>`. The
+`unit-webgpu` suite in `tools/policies/test-coverage-policy.json` lists 37 such files, but
+about 70 more still sit in the `unit` suite, so `npm test`, `check:behavior` and
+`check:green` open a device. `node tools/run-node-tests.js --suite unit --list` prints
+the selection without running it.
 
 The [guide lookup](docs/style/README.md#guide-lookup),
 [rule coverage](tools/policies/style-guide-rules.json) and
