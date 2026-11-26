@@ -7,7 +7,7 @@ Referenced by: `doppler-convert`, `doppler-debug`
 When a freshly converted model regresses, separate conversion integrity from runtime regressions before changing the conversion config:
 
 1. Verify source dtypes from checkpoint headers (`BF16`/`F16`/`F32` mix).
-2. Verify converted manifest fields: `quantization`, `quantizationInfo`, `inference.execution`.
+2. Verify converted manifest fields: `quantization`, `quantizationInfo`, `inference.session`, `inference.execution`.
 3. Verify shard integrity (sampled shard hashes must match manifest hashes).
 4. Verify numeric sanity by sampling tensor values from source vs converted bytes.
 5. Verify parsed layer pattern semantics from manifest against source `layer_types` when present (Gemma 3 `every-n` uses offset 5 for full-attention layers 5, 11, 17).

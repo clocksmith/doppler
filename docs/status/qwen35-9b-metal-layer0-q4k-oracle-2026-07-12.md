@@ -1,5 +1,7 @@
 # Qwen 3.5 9B M3 layer-0 Q4K projection oracle
 
+> Superseded by [qwen35-9b-metal-status.md](qwen35-9b-metal-status.md) (2026-07-14 reversal of the mixed-Q4 rejection).
+
 The independent scalar Q4_K dequantization and matrix multiplication agrees
 with Doppler's optimized Metal output for `layer.0.ffn.gate`. The first
 material F16-to-Q4 difference is therefore real quantization loss in the
@@ -67,7 +69,9 @@ Still open:
 - which weights must remain F16 for the mixed artifact to recover coherent
   base-token parity.
 
-The mixed-Q4 artifact remains rejected for base-model correctness. Adapter
+At this point the mixed-Q4 artifact remained rejected for base-model
+correctness; Doppler 0.4.9 later reversed that (see the
+[canonical status](qwen35-9b-metal-status.md)). Adapter
 activation and performance tuning remain gated. The V12 AMD/ROCm training
 matrix was not changed or rerun.
 

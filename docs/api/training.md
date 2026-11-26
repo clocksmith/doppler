@@ -10,10 +10,10 @@ import {
   loadTrainingWorkloadCapsule,
   releaseNativeTrainingHost,
   trainSftLoRA,
-} from 'doppler-gpu/training';
+} from 'dopplerx/training';
 ```
 
-`doppler-gpu/training` is the public experimental library for Doppler's
+`dopplerx/training` is the public experimental library for Doppler's
 completion-masked SFT/LoRA engine. Native WebGPU primitives and the bounded
 Qwen runner are available in browsers, Node, and Bun. The Node entry point also
 exports workload-file and report orchestration APIs.

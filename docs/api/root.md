@@ -17,7 +17,8 @@ executes the declared commands. It does not load unsigned manifests, infer a
 model family, choose kernels, or supply a development signing key.
 
 `dopplerx` is the Doppler Run entrypoint. `dopplerx/runtime` remains a
-compatibility alias; the former `dopplerx/run` alias was removed.
+compatibility alias; the former `doppler-gpu/run` alias was removed in
+`doppler-gpu` 0.7.0 (the package's former name).
 `createDopplerRuntime` and `RUNTIME_CORE_VERSION` remain aliases of
 `createDopplerRun` and `RUN_CORE_VERSION`; types have corresponding
 `DopplerRun`, `DopplerRunSession`, and `RunPorts` names.
@@ -34,7 +35,8 @@ helper exports from `dopplerx` and `dopplerx/runtime`. These repository
 helpers do not execute or qualify distributed inference and remain internal;
 there is no supported public replacement operation. The minimal injected runtime
 and its published declarations agree again. The immutable search starter's
-pinned 0.6.2 archive is unchanged; adopting a corrected runtime requires a
+pinned `doppler-gpu` 0.6.2 archive (the package's former name) is unchanged;
+adopting a corrected runtime requires a
 separate installed-application qualification.
 
 ## Import path
@@ -65,8 +67,8 @@ Capsule execution because they could rewrite signed execution policy.
 ## Host application example
 
 This example describes the checkout API. Confirm exports and operation
-qualification in the exact package you install; npm 0.6.1 does not contain newer
-choice-scoring or partition exports.
+qualification in the exact package you install; the published npm version
+(see [Getting Started](../getting-started.md)) can lag the checkout.
 
 ```js
 import { openCapsule } from 'dopplerx/host';

@@ -61,8 +61,8 @@ Its admission result is intentionally
 `candidateCompetitionAllowed: false` and `promotionAllowed: false`.
 
 The shared descriptor and parity schemas are
-`src/config/schema/trainer-artifact-bridge.schema.json` and
-`src/config/schema/trainer-artifact-parity-evidence.schema.json`. Translation
+`src/config/schema/policy/trainer-artifact-bridge.schema.json` and
+`src/config/schema/policy/trainer-artifact-parity-evidence.schema.json`. Translation
 uses the full-checkpoint profile; Columbo uses the PEFT-adapter profile and its
 own five-stage trainer-serving receipt. No first-token-logit, selected-token,
 completion, or exact browser-artifact parity result is asserted by this import

@@ -6,7 +6,15 @@ recipe in `reports/capsule-baseline/20260907-release/reproduction.tar.gz`.
 The acceptance receipt in that directory binds the evidence to source commits,
 archive hashes, model identities, and commands. It is separate from the earlier
 [local physical baseline](capsule-physical-baseline.md) and the npm registry's
-different `doppler-gpu@0.6.0` archive.
+different `doppler-gpu@0.6.0` archive (`doppler-gpu` is the package's former name).
+
+The [acceptance receipt](../reports/capsule-baseline/20260907-release/acceptance.json)
+qualifies archive `61a23b9cafd17eb2…`, with tooling and remote CI bound to commit
+`984d25633566420e6791c57ce271e388c4bc05b5`. The isolated checkout passed 779 test
+files; public-source reconstruction verified 126 signed artifacts; reconstructed
+models passed installed Node and Chromium inference, offline search, and recovery
+on AMD Radeon 8060S. The evidence bundle includes full acceptance logs, failed
+attempts, successful restorations, and physical reports.
 
 The archive contains no signing keys or model weight shards. Reconstruction
 downloads the exact public Qwen revisions and runs the retained runtime's

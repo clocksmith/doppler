@@ -1,5 +1,8 @@
 # Evidence storage
 
+Receipts are frozen. Corrections, closures and errata for them are indexed in
+[receipt-index.md](receipt-index.md).
+
 Committed evidence under `artifacts/` and `reports/` must be cited by code,
 tests, config, docs, a report, or a workspace repository. Evidence that nothing
 cites moves to the maintainers' evidence store, and this directory keeps its

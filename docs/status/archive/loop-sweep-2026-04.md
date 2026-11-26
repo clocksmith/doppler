@@ -1,3 +1,5 @@
+> **Historical (April 2026).** Retained as evidence of those runs. Its test counts, dirty-file observations, skip lists and unused-code claims do not describe the current checkout; see [Cleanup review](../loop-sweep.md).
+
 ## fire-22 — 2026-04-19 UTC
 
 Landings (7+): 7

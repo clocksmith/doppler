@@ -21,7 +21,7 @@ archive and source snapshot; pulling newer source does not requalify them.
 
 ## Results and limits
 
-- The latest tested `doppler-gpu` archive is version 0.6.0, SHA-256
+- The latest tested archive of `doppler-gpu` (the package's former name) is version 0.6.0, SHA-256
   `9bc30b7d39cfee870ffd26f6e0f6011e3f77adaed6a51eb66a27408c8a7aa81f`.
   Installed Node and browser code perform real signed inference. Package smoke
   evidence separately checks 28 exports and declarations with synthetic execution.
@@ -56,6 +56,11 @@ archive and source snapshot; pulling newer source does not requalify them.
   simulated incompatible-binding check.
 
 ## Measured retention tradeoff
+
+This is the 20260906 capsule-baseline campaign (the `retentionComparison` entry
+in its [acceptance receipt](../reports/capsule-baseline/20260906/acceptance.json)). The later 20260907 retention
+experiment and its public-reconstruction replay are separate campaigns with
+their own receipts; see [Capsule retention experiment](capsule-retention-experiment.md).
 
 The controlled comparison alternates six fresh Chromium processes, three per
 policy, on the same hardware, installed archive, signed models, retained storage,
@@ -133,17 +138,7 @@ release acceptance remains explicit; onboarding cannot publish or approve upgrad
 
 ## Subsequent committed release reproduction
 
-The [20260907 release acceptance](../reports/capsule-baseline/20260907-release/acceptance.json)
-records a separate qualification of archive `61a23b9cafd17eb2…`, with tooling and
-remote CI bound to commit `984d25633566420e6791c57ce271e388c4bc05b5`.
-The isolated checkout passes 779 test files. Public-source reconstruction verifies
-126 signed artifacts, and reconstructed models pass installed Node and Chromium
-inference, offline search, and recovery on AMD Radeon 8060S. Historical evidence
-above retains its original source and archive identities.
-
-The [reproduction instructions](capsule-release-reproduction.md) use the committed
-archive, public dependency lockfile, signed metadata, and pinned upstream sources.
-The evidence bundle includes full acceptance logs, failed attempts, successful
-restorations, and physical reports. This archive is publicly retained in Git;
-it is distinct from the npm registry's `0.6.0` archive. Other devices, Bun,
-generation, and external adoption remain separate qualification work.
+The separate 20260907 release qualification (archive `61a23b9cafd17eb2…`) and
+its reproduction are described in
+[Capsule release reproduction](capsule-release-reproduction.md). Historical
+evidence above retains its original source and archive identities.

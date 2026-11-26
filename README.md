@@ -15,25 +15,11 @@ The demo opens with a recorded answer. Select a token to inspect its alternative
 
 ## Get started
 
-Use Node 20+ and a working WebGPU provider. This tested installation example
-pins the compatibility quickstart; see the changelog for newer source revisions.
-
 ```sh
-npx --package dopplerx@0.1.5 dopplerx --model gemma3-270m --prompt "Describe WebGPU briefly"
+npx --package dopplerx@0.1.7 dopplerx --model gemma3-270m --prompt "Describe WebGPU briefly"
 ```
 
-```js
-import { dr } from 'dopplerx/compat';
-
-const session = await dr.open('gemma3-270m');
-try {
-  console.log(await session.generate('Describe WebGPU briefly'));
-} finally {
-  await session.close();
-}
-```
-
-The first run downloads the selected model’s weights, tokenizer, and manifest. See [installation and embedding](docs/getting-started.md) for host requirements and [Signed Run API](docs/api/root.md) for Capsule sessions.
+Use Node 22 (what CI and qualified runs use) and a WebGPU provider; the first run downloads the model. [Getting started](docs/getting-started.md) covers host requirements and embedding; the [Signed Run API](docs/api/root.md) covers Capsule sessions.
 
 [Published versions](https://www.npmjs.com/package/dopplerx) · [Source changelog](CHANGELOG.md) · [Documentation](docs/INDEX.md)
 
@@ -71,7 +57,7 @@ throughput and loading separately against declared controls. Runtime correctness
 task quality, memory, and lifecycle acceptance remain separate checks.
 W8A8 remains experimental.
 
-Raw choice scores are uncalibrated next-token logits unless an explicit calibration record (`dopplerx/tooling/structured`) is fitted and applied. Unsupported paths fail closed. See the [0.1.5 physical qualification bundle](reports/dopplerx-0.1.5-qualification/README.md) for cross-vendor F16 kernel and fail-closed precision receipts, standalone `doppler-serve` hybrid KV and recurrent prefix reuse, and Node/Browser capability lifecycle receipts. The retained
+Raw choice scores are uncalibrated next-token logits unless an explicit calibration record (`dopplerx/structured`) is fitted and applied. Unsupported paths fail closed. The [0.1.5 physical qualification bundle](reports/dopplerx-0.1.5-qualification/README.md), bound to an unshipped archive (`ecb2a13e…`) and not qualifying the published 0.1.7 or the 0.2.0 candidate, retains cross-vendor F16 kernel and fail-closed precision receipts, standalone `doppler-serve` hybrid KV and recurrent prefix reuse, and Node/Browser capability lifecycle receipts. The retained
 [search starter](examples/document-search/README.md) needs renewed signed
 eligibility before fresh-install use; see [installation limits](docs/getting-started.md#retained-search-starter).
 

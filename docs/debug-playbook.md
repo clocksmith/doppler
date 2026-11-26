@@ -1,62 +1,38 @@
 # Debug Playbook
 
-Canonical workflow for inference regressions, incoherent output, and conversion-vs-runtime triage.
+How to read the results of the inference debug ladder for inference regressions,
+incoherent output, and conversion-vs-runtime triage.
 
-## Goal
+The ladder itself (failure classes, trusted reference, boundary order, quantized
+control, conversion completion) is canonical in
+[Inference Debug Protocol](agents/debug-protocol.md). This page adds the
+interpretation for each step. Its goal is the shortest path to the first
+divergent boundary.
 
-Reduce debug sprawl by forcing the shortest path to the first divergent boundary.
+## 1. Classification
 
-## 1. Classify the failure first
+Use the protocol's failure classes. Do not mix categories until the current one
+is either confirmed or ruled out.
 
-Pick one primary bucket before changing code:
+## 2. Trusted reference
 
-- `tokenization / chat-template`
-- `conversion / artifact integrity`
-- `runtime numerics`
-- `surface / harness parity`
-- `benchmark-only`
+In addition to the protocol's capture list, record the deterministic sampling
+tuple. Without the full set you do not yet have a stable comparison target.
 
-Do not mix categories until the current one is either confirmed or ruled out.
+## 3. Reading boundary diffs
 
-## 2. Establish one trusted reference
-
-Before changing runtime behavior, collect one trusted reference from the source runtime when possible.
-
-Capture:
-
-- exact prompt text
-- exact token IDs
-- deterministic sampling tuple
-- one early activation slice
-- one output/logits slice
-
-If you do not have these, you do not yet have a stable comparison target.
-
-## 3. Use boundary diffs only
-
-Compare the same token and stop at the first divergence:
-
-1. embeddings
-2. post input norm
-3. Q/K/V pre-RoPE
-4. Q/K post-RoPE
-5. attention output
-6. FFN output
-7. final logits
-
-Interpretation:
+Compare the same token in the protocol's boundary order and stop at the first
+divergence:
 
 - divergence before RoPE usually points to weight loading, dequantization, tensor layout, or matmul
 - divergence after RoPE but before attention output usually points to RoPE application or masking
 - divergence only after attention output points to residual/FFN/downstream path
 
-## 4. Quantized-model control split
+## 4. Reading the quantized-model control split
 
-When a quantized artifact is bad, do not edit quantized kernels first.
-
-Run one source-precision or F16 control on the same prompt and compare the same early boundaries.
-
-Interpretation:
+When a quantized artifact is bad, do not edit quantized kernels first. Run the
+protocol's F16 or source-precision control on the same prompt and compare the
+same early boundaries:
 
 - F16/source-precision good, quantized bad: quantization, dequantization, runtime dequant layout, or quantized matmul path
 - F16/source-precision bad, quantized bad: shared conversion/layout/runtime issue
@@ -84,18 +60,9 @@ For fresh conversions:
 4. verify sampled tensor bytes against source
 5. then and only then classify runtime divergence
 
-## 7. Conversion completion is fail-closed
+Conversion completion is fail-closed; see the protocol's conversion-status step.
 
-Do not report conversion success unless all of these exist and agree:
-
-- successful process exit
-- `manifest.json`
-- expected shard set
-- valid conversion report
-
-A directory with shards but no manifest is an interrupted conversion.
-
-## 8. Add the smallest permanent probe
+## 7. Add the smallest permanent probe
 
 Prefer:
 
@@ -109,7 +76,7 @@ Avoid:
 - broad benchmark rewrites before classification
 - speculative config changes without a boundary diff
 
-## 9. Required deliverables for a serious debug pass
+## 8. Required deliverables for a serious debug pass
 
 - failing command/config
 - trusted reference values

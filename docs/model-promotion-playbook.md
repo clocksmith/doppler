@@ -20,14 +20,17 @@ It does not replace:
 
 ## Canonical Storage Order
 
-Treat these locations as separate roles, not interchangeable copies:
+Treat these locations as separate roles, not interchangeable copies.
+`$DOPPLER_EXTERNAL_MODELS_ROOT` is the external-volume root; Doppler tools
+auto-detect `/Volumes/models`, `/Volumes/models2` or `/media/$USER/models` when
+it is unset, but the shell commands below need it set.
 
 1. Source checkpoint on external volume
-   Example: `/media/$USER/models/huggingface_cache/hub/.../snapshots/<revision>`
+   Example: `$DOPPLER_EXTERNAL_MODELS_ROOT/huggingface_cache/hub/.../snapshots/<revision>`
 2. Temporary rebuild / repair directory
    Example: `/tmp/<model-id>-rebuild`
 3. External-volume canonical RDRR artifact (source of truth for weights)
-   Example: `/media/$USER/models/rdrr/<model-id>`
+   Example: `$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/<model-id>`
 4. Hugging Face hosted artifact (verified subset)
    Example: `clocksmith/rdrr`
 5. Repo metadata (catalog only, no weights)
@@ -45,24 +48,39 @@ Rules:
 Before converting or promoting, settle the canonical model ID. The ID must agree across four places:
 
 1. `output.modelBaseId` in the conversion config (`src/config/conversion/<family>/<model>.json`)
-2. External-volume artifact directory: `/media/$USER/models/rdrr/<canonical-id>/`
+2. External-volume artifact directory: `$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/<canonical-id>/`
 3. `models/catalog.json` entry `modelId`
 4. HF path: `models/<canonical-id>` under `clocksmith/rdrr`
 
-The publish tool (`tools/publish-hf-registry-model.js`) uploads from the external-volume artifact path by default. Always pass `--local-dir /media/$USER/models/rdrr/<model-id>` explicitly to ensure the correct artifact is uploaded.
+By default the publish tool (`tools/publish-hf-registry-model.js`) takes `manifest.json` and `origin.json` from the repo-local cache `models/local/<model-id>/` and the shards and other files from `$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/<model-id>/`. Always pass `--local-dir $DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/<model-id>` so the manifest also comes from the external-volume canonical artifact. See [Registry Workflow](registry-workflow.md#publish-a-hosted-model-to-hugging-face).
 
 Naming schemes differ between old artifacts (e.g. `wq4k-ef16-hf16` suffix) and canonical conversion configs (e.g. `q4k-ehf16-af32` suffix). The canonical scheme is written down in [Model Naming](style/model-naming.md). Do not promote a non-canonical artifact by renaming it. Re-convert with the canonical config so the artifact and the ID agree from the start.
 
 ## Promotion Gate
 
-A model is promotion-ready only if all of the following are true:
+This section is the canonical promotion gate. A model is promotion-ready only if
+all of the following are true:
 
 1. Source-of-truth checkpoint is identified on the external volume.
 2. Conversion config is reproducible and lives under `src/config/conversion/`.
-3. Manifest contract is valid.
+3. Manifest contract is valid and the manifest matches the config.
 4. Shard bytes match manifest hashes.
 5. A deterministic inference or embedding check passes on a real runtime surface.
-6. The observed output has been reviewed by a human before hosted publication.
+6. The semantic boundary comparison gate passes
+   ([Evidence Loop](evidence-loop.md#2-compare-semantic-boundaries)): the
+   `doppler boundary compare` receipt has `promotionGate.passed: true`, which
+   requires compatible boundaries, exact deterministic token parity for at
+   least 128 generated tokens, and, for quantized artifacts, a passing F16 or
+   source-precision control receipt (`--source-control`).
+7. When the model needs cross-runtime portability (for example Doe/Cerebras
+   lowering), Program Bundle export succeeds with a browser/WebGPU reference
+   transcript (`npm run program-bundle:reference`, `npm run program-bundle:check`).
+8. Any benchmark claim points to one saved artifact and one reproducible command.
+9. The observed output has been reviewed by a human before hosted publication.
+
+After the gate passes, follow the [Promotion Workflow](#promotion-workflow)
+below. If a checked-in Program Bundle example changed, also run
+`npm run program-bundle:check`.
 
 For text models, "passes" means more than "process did not crash". The run must produce non-empty, non-collapsed, non-garbage output on a deterministic prompt.
 
@@ -94,7 +112,7 @@ Use the checkpoint stored on the external volume, not a random local copy.
 Example:
 
 ```bash
-SOURCE_DIR=/media/$USER/models/huggingface_cache/hub/models--google--gemma-3-270m-it/snapshots/<revision>
+SOURCE_DIR=$DOPPLER_EXTERNAL_MODELS_ROOT/huggingface_cache/hub/models--google--gemma-3-270m-it/snapshots/<revision>
 ```
 
 ### 2. Rebuild into a temporary directory
@@ -168,7 +186,7 @@ Copy the verified rebuild into the canonical RDRR path on the external volume.
 Example:
 
 ```bash
-cp -a /tmp/<model-id>-rebuild/. /media/$USER/models/rdrr/<model-id>/
+cp -a /tmp/<model-id>-rebuild/. $DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/<model-id>/
 ```
 
 After copy:
@@ -178,59 +196,41 @@ After copy:
 
 ### 7. Verify the publish tool gate before publishing
 
-`tools/publish-hf-registry-model.js` reads the canonical support entry first, then calls `assertPromotionReady()` before uploading anything. Standard (republish) publication requires:
+`tools/publish-hf-registry-model.js` reads the catalog entry, then calls
+`assertPromotionReady()` before uploading anything. Publication requires:
 
-- `lifecycle.availability.hf === true`
+- `hf.repoId` and `hf.path`
+- `sourceCheckpointId`, `weightCapsuleId`, and `manifestVariantId`
+- `runtimePromotionState === "manifest-owned"`
+- `artifactCompleteness === "complete"` with `weightsRefAllowed === false`, or,
+  for `--manifest-only`, `artifactCompleteness === "weights-ref"` with
+  `weightsRefAllowed === true`
+- `lifecycle.availability.hf === true` (republish), or `false` with
+  `--bootstrap` (first publish only)
 - `lifecycle.status.runtime === "active"`
 - `lifecycle.status.tested === "verified"`
 - `lifecycle.tested.contracts.executionContractOk === true`
 
-The tool also requires `hf.repoId` and `hf.path` in the catalog entry.
+A brand-new model is in the bootstrap state: `hf: { repoId, path }` with no
+`revision` key yet and `lifecycle.availability.hf: false`, with the other
+lifecycle fields above already set.
 
-#### First publish (bootstrap)
-
-A brand-new model whose artifact has never been uploaded lives in a bootstrap state:
-
-- `hf: { repoId, path }` (no `revision` key yet)
-- `lifecycle.availability.hf: false`
-- `lifecycle.status.runtime: "active"`, `tested: "verified"`, `contracts.executionContractOk: true`
-
-Pass `--bootstrap` to publish such an entry. The flag rejects any entry where `availability.hf !== false`, so it cannot be used for republishes. On success the tool writes the new `hf.revision` into `models/catalog.json` and flips `availability.hf` to `true` — subsequent publishes are normal republishes without the flag.
-
-#### Manifest-only `weightsRef` republish
-
-When a kernel-ref swap or routing change regenerates only `manifest.json`, the manifest must declare `weightsRef` to the already-hosted weight capsule and the catalog entry must set `weightsRefAllowed: true`. Pass `--manifest-only`; the tool uploads only manifest metadata, verifies the referenced weight-capsule manifest digest and required artifact files before upload, rebuilds the hosted registry, probes the published manifest, and verifies the referenced files again at the published revision.
-
-#### Dry run
-
-```bash
-node tools/publish-hf-registry-model.js --model-id <model-id> --dry-run
-node tools/publish-hf-registry-model.js --model-id <model-id> --manifest-only --dry-run
-node tools/publish-hf-registry-model.js --model-id <model-id> --bootstrap --dry-run
-```
-
-In manifest-only dry-run, `shardDir` is `null` in the output because shard staging is skipped. A real manifest-only publish still fails unless `manifest.weightsRef` is present and resolves.
+Bootstrap, manifest-only `weightsRef` republish, and dry-run mechanics are in
+[Registry Workflow](registry-workflow.md#publish-a-hosted-model-to-hugging-face).
 
 ### 7a. Publish to Hugging Face from the external-volume canonical path
 
-Dry run first:
+Dry run first, then publish without `--dry-run`:
 
 ```bash
 node tools/publish-hf-registry-model.js \
   --model-id <model-id> \
-  --local-dir /media/$USER/models/rdrr/<model-id> \
+  --local-dir $DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/<model-id> \
   --dry-run
 ```
 
-Then publish:
-
-```bash
-node tools/publish-hf-registry-model.js \
-  --model-id <model-id> \
-  --local-dir /media/$USER/models/rdrr/<model-id>
-```
-
-This guarantees the uploaded artifact is the same one stored as the external-volume source of truth.
+Passing `--local-dir` makes the uploaded manifest the one stored with the
+external-volume source of truth.
 
 ### 7b. Verify the remote artifact identity after publishing
 
@@ -257,31 +257,15 @@ Required fields in `origin.json`:
 }
 ```
 
-After all `origin.json` files are present, audit the artifact identity inventory:
-
-```bash
-npm run artifact-identity:inventory -- --root /media/$USER/models/rdrr --json --pretty
-npm run artifact-identity:check -- --root /media/$USER/models/rdrr
-```
-
-This scans the external volume against the catalog without creating another
-registry file.
+After all `origin.json` files are present, audit the artifact identity
+inventory; see
+[Registry Workflow](registry-workflow.md#audit-external-volume-artifact-identity).
 
 ### 9. Re-pin repo metadata to the published HF revision
 
-After publication, update `hf.revision` in `models/catalog.json` to the published commit SHA.
-
-Then run the catalog validation flow:
-
-```bash
-npm run ci:catalog:check
-```
-
-If catalog-derived docs changed:
-
-```bash
-npm run support:matrix:sync
-```
+The publish tool writes the published commit SHA to `hf.revision` in
+`models/catalog.json`. Confirm it, then run the follow-up sync and checks in
+[Registry Workflow](registry-workflow.md#after-publishing).
 
 ## Ghost Model Discipline
 
@@ -301,7 +285,7 @@ Do not leave ghost model IDs in place and route around them.
 
 ## Do Not Do This
 
-- Do not publish from `models/local/<model-id>` if the external-volume canonical copy differs.
+- Do not publish with the default `models/local/<model-id>` manifest if the external-volume canonical copy differs; pass `--local-dir`.
 - Do not trust a manifest whose shard hashes do not match the actual shard bytes.
 - Do not call a model "working" because `ok: true` came back from `debug`.
 - Do not update Hugging Face first and repair repo/external metadata later.
@@ -315,7 +299,7 @@ Do not leave ghost model IDs in place and route around them.
 - Copy verified artifact to external volume.
 - Update `models/catalog.json` with lifecycle metadata + HF pointers.
 - Publish from the external-volume artifact.
-- Re-pin `hf.revision` in `models/catalog.json` to the published commit SHA.
-- Run `npm run artifact-identity:check -- --root /media/$USER/models/rdrr` to
+- Confirm `hf.revision` in `models/catalog.json` is the published commit SHA.
+- Run `npm run artifact-identity:check -- --root $DOPPLER_EXTERNAL_MODELS_ROOT/rdrr` to
   verify external-volume identity.
 - Run `npm run ci:catalog:check` for hosted/catalog validation.

@@ -1,12 +1,20 @@
 # Local document search in Node
 
+> **Expired: fresh installs fail until the signed metadata is renewed.**
+> The Node 0.1.1 archive's signed release events expired at 2026-09-28
+> 00:59:12.562 UTC. After expiry the bundled runtime rejects a new installation
+> with `Release eligibility has expired.` Installations that already recorded an
+> explicit retained-local-use decision keep their offline use. A fresh install needs
+> a new deliverable with renewed signed release events; the archive and its
+> published hashes stay immutable. The procedure below applies once such a
+> deliverable exists.
+
 [Download the Node starter 0.1.1](https://huggingface.co/clocksmith/rdrr/resolve/eafe756a6b11d19eafc9e030b720a2c92e63b2c7/document-search/node/releases/0.1.1/c0a5c9097725842067aa04808861bebcda2c5ba7bd296b891731dee25f470939/doppler-node-document-search-0.1.1.tgz)
 and verify SHA-256 `c0a5c9097725842067aa04808861bebcda2c5ba7bd296b891731dee25f470939` before extracting it.
 The [maintenance receipt](../../artifacts/document-search-maintenance-2026-09-26/README.md)
 binds the archive to installed execution, models, hardware, and probes.
-Its signed metadata permits fresh installation before **2026-09-28
-00:59:12.562 UTC**. Later fresh installations need a new deliverable with renewed
-signed metadata. Already accepted installations retain explicit offline use.
+This archive is not the `examples/document-search` directory in the repository;
+see [which build this is](README.md#which-build-this-is).
 
 This application uses the same document controller and search implementation as
 the browser starter. Embedding and reranking stay loaded together in interactive
@@ -27,7 +35,8 @@ passed in the [loading qualification](../../artifacts/document-search-diagnosis-
 Machine-reboot persistence and smaller-memory hardware remain unqualified. Each process
 opening verifies the retained artifacts and prepares both models on the GPU.
 
-From the extracted application directory:
+From the extracted application directory (fresh installation currently fails;
+see the notice at the top):
 
 ```sh
 npm ci --omit=optional --no-audit --no-fund
@@ -49,12 +58,12 @@ reuses its embedding. Interactive mode accepts one query per line, reports its
 measured duration, and keeps both models loaded. EOF closes the application.
 `node node.js search ./search-data "your query"` runs one query and closes.
 
-Ctrl-C requests cancellation. Already submitted GPU work must finish before
-cleanup; cancellation is not immediate. Failed saves preserve the previous
+Ctrl-C requests cancellation; see [limits](README.md#limits) for what
+cancellation and offline use do not guarantee. Failed saves preserve the previous
 document/index snapshot. After a device loss, close and reopen the application.
 For a corrupt installation, run `node node.js repair ./search-data`; repair
 verifies retained bytes and reacquires damaged artifacts. Downloads require
-networking, while reopening and searching retained documents work offline.
+networking; reopening and searching retained documents work offline.
 
 Use a dedicated WebGPU process and one process per storage directory. The runner
 rejects an existing provider rather than taking ownership of its device.
@@ -67,4 +76,4 @@ For integration, import `createNodeDocumentSearch` from `./node.js`, call
 `app.controller.openRetained()` (or `install()` initially), then use
 `indexDocuments()` and `search()`. Always `await app.close()` in `finally`.
 Existing release checkpoints and explicit retained-local authorization remain
-part of the installation; offline use cannot discover unseen revocations.
+part of the installation.

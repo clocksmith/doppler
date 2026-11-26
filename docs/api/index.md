@@ -18,8 +18,9 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 
 ### Exported advanced surfaces
 
-- [Advanced Export Map](advanced-root-exports.md) - migration map from the old broad root surface to dedicated advanced subpaths
+- [Advanced Export Map](advanced-root-exports.md) - which subpath to import, bundling and shader preseeding, and the map from the old broad root surface
 - [Generation API](generation.md) - `dopplerx/generation`
+- [Training API](training.md) - `dopplerx/training`, experimental SFT/LoRA orchestration and training primitives
 - [Tooling API](tooling.md) - `dopplerx/tooling`, with a tier1 command/storage core plus experimental operator flows
 
 ## Documentation Form
@@ -66,4 +67,5 @@ Deprecated subpaths are listed with their removal release in the
 ### Exported but experimental
 
 - `dopplerx/compat`
+- `dopplerx/training`
 - experimental operator portions of `dopplerx/tooling`

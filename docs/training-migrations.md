@@ -38,13 +38,21 @@ Migration summary for the training command surface, workload-capsule schema, and
 
 ## Metrics Schema Migration Highlights
 
-Objective-aware metrics schema includes explicit unions for:
+Objective-aware metrics schema includes explicit unions for
+(`OBJECTIVE_SET` in `src/config/schema/training/training-metrics.schema.js`):
 
-- `cross_entropy`
+- `cross-entropy`
+- `causal-lm-cross-entropy`
 - `ul-stage1-joint`
 - `ul-stage2-base`
 - `kd`
 - `triplet`
+
+dopplerx 0.2.0 writes kebab-case values. The older snake_case spellings
+(`cross_entropy`, `causal_lm_cross_entropy`, `ul_stage1_joint`,
+`ul_stage2_base`) are still accepted in workload capsules: the workload loader
+(`src/experimental/training/workloads.js`) maps them to kebab-case through
+`src/config/legacy-enum-values.js` after reading the bytes.
 
 Each objective requires its own field set and rejects incompatible stage and objective mixes.
 

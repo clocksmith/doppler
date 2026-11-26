@@ -48,5 +48,6 @@ and cleanup after GU/down failure. Separate software-only tests compile the
 programs and exercise bounded reference fixtures; they do not qualify Radeon.
 The physical numerical test rejects software adapters. Full-model numerics,
 continuation, and matched performance receipts are still required; dispatch
-count and source topology establish no speed claim. See `JUPITER_STATUS.md` for
-this integration's checks, environment blockers, and lock-invocation deviation.
+count and source topology establish no speed claim. This integration's checks,
+environment blockers, and lock-invocation deviation were recorded in a
+`JUPITER_STATUS.md` working note that is not retained in the tree.

@@ -28,12 +28,12 @@ Set a conversion config to emit one of Doppler's built-in chat template types.
 ## Verification
 
 - `npm run onboarding:check`
-- Confirm the config uses one of the built-in keys: `gemma`, `llama3`, `gpt-oss`, `chatml`, `qwen`, or `translategemma`
+- Confirm the config uses one of the built-in keys in `CHAT_FORMATTERS`: `gemma`, `gemma4`, `llama3`, `gpt-oss`, `chatml`, `qwen`, `glmocr`, or `translategemma`
 - Run a chat-style debug pass and inspect the prompt in verbose output or the emitted manifest
 
 ## Common Misses
 
-- Using a template key that is not in `CHAT_FORMATTERS`. Unknown keys fall back to plaintext formatting.
+- Using a template key that is not in `CHAT_FORMATTERS`. Unknown keys throw `Unrecognized chat template type`; only a missing (`null`) type uses plaintext formatting.
 - Forgetting `"enabled": true`.
 - Updating the config but not re-converting an existing artifact that should carry the template in `manifest.json`.
 
@@ -47,4 +47,4 @@ Set a conversion config to emit one of Doppler's built-in chat template types.
 
 - `src/inference/pipelines/text/generator/request/chat-format.js`
 - `src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json`
-- `src/converter/manifest-inference.js`
+- `src/converter/conversion-plan.js` (reads the conversion config's `inference` block into the manifest)

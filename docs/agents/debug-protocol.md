@@ -3,6 +3,7 @@
 Referenced by: `doppler-debug`
 
 When a model loads but produces incoherent output, follow this fail-closed debug ladder.
+This page is the canonical ladder; other guides link here instead of restating it.
 Do not skip ahead to architecture theories or benchmark tweaks.
 
 ## 0. Check manifest-config parity first
@@ -26,7 +27,13 @@ Do not skip ahead to architecture theories or benchmark tweaks.
 
 ## 3. Use boundary diffs, not broad speculation
 
-Compare this sequence and stop at the first divergent boundary:
+Before the boundary diffs, dump the phase-specific execution contract:
+- resolved prefill and decode kernel paths
+- active `decodeMode` and `batchGuardReason`
+- speculation / multi-token decode state
+- actual loaded weight/materialization dtype for the hot ops
+
+Then compare this sequence and stop at the first divergent boundary:
 - embeddings
 - post input norm
 - Q/K/V pre-RoPE
@@ -84,5 +91,6 @@ captures the first numerical or token divergence before broad runtime refactorin
   transform or kernel swap, diff the execution graph before and after it instead
   of tracing the whole pipeline.
 
-Canonical workflow doc: `docs/debug-playbook.md`
-Reusable report template: `docs/debug-investigation-template.md`
+How to read each step's result, conversion triage order, and required deliverables:
+[Debug Playbook](../debug-playbook.md).
+Reusable report template: [debug-investigation-template.md](../debug-investigation-template.md).

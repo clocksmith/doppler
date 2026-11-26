@@ -15,9 +15,13 @@ The fixture writer at [`src/inference/pipelines/text/observation/tsir-fixture-wr
 
 ## Canonical invocations
 
+`$DOE_ROOT` is your local checkout of the Doe repository, outside this repo; set
+it before running these commands (Doppler itself does not read it). Doe paths
+such as `bench/fixtures/...` below are relative to `$DOE_ROOT`.
+
 ### Gemma 4 31B
 
-Bound by Doe at [`bench/fixtures/r3-1-31b-doppler-frozen/`](../../doe/bench/fixtures/r3-1-31b-doppler-frozen/) (cross-repo path) with `fixtureDigest=8cc17070fedf9c3dd6571714b85a96ee1715519425c0e686990909c60c80ea87`.
+Bound by Doe at `$DOE_ROOT/bench/fixtures/r3-1-31b-doppler-frozen/` (cross-repo path) with `fixtureDigest=8cc17070fedf9c3dd6571714b85a96ee1715519425c0e686990909c60c80ea87`.
 
 ```sh
 node tools/run-program-bundle-reference.js \
@@ -28,7 +32,7 @@ node tools/run-program-bundle-reference.js \
   --out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af32/program-bundle.json \
   --report-out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af32/reference.json \
   --prompt "The color of the sky is" \
-  --tsir-fixture-dir $HOME/deco/fawn/bench/fixtures/r3-1-31b-doppler-frozen \
+  --tsir-fixture-dir $DOE_ROOT/bench/fixtures/r3-1-31b-doppler-frozen \
   --tsir-fixture-layers 0
 ```
 
@@ -47,7 +51,7 @@ node tools/run-program-bundle-reference.js \
   --out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af16/program-bundle.json \
   --report-out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af16/reference.json \
   --prompt "The color of the sky is" \
-  --tsir-fixture-dir $HOME/deco/fawn/bench/fixtures/r3-1-31b-doppler-frozen-af16 \
+  --tsir-fixture-dir $DOE_ROOT/bench/fixtures/r3-1-31b-doppler-frozen-af16 \
   --tsir-fixture-layers 0
 ```
 
@@ -64,7 +68,7 @@ node tools/run-program-bundle-reference.js \
   --out reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/program-bundle.json \
   --report-out reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/reference.json \
   --prompt "The color of the sky is" \
-  --tsir-fixture-dir $HOME/deco/fawn/bench/fixtures/r3-2-27b-doppler-frozen \
+  --tsir-fixture-dir $DOE_ROOT/bench/fixtures/r3-2-27b-doppler-frozen \
   --tsir-fixture-layers 3
 ```
 
@@ -85,7 +89,7 @@ node tools/run-program-bundle-reference.js \
   --out reports/program-bundles/qwen-3-6-27b-q4k-eaf16/program-bundle.json \
   --report-out reports/program-bundles/qwen-3-6-27b-q4k-eaf16/reference.json \
   --prompt "The color of the sky is" \
-  --tsir-fixture-dir $HOME/deco/fawn/bench/fixtures/r3-2-27b-doppler-frozen-af16 \
+  --tsir-fixture-dir $DOE_ROOT/bench/fixtures/r3-2-27b-doppler-frozen-af16 \
   --tsir-fixture-layers 3
 ```
 
@@ -117,8 +121,8 @@ Qwen 3.6 27B inference is a 27B-parameter run; capture requires a Doppler-runtim
 
 ## Cross-repo references
 
-- Doe Qwen evidence packet: `$HOME/deco/fawn/docs/cerebras-27b-qwen-evidence.md`
-- Doe Gemma evidence packet: `$HOME/deco/fawn/docs/cerebras-31b-evidence.md`
-- Doe fixture schema: `$HOME/deco/fawn/config/doe-frozen-doppler-reference.schema.json`
-- Doe validator: `$HOME/deco/fawn/bench/tools/validate_frozen_doppler_reference.py`
-- Doe Qwen validator-binding test: `$HOME/deco/fawn/bench/tests/test_validate_frozen_qwen_3_6_doppler_reference.py`
+- Doe Qwen evidence packet: `$DOE_ROOT/docs/cerebras-27b-qwen-evidence.md`
+- Doe Gemma evidence packet: `$DOE_ROOT/docs/cerebras-31b-evidence.md`
+- Doe fixture schema: `$DOE_ROOT/config/doe-frozen-doppler-reference.schema.json`
+- Doe validator: `$DOE_ROOT/bench/tools/validate_frozen_doppler_reference.py`
+- Doe Qwen validator-binding test: `$DOE_ROOT/bench/tests/test_validate_frozen_qwen_3_6_doppler_reference.py`

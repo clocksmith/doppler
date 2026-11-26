@@ -26,10 +26,10 @@ Invoke qualified models while preserving execution identity.
 
 - Requests honor artifact/execution identities, pins, and authorized alternatives.
 - Declared hosts preserve facade parity. Exports use Capsule names; former Pack names/subpaths are not aliases.
-- `createDopplerRun` retains the runtime names as aliases; `doppler-gpu/runtime` aliases the root.
+- `createDopplerRun` retains the runtime names as aliases; `dopplerx/runtime` aliases the root.
 - Execution consumes verified bytes, never unverified refetches, and reports selected-plan/artifact-closure evidence.
 - V3 receipts distinguish managed eligibility from retained use. Verified denials advance durable checkpoints; unauthenticated histories cannot.
-- `doppler-gpu/host` composes existing ports without choosing trust, upgrades, or bypassing checks.
+- `dopplerx/host` composes existing ports without choosing trust, upgrades, or bypassing checks.
 - Existing observers emit throttled bytes and immediate acquisition/hash/verification/preparation transitions; verified completion requires size/digest success, reuse is honest.
 - Progress preserves private ownership, host-task yielding, cancellation, and verification; it never authorizes execution.
 

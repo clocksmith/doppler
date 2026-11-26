@@ -1,5 +1,7 @@
 # Qwen 3.5 9B M3 F16/Q4 correctness comparison
 
+> Superseded by [qwen35-9b-metal-status.md](qwen35-9b-metal-status.md) (2026-07-14 reversal of the mixed-Q4 rejection).
+
 > **Later audit (2026-07-13):** an initial hypothesis that the v1 manifest used
 > the wrong post-attention normalization route was disproved. The v1 inference
 > graph already has the required norm order and split-half RoPE pairing. This
@@ -16,9 +18,7 @@ at `<|im_end|>`.
 | Field | F16 control | Mixed Q4 candidate |
 | --- | --- | --- |
 | Source revision | `c202236235762e1c871ad0ccb60c8ee5ba337b9a` | same |
-| Manifest SHA-256 | `2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398` | `ac1eff7f371b7d676a5b9a7ddcf94e2d01d3e1043f499dede2fc41249ef55956` |
-| Shard-set hash | `sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d` | `sha256:27c1ba6d379e43eff7eae12b6ccc83081fe5248d1739e7877e82428d52daf228` |
-| Weight-pack hash | `sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46` | `sha256:dfeea5dc362804bd197d1f96effea74c4cd803eb93b8304c633057f4f172f237` |
+| Manifest, shard-set and weight-pack hashes | See [canonical status](qwen35-9b-metal-status.md#fixed-identities) | same |
 | Shards / bytes | 267 / 17,907,606,528 | 132 / 8,824,455,680 |
 
 The F16 manifest and `origin.json` match their pinned SHA-256 identities. All
@@ -84,6 +84,8 @@ Raw receipts and logits are under
 `reports/qwen-3-5-9b-metal/2026-07-12/`.
 
 This establishes M3 base-model correctness for the exact F16 artifact and a
-reproducible base-model failure for the exact mixed-Q4 artifact. It does not
+reproducible base-model failure for the exact mixed-Q4 artifact under the
+runtime of that date. Doppler 0.4.9 reversed the Q4 failure; see the
+[canonical status](qwen35-9b-metal-status.md). It does not
 claim adapter correctness, runtime performance, or any new training result.
 The frozen V12 AMD/ROCm training matrix was not changed or rerun.

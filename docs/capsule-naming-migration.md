@@ -25,7 +25,7 @@ retirement condition, and source moves never relabel signed bytes.
 | Previous contract | Current contract |
 | --- | --- |
 | `openPack()` | `openCapsule()` |
-| `doppler-gpu/pack` | `doppler-gpu/host` (the 0.6 `doppler-gpu/capsule` subpath was folded into it in 0.7.0) |
+| `doppler-gpu/pack` (former package name) | `dopplerx/host` (the `doppler-gpu` 0.6 `/capsule` subpath was folded into `/host` in `doppler-gpu` 0.7.0) |
 | `Pack*` declarations | `Capsule*` declarations |
 | `createFetchPackArtifactStore()` | `createFetchCapsuleArtifactStore()` |
 | `pack`, `packId`, `packIdentity`, `packSemanticRoot` | `capsule`, `capsuleId`, `capsuleIdentity`, `capsuleSemanticRoot` |

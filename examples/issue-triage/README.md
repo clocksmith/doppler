@@ -28,10 +28,18 @@ not probabilities.
 
 ## Run
 
-The page expects `node_modules/doppler-gpu` (install the Doppler archive into this directory) and
-a `descriptor.json` naming the Capsule URL, storage identifier and the signers and target plans
-you trust. Serve the directory over HTTP from `localhost` or HTTPS; WebGPU and OPFS need a secure
-context. A release descriptor is not yet published: the measured Capsule is test-signed.
+**This example cannot be installed as written.** `package.json` depends on
+`file:vendor/doppler-gpu-0.6.32.tgz`, a local candidate archive that is gitignored
+(`vendor/*.tgz`) and not in the repository. npm has no such version: published
+`doppler-gpu` (the package's former name) goes from 0.6.1 to 0.7.0. `engines.js` also
+imports `doppler-gpu/choice-scoring-contract`, a subpath no published `doppler-gpu`
+or `dopplerx` package exports; its functions are exported from the `host` and root
+entry points instead. Running it needs a code fix to the dependency and imports.
+
+The page expects `node_modules/doppler-gpu` and a `descriptor.json` naming the Capsule
+URL, storage identifier and the signers and target plans you trust. Serve the
+directory over HTTP from `localhost` or HTTPS; WebGPU and OPFS need a secure context.
+A release descriptor is not yet published: the measured Capsule is test-signed.
 
 ## Measured
 

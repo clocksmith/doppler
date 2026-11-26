@@ -1,15 +1,16 @@
 # Two-server shares route: design and threat model
 
-> **Python requester removed, 2026-11-25.** Doppler is JavaScript-only. The Python requester, CPU evaluator and their tests were removed; they remain at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete). The JavaScript transport and GPU provider stay here. [shares_client.js](shares_client.js) is the JavaScript requester: the same field, probe, query and check rules (its probe and anchors match the Python ones bit for bit), speaking the evaluator pipe protocol to a local provider or to `shares_network.js connect`; `tests/tooling/shares-client.test.js` runs it against two CPU stand-in providers, locally and over the enrolled transport. It sends one projection per round trip (no multi-projection flights yet). The model-level `shared` mode of full_model.py was not ported.
+> This is the active route. Its Python parts were removed (see [Status](README.md#status)); their commands are kept in [this guide at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/SHARES.md).
+
+The Python requester, CPU evaluator and their tests were removed; the JavaScript transport and GPU provider stay here. [shares_client.js](shares_client.js) is the JavaScript requester: the same field, probe, query and check rules (its probe and anchors match the Python ones bit for bit), speaking the evaluator pipe protocol to a local provider or to `shares_network.js connect`; `tests/tooling/shares-client.test.js` runs it against two CPU stand-in providers, locally and over the enrolled transport. It sends one projection per round trip (no multi-projection flights yet). The model-level `shared` mode of full_model.py was not ported.
 
 Status: research. Production admission remains closed. No cryptographer has reviewed this. The
 [review record](#review-record) lists what has been checked.
 
 ## Decision
 
-Owner decision, 2026-11-17: the protected tier must leave the requester light and must run on the mesh's ordinary
-computers, with no special chip features. The encrypted Flash run on the homomorphic route in this directory is
-stopped; its small-Qwen receipts are kept unchanged as research.
+Owner decision, 2026-11-17 (see [Status](README.md#status)): the protected tier must leave the requester light and
+must run on the mesh's ordinary computers, with no special chip features.
 
 ## Idea
 
@@ -314,5 +315,3 @@ receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`
   record framing with explicit authenticated EOF and socket flush, backpressure-aware pre-auth/post-auth frame caps,
   post-`REC_READY` session admission accounting, and process-group teardown on Unix and Windows.
 - Cryptographer review: none.
-
-> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `full_model.py`, `shares.py`, `shares_evaluator.py`, `shares_failure_probe.py`, `shares_faulty_evaluator.py`, `shares_model.py`, `test_shares.py`, `test_shares_flights_model.py`, `test_shares_gpu.py`, `test_shares_network.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

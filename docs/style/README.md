@@ -44,40 +44,11 @@ Shared rule ownership:
 
 ## Quick Reference
 
-### Language Policy
-
-Doppler uses **JavaScript** with **.d.ts** declaration files for all source modules (`src/` and `demo/`). Tests and tools may omit `.d.ts` unless they export public types. See [Language Policy](./general-style-guide.md#language-policy-javascript--declaration-files) for rationale.
-
-### Config Flow
-
-```
-manifest.json → ModelConfig → PipelineSpec → KernelSpec → GPU Dispatch
-```
-
-JSON assets define policy and selection; JS resolves and enforces config, then
-executes dispatch; WGSL performs deterministic numeric execution only.
-
-### Benchmark Flow (Config-First)
-
-```
-shared benchmark contract + engine overlay → runtime payload per engine → run + compare
-```
-
-### Key Principles
-
-1. **Config as Code** - Maps over if/else
-2. **Layered Config** - Each layer transforms the previous
-3. **Pure Functions** - Config transformations are pure
-4. **Constants vs Uniforms** - Model dims are constants, runtime values are uniforms
-5. **Tests as Type System** - Targeted contract tests catch type errors pre-production
-
-### File Naming
-
-| Pattern | Example | Use |
-|---------|---------|-----|
-| `kebab-case.js` | `model-config.js` | JavaScript source |
-| `kebab-case.d.ts` | `model-config.d.ts` | Type declarations (required for modules) |
-| `snake_case.wgsl` | `matmul_f16.wgsl` | WGSL shaders |
+- Language policy (JavaScript with `.d.ts` declarations): [General: Language Policy](./general-style-guide.md#language-policy-javascript--declaration-files)
+- Invariants and config flow: [General: Invariants](./general-style-guide.md#invariants-quick-reference) and [JavaScript: Invariants](./javascript-style-guide.md#invariants-quick-reference)
+- Merge order: [Config: Merge Order](./config-style-guide.md#merge-order)
+- Benchmark contract and engine overlay: [Config: Benchmark Config Split](./config-style-guide.md#benchmark-config-split-required)
+- File, type, constant and enum-value naming: [General: Naming Conventions](./general-style-guide.md#naming-conventions)
 
 ## Executable coverage
 
@@ -85,8 +56,10 @@ The [rule registry](../../tools/policies/style-guide-rules.json) maps every guid
 to stable rule IDs, detectors, positive/negative fixtures where applicable, and
 honest limitations. Guide markers and detector IDs are checked for drift.
 
-- `npm run check:fast`: existing scoped source/architecture gates plus baseline
-  checks on the last commit and staged, unstaged and nonignored new files.
+- `npm run check:fast`: source style and unused-locals, source architecture,
+  style-guide baseline checks on the last commit and staged, unstaged and
+  nonignored new files, the artifact retention inventory, kebab-case enum
+  values, and the JS-only check.
 - `npm run style:guides:check`: full tracked + nonignored new JS/MJS, JSON,
   WGSL and WGSL include scan, independent of directory. Automatic CI runs this
   complete baseline. Reports, examples, tools and tests are not silently skipped.

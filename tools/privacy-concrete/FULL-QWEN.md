@@ -1,6 +1,8 @@
 # All-linear Qwen backend candidate — isolated qualification
 
-[Run the demonstrated twelve-bit path](QWEN-QUICKSTART.md); the default stock profile is not the successful route.
+> Historical research record: see [Status](README.md#status) for the code removal and the 2026-11-17 stop; the commands for the removed scripts are kept in [this guide at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/FULL-QWEN.md).
+
+[How the twelve-bit run was made](QWEN-QUICKSTART.md); the default stock profile is not the successful route.
 
 The [research security boundary](SECURITY-BOUNDARY.md) declares parties, leakage, cohosting limits and unfinished admission gates. This implementation covers the complete Qwen2.5-0.5B-Instruct linear route: all 24 decoder layers and the vocabulary head, 169 linear modules in total. The separately bound **12-bit candidate completed four autoregressive steps** on one fixed public fixture: 1,548 encrypted tiles, with all four greedy choices matching quantized and FP32 references. Its [functional evidence](evidence/full-qwen/ntt12-four-step-success.json) records actual output and costs. Production availability remains false: this is one functional observation, not security or general model-quality qualification. The run used an isolated GitHub-hosted Linux CPU without A1 measurement machines.
 
@@ -14,14 +16,7 @@ The [pause record](evidence/full-qwen/paused-status.json) retains an earlier loc
 
 The v2 plan records the actual implementation versions, admits the explicitly pinned CPU-only Torch distribution, declares four CPU threads and a bounded 900-second operator deadline. Other dependency variants fail before private payload. The dedicated process must declare the thread budget before native initialization.
 
-The complete path can run as a fresh attempt on an independently reserved machine:
-
-```sh
-env TOKENIZERS_PARALLELISM=false OMP_NUM_THREADS=4 VECLIB_MAXIMUM_THREADS=4 RAYON_NUM_THREADS=4 \
-  /tmp/doppler-concrete-env/bin/python tools/privacy-concrete/full_model.py \
-    --model-dir /tmp/qwen05b-source --cache-dir /tmp/qwen-public-int16-cache \
-    --backend-profile qwen-all-linear-ntt12 --public-fixture qwen05b-capital
-```
+The complete path ran as a fresh attempt through `full_model.py --backend-profile qwen-all-linear-ntt12 --public-fixture qwen05b-capital` (historical; kept at commit 3e485ca93).
 
 Preparation-only mode (`--prepare-only`) validates/traces the real model without keys or private input. The cache is reusable public model material; each actual run creates fresh client keys and an evaluator. Full-model execution may be expensive on this CPU-only environment. CUDA availability was not detected through `nvidia-smi` on the checked Linux fleet hosts; no fleet model execution or source transfer followed those checks. The old denied Jupiter source-transfer action remains blocked, not bypassed.
 
@@ -35,7 +30,7 @@ The reviewed research does not provide a drop-in qualified replacement for this 
 
 ## Isolated full-model workflow
 
-`.github/workflows/encrypted-qwen-full.yml` provisions only the exact public model and a fixed public prompt on a GitHub-hosted Ubuntu CPU runner. It runs focused plan/width checks, then one four-step all-linear execution. It has a six-hour job bound and a separate non-cancelling concurrency group, so ordinary pushes neither restart nor cancel it. Trigger it manually, or explicitly include `[encrypted-qwen-e2e]` in a scoped privacy commit. Other pushes skip this expensive job.
+The `.github/workflows/encrypted-qwen-full.yml` workflow (removed in 1e4bd1ffa) provisioned only the exact public model and a fixed public prompt on a GitHub-hosted Ubuntu CPU runner. It ran focused plan/width checks, then one four-step all-linear execution, with a six-hour job bound and a separate non-cancelling concurrency group. It was triggered manually or by `[encrypted-qwen-e2e]` in a scoped privacy commit.
 
 Only a constructed public-fixture evidence file is uploaded. Raw logs, key material, model caches and request state are excluded. The normal driver still accepts private client stdin locally; the CI entrypoint instead selects a fixed public fixture and does not read private input. CI is a trusted test-client environment, not a claim that a hosting operator cannot inspect its own runner. No real private user data belongs in this workflow, and hosted validation does not qualify authenticated provider deployment or malicious security.
 
@@ -77,11 +72,11 @@ native cases produced byte-identical original/fast/replay ciphertexts; large
 matrices improved while tiny output widths regressed. Those measurements do not
 establish full-model speed, model quality or security qualification.
 
-`.github/workflows/encrypted-qwen-ntt.yml` builds the pinned CPU source with its
-retained exact dependency lock, repeats the native comparisons, admits the actual
-installed identity, and executes four all-linear model steps. It has a separate
-non-cancelling concurrency group and a three-hour budget; trigger only manually or
-with `[qwen-ntt-e2e]`. The original stock Qwen and Flash MoE runs are neither
+The `.github/workflows/encrypted-qwen-ntt.yml` workflow (removed in 1e4bd1ffa) built the
+pinned CPU source with its exact dependency lock, repeated the native comparisons,
+admitted the actual installed identity, and executed four all-linear model steps. It had
+a separate non-cancelling concurrency group and a three-hour budget, triggered manually
+or with `[qwen-ntt-e2e]`. The original stock Qwen and Flash MoE runs are neither
 restarted nor cancelled. This is a changed implementation test, not a repeat of
 the unchanged six-hour candidate. The default-precision variant subsequently failed its third-step token check;
 its separate outcome is retained below. It is not the successful twelve-bit route. That historical process-pipe execution does not establish separate-host
@@ -165,8 +160,8 @@ The client still owns nonlinearities, attention, decoding and full replay.
 A conservative 2,048-input raw-dot bound is 17,175,674,880, below the signed
 35-bit limit of 17,179,869,184. This is an arithmetic-range check, not a probability
 of decryption failure or cryptographic-security proof. A public signed-boundary
-native probe precedes one complete four-step model run in
-`encrypted-qwen-ntt12.yml`. The probe has an explicit empirical error criterion;
+native probe preceded one complete four-step model run in
+`encrypted-qwen-ntt12.yml` (removed in 1e4bd1ffa). The probe has an explicit empirical error criterion;
 passing it alone cannot qualify model output or privacy. The separate full-model
 artifact now records the completed four-step public fixture.
 
@@ -457,5 +452,3 @@ misbehaved in this run: it shows that honest execution completes and what it
 costs, not that tampering is detected. Detection is exercised by the tests
 listed in INTEGRITY.md. The mechanism is weaker than full replay, has had no
 cryptographer's review, and changes no admission gate.
-
-> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `bridge.py`, `full_bridge.py`, `full_model.py`, `full_plan.py`, `full_provider.py`, `provider.py`, `public_qwen_fixtures.py`, `quantization_probe.py`, `qwen_quantization.py`, `wide_reference.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

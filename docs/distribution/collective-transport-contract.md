@@ -127,11 +127,7 @@ Minimum canonical errors:
 
 ## Recovery
 
-Recovery depends on declared redundancy:
-- replicated stage/collective path: retry or redirect under plan policy
-- non-replicated path: fail closed
-
-This contract does not imply survivability on its own.
+See [Recovery semantics](execution-contract.md#recovery-semantics).
 
 ## Related contracts
 

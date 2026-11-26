@@ -1,5 +1,7 @@
 # Exact native CPU arithmetic research backend
 
+> Historical research record: see [Status](../README.md#status) for the code removal and the 2026-11-17 stop; the commands for the removed scripts are kept in [this guide at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/native-ntt/README.md).
+
 This opt-in source variant preserves the original CPU APIs and cryptographic
 parameter values. Separate `cpu_prepare_ntt_key` and
 `cpu_matrix_multiplication_ntt` APIs use pinned `tfhe-ntt` 0.7.1 for arithmetic
@@ -30,9 +32,9 @@ Default/high-precision key precomputation measured 173/285 ms; serialized keys
 remain 134,217,808/268,435,536 bytes. Client lifetime peak RSS was 2,093,043,712
 bytes across all fixtures and keys.
 
-The isolated build verifies exact upstream files, Rust and NTT source checksums,
-and the complete retained `Cargo.lock` before compilation. The build identity
-binds the source and policy. The subsequent full-Qwen candidate explicitly selects
+The isolated build (removed with the Rust sources and `Cargo.lock` in 1e4bd1ffa)
+verified exact upstream files, Rust and NTT source checksums, and the complete
+`Cargo.lock` before compilation. The build identity binds the source and policy. The subsequent full-Qwen candidate explicitly selects
 `qwen-all-linear-ntt`, with a separate immutable protocol/plan and actual installed
 source/binary identities. It rejects mismatches before key disclosure; there is
 no automatic substitution or downgrade. Each new model build repeats native byte
@@ -46,15 +48,13 @@ backend or full Flash inference. Full client replay remains required.
 Sources: pinned [Concrete ML extensions](https://github.com/zama-ai/concrete-ml-extensions/tree/6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4)
 and [tfhe-ntt 0.7.1](https://crates.io/crates/tfhe-ntt/0.7.1), with exact source-file,
 crate and lock hashes in `build-policy.json`. Both identify their license as
-BSD-3-Clause-Clear. No native wheel, key or ciphertext fixture is published; only
-source, measurements and the public dependency lock are retained.
+BSD-3-Clause-Clear. No native wheel, key or ciphertext fixture is published. This tree keeps the
+measurements and `build-policy.json`; the source and dependency lock are at commit 3e485ca93.
 
-`test_integrity.py` additionally uses actual encrypted inputs and a valid but wrong
+`test_integrity.py` (kept at commit 3e485ca93) additionally used actual encrypted inputs and a valid but wrong
 native evaluation to exercise the shared bridge rejection boundary. It checks
 wrong/corrupt ciphertexts, cancellation during real replay, terminal retry denial,
 public-weight corruption before disclosure, and parser ordering for accepted
 responses. These are bounded in-process verification tests; they bypass the
 full-model constructor and do not qualify model admission, transport, malicious
 security or cryptographic confidentiality.
-
-> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `Cargo.lock`, `test_integrity.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/native-ntt); the recorded receipts here are unchanged.

@@ -6,7 +6,7 @@ are used to identify this project.
 This policy describes brand use expectations only. It does not represent a legal
 determination of trademark ownership, availability, or registration in any jurisdiction.
 
-No trademark rights are granted under the Apache License 2.0.
+No trademark rights are granted under the MIT License (see [LICENSE](LICENSE)).
 
 Permitted use: truthful, non-confusing referential use (for example, "forked from Doppler").
 

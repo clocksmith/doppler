@@ -13,13 +13,14 @@ metadata, and distillation export hooks.
 - spec status: implementation-side draft
 - implementation status: not shipped as a complete runtime surface
 - current substrate pieces:
-  - [`transcriptRoot`](transcript-root.md)
-  - [`peer identity`](peer-identity-contract.md)
-  - [`p2p control plane`](p2p-control-plane-extensions.md)
+  - [`transcriptRoot`](execution-contract.md#transcriptroot-fields)
+  - [`peer identity`](execution-contract.md#peer-identity)
+  - [`p2p control plane`](execution-contract.md#control-plane-session)
   - [`RDRR P2P execution plan`](execution-contract.md)
   - repository-internal routers, pipeline pools, KV cache helpers, and logit
-    merge helpers under `src/inference/` (the `doppler-gpu/orchestration`
-    subpath was removed in 0.7.0)
+    merge helpers under `src/inference/`; `dopplerx` exports no orchestration
+    subpath (the `doppler-gpu/orchestration` subpath of the former package
+    `doppler-gpu` was removed in `doppler-gpu` 0.7.0)
 
 ## Non-goals
 
@@ -164,7 +165,7 @@ Required invariants:
 
 ## JavaScript route-plan sketch
 
-This is the proposed host-orchestrator shape, not a shipped `doppler-gpu` API.
+This is the proposed host-orchestrator shape, not a shipped `dopplerx` API.
 The important part is the contract: routing is data-driven, every route input is
 hashed, and missing receipts fail before execution continues.
 

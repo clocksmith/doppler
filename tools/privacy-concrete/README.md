@@ -1,21 +1,20 @@
 # Encrypted transformer process experiments
 
-> **Code removed, 2026-11-25.** Doppler is JavaScript-only, so the Python (Concrete ML, NumPy and PyTorch) implementation of these experiments, its Rust NTT extension, `requirements.txt` and the eighteen GitHub workflows that ran it were removed from the tree. The policies, receipts under `evidence/` and these guides are retained as research records. To rerun an experiment, check out commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete) and follow the instructions there in an isolated Python environment outside this repository. The JavaScript shares transport and GPU provider (`shares_network.js`, `shares_evaluator_gpu.js`) remain.
+## Status
 
-> **Direction, 2026-11-17.** The owner stopped the encrypted Flash run on the homomorphic design below. It makes the
-> requester hold the weights and pay for heavy cryptography. The protected tier must leave the requester light and
-> run on ordinary mesh computers, so it now continues in the [two-server shares route](SHARES.md): the requester
-> splits each activation row into two random shares, two providers that do not collude each run an ordinary matrix
-> product, and the requester adds the answers. The homomorphic experiments are retained as research evidence: the
-> small-Qwen receipts are unchanged, the code still runs, and no new Flash execution is planned on it.
+**Code removed, 2026-11-25.** Doppler is JavaScript-only, so the Python (Concrete ML, NumPy and PyTorch) implementation of these experiments, its Rust NTT extension, `requirements.txt` and the eighteen GitHub workflows that ran it were removed from the tree in 1e4bd1ffa. The scripts are kept at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); to rerun an experiment, check out that commit and follow its instructions in an isolated Python environment outside this repository. The policies, receipts under `evidence/` and these guides are retained as research records; runnable Python and workflow commands now live only in the guides' copies at that commit. The JavaScript shares transport, requester and GPU provider (`shares_network.js`, `shares_client.js`, `shares_evaluator_gpu.js`) remain.
 
-[Run the demonstrated full small-Qwen prototype](QWEN-QUICKSTART.md): the explicit twelve-bit route completed all 169 linear modules and four autoregressive steps. The [complete Qwen guide](FULL-QWEN.md) separates that result from failed older profiles and remaining qualification. The [Flash guide](FLASH-WEIGHTS.md) records actual-weight encrypted expert, cached linear-attention and gated-residual results, plus source-backed client graphs for the remaining operators. These component results do not establish full Flash generation or production security.
+**Homomorphic route stopped, 2026-11-17.** The owner stopped the encrypted Flash run on the homomorphic design below. It makes the requester hold the weights and pay for heavy cryptography. The protected tier must leave the requester light and run on ordinary mesh computers, so it now continues in the [two-server shares route](SHARES.md): the requester splits each activation row into two random shares, two providers that do not collude each run an ordinary matrix product, and the requester adds the answers. The homomorphic experiments are retained as research evidence: the small-Qwen receipts are unchanged, the code is kept only at commit 3e485ca93, and no new Flash execution is planned on it.
+
+## Overview
+
+The [complete Qwen guide](FULL-QWEN.md) owns the twelve-bit small-Qwen result and separates it from failed older profiles and remaining qualification; [QWEN-QUICKSTART.md](QWEN-QUICKSTART.md) records how that run was made. The [Flash guide](FLASH-WEIGHTS.md) records actual-weight encrypted expert, cached linear-attention and gated-residual results, plus source-backed client graphs for the remaining operators. These component results do not establish full Flash generation or production security.
 
 The [security boundary](SECURITY-BOUNDARY.md) owns cryptographic claims and remaining qualification gates. The [malicious-evaluator model](INTEGRITY.md) owns the checked-integrity route that replaces full client replay in two separate research profiles. [Pinned SSH transport](SSH-DEPLOYMENT.md) has loopback authentication evidence; separately deployed model execution remains unqualified. Production cryptographic admission stays closed.
 
 The [small-Qwen guide](QWEN.md) covers real Qwen2.5-0.5B-Instruct generation with one encrypted key-projection matrix product and its explicit limits. Immutable installed profiles, transport/lifecycle and trusted client projection preparation are shared; the protocols and model/weight identities remain distinct. No remote advertisement can add a profile.
 
-The tiny-GPT2 baseline below runs real cryptographic operations from pinned Concrete ML 1.9.0 and concrete-ml-extensions 0.1.9. It uses the public `sshleifer/tiny-gpt2` checkpoint at revision `5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be`. This is a two-layer, two-hidden-dimension test checkpoint, not the full GPT-2 model or useful language-model quality. It does not add a supported Doppler model family or enable a production privacy profile. No independent cryptographic review has occurred.
+The tiny-GPT2 baseline below ran real cryptographic operations from pinned Concrete ML 1.9.0 and concrete-ml-extensions 0.1.9. It uses the public `sshleifer/tiny-gpt2` checkpoint at revision `5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be`. This is a two-layer, two-hidden-dimension test checkpoint, not the full GPT-2 model or useful language-model quality. It does not add a supported Doppler model family or enable a production privacy profile. No independent cryptographic review has occurred.
 
 The client owns embeddings, attention, normalization, activation functions, final vocabulary projection, quantization/dequantization, masks, token selection and secret keys. A fresh evaluator interpreter receives the eight public projection matrices, a public compression/evaluation key and serialized encrypted matrices. It evaluates all eight projections for each of four autoregressive steps. Each new client activation is freshly encrypted. Tokens, clear activations, masks, scales, zero points and decrypted results are never evaluator inputs. There is no provider KV cache and no plaintext feedback. This is hybrid encrypted inference, not a claim that every transformer operation runs remotely under encryption.
 
@@ -29,43 +28,15 @@ Before decrypting any evaluator result, the client repeats the entire determinis
 
 Public leakage is the model and fixed circuit, schedule, dimensions, public key material, ciphertext lengths, timing and process/transport metadata. Timing is observable and has not been shown independent of private data. Weights are public. The current pipe transport does not qualify separate-machine authentication, network deployment, attestation, accelerator appraisal, model-weight confidentiality, erasure or availability. The library's lossy GLWE compression also means numerical equality must be measured against the quantized model; exact ciphertext replay alone does not prove exact arithmetic or original-model equivalence.
 
-## Run
+## Run (historical)
 
-Use an isolated Python 3.12 environment; this does not change Doppler's JavaScript runtime dependencies:
+The run used an isolated Python 3.12 environment with the pinned `requirements.txt`, a `prepare.py` step that downloaded only the explicitly pinned public checkpoint/tokenizer, and `experiment.py` for the four-step run. The dependency-free protocol tests and the opt-in native ciphertext transport, replay, mutation, cancellation and disappearing-evaluator tests were Python `unittest` suites. The exact commands are in [the README at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/README.md).
 
-```sh
-python3.12 -m venv /tmp/doppler-concrete-env
-/tmp/doppler-concrete-env/bin/pip install -r tools/privacy-concrete/requirements.txt
-/tmp/doppler-concrete-env/bin/python tools/privacy-concrete/prepare.py --destination /tmp/tiny-gpt2-fixture
-OMP_NUM_THREADS=2 VECLIB_MAXIMUM_THREADS=2 RAYON_NUM_THREADS=2 \
-  /tmp/doppler-concrete-env/bin/python tools/privacy-concrete/experiment.py --model-dir /tmp/tiny-gpt2-fixture
-```
-
-On the tested macOS arm64 Python 3.12 environment, `onnxoptimizer` 0.3.13 builds from source. CMake 4 rejects its old minimum policy; the build's reported compatibility option is `CMAKE_ARGS=-DCMAKE_POLICY_VERSION_MINIMUM=3.5`. This changes build compatibility, not FHE parameters. Other environments are unqualified. `requirements.txt` pins the security-relevant direct dependencies; it is not a transitive hash lock. Preparation downloads only the explicitly pinned public checkpoint/tokenizer. Inference requires local safetensors and configuration artifacts with their exact pinned SHA-256 values and uses no network download.
-
-Dependency-free protocol tests:
-
-```sh
-python3 -m unittest discover -s tools/privacy-concrete -p 'test_*.py' -v
-```
-
-Actual native ciphertext transport, replay, mutation, cancellation and disappearing-evaluator tests:
-
-```sh
-DOPPLER_CONCRETE_NATIVE=1 OMP_NUM_THREADS=2 RAYON_NUM_THREADS=2 \
-  /tmp/doppler-concrete-env/bin/python -m unittest discover -s tools/privacy-concrete -p test_native.py -v
-```
+On the tested macOS arm64 Python 3.12 environment, `onnxoptimizer` 0.3.13 built from source; CMake 4 rejected its old minimum policy, and the build's reported compatibility option was `CMAKE_ARGS=-DCMAKE_POLICY_VERSION_MINIMUM=3.5`. This changed build compatibility, not FHE parameters. Other environments were unqualified. `requirements.txt` pinned the security-relevant direct dependencies; it was not a transitive hash lock. Inference required local safetensors and configuration artifacts with their exact pinned SHA-256 values and used no network download.
 
 The client-local JSON report contains the generated token IDs, reference comparisons, actual traffic, setup/step/replay/round-trip time and process peak memory. Keep such output on the client; it is not a provider-safe receipt. Reported overhead belongs to this padded tiny checkpoint and this replay policy. It cannot be substituted for full GPT-2, Llama, GPU or network performance.
 
 ## Actual checkpoint tests and retained evidence
-
-```sh
-DOPPLER_CONCRETE_NATIVE=1 DOPPLER_CONCRETE_MODEL_DIR=/tmp/tiny-gpt2-fixture \
-DOPPLER_CONCRETE_REPORT_DIR=/tmp/concrete-evidence \
-OMP_NUM_THREADS=2 VECLIB_MAXIMUM_THREADS=2 RAYON_NUM_THREADS=2 \
-  /tmp/doppler-concrete-env/bin/python -m unittest discover -s tools/privacy-concrete -p 'test_*.py' -v
-```
 
 [Retained measurement context](evidence/context.json) and the [Hello-token fixture](evidence/tiny-gpt2-seed-15496.json) / [The-token fixture](evidence/tiny-gpt2-seed-464.json) record actual four-step runs on macOS arm64 Python 3.12.8. All 15 tests passed, including both seeds, fresh key bindings, fixed byte counts, valid malicious evaluation (including zero input), cancellation, evaluator loss, pre-payload unsupported models, framing limits and key-reference release on evaluator startup failure.
 
@@ -80,5 +51,3 @@ The two recorded runs took about 19.2 and 23.4 seconds, including about 7.8 and 
 - [SEAL's decryption/oracle and ciphertext-authenticity guidance](https://github.com/microsoft/SEAL/blob/main/SECURITY.md), relevant to the separate BFV experiment and the need to analyze encrypted feedback protocols.
 
 The upstream optimized executor runs encryption/evaluation/decryption together in `execute` mode; its `remote` path rejects optimized linear execution. This experiment owns a small explicit client projection adapter and a serialized process bridge for the encrypted multiplication call, without claiming the documentation's optimized/GPU timings are network deployment measurements. Production matching continues to reject cryptographic descriptors until a concrete backend and its full guarantees are qualified.
-
-> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `experiment.py`, `native-ntt/prepare.py`, `prepare.py`, `requirements.txt`, `test_native.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

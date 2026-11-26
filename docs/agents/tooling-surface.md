@@ -10,16 +10,16 @@
 
 ## Documented Package Surface
 
-Exports:
-- `"."` — `src/capsule-runtime.js` (Capsule-native main library API)
-- `"./runtime"` — `src/capsule-runtime.js` (stable alias)
-- `"./compat"` — `src/index.js` (legacy manifest-loading facade)
-- `"./tooling"` — `src/tooling-exports.js` (command runners, harness API)
-- `"./tooling/storage"`, `"./tooling/device"`, `"./tooling/manifest"`, `"./tooling/runtime"`, `"./tooling/evidence"` — narrow tooling slices
-- `"./generation"` — text pipeline construction
-- Removed in 0.7.0: `"./loaders"`, `"./orchestration"`, `"./diffusion"`, `"./energy"`, `"./serve"`, `"./tooling-experimental"`, `"./models/*"` (see `CHANGELOG.md`)
+Exports: see the generated [export inventory](../api/reference/exports.md) and
+[API Docs](../api/index.md). The root `dopplerx` export is the signed Capsule
+runtime (`src/capsule-runtime.js`); `dopplerx/compat` (`src/index.js`) is the
+legacy manifest-loading facade.
 
-Binary: `doppler` → `src/cli/doppler-cli.js`
+Binaries:
+- `doppler` → `src/cli/doppler-cli.js` (tooling CLI)
+- `dopplerx` → `src/cli/doppler-quickstart.js`
+- `doppler-gpu` → `src/cli/doppler-quickstart.js` (former package name, same quickstart)
+- `doppler-serve` → `src/cli/doppler-serve.js`
 
 ## Internal Dev Tools (never shipped)
 
@@ -34,9 +34,8 @@ Everything in `tools/` except `convert-safetensors-node.js`:
 
 - `tools/` scripts may import from `src/` directly (they run in the repo, not as a package consumer).
 - Published package consumers use only the documented exports.
-- New docs should center signed Capsule execution from the root surface; legacy manifest loading belongs under `doppler-gpu/compat`.
-- Tooling commands currently include `convert`, `debug`, `bench`, `verify`, `diagnose`, `lora`, and `distill`.
-- CLI-local maintenance/discovery commands such as `program-bundle` and `profiles` are outside the shared browser/Node command-runner contract.
+- New docs should center signed Capsule execution from the root surface; legacy manifest loading belongs under `dopplerx/compat`.
+- The command list is in [the CLI reference](../cli.md#supported-commands); the shared browser/Node command contract is in [Tooling API](../api/tooling.md#command-contract-summary). CLI-local commands such as `program-bundle` and `profiles` are outside that contract.
 - Agents should run `node src/cli/doppler-cli.js profiles --json` before guessing runtime profile names.
 - Skills should invoke CLI commands (`npm run debug`, `npm run bench`) rather than importing `src/tooling/` internals.
 - New dev scripts go in `tools/`. New commands go in `src/tooling/command-api.js` + CLI.

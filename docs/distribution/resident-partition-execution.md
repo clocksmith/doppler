@@ -1,11 +1,13 @@
 # Resident partition execution
 
 Doppler executes assigned transformer layers through the same loader and declared
-GPU kernels used for unsplit inference. The public `doppler-gpu/partitions` source
+GPU kernels used for unsplit inference. The public `dopplerx/partitions` source
 entry exposes resident factories, layer-plan contracts, verified piece storage,
 and device allocation observations. This guide describes implemented behavior;
 implementation alone does not establish distributed release qualification.
-The published npm 0.6.1 archive does not expose this entry.
+The published `dopplerx@0.1.7` archive exposes this entry (`./partitions` in its
+`package.json` exports). Under the former package name, the `doppler-gpu` 0.6.1
+archive did not.
 
 Doppler owns numerical execution, resident weights, and attempt execution state.
 Reploid owns discovery, grants, placement, transfer, readiness, conversations,
@@ -25,7 +27,7 @@ session exposes `getDescriptor()`, `tokenize()`, `executeGroup0()`,
 `executeGroup1()`, `getRecoveryCapabilities()`, `closeAttempt()`, and `close()`.
 
 Consumers import resident descriptors, identities, limits, step requests/results,
-tokenization requests/results and metrics as types from `doppler-gpu/partitions`.
+tokenization requests/results and metrics as types from `dopplerx/partitions`.
 These are the computation contract; applications retain their own grant,
 reservation and transport-envelope types. `getDescriptor()` includes the accepted
 `generationDigest` and a live `ready: boolean`. Narrowing readiness to `true`
@@ -121,7 +123,7 @@ port, keeping the root independent of the inference executor.
 
 For JSON-controlled cuts, use
 `createOrderedLayerPartitionPlanFromManifest(manifest, request)` from
-`doppler-gpu/partitions`. The request declares only `splitLayers`,
+`dopplerx/partitions`. The request declares only `splitLayers`,
 `activationDtype`, `activationPrecision`, and optional `adapterIdentities`.
 Model dimensions come from the manifest; overrides and unknown request fields
 are rejected. The repository's offline preparation tool writes the complete
@@ -192,9 +194,11 @@ remain private. Legacy `executeGroup0/1` reject ordered allocations.
 The existing numerical layer/cache owners are reused. CPU tests cover actual
 admission, resident sequencing/sampling/decoding and loader selection for 2, 3,
 4 and 7 stages; numerical layers/readback are injected in those CPU controls.
-They do not prove physical GPU or remote transport operation. Signed TargetPlan
-qualification still restricts resident indices to 0/1; N-stage signed opening
-needs a versioned qualification extension and genuine exact-plan evidence.
+They do not prove physical GPU or remote transport operation. Legacy (v1) signed
+TargetPlan qualification records restrict resident indices to 0/1. Ordered plans
+use the v2 records in [Ordered signed qualification](#ordered-signed-qualification);
+that admission is structural, and N-stage signed opening still needs genuine
+exact-plan physical evidence.
 Canonical target/cursor commits and speculative proposals reject v3 allocations
 until their ordered commit contract is implemented. Replica scheduling, throughput,
 physical concurrency, recovery and all provider combinations remain separate
@@ -238,7 +242,7 @@ qualification or release acceptance.
 ## Recovery capability contract
 
 `getRecoveryCapabilities()` returns an immutable `ResidentRecoveryCapabilities`
-through `doppler-gpu/partitions`:
+through `dopplerx/partitions`:
 
 ```js
 {
@@ -312,7 +316,8 @@ specified in its report.
 
 ## Physical evidence and remaining acceptance
 
-The [current recovery investigation](../../artifacts/recovery-20261009/README.md)
+The [2026-10-09 recovery investigation](../../artifacts/recovery-20261009/README.md)
+(source candidate `d8a17066`, `doppler-gpu` 0.6.19, the package's former name)
 retains operator captures, independent calculations, exact archive identities,
 and two-physical-GPU comparisons. Retained package comparisons still exceed the
 frozen 0.001 tolerance; the owning report records exact candidates and failure

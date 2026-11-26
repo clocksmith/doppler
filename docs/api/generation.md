@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Lower-level text pipeline construction and utilities for consumers who need direct pipeline access instead of the root `doppler` facade.
+Lower-level text pipeline construction and utilities for consumers who need direct pipeline access instead of signed Capsule execution through the `dopplerx` root (or the `doppler` facade in [`dopplerx/compat`](compat.md)).
 
 ## Import Path
 
@@ -54,7 +54,7 @@ when the application omits a context. No multi-request decode batching is added.
 
 ## Stability
 
-Public, but advanced. Prefer the root facade unless you need direct pipeline control.
+Public, but advanced. Prefer signed Capsules through the `dopplerx` root unless you need direct pipeline control.
 Current support tier: `tier1` advanced surface. See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
@@ -68,7 +68,7 @@ Current support tier: `tier1` advanced surface. See [Subsystem Support Matrix](.
 
 - explicit manifest + context driven pipeline construction
 - direct access to text inference pipeline objects
-- lower-level than the root `doppler` facade
+- lower-level than the root Capsule runtime and the `doppler` facade in `dopplerx/compat`
 
 Without an explicit `generationContext`, `generate()`, `generateTokens()`, and
 `generateTokenIds()` start a new prompt context while retaining loaded model
@@ -152,11 +152,10 @@ multi-head (`medusa`) generation are not wired into this pipeline.
 import { createPipeline } from 'dopplerx/generation';
 
 const pipeline = await createPipeline(manifest, contexts);
-const text = await pipeline.generateText('Hello');
+let text = '';
+for await (const piece of pipeline.generate('Hello')) text += piece;
 console.log(text);
 ```
-
-## Advanced Example
 
 ## Code Pointers
 

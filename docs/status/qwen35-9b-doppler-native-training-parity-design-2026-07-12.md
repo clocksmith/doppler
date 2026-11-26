@@ -252,7 +252,9 @@ it does not establish production-geometry GPU upload or inference.
   GPU upload, and PEFT-compatible export parity.
 - Sustained AdamW accumulation and resume have not run on Qwen 9B.
 - Doppler-native inference for the trained adapter remains separate from base
-  F16 inference and from the rejected mixed-Q4 artifact.
+  F16 inference and from the mixed-Q4 artifact (rejected when this was written;
+coherent on the fixed prompt under Doppler 0.4.9, see the
+[canonical status](qwen35-9b-metal-status.md)).
 
 Until those gaps close, `qwen-3-5-9b-hf-bf16` remains registered as requiring
 an external trainer. The machine-readable design is

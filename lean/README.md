@@ -101,9 +101,12 @@ Current required-field target bug class:
 - non-nullable required fields accidentally permit null/missing values
 - incomplete manifests make it deeper into runtime parsing before failing
 
-This module is intentionally narrow. It does not yet model:
-- runtime merge algebra for JSON objects
-- precision precedence and cast-step requirements
+This module is intentionally narrow. Precision precedence
+(`ExecutionV0Contract.lean`) and the per-field merge operators
+(`MergeSemantics.lean`) are modeled over abstract values. It does not yet model:
+- deep merge of nested runtime JSON objects (only per-field operators and
+  whole-subtree replacement are modeled)
+- cast-step requirements
 - manifest extraction into JSON artifacts
 
 Manual check:
@@ -116,7 +119,7 @@ Manifest-backed check:
 
 ```bash
 node tools/lean-execution-contract.js \
-  --manifest models/local/translategemma-4b-it-wq4k-ef16-hf16/manifest.json
+  --manifest models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json
 ```
 
 Batch manifest sweep:
@@ -210,9 +213,9 @@ lean-check: ok (leanprover/lean4:v4.16.0)
 Example manifest-backed output:
 
 ```text
-lean-execution-contract: wrote lean/.generated-XXXXXX/translategemma_4b_it_wq4k_ef16_hf16_ExecutionContractCheck.lean
-"executionContractModule:translategemma_4b_it_wq4k_ef16_hf16_ExecutionContractCheck"
+"executionContractModule:translategemma_4b_it_q4k_ehf16_af32_ExecutionContractCheck"
 "executionContractOverall:pass"
-["translategemma-4b-it-wq4k-ef16-hf16.steps: pass", "translategemma-4b-it-wq4k-ef16-hf16.session: pass"]
+["translategemma-4b-it-q4k-ehf16-af32.steps: pass", "translategemma-4b-it-q4k-ehf16-af32.session: pass"]
 lean-execution-contract: ok (leanprover/lean4:v4.16.0)
+lean-execution-contract: wrote lean/.generated-XXXXXX/translategemma_4b_it_q4k_ehf16_af32_ExecutionContractCheck.lean
 ```

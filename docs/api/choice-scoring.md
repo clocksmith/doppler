@@ -9,7 +9,7 @@ model computation, scoring and continuation cleanup.
 ## Import path
 
 ```js
-import { openCapsule, validateChoiceScoringResult } from 'doppler-gpu/host';
+import { openCapsule, validateChoiceScoringResult } from 'dopplerx/host';
 ```
 
 ## Audience

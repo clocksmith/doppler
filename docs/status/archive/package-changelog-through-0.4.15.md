@@ -1,5 +1,7 @@
 # Archived Doppler package changelog through 0.4.15
 
+> Archived history of the former package doppler-gpu; version numbers here are doppler-gpu versions, not dopplerx.
+
 All notable changes to `doppler-gpu` are documented in this file.
 
 This changelog is package-facing and release-oriented. Entries before `0.1.7`

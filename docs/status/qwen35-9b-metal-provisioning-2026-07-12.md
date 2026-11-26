@@ -1,8 +1,12 @@
 # Qwen 3.5 9B M3 provisioning receipt
 
+> Superseded by [qwen35-9b-metal-status.md](qwen35-9b-metal-status.md) (2026-07-14 reversal of the mixed-Q4 rejection).
+
 The pinned mixed-Q4_K candidate is provisioned locally with exact content
 identity. The accepted F16 control and V11 GRPO adapter are not yet provisioned
-on this host because the AMD machine still rejects SSH authentication.
+on this host because the AMD machine still rejects SSH authentication. The F16
+control was provisioned later the same day; see
+[F16 control availability](qwen35-9b-metal-status.md#f16-control-availability-on-the-m3-host).
 
 Machine-readable evidence is in
 [`qwen35-9b-metal-provisioning-2026-07-12.json`](./qwen35-9b-metal-provisioning-2026-07-12.json).
@@ -13,8 +17,7 @@ Machine-readable evidence is in
 - source revision: `c202236235762e1c871ad0ccb60c8ee5ba337b9a`
 - shards: `132`
 - shard bytes: `8,824,455,680`
-- shard-set hash: `sha256:27c1ba6d379e43eff7eae12b6ccc83081fe5248d1739e7877e82428d52daf228`
-- weight-pack hash: `sha256:dfeea5dc362804bd197d1f96effea74c4cd803eb93b8304c633057f4f172f237`
+- shard-set and weight-pack hashes: see [canonical status](qwen35-9b-metal-status.md#fixed-identities)
 - conversion config: `src/config/conversion/qwen3/qwen-3-5-9b-q4k-ehaf16.json`
 
 The matching conversion requires all six recurrent exclusions:

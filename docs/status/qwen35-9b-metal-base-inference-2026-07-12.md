@@ -1,5 +1,7 @@
 # Qwen 3.5 9B M3 base-inference status
 
+> Superseded by [qwen35-9b-metal-status.md](qwen35-9b-metal-status.md) (2026-07-14 reversal of the mixed-Q4 rejection).
+
 > **Later audit (2026-07-13):** an initial hypothesis that the v1 manifest used
 > the wrong post-attention normalization route was disproved. The v1 inference
 > graph already has the required norm order and split-half RoPE pairing. This
@@ -17,16 +19,9 @@ adapter, or performance result.
 - Doppler commit: `f1ecec81f84d31ffc9a66645d46ebefe820fa6b7`
 - Source checkpoint: `Qwen/Qwen3.5-9B` at
   `c202236235762e1c871ad0ccb60c8ee5ba337b9a`
-- Q4 manifest SHA-256:
-  `ac1eff7f371b7d676a5b9a7ddcf94e2d01d3e1043f499dede2fc41249ef55956`
-- Q4 shard-set hash:
-  `sha256:27c1ba6d379e43eff7eae12b6ccc83081fe5248d1739e7877e82428d52daf228`
-- Q4 weight-pack hash:
-  `sha256:dfeea5dc362804bd197d1f96effea74c4cd803eb93b8304c633057f4f172f237`
-- Runtime profile: `profiles/qwen-3-5-9b-metal-correctness`
-- Prompt: `Answer with exactly the WGSL scalar type name for a 32-bit floating-point value.`
-- Sampling: greedy, batch size 1, 16 maximum generated tokens, F16 KV cache,
-  no speculative decoding, and no performance overrides
+- Q4 manifest, shard-set and weight-pack hashes: see [canonical status](qwen35-9b-metal-status.md#fixed-identities)
+- Runtime profile, prompt and sampling: see
+  [fixed prompt](qwen35-9b-metal-status.md#fixed-prompt)
 
 The complete 31-token input sequence is recorded in the machine-readable
 receipt. The selected token's logit was `17.236438751220703`; the runner also
@@ -45,7 +40,9 @@ mixed-precision boundary handling remain hypotheses, not conclusions.
 
 ## Gated work
 
-The exact accepted F16 control is not yet present on this host. Transfer from
+The exact accepted F16 control is not yet present on this host (it was
+provisioned later the same day; see
+[F16 control availability](qwen35-9b-metal-status.md#f16-control-availability-on-the-m3-host)). Transfer from
 the authorized artifact host is currently rejected by SSH authentication, so
 no load or allocation outcome is claimed. Adapter activation is also not run:
 the V11 GRPO adapter test remains gated on coherent base-Q4 token parity.

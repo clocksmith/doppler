@@ -1,14 +1,19 @@
 # Doppler Benchmarks
 
-This directory holds benchmark artifacts and manifests for the browser harness.
-The actual benchmark runner lives in `src/tooling/browser-harness.js` and is
-invoked via the demo diagnostics UI or the test harness.
+This directory holds contract tests for the benchmark tooling (receipt schema,
+comparison charts, compute evidence, Transformers.js staging). The browser
+benchmark runner lives in `src/tooling/browser-harness.js`.
 
 Recommended paths:
-- Demo UI: `/doppler/demo` -> Diagnostics -> Suite = `bench`
-- Harness console: `runBrowserSuite({ suite: 'bench', modelId })`
-- Manifest runs: `runBrowserManifest(manifest)`
+- CLI: `npm run bench -- --config '{"request":{"modelId":"..."},"run":{"surface":"auto"}}'`
+  (see [tests/GUIDE.md](../GUIDE.md))
+- Harness console (page served with `node tools/serve-static.js --port 8080`):
+  `const { runBrowserSuite } = await import('/src/tooling/browser-harness.js');`
+  then `runBrowserSuite({ suite: 'bench', modelId })`
+- Manifest runs: `runBrowserManifest(manifest)`, or open
+  `tests/harness.html?manifestUrl=...`
 
-Benchmark outputs should be saved under `tests/results/` (JSON) and referenced
-from your benchmark logbook. Cross-product comparison records live in
+Suite reports are written by `saveReport` (`src/storage/reports.js`): OPFS or
+IndexedDB in a browser, and `reports/<modelId>/` (or `$DOPPLER_REPORTS_DIR`)
+under Node. Cross-product comparison records live in
 `benchmarks/vendors/results/`.

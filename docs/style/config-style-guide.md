@@ -19,15 +19,18 @@ there is no JSON debt. These format checks do not replace schema/domain validati
 
 ### Root Schemas
 
-- `ConverterConfigSchema`: quantization, sharding, weightLayout, manifest, output
-- `RuntimeConfigSchema`: shared, loading, inference
-- `ManifestInferenceSchema` (embedded in manifest.json): schema, attention, normalization, ffn, rope, output, layerPattern, chatTemplate, session, execution
+The declaration files under `src/config/schema/` are authoritative; these lists
+summarize them.
+
+- `ConverterConfigSchema` (`manifest/converter.schema.d.ts`): quantization, sharding, streaming, http, weightLayout, manifest, inference, output, architecture, source overrides (sourceTensors, sourceTokenizer, sourceRotaryFrequencies), moeConfig, execution, session, modelType
+- `RuntimeConfigSchema` (`runtime/doppler.schema.d.ts`): shared, loading, inference, emulation
+- `ManifestInferenceSchema` (`manifest/manifest-inference.schema.d.ts`, embedded in manifest.json): schema, attention, normalization, ffn, rope, output, layerPattern, chatTemplate, pipeline, session, execution, plus capability and family blocks (supportsEmbedding, supportsSequence, supportsRerank, rerank, sequence, hyperConnections, indexedAttention, ngramEmbedding, diffusionGemma)
 
 ### Runtime Subschemas
 
-- `SharedRuntimeConfigSchema` (cross-cutting for loading + inference): debug, tooling, benchmark, platform, kernelRegistry, kernelThresholds, bufferPool, gpuCache, memory, tuner, hotSwap, bridge, harness
-- `LoaderConfigSchema` (runtime.loading): storage, distribution, shardCache, memoryManagement, opfsPath, expertCache
-- `InferenceConfigSchema` (runtime.inference): batching, sampling, compute, tokenizer, largeWeights, kvcache, moe, pipeline, kernelPath, chatTemplate, prompt, modelOverrides
+- `SharedRuntimeConfigSchema` (`runtime/shared-runtime.schema.d.ts`, cross-cutting for loading + inference): debug, benchmark, harness, tooling, ecosystem, platform, kernelRegistry, kernelThresholds, kernelWarmup, bufferPool, gpuCache, memory, hotSwap, intentBundle, bridge
+- `LoadingConfigSchema` (`runtime/loading.schema.d.ts`, runtime.loading): storage, distribution, shardCache, memoryManagement, prefetch, opfsPath, expertCache, expertPreparation
+- `RuntimeInferenceConfigSchema` (`runtime/doppler.schema.d.ts`, runtime.inference): batching, sampling, compute, tokenizer, largeWeights, kvcache, moe, speculative, generation, chatTemplate, session, executionPatch, kernelPath, kernelPathPolicy, modelOverrides, pipeline, prompt, plus workload blocks (diffusion, diffusionGemma, energy)
 
 ### Session Decode Loop (runtime.inference.session.decodeLoop)
 
@@ -107,7 +110,7 @@ Runtime tunables are config-only in the browser harness:
 - Command intent and harness selection stay in command/suite context, not `runtime.shared.*`.
 - `calibrate` intent forbids tracing, profiling, probes, and debug-only benchmarks.
 - Harness URLs accept only `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`; no per-field URL overrides.
-- Kernel selection and capability remap policy are config-only via `runtime.inference.kernelPath` and `runtime.inference.kernelPathPolicy`.
+- Kernel selection is config-only; see [General: Kernel Selection](./general-style-guide.md#kernel-selection).
 - Runtime-input precedence `configChain -> runtimeProfile -> runtimeConfigUrl -> runtimeConfig`
   is normative on every surface; a surface that cannot support an input fails closed, never skips it.
 
@@ -121,6 +124,12 @@ runtimeConfig = merge(runtimeDefaultConfig, configChainRuntimeConfig,
 manifestInference = merge(manifestDefaults, converterConfig.inference, artifactDerived)
 modelInference = merge(manifestInference, runtimeInferenceOverride)
 ```
+
+Not every config includes every layer (loader configs do not merge manifest
+inference). Runtime slices such as `runtime.loading` follow the `runtimeConfig`
+chain. Kernel path resolution reads `runtimeConfig.inference.kernelPath`; `null`
+is a valid "no explicit kernel path" result. Do not invent `'auto'` or any
+implicit string in JS.
 
 Execution runtime compile order (when `manifest.inference.execution` exists):
 expand compact tuples into resolved steps, build the inline kernel path and

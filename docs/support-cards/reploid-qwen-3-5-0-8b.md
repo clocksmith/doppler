@@ -11,9 +11,12 @@
 | **Logical Model** | `qwen-3-5-0-8b-q4k-ehaf16` |
 | **Artifact Variant ID** | `sha256:b0e11d284d95b1e5f3f6819f978bc4b9a353a73f18054d137aaacf6c4de7cd56` |
 | **Execution ID** | `sha256:59eaedb61ffd0089c2f4e0c933d9ad2be74a6eceff2c03695b1fb5183933bef1` |
-| **Qualification Status** | **Product-Supported** |
+| **Qualification Status** | **Expired** (was Product-Supported; lapsed at `expiresAtUtc` in `promotion.json` and not requalified) |
 | **Qualified At** | `2026-08-15T12:00:00.000Z` |
 | **Expires At** | `2026-11-15T12:00:00.000Z` |
+
+This card is historical. The receipts below record the August 2026 qualification;
+they do not support a current product claim until a new qualification replaces them.
 
 ---
 
@@ -22,7 +25,7 @@
 All qualification claims are digest-bound to immutable receipts under [`docs/status/reploid-generation/`](../status/reploid-generation/):
 
 1. **Owner Confirmation:** [`owner-confirmation.json`](../status/reploid-generation/owner-confirmation.json) (`doppler.product-integration-owner-confirmation/v1`)
-2. **Execution Identity:** [`identity.json`](../status/reploid-generation/identity.json) (`doppler_provider_receipt_v1`)
+2. **Execution Identity:** [`identity.json`](../status/reploid-generation/identity.json) (`doppler_provider_receipt_v1` receipt; its `resolution` is `doppler.resolution-identity/v1`)
 3. **Install to First Verified Output:** [`installToFirstVerifiedOutput.json`](../status/reploid-generation/installToFirstVerifiedOutput.json) (2,399.9ms vs 5,000.0ms budget)
 4. **Source Task Quality Retention:** [`sourceTaskQualityRetention.json`](../status/reploid-generation/sourceTaskQualityRetention.json) (98.5% quality retention vs 95.0% threshold)
 5. **Reliability:** [`reliability.json`](../status/reploid-generation/reliability.json) (100% success rate across 100 trials, 0 crashes, 0 OOMs, 0 device losses)
@@ -36,22 +39,24 @@ All qualification claims are digest-bound to immutable receipts under [`docs/sta
 
 ---
 
-## One-Line JavaScript Integration
+## JavaScript Integration
+
+This snippet uses the current API of the manifest-loading facade in
+[`dopplerx/compat`](../api/compat.md); it is not the qualified code. Memory limits are runtime configuration
+(`runtime.loading.memoryManagement.budget`), not `open()` options.
 
 ```javascript
-import { dr } from 'doppler-gpu';
+import { dr } from 'dopplerx/compat';
 
-// Preflight & load in-process WebGPU model
-const model = await dr.open('qwen-3-5-0-8b-q4k-ehaf16', {
-  preflightMemory: true,
-  maxVramBytes: 2 * 1024 * 1024 * 1024,
-});
-
-// Stream generation tokens
-for await (const token of model.chat([
-  { role: 'system', content: 'You are an autonomous biocuration assistant.' },
-  { role: 'user', content: 'Summarize contradiction findings for UniProt:P04637.' },
-])) {
-  process.stdout.write(token);
+const session = await dr.open('qwen-3-5-0-8b-q4k-ehaf16');
+try {
+  for await (const event of session.stream([
+    { role: 'system', content: 'You are an autonomous biocuration assistant.' },
+    { role: 'user', content: 'Summarize contradiction findings for UniProt:P04637.' },
+  ])) {
+    if (event.type === 'text-delta') process.stdout.write(event.text);
+  }
+} finally {
+  await session.close();
 }
 ```

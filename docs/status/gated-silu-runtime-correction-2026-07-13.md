@@ -1,5 +1,10 @@
 # Gated SiLU Runtime Correction
 
+> **Historical (2026-07-13).** The fix shipped in `doppler-gpu` 0.4.9 (the
+> package's former name) on 2026-07-14; the npm and publishing statements below
+> describe 2026-07-13. See the
+> [0.4.9 entry](archive/package-changelog-through-0.4.15.md#049---2026-07-14).
+
 Doppler's split gated SiLU path was incorrect. It computed
 `SiLU(gate) * SiLU(up)` instead of the SwiGLU operation
 `SiLU(gate) * up`. The first confirmed affected model is the Qwen 3.5 9B

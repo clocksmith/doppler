@@ -89,6 +89,37 @@ Prompt-target note:
 - When compare runners synthesize a prompt from `prefillTokens`, they must resolve it with the selected tokenizer first.
 - If either engine reports a different prompt-token count than the shared target, or the engines disagree on prompt-token count, the paired section is invalid.
 
+## Claimable compare checklist
+
+Before promoting a benchmark number into README copy, a chart, or any other
+claimable artifact:
+
+1. Confirm the active artifact source is the one you intend to measure. Local
+   manifests and published HF artifacts can drift; do not assume a local fix is
+   reflected in a published compare lane until the compare artifact proves it.
+2. Treat correctness as a gate, not a footnote. If compare output carries a
+   correctness mismatch, do not promote the number. Fix prompt parity first,
+   then decode parity, then performance.
+3. Benchmark the real lane, not a debug surrogate. `f32/http` or investigation
+   profiles are not performance evidence for a warmed browser/OPFS compare lane.
+4. Trace every human-facing claim to one saved JSON artifact and one
+   reproducible command.
+5. When a chart mixes legacy `warm` fixtures with newer `compute/parity`
+   fixtures, make that normalization explicit in the chart contract and lock it
+   with a test.
+
+## Parity vs throughput lanes
+
+Keep compare evidence in two explicit buckets:
+
+1. **Parity lane**: fairness-managed and claimable when correctness is clean.
+   It may force single-token decode or disable engine-specific speculation when
+   that is needed for apples-to-apples semantics. Save it as a committed compare
+   fixture before treating it as benchmark truth.
+2. **Throughput lane**: tuning evidence for Doppler-favorable decode cadence or
+   phase-specific experiments. It is not automatically claimable, even when it
+   is faster.
+
 ## Near-parity statistical protocol
 
 Use this protocol when a remaining decode difference may be smaller than normal
@@ -122,6 +153,8 @@ Interpret a difference as `Doppler ms/token - challenger ms/token`:
 
 Do not publish a point estimate as a win when this stopping rule says parity or
 inconclusive. Keep the raw paired samples and the summary artifact together.
+If a statistically supported residual survives, compare encoded dispatch count
+and attention phase share before reopening projection math.
 
 ## Compare runner contract
 

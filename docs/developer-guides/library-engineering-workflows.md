@@ -16,7 +16,7 @@ For hardware sizing and expected performance, see [performance-sizing.md](../per
 
 ## Prerequisites
 
-- Node.js 20+
+- Node 22 (what CI and qualified runs use)
 - repo dependencies installed
 - WebGPU-capable runtime for `verify`, `debug`, and `bench`
 
@@ -68,7 +68,7 @@ console.log(Boolean(adapter));
 Serve the repo root when you need the browser harness or demo:
 
 ```bash
-python3 -m http.server 8080
+node tools/serve-static.js --port 8080
 ```
 
 Useful URLs:
@@ -77,10 +77,11 @@ Useful URLs:
 
 ## Path A: Run a prebuilt RDRR model
 
-Use this when a model is already in the hosted registry.
+Use this when a model is already in the hosted registry. Take `HF_REVISION`
+from the model's `hf.revision` in `models/catalog.json`.
 
 ```bash
-HF_REVISION=f58f1d0b58641c84e7ea50d13fea0dd4dc91389a
+HF_REVISION=ea7b211b72c4d43687fa72802dee7aba74eca293
 MODEL_ID=qwen-3-5-0-8b-q4k-ehaf16
 MODEL_URL="https://huggingface.co/clocksmith/rdrr/resolve/${HF_REVISION}/models/qwen-3-5-0-8b-q4k-ehaf16"
 ```
@@ -174,15 +175,18 @@ node src/cli/doppler-cli.js convert --config "{
 
 Conversion writes artifacts to a filesystem output directory, not into the
 browser shard-manager store. To verify a local conversion, run on the Node
-surface so the command can load the `file://` artifact path directly:
+surface so the command can load the `file://` artifact path directly. Use the
+workload that matches the model: `embedding` for this EmbeddingGemma config,
+`inference` for a text-generation model.
 
 ```bash
 MODEL_ID=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));console.log(j.output.modelBaseId);" "${CONVERSION_CONFIG}")
-OUTPUT_DIR=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));console.log(j.output.outputDir || 'models/local');" "${CONVERSION_CONFIG}")
+# Same rule as the converter: output.dir, else output.baseDir/<modelBaseId>.
+OUTPUT_DIR=$(node -e "const fs=require('fs');const path=require('path');const o=JSON.parse(fs.readFileSync(process.argv[1],'utf8')).output;console.log(o.dir ? path.resolve(o.dir) : path.resolve(o.baseDir, o.modelBaseId));" "${CONVERSION_CONFIG}")
 
 node src/cli/doppler-cli.js verify --config "{
   \"request\": {
-    \"workload\": \"inference\",
+    \"workload\": \"embedding\",
     \"modelId\": \"${MODEL_ID}\",
     \"modelUrl\": \"file://${OUTPUT_DIR}\",
     \"loadMode\": \"http\",

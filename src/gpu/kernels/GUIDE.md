@@ -26,7 +26,7 @@ Generated targets keep the same runtime file names, so kernel-path IDs and manif
 |----------|----------|
 | Attention | `attention.wgsl`, `attention_decode_*.wgsl`, `attention_f16.wgsl` |
 | Matmul | `matmul_f16.wgsl`, `matmul_f16w_f32a.wgsl`, `matmul_gemv*.wgsl` |
-| Dequant | `dequant_q4k.wgsl`, `dequant_q6k.wgsl`, `dequant_mxfp4.wgsl` |
+| Dequant | `dequant_subgroup.wgsl` and `dequant_shared.wgsl` (Q4_K), `dequant_q6k.wgsl`, `dequant_mxfp4.wgsl` |
 | Fused | `fused_ffn.wgsl`, `fused_matmul_q4.wgsl`, `fused_matmul_q4_multicol_f16a.wgsl` |
 | Other | `rmsnorm.wgsl`, `rope.wgsl`, `sample.wgsl`, `silu.wgsl` |
 
@@ -108,17 +108,6 @@ fn main() {
 | Variable dimensions (M, N, K) | Uniform |
 | Optional feature (residual add, causal mask) | Uniform flag |
 | Fixed tile size affecting shared memory | Entry point or override |
-
-## Key Kernels
-
-| Kernel | Entry Points | Purpose |
-|--------|-------------|---------|
-| `fused_matmul_q4.wgsl` | 3 | Q4_K quantized matmul (GEMV, multicol, batched) |
-| `rmsnorm.wgsl` | 4 | RMSNorm with optional fused residual |
-| `attention.wgsl` | 2 | Prefill attention (small/large) |
-| `attention_decode_*.wgsl` | 1-3 | Decode attention variants |
-| `silu.wgsl` | 5 | SiLU activation variants (gate, split, vec4, rowsplit) |
-| `gelu.wgsl` | 3 | GeLU/GeGLU activation variants (gate, rowsplit) |
 
 ## Naming Source of Truth
 

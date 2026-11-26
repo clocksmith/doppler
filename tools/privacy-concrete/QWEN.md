@@ -1,5 +1,7 @@
 # Small-Qwen encrypted projection experiment
 
+> Historical research record: see [Status](README.md#status) for the code removal and the 2026-11-17 stop; the commands for the removed scripts are kept in [this guide at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/QWEN.md).
+
 This is a concrete step toward a real-model hybrid encrypted backend, quarantined from Doppler Run. It loads the official Apache-2.0 `Qwen/Qwen2.5-0.5B-Instruct` safetensors checkpoint at revision `7ae557604adf67be50417f59c2c2f167def9a775`. The installed profile pins every loaded model/tokenizer/configuration artifact, the named projection, its rectangular geometry and quantized public weights. Inference is offline; unsupported sources/profiles fail before key generation or provider startup.
 
 **Only the matrix product inside `model.layers.0.self_attn.k_proj` executes homomorphically.** Its matrix is 896 inputs by 128 outputs. The complete Qwen model runs to generate text, but embeddings, all other projections, nonlinearities, attention, masks, decoding and all request state remain client-owned. The client also repeats the encrypted projection before decrypting every response. `fullModelEncrypted`, `qualified` and `productionBackendAvailable` are explicitly false.
@@ -8,28 +10,11 @@ The provider receives a fresh public compression/evaluation key, the pinned publ
 
 `profiles.py` owns immutable installed contracts and arithmetic admission; `protocol.py` owns bounded framing; `bridge.py` owns the client/evaluator lifecycle and replay; `provider.py` owns encrypted evaluation; `linear.py` owns trusted client projection preparation. Remote capability claims cannot create profiles or change their exact model/weight/parameter binding. Tiny-GPT2's existing wire contract remains distinct.
 
-## Run and check
+## Run and check (historical)
 
-Use the pinned Python 3.12 environment from [README.md](README.md). Explicit preparation downloads only public pinned artifacts:
+The run used the pinned Python 3.12 environment from [README.md](README.md#run-historical): `prepare.py --profile qwen05b-k-projection` downloaded only public pinned artifacts, `real_model.py` generated text, and `test_real_model.py` and `scaling_audit.py` produced the retained reports. Prompt input was read from client stdin, never from evaluator arguments or a prompt-valued CLI option. The client-local JSON contains generated text and diagnostic comparisons: do not treat it as a provider-safe receipt.
 
-```sh
-/tmp/doppler-concrete-env/bin/python tools/privacy-concrete/prepare.py \
-  --profile qwen05b-k-projection --destination /tmp/qwen05b-source
-printf 'The capital of France is' | \
-  env TOKENIZERS_PARALLELISM=false OMP_NUM_THREADS=2 VECLIB_MAXIMUM_THREADS=2 RAYON_NUM_THREADS=2 \
-  /tmp/doppler-concrete-env/bin/python tools/privacy-concrete/real_model.py --model-dir /tmp/qwen05b-source
-```
-
-Prompt input is read from client stdin; it is not put in evaluator arguments or a prompt-valued CLI option. The client-local JSON contains generated text and diagnostic comparisons: do not treat it as a provider-safe receipt.
-
-```sh
-DOPPLER_QWEN_MODEL_DIR=/tmp/qwen05b-source DOPPLER_QWEN_REPORT_DIR=/tmp/qwen-evidence \
-TOKENIZERS_PARALLELISM=false OMP_NUM_THREADS=2 VECLIB_MAXIMUM_THREADS=2 RAYON_NUM_THREADS=2 \
-  /tmp/doppler-concrete-env/bin/python -m unittest discover -s tools/privacy-concrete -p test_real_model.py -v
-/tmp/doppler-concrete-env/bin/python tools/privacy-concrete/scaling_audit.py --model-dir /tmp/qwen05b-source
-```
-
-Dependency-free framing/profile tests run in CI. Actual native crypto, tiny-transformer and Qwen tests require their explicit opt-in flags/local artifacts and perform no automatic model download.
+Actual native crypto, tiny-transformer and Qwen tests required explicit opt-in flags and local artifacts and performed no automatic model download.
 
 ## Measured scope
 
@@ -56,5 +41,3 @@ The official [Flash-Next configuration](https://huggingface.co/Qwen/Qwen3.8-Flas
 The [publisher's Flash-Next card](https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/812d96e10a0dd82b69d749e68693698cf6c36daa/README.md) describes hybrid recurrent/sparse attention, MoE routing and n-gram embeddings. Expert choice, sparse indexing and table access patterns need a declared privacy protocol; a GLWE linear primitive does not hide them automatically. Recurrent/attention state also needs validated policy/key/cache isolation. Rounded publisher parameter counts imply roughly 360 GB at two bytes per parameter or 720 GB at four, before vision/overhead; these are storage estimates, not measured residency. Keeping a full replay model on this 24 GiB client is not feasible by the current method.
 
 A useful next backend therefore needs more than more selected layers: qualified arithmetic for wider dots, an explicitly private access-pattern/state design, realistic model placement and an integrity protocol that offers useful client savings. Neither semi-honest assumptions nor removing replay may be advertised as production malicious security. No Flash encrypted execution or extrapolated Flash latency has been measured.
-
-> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `bridge.py`, `linear.py`, `native-ntt/prepare.py`, `prepare.py`, `profiles.py`, `protocol.py`, `provider.py`, `real_model.py`, `scaling_audit.py`, `test_real_model.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

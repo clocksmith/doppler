@@ -32,13 +32,29 @@ Distributed execution uses two distinct identities:
 
 2. `transcriptRoot`
    - per request
-   - binds token schedule, RNG placement, activation/KV roots, peer assignments, and stage outputs
    - reproduces one distributed execution of that artifact
 
 Replay claim:
 - `artifactIdentity + transcriptRoot + input tokens -> exact distributed replay`
 
 Without `transcriptRoot`, only the declared determinism class is reproducible.
+
+### `transcriptRoot` fields
+
+Minimum contract surface:
+- token schedule
+- RNG state placement
+- per-stage output hashes
+- peer assignments
+- activation Merkle roots
+- KV Merkle roots
+
+The coordinator authors this object; replay verification consumes it.
+
+MoM orchestration composes multiple substrate transcript roots into a separate
+MoM transcript root. This contract defines only the lower-layer substrate
+execution receipt. See [MoM Layer Draft](mom-layer-draft.md) for the
+cross-family route, debate, adjudication, recursion, and distillation receipt.
 
 ## Contract requirements
 
@@ -102,15 +118,7 @@ Promotion gate:
 
 ### Recovery
 
-Peer churn and Byzantine behavior are handled explicitly.
-
-Rules:
-- replicated stage: isolate bad peer and continue
-- non-replicated stage: fail closed
-- no implicit survivability claims
-
-Promotion gate:
-- induced peer drop / Byzantine vector tests complete correctly or fail closed
+See [Recovery semantics](#recovery-semantics).
 
 ### Performance and exactness
 
@@ -243,14 +251,50 @@ Example:
 These byte ranges are pre-resolved offline by the synthesizer against canonical
 shards. Runtime does not re-solve logical slices heuristically.
 
+## Peer identity
+
+Every cross-peer tensor envelope must be attributable to one session peer
+without creating durable machine identity.
+
+- key type: `ed25519`
+- scope: one distributed session
+- durability: non-durable
+- signer metadata includes peer id + session id
+
+Envelope verification must reject a forged signer, a wrong session, and an
+expired session.
+
+## Control-plane session
+
+The control plane is an additive protocol for distributed plan selection and
+session execution.
+
+Session states: `join`, `ready`, `run`, `complete`, `abort`.
+
+Responsibilities:
+- coordinator assignment protocol
+- peer introspection payload collection
+- distributed plan selection over `plans[]`
+- ingress routing to stage-0 owner
+- egress routing from final-stage owner
+
+Shard-delivery control-plane hooks (session tokens, policy evaluation) are in
+the [P2P transport contract](p2p-transport-contract.md#control-plane-boundary).
+
 ## Recovery semantics
 
-Distributed recovery is explicit:
+Peer churn and Byzantine behavior are handled explicitly, and recovery depends
+on declared redundancy:
 
-- replicated stage (`N >= 2`): isolate peer, redirect to replica, continue
-- non-replicated stage: fail closed with `DOPPLER_DISTRIBUTED_STAGE_UNRECOVERABLE`
+- replicated stage (`N >= 2`) or replicated collective path: isolate the bad
+  peer, then retry or redirect to a replica under plan policy, and continue
+- non-replicated stage or path: fail closed with
+  `DOPPLER_DISTRIBUTED_STAGE_UNRECOVERABLE`
+- no implicit survivability claims; neither an integrity mismatch nor the
+  collective transport contract implies survivability on its own
 
-Integrity mismatch never implies implicit survivability.
+Promotion gate:
+- induced peer drop / Byzantine vector tests complete correctly or fail closed
 
 ## Related contracts
 

@@ -20,30 +20,17 @@ is normalized from the command into `request.intent`.
 
 ## Quick Start: Systematic Debug Workflow
 
-### 1. Run Kernel Tests First
-Run the `verify` command with workload `kernels`; command metadata normalizes
-`request.intent = "verify"`.
-If any kernel fails, **fix it first**. Expected: all listed kernel checks PASS.
-If `scatter_add` is the only failure, treat it as a targeted MoE kernel issue
-before debugging broader inference behavior.
+Follow the fail-closed ladder in the
+[Inference Debug Protocol](agents/debug-protocol.md) and interpret each step with
+the [Debug Playbook](debug-playbook.md). Two Doppler-specific first steps:
 
-### 2. Run Inference Debug
-Use the demo diagnostics UI with the `profiles/verbose-trace` runtime profile and run the inference workload.
+1. Run the `verify` command with workload `kernels` (command metadata normalizes
+   `request.intent = "verify"`). Fix any failing kernel first. If `scatter_add`
+   is the only failure, treat it as a targeted MoE kernel issue.
+2. Run the inference workload in the demo diagnostics UI with the
+   `profiles/verbose-trace` runtime profile.
 
-### 3. Compare Against Reference
-```bash
-# HuggingFace transformers (ground truth)
-python -c "
-from transformers import AutoModelForCausalLM, AutoTokenizer
-model = AutoModelForCausalLM.from_pretrained('google/gemma-3-1b-it')
-tokenizer = AutoTokenizer.from_pretrained('google/gemma-3-1b-it')
-inputs = tokenizer('The color of the sky is', return_tensors='pt')
-outputs = model.generate(**inputs, max_new_tokens=10)
-print(tokenizer.decode(outputs[0]))
-"
-```
-
-If reference works but DOPPLER doesn't, the bug is in DOPPLER implementation.
+For the trusted reference, see [Reference Comparison](#9-reference-comparison).
 
 ---
 
@@ -101,10 +88,10 @@ Filter logs for `weight` or `norm` to spot range anomalies.
 const tokens = await tokenizer.encode("The color of the sky is");
 console.log("DOPPLER tokens:", tokens);
 
-// Compare with HuggingFace:
-// from transformers import AutoTokenizer
-// t = AutoTokenizer.from_pretrained('google/gemma-3-1b-it')
-// print(t.encode("The color of the sky is"))
+// Compare with the source tokenizer, e.g. Transformers.js:
+import { AutoTokenizer } from '@huggingface/transformers';
+const reference = await AutoTokenizer.from_pretrained('google/gemma-3-1b-it');
+console.log("Reference tokens:", reference.encode("The color of the sky is"));
 ```
 
 Token IDs must match exactly.
@@ -134,9 +121,9 @@ Open `tests/harness.html` in `kernels` mode and call the dequant helpers from th
 
 ## 1. Tensor Shape Verification
 
-Always verify buffer sizes match expected dimensions. Enable `runtime.shared.debug.trace.enabled=true` (log level `trace`) to capture tensor shapes, dequant ops, and buffer details automatically. See [Section 2](#2-toggleable-debug-categories) for the full log level table.
+Always verify buffer sizes match expected dimensions. Enable `runtime.shared.debug.trace.enabled=true` to capture tensor shapes, dequant ops, and buffer details automatically. See [Section 2](#2-toggleable-debug-categories) for trace categories and log levels.
 
-For Node runs, pass a runtime profile or config that sets `logLevel: "trace"` via `runtime.shared.debug`. In the browser, enable via `DOPPLER.debug()` with the appropriate category and `bufferStats: true` for GPU readback inspection.
+For Node runs, pass a runtime profile or config that sets `runtime.shared.debug.trace`. In the browser, call `DOPPLER.setTrace(...)` (see [Browser Console API](#browser-console-api)). GPU readback inspection is `runtime.shared.debug.pipeline.bufferStats: true`.
 
 ### Matmul Dimension Checklist
 
@@ -151,29 +138,45 @@ Wrong `transposeB` flag causes silent corruption.
 
 ## 2. Toggleable Debug Categories
 
-DOPPLER has a toggleable debug system with category-based filtering. This allows surgical debugging without noise.
+DOPPLER has two category-filtered debug systems, both driven by runtime config:
+
+- **Trace** (`runtime.shared.debug.trace`): `enabled`, `categories`, `layers`,
+  `maxDecodeSteps`. The browser console can change it at run time.
+- **Pipeline debug** (`runtime.shared.debug.pipeline`): `enabled`,
+  `categories`, `layers`, `maxDecodeSteps`, `maxAbsThreshold`, `bufferStats`,
+  `readbackSampleSize`. It is read from runtime config when the text pipeline
+  initializes; the console global does not change it.
 
 ### Browser Console API
 
+The `DOPPLER` console global exists only after an application entry point calls
+`installDebugGlobal()`, exported from `dopplerx/tooling` and
+`dopplerx/tooling/runtime`. The demo calls it in `demo/demo.js`. It returns a
+function that uninstalls the global. The full surface is `DOPPLER_API` in
+`src/debug/index.js`.
+
 ```javascript
-// In browser DevTools console:
-DOPPLER.debug()                              // Show current config & help
-DOPPLER.debug({ embed: true, logits: true }) // Enable specific categories
-DOPPLER.debug('quick')                       // Use built-in debug profile (embed + logits + sample)
-DOPPLER.debug('layers')                      // Layer entry/exit tracing
-DOPPLER.debug('attention')                   // Attention + KV cache
-DOPPLER.debug('full')                        // Everything (verbose!)
-DOPPLER.debug('off')                         // Disable all
-
-// Layer-specific debugging
-DOPPLER.debugLayer(0)                        // Debug only layer 0
-DOPPLER.debugLayer([0, 1, 25])               // Debug specific layers
-
-// Buffer stats (expensive - requires GPU readback)
-DOPPLER.debugBuffers(true)                   // Enable buffer inspection
+// In browser DevTools console, after installDebugGlobal():
+DOPPLER.setTrace('attn,ffn')                       // enable trace categories
+DOPPLER.setTrace('attn,ffn', { layers: [0, 25] })  // only these layers
+DOPPLER.setTrace('all,-buffers', { maxDecodeSteps: 5 })
+DOPPLER.getTrace()                                 // enabled categories
+DOPPLER.setTrace(false)                            // disable tracing
+DOPPLER.setLogLevel('verbose')                     // debug | verbose | info | warn | error | silent
+DOPPLER.getLogHistory({ module: 'Loader', last: 200 })
+DOPPLER.printLogSummary(20)
+DOPPLER.getDebugSnapshot()
+await DOPPLER.inspect(gpuBuffer, 'label', { shape: [rows, cols] })
 ```
 
-### Debug Categories
+### Trace Categories
+
+`runtime.shared.debug.trace.categories` and `DOPPLER.setTrace()` accept
+`loader`, `kernels`, `logits`, `embed`, `attn`, `ffn`, `kv`, `sample`,
+`buffers`, `perf` and `energy` (`TRACE_CATEGORIES` in `src/debug/config.js`).
+`all` enables every category and `-name` removes one. Unknown names throw.
+
+### Pipeline Debug Categories
 
 | Category | What it logs |
 |----------|--------------|
@@ -186,22 +189,25 @@ DOPPLER.debugBuffers(true)                   // Enable buffer inspection
 | `sample` | Sampling decisions (token, prob, temp) |
 | `io` | GPU buffer read/write operations |
 | `perf` | Performance timing |
+| `kernel` | Kernel output buffer inspection (with `bufferStats`) |
 | `all` | Enable everything |
 
-### Log Levels (Unified System)
+### Log Levels
 
-DOPPLER uses a unified logging system controlled by runtime config:
+`runtime.shared.debug.logLevel.defaultLogLevel` (or `DOPPLER.setLogLevel()`)
+takes `debug`, `verbose`, `info`, `warn`, `error` or `silent`:
 
-| Config | Level | Shows |
-|--------|-------|-------|
-| `runtime.shared.debug.logLevel.defaultLogLevel=info` | info | Phase starts/ends, totals |
-| `...=verbose` | verbose | + Per-shard source, per-layer timing |
-| `runtime.shared.debug.trace.enabled=true` | trace | + Tensor shapes, dequant ops, buffer details |
-| `...=silent` | silent | Errors only |
+| Level | Shows |
+|-------|-------|
+| `info` (default) | Phase starts/ends, totals |
+| `verbose` | + Per-shard source, per-layer timing |
+| `debug` | + Debug messages |
+| `warn`, `error`, `silent` | Progressively less |
 
-**Defaults by mode:**
-- `test`, `bench`: info (clean summaries)
-- `debug`: verbose (shows shard sources and layer timing)
+Tensor shapes, dequant ops and buffer details come from tracing
+(`runtime.shared.debug.trace.enabled=true`), not from a log level. The
+`profiles/verbose-trace` runtime profile sets `verbose` and enables all trace
+categories.
 
 **Example output at verbose level:**
 ```
@@ -241,10 +247,12 @@ console.log(hits.slice(0, 200));
 OPFS is persisted per browser profile. For warm runs, reuse the same profile or
 keep a tab open. For cold runs, clear OPFS or use a fresh profile/incognito.
 
-The root browser API populates and reopens the verified cache explicitly:
+The `dopplerx/compat` facade (tier `experimental`; the root `dopplerx` entry is
+the Capsule runtime and has no `dr`) populates and reopens the verified cache
+explicitly:
 
 ```javascript
-import { dr } from 'doppler-gpu';
+import { dr } from 'dopplerx/compat';
 
 const model = await dr.load('qwen3-0.8b', {
   cache: 'opfs',
@@ -258,6 +266,9 @@ console.log(model.persistentCache);
 unavailable, persistence or integrity validation fails and the load rejects.
 Use `cache: false` or omit `cache` when streaming directly from the artifact
 host is intentional.
+
+To purge every stored model from DevTools on a repo checkout page (for example
+`/tests/harness.html`):
 
 ```javascript
 const { listModels, deleteModel } = await import('../src/storage/shard-manager.js');
@@ -274,7 +285,7 @@ use the export helper (streams bytes; avoids full-file RAM materialization).
 Requires the File System Access API (`showDirectoryPicker`, Chromium-based).
 
 ```javascript
-import { exportModelToDirectory } from '../src/index.js';
+import { exportModelToDirectory } from 'dopplerx/tooling/storage';
 
 const destRoot = await window.showDirectoryPicker({ mode: 'readwrite' });
 const dest = await destRoot.getDirectoryHandle('gemma-3-1b-q4', { create: true });
@@ -286,32 +297,36 @@ await exportModelToDirectory('gemma-3-1b-q4', dest, {
 
 ### Log Format for Post-Filtering
 
-All logs use a consistent format: `[CATEGORY][L{layer}][S{step}] message`. Use
-DevTools filters or `DOPPLER.getLogHistory()` to slice by category/layer.
+Pipeline debug logs use `[CATEGORY][L{layer}][S{step}] message`. Trace logs use
+`[<ms>ms][TRACE:<category>] L<layer>:message`. Use DevTools filters or
+`DOPPLER.getLogHistory()` to slice by category/layer.
 
-### Debug Options
+### Pipeline Debug Options
 
-```javascript
-DOPPLER.debug(
-  { layer: true, attn: true },  // Categories to enable
-  {
-    layers: [0, 1],             // Only log these layers
-    maxDecodeSteps: 5,          // Only log first N decode steps
-    maxAbsThreshold: 10000,     // Warn on value explosion
-    bufferStats: true,          // Enable GPU buffer readback (expensive)
+```json
+{
+  "shared": {
+    "debug": {
+      "pipeline": {
+        "enabled": true,
+        "categories": ["layer", "attn"],
+        "layers": [0, 1],
+        "maxDecodeSteps": 5,
+        "maxAbsThreshold": 10000,
+        "bufferStats": true
+      }
+    }
   }
-);
+}
 ```
 
-### Debug Profiles
+`layers` limits logging to those layers, `maxDecodeSteps` to the first N decode
+steps, and `maxAbsThreshold` warns on value explosion. `bufferStats` enables GPU
+buffer readback and is expensive.
 
-| Profile | Categories | Use Case |
-|--------|------------|----------|
-| `quick` | embed, logits, sample | Quick sanity check |
-| `layers` | layer | Watch hidden state flow |
-| `attention` | attn, kv | Debug attention issues |
-| `full` | all | Comprehensive trace |
-| `perf` | perf | Performance timing only |
+Runtime profiles under `src/config/runtime/profiles/` and
+`src/config/runtime/diagnostics/` (for example `profiles/verbose-trace`) bundle
+these settings; there are no named console debug presets.
 
 ---
 
@@ -337,13 +352,21 @@ Enable per-layer tracing in the runtime profile or config payload:
 }
 ```
 
-In the browser, use `DOPPLER.debug()` and set `maxAbsThreshold` to flag value explosions:
+To flag value explosions, set `maxAbsThreshold` in the pipeline debug config:
 
-```javascript
-DOPPLER.debug(
-  { layer: true, attn: true, ffn: true },
-  { maxAbsThreshold: 1000, bufferStats: true }
-);
+```json
+{
+  "shared": {
+    "debug": {
+      "pipeline": {
+        "enabled": true,
+        "categories": ["layer", "attn", "ffn"],
+        "maxAbsThreshold": 1000,
+        "bufferStats": true
+      }
+    }
+  }
+}
 ```
 
 The trace system emits min/max/mean/maxAbs statistics at each instrumented stage automatically. Do not add ad-hoc `console.log` calls to source files — use the existing trace categories, config-driven probes, or permanent trace extensions instead.
@@ -448,9 +471,9 @@ postmortems are tracked internally.
 
 **Quick check**:
 ```bash
-# Compare WGSL struct definition with TypeScript write order
-grep -A 10 "struct.*Uniforms" gpu/kernels/softmax.wgsl
-grep -A 5 "uniformView.setUint32" gpu/kernels/softmax.js
+# Compare WGSL struct definition with JavaScript write order
+grep -A 10 "struct.*Uniforms" src/gpu/kernels/softmax.wgsl
+grep -n -e "view.setUint32" -e "view.setFloat32" src/gpu/kernels/softmax.js
 ```
 
 **Fix**: Add comments documenting WGSL layout at every uniform write:
@@ -552,33 +575,19 @@ console.log(top5.map((entry) => entry.message));
 
 ### Diff Against Reference Implementation
 
-```bash
-# Run same prompt through HuggingFace transformers
-python3 << 'EOF'
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
-
-model = AutoModelForCausalLM.from_pretrained('google/gemma-3-1b-it', torch_dtype=torch.float32)
-tokenizer = AutoTokenizer.from_pretrained('google/gemma-3-1b-it')
-
-inputs = tokenizer('The color of the sky is', return_tensors='pt')
-with torch.no_grad():
-    outputs = model(**inputs, output_hidden_states=True)
-
-for i, hidden in enumerate(outputs.hidden_states):
-    h = hidden[0, -1, :5].tolist()  # Last token, first 5 values
-    print(f"Layer {i}: {[f'{x:.2f}' for x in h]}")
-EOF
-```
+Compare per-layer activations against a trusted reference with semantic
+boundary receipts (`doppler boundary capture` and `doppler boundary compare`);
+see [Evidence Loop](evidence-loop.md#2-compare-semantic-boundaries). For
+reference engines, see [Reference Comparison](#9-reference-comparison).
 
 ### Isolate Specific Layer
 
-Use `runtime.shared.debug.trace.layers` to focus tracing on a specific layer. In the browser, use `DOPPLER.debugLayer()`:
+Use `runtime.shared.debug.trace.layers` to focus tracing on a specific layer. In the browser, pass `layers` to `DOPPLER.setTrace()`:
 
 ```javascript
 // Browser DevTools console:
-DOPPLER.debugLayer(14)        // Focus on layer 14 only
-DOPPLER.debugLayer([0, 14])   // Focus on a specific set
+DOPPLER.setTrace('attn,ffn', { layers: [14] })     // Focus on layer 14 only
+DOPPLER.setTrace('attn,ffn', { layers: [0, 14] })  // Focus on a specific set
 ```
 
 Or via runtime config:
@@ -631,13 +640,13 @@ Enable the `attn` and `kv` trace categories to surface KV cache state per layer 
 }
 ```
 
-In the browser: `DOPPLER.debug({ attn: true, kv: true })`.
+In the browser: `DOPPLER.setTrace('attn,kv')`.
 
 ---
 
 ## 6. RoPE Position Debugging
 
-Enable the `attn` trace category to capture RoPE frequency buffer sizes and `startPos` values per layer. In the browser: `DOPPLER.debug({ attn: true })`.
+Enable the `attn` trace category to capture RoPE frequency buffer sizes and `startPos` values per layer. In the browser: `DOPPLER.setTrace('attn')`.
 
 For architecture-specific RoPE config, inspect the manifest fields `rope_theta`, `rope_local_base_freq`, `ropeRotaryDim`, and `ropeInterleaved`. These drive frequency buffer sizing and must match the model architecture.
 
@@ -658,7 +667,7 @@ Enable the `logits` and `sample` trace categories to surface raw logit range and
 In the browser:
 
 ```javascript
-DOPPLER.debug({ logits: true, sample: true })
+DOPPLER.setTrace('logits,sample')
 ```
 
 Via runtime config:
@@ -693,8 +702,8 @@ caches.keys().then(k => k.forEach(c => caches.delete(c)));
 // Hard refresh (Cmd+Shift+R / Ctrl+Shift+R)
 
 // For OPFS (model weights) - use demo UI "Clear Cache" button
-// Or programmatically:
-import { deleteModel } from './storage/shard-manager.js';
+// Or programmatically (application code):
+import { deleteModel } from 'dopplerx/tooling/storage';
 await deleteModel(modelId);
 ```
 
@@ -730,7 +739,7 @@ await context.route('**/*', (route) => {
 ### Compare Against transformers.js
 
 ```javascript
-import { pipeline } from '@xenova/transformers';
+import { pipeline } from '@huggingface/transformers';
 const generator = await pipeline('text-generation', 'model-name');
 const output = await generator('the sky is', { max_new_tokens: 5 });
 ```
@@ -750,10 +759,13 @@ const output = await generator('the sky is', { max_new_tokens: 5 });
 
 ### Debug Memory State
 
+The buffer pool is a repository module, not a package export. From DevTools on
+a repo checkout page:
+
 ```javascript
 // Track buffer pool state
-import { getPoolStats } from './memory/buffer-pool.js';
-console.log('[Pool]', getPoolStats());
+const { getBufferPool } = await import('../src/memory/buffer-pool.js');
+console.log('[Pool]', getBufferPool().getStats());
 ```
 
 ---
@@ -789,7 +801,8 @@ top-5 logits (e.g. `/top-5/`). For specific kernel checks, call
 `window.testHarness.runMatmul(...)` or related helpers from the console.
 
 **Manual browser testing:** Use the onboarding commands and canonical URLs in
-`getting-started.md`, then use the test-mode templates in `testing.md`.
+[getting-started.md](getting-started.md), then use the test-mode templates in
+[testing.md](testing.md).
 
 ---
 
@@ -797,10 +810,14 @@ top-5 logits (e.g. `/top-5/`). For specific kernel checks, call
 
 ### GPU Submit Tracking
 
-DOPPLER includes submit tracking to measure per-token GPU overhead:
+DOPPLER includes submit tracking to measure per-token GPU overhead. The submit
+tracker and command recorder below are repository modules
+(`src/gpu/submit-tracker.js`, `src/gpu/command-recorder.js`), not package
+exports; the paths are relative to `tests/harness.html` on a repo checkout.
 
 ```javascript
-import { setTrackSubmits, resetSubmitStats, logSubmitStats } from '../gpu/device.js';
+const { setTrackSubmits, resetSubmitStats, logSubmitStats } =
+  await import('../src/gpu/submit-tracker.js');
 
 // Enable tracking
 setTrackSubmits(true);
@@ -821,7 +838,9 @@ setTrackSubmits(false);
 The batching system uses `CommandRecorder` to record GPU operations into a single command buffer:
 
 ```javascript
-import { createCommandRecorder } from '../gpu/command-recorder.js';
+const { createCommandRecorder } = await import('../src/gpu/command-recorder.js');
+const { recordMatmul } = await import('../src/gpu/kernels/matmul.js');
+const { recordRMSNorm } = await import('../src/gpu/kernels/rmsnorm.js');
 
 const recorder = createCommandRecorder('forward_pass');
 
@@ -837,8 +856,8 @@ await recorder.submitAndWait();
 
 | File | Debug Focus |
 |------|-------------|
-| `gpu/command-recorder.js` | Batched command recording |
-| `gpu/submit-tracker.js` | GPU submit statistics |
+| `src/gpu/command-recorder.js` | Batched command recording |
+| `src/gpu/submit-tracker.js` | GPU submit statistics |
 | `src/inference/pipelines/text.js` | Forward pass orchestration |
 | `src/inference/pipelines/text/execution/layer.js` | do* wrappers for run/record variants |
 
@@ -860,15 +879,11 @@ await recorder.submitAndWait();
 
 ## For Debugging Agents
 
-When debugging DOPPLER issues:
-
-1. **Start with symptoms** - Use the Quick Diagnosis Table above
-2. **Enable trace config** - Use `runtime.shared.debug.trace` or `DOPPLER.debug()` for targeted category tracing
-3. **Check value ranges** - maxAbs explosion is a red flag
-4. **Verify shapes** - Buffer sizes must match expected dimensions
-5. **Test boundaries** - Token IDs, sequence lengths, layer indices
-6. **Check postmortems index** - Internal postmortems cover common patterns and lessons learned
-7. **Compare references** - llama.cpp or transformers.js as ground truth
+Follow the [Inference Debug Protocol](agents/debug-protocol.md) and the
+[Debug Playbook](debug-playbook.md). Use this page for the Doppler-specific
+tools: the [Quick Diagnosis Table](#quick-diagnosis-table), trace and pipeline
+debug config ([Section 2](#2-toggleable-debug-categories)), and the
+[Postmortem Index](#postmortem-index).
 
 ### Key Files for Debugging
 
@@ -883,16 +898,16 @@ When debugging DOPPLER issues:
 
 ---
 
-*Last updated: 2026-03-16*
+*Last updated: 2026-11-26*
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-Canonical reference: `style/wgsl-style-guide.md`.
+Canonical reference:
+[WGSL style guide: Kernel Compatibility and Overrides](style/wgsl-style-guide.md#kernel-compatibility-and-overrides).
 
-This section is intentionally centralized here to avoid duplication across docs.
-If you see this referenced elsewhere, follow the link back to this section.
-
-Topics covered by the WGSL style guide:
-- Runtime kernel override modes (how to select/force kernels).
-- Compatibility expectations across browsers/GPUs.
-- OPFS purge helper usage (how to clear cached kernels/shards when debugging).
+Other docs link to this section; it points to the WGSL style guide, which covers:
+- Runtime kernel paths (`runtime.inference.kernelPath` as an inline
+  execution-v1 object or `null`; precedence is in
+  [conversion-runtime-contract.md](conversion-runtime-contract.md)).
+- RDRR layout vs runtime kernel variants and their GPU feature requirements.
+- The OPFS purge helper (clearing stored manifests and shards when debugging).

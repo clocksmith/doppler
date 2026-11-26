@@ -254,7 +254,8 @@ does not measure Rig quality.
 ## Current evidence boundaries
 
 The permanent Gemma Capsule Runtime v0 golden slice is frozen by tag
-`capsule-runtime-v0-gemma3-270m-golden`. Qwen3.8 `text.generate` now has a
+`pack-runtime-v0-gemma3-270m-golden` (tagged 2026-08-22, before Packs were
+renamed to Capsules; no `capsule-runtime-…` tag exists). Qwen3.8 `text.generate` now has a
 development-signed Capsule on physical Node WebGPU: the AMD/RADV receipt records
 128/128 exact greedy tokens, 824/824 verified artifacts, initial execution
 identity equality before prefill, and an unchanged TargetPlan digest. The

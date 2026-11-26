@@ -246,8 +246,22 @@
     // Shared: GPU Initialization
     // ==========================================================================
 
+    async function initializeDevice() {
+      const { initDevice, getKernelCapabilities } = await import('../src/gpu/device.js');
+      await initDevice();
+      return getKernelCapabilities();
+    }
+
+    async function fetchManifest(manifestUrl) {
+      const { parseManifest } = await import('../src/formats/rdrr/index.js');
+      const response = await fetch(manifestUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch manifest: ${response.status}`);
+      }
+      return parseManifest(await response.text());
+    }
+
     async function initGPU() {
-      const { initializeDevice } = await import('../src/tooling/test-harness.js');
       const caps = await initializeDevice();
       console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
       return caps;
@@ -348,9 +362,7 @@
     async function initInferenceMode() {
       const {
         discoverModels,
-        createHttpShardLoader,
-        fetchManifest,
-        initializeDevice,
+        createHarnessShardStorageContext,
         createTestState,
       } = await import('../src/tooling/test-harness.js');
       const { getRuntimeConfig } = await import('../src/config/runtime.js');
@@ -408,10 +420,10 @@
             console.log(`[Model] ${modelLabel}, ${manifest.config?.num_hidden_layers} layers`);
 
             console.log('[Loader] 3. Loading model weights...');
-            const loadShard = createHttpShardLoader(MODEL_URL, manifest, (msg) => console.log(`[Loader] ${msg}`));
+            const storage = createHarnessShardStorageContext(MODEL_URL, manifest, (msg) => console.log(`[Loader] ${msg}`));
 
             pipeline = await createPipeline(manifest, {
-              storage: { loadShard },
+              storage,
               gpu: { device },
               baseUrl: MODEL_URL,
             });
@@ -530,11 +542,7 @@
     // ==========================================================================
 
     async function initEnergyMode() {
-      const {
-        fetchManifest,
-        initializeDevice,
-        createTestState,
-      } = await import('../src/tooling/test-harness.js');
+      const { createTestState } = await import('../src/tooling/test-harness.js');
       const { getRuntimeConfig } = await import('../src/config/runtime.js');
       const { createPipeline } = await import('../src/inference/pipelines/text.js');
       const { getDevice } = await import('../src/gpu/device.js');

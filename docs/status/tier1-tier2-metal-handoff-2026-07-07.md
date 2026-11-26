@@ -9,9 +9,11 @@ Tier 1 macOS closure requires Qwen 3.5 0.8B generation plus Qwen embedding and
 reranker retrieval receipts on `darwin`/Metal browser WebGPU. Tier 2 rows are
 separate evidence and do not close the Tier 1 Mac gap.
 
-## Current Vulkan Receipts
+## Vulkan Receipts (2026-07-07, historical)
 
-Use these Linux/Vulkan receipts as the reference set:
+As of 2026-07-07 these Linux/Vulkan receipts were the reference set. They are
+not a current benchmark claim; current rows are in the
+[model competition scoreboard](../model-competition-scoreboard.md).
 
 | Lane | Workload | Receipt | State |
 | --- | --- | --- | --- |

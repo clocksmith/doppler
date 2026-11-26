@@ -18,7 +18,7 @@ Add a new behavior-controlling field without breaking Doppler's manifest-first a
 - The owning schema file under `src/config/schema/*.schema.js` and `.d.ts`
 - `src/config/merge.js` when manifest and runtime layers need explicit precedence tracking
 - The runtime consumer, often `src/inference/pipelines/text/config.js`
-- If manifest-owned: `src/converter/manifest-inference.js` and possibly conversion configs
+- If manifest-owned: the conversion configs' `inference` block, read by `src/converter/conversion-plan.js`
 - Tests under `tests/config/`, `tests/converter/`, or the relevant runtime area
 
 ## Recommended Order
@@ -27,7 +27,7 @@ Add a new behavior-controlling field without breaking Doppler's manifest-first a
 2. Add the field to the schema and declaration files, including defaults where appropriate.
 3. Propagate it through `src/config/merge.js` with `_sources` tracking if it participates in manifest-vs-runtime precedence.
 4. Parse and validate it in the runtime consumer.
-5. If the field is manifest-owned, author it in conversion output through explicit conversion config fields or `src/converter/manifest-inference.js`.
+5. If the field is manifest-owned, author it in conversion output through explicit conversion config fields (the `inference` block is required; there is no preset fallback).
 6. Add regression tests that prove the field survives the intended path without silent rewrite.
 
 ## Verification

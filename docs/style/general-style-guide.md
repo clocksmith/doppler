@@ -209,20 +209,7 @@ configs, config assets, and override configs to fill gaps or override behavior.
 
 ### Config Merge Order (per domain)
 
-Not every config includes every layer (e.g., loader configs do not merge manifest
-inference). Document the merge chain per domain:
-
-- Runtime config:
-  `runtimeConfig = merge(runtimeDefaultConfig, runtimeProfileConfig, runtimeOverrideConfig)`
-- Manifest inference config (Phase 1 output):
-  `manifestInferenceConfig = merge(manifestDefaultConfig, converterConfig.inference, artifactDerivedConfig)`
-- Model inference config (Phase 2 input):
-  `modelInferenceConfig = merge(manifestInferenceConfig, runtimeInferenceOverrideConfig)`
-- Loader/runtime slices (loading/storage/etc):
-  `loadingConfig = merge(runtimeDefaultConfig.loading, runtimeProfileConfig.loading, runtimeOverrideConfig.loading)`
-- Kernel path resolution:
-  `kernelPath = runtimeConfig.inference.kernelPath`
-  `null` remains a valid "no explicit kernel path" result; do not invent `'auto'` or any implicit string in JS.
+See [Config Style Guide: Merge Order](./config-style-guide.md#merge-order).
 
 ### No Runtime Defaults in Code
 
@@ -288,7 +275,9 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 - Kernel selection is fully explicit in the manifest execution graph; each step pins an exact WGSL file, entry point, and content digest. No runtime resolution.
 - All models must ship with an execution graph. Models without one are unsupported.
 - `defaultKernelPath` does not exist in v1 manifests. The execution graph is the sole dispatch contract.
-- Kernel path overrides are config-only (no harness/UI flags); selection logic lives in `src/gpu/kernels/*.js` and config files are data only.
+- Kernel path overrides are config-only, via `runtime.inference.kernelPath` and `runtime.inference.kernelPathPolicy` (no harness/UI flags).
+- Variant-selection helpers inside kernel wrappers (`src/gpu/kernels/*.js`) use JSON rule maps; config files are data only. Module layout: [JavaScript: Kernel Selection Architecture](./javascript-style-guide.md#kernel-selection-architecture).
+- This section is the canonical kernel-selection rule; other guides link here.
 
 ### Manifest-Config Parity (Required Debug Check)
 
@@ -648,24 +637,26 @@ Format constants (block sizes, byte layouts) are spec invariants imported from o
 
 ### Dtype Defaults
 
-Default dtypes for conversion should come from config, not hardcoded strings:
+Default dtypes for conversion come from a schema, not hardcoded strings. The
+config layer merges the schema default once; conversion code reads the resolved
+value and does not re-apply a fallback:
 
 ```javascript
 // DON'T: Hardcoded dtype strings scattered across converter
-const outputDtype = options.dtype || 'f16';
-const embeddingDtype = options.embeddingDtype || 'f16';
+const visionDtype = options.visionDtype || 'f16';
 
-// DO: Reference schema defaults
-import { getQuantizationDefaults } from '../config/schema/index.js';
-const defaults = getQuantizationDefaults();
-const outputDtype = options.dtype ?? defaults.defaultWeightDtype;
-const embeddingDtype = options.embeddingDtype ?? defaults.defaultEmbeddingDtype;
+// DO: the schema owns the default (DEFAULT_QUANTIZATION_DEFAULTS in
+// src/config/schema/manifest/quantization-defaults.schema.js); the config layer
+// merges it, and the converter reads the resolved field
+const visionDtype = resolvedQuantization.visionDtype;
 ```
 
 ### Memory Limits
 
-Cache sizes and memory thresholds also come from config, e.g.
-`getStorageDefaults().expertCache.maxSize` instead of a literal `256 * 1024 * 1024`.
+Cache sizes and memory thresholds also come from config, e.g. the resolved
+`runtime.loading.expertCache.defaultSizeBytes` (schema default in
+`DEFAULT_EXPERT_CACHE_CONFIG`, `src/config/schema/runtime/loading.schema.js`)
+instead of a literal `2 * 1024 * 1024 * 1024`.
 
 ---
 
@@ -868,6 +859,17 @@ const FUSION_THRESHOLDS = { ... };
 // camelCase for derived/local constants
 const workgroupSize = WORKGROUP_SIZES[vendor].matmul;
 ```
+
+### Enum Values
+
+Doppler-owned enum values (modes, kinds, statuses, layouts and similar string
+vocabularies) are kebab-case, e.g. `'on-demand'`, not `'on_demand'` or
+`'onDemand'`. Values that mirror an external format (GGUF/SafeTensors keys,
+Hugging Face config fields, WGSL/WebGPU identifiers, dtype names) keep that
+format's spelling and are listed in `tools/policies/kebab-enum-values.json`.
+`tools/check-kebab-enum-values.js` enforces this in `npm run check:fast`. Old
+spellings are read through `src/config/legacy-enum-values.js`; see
+[Migrating to 0.2.0](../api/migration-0.2.md).
 
 ### WGSL
 

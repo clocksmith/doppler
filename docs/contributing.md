@@ -1,75 +1,14 @@
-# Contributing and Agent Setup
+# Contributing
 
-## Agent instruction baseline
-
-- `AGENTS.md` is canonical for all repository-specific instructions.
-- `CLAUDE.md` and `GEMINI.md` are symlink aliases of `AGENTS.md`.
-- `skills/` is the canonical skills registry.
-- Provider-facing skill aliases are checked by `tools/policies/agent-parity-policy.json`.
-
-## Repository workflow
-
-- Pull request start:
-  - Confirm instruction parity: `npm run agents:verify`
-  - Read the latest files in `docs/` relevant to your change area.
-  - If touching CLI/runtime behavior, re-run the command parity checks in `src/tooling/command-api.js` context before edits.
-- Implementation:
-  - Prefer config/schema-first changes over ad-hoc flags.
-  - Keep debug output in `src/debug/index.js`; avoid one-off `console.*` in runtime code.
-  - For inference/runtime edits, call out kernel-path/config interactions explicitly in the PR body.
-
-## Contributor parity checks
-
-Run parity verification before and after agent instruction updates:
-
-```bash
-npm run agents:verify
-```
-
-## Default CI contract
-
-`npm run check:green` is the repository gate: behavior checks on every change, plus
-the mirror, drift and policy checks whose inputs the change touches. The
-[testing runbook](testing-runbook.md#repository-gate) defines both sets.
-`npm run ci:check` runs `kernels:check` (kernel codegen, registry, and digest checks)
-and then `check:all`, every gate check regardless of inputs.
-
-The `Smoke` GitHub Actions workflow (`.github/workflows/check-green.yml`) runs
-only `npm run package:smoke`: installed public imports, declarations, and synthetic
-consumer contracts, without a browser, GPU provider, or downloaded model. It does
-not run `check:green` or the full test suite. The
-[testing runbook](testing-runbook.md#ci-notes) records the reproduction command
-and separate on-demand browser, hardware, and model validation lanes.
-
-## Repo touch policy reminder
-
-The repo is code-first and instruction-first. Prefer linking to canonical docs over duplicating policy descriptions in product-facing docs such as `README.md`.
-
-## Writing architecture and benchmark claims
-
-- Use explicit engine naming: `Doppler` and `Transformers.js (v4)`.
-- Prefer plain language over niche runtime jargon.
-- For each comparison claim, include:
-  - one architectural difference,
-  - one measurable effect,
-  - one artifact reference (`benchmarks/vendors/results/...`) and the reproduce command.
-- Avoid absolute claims like "always faster." Use scoped phrasing tied to workload, mode, and cache/load settings.
-
-## Change categories
-
-- Core runtime (`src/inference`, `src/gpu`, `src/loader`):
-  - Update type contracts (`.d.ts`) in the same commit.
-  - Prefer deterministic behavior changes with explicit config gates.
-- Conversion (`src/converter`, `tools/convert-*`):
-  - Add or update converter regressions under `tests/converter`.
-  - Preserve manifest semantics and shard naming expectations.
-- Tooling/CLI (`tools`, `src/tooling`, `src/index*.js`):
-  - Ensure command contracts stay parity-safe between browser and Node.
-  - Update `src/tooling/command-api.js` and `docs/style/command-interface-design-guide.md` references when command contracts change.
-
-## Pre-merge checklist
-
-- [ ] `npm run ci:check`
-- [ ] Run at least one manual runtime lane (`test:gpu` or browser harness) when the change touches GPU execution
-- [ ] Any behavior change has a regression test under `tests/` and artifact trail
-- [ ] Public API changes reflected in the correct entry surface (`src/index.js`, `src/index-browser.js`, or subpath exports)
+- Workflow and repository rules: [AGENTS.md](../AGENTS.md). Verified changes are
+  committed and pushed straight to `main`; there are no pull requests or
+  pre-merge reviews. `CLAUDE.md` and `GEMINI.md` are symlinks to `AGENTS.md`,
+  and `skills/` is the canonical skill registry.
+- Which checks to run, and what CI runs: [testing runbook](testing-runbook.md)
+  (the tier table in [AGENTS.md](../AGENTS.md#style-guides) is the short form).
+- Run `npm run agents:verify` only when the conditions in
+  [AGENTS.md](../AGENTS.md#agent-instruction--skills-parity-required) apply
+  (symlinks, `skills/` entries, or listed AGENTS.md headings change).
+- Benchmark and comparison claims: [benchmark methodology](benchmark-methodology.md).
+- Public priorities and where to pick work: [GOALS.md](../GOALS.md#current-priorities)
+  and [GitHub issues](https://github.com/clocksmith/doppler/issues).

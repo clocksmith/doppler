@@ -47,6 +47,37 @@ after Holm correction. V12 is seed-confirmed data-centric SFT compiler evidence;
 it is not RLVR, teacher distillation, semantic-kernel correctness, or promotion.
 See the [V12 controlled-data result](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v12-2026-07-13.md).
 
+### Result details
+
+- **Primary model.** Qwen 3.5 9B is provisioned at exact revision
+  `c202236235762e1c871ad0ccb60c8ee5ba337b9a`.
+- **V9** introduced grouped on-policy rollouts, policy/reference token
+  log-probabilities, reward vectors, advantages, DPO, and a clipped GRPO update
+  through the Gamma ROCm protocol.
+- **V10** seed-11 SFT raised family-disjoint public compiler-repair pass@1 from
+  8.36% to 88.29%. Base and adapted rollouts use the same task order, sample
+  count, sampling parameters, and per-sample seeds. Generation receipts record
+  KV-cache, sample-batch, and log-probability-batch behavior, and resumable
+  prefixes fail closed on any model, policy, dataset, sampling, or training
+  mismatch.
+- **Zero-signal skips.** DPO is skipped when verifier-derived data contains no
+  preference pair. GRPO is skipped when every group has zero advantages.
+  Executing optimizer steps on an all-zero learning signal is not RLVR evidence.
+- **V11 GRPO.** The primary implementation filters zero-advantage samples,
+  seed-shuffles the remaining samples, accumulates the declared microsteps
+  against one frozen rollout policy, and performs exactly one optimizer update
+  with zero stale-policy updates. DPO and GRPO inputs came only from the
+  diagnostic split; the public split was reserved for one policy comparison.
+  Twelve groups supplied 96 nonzero-advantage samples; 11 groups had
+  constructive verifier variance and one varied only on exact-reference match.
+  The 400-step DPO policy trained on 11 pairs. V11 is one-seed evidence.
+- **V12.** The old 800-step dataset order exposed byte-identical prefixes in
+  anchor, external20, and random20; V12 instead seed/hash-ordered all 1,200 rows
+  and consumed every lane once at seeds 11, 29, and 47 on the 299-task public
+  compiler set. It replayed the frozen diagnostic selection rule on public data.
+  See the
+  [historical design](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v12-design-2026-07-12.md).
+
 The V8 WGSL student replay is execution-verified SFT, also called
 response or sequence-level distillation. It is not RLVR and it is not logit
 knowledge distillation. The current receipt is

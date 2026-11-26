@@ -128,11 +128,9 @@ The closeout artifact must retain:
 - median and minimum per-token decode time per engine
 - the paired 95% confidence interval of the difference
 
-An absolute median throughput difference below 0.5% with a confidence interval
-that crosses zero is recorded as parity within measurement noise. It is not a
-win or a reason to keep changing kernels. If a statistically supported residual
-survives, compare encoded dispatch count and attention phase share before
-reopening projection math.
+Interpretation (parity, win, inconclusive) and what to do with a surviving
+residual follow
+[Benchmark Methodology](benchmark-methodology.md#near-parity-statistical-protocol).
 
 ## Commands
 
@@ -146,4 +144,5 @@ node tools/local-gpu-challengers.js --probe-local --json
 `--probe-local` reports host runner availability (GPU driver tools, vendor
 CLIs and Node packages). Doppler is JavaScript-only and no longer probes a
 Python torch install; check a PyTorch baseline in its own environment. The default check validates only checked-in
-contracts, so CI does not depend on local GPU tools.
+contracts, so it runs without local GPU tools (`npm run
+bench:local-gpu:challengers:check`; no CI workflow runs it).

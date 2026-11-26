@@ -10,7 +10,8 @@ import exemption.
 ## Checks and tests
 
 Start with `npm run check:fast`. It checks source style and ownership, changed
-baseline style rules, and receipt retention without GPUs or model downloads.
+baseline style rules, receipt retention, kebab-case enum values and the
+JavaScript-only rule (`js-only:check`) without GPUs or model downloads.
 Run affected behavior tests through `node tools/run-node-tests.js <test-files>`.
 `tests/tooling/` contains checker and generator tests; a passing static gate is
 separate from numerical, device and model qualification.

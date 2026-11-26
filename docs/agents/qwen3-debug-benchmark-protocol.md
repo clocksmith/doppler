@@ -50,17 +50,20 @@ Keep benchmark evidence mode-specific:
   rerank latency from the runtime report until a rerank-specific vendor compare
   lane exists.
 
-Every performance claim needs a saved JSON receipt, the command that produced
-it, the artifact source (`local` or `quickstart-registry`), and explicit
-claimability state. Local compare wins are not release claims until the hosted
-artifact is published and re-measured from the hosted source.
+Record the artifact source (`local` or `quickstart-registry`) with each
+receipt; a local compare win is not a release claim until the hosted artifact is
+published and re-measured from the hosted source. Claim requirements are in
+[Benchmark Methodology](../benchmark-methodology.md#claim-requirements); the
+pre-claim checks are in [Benchmark Methodology](../benchmark-methodology.md#claimable-compare-checklist).
 
 ## Q4K Failure Handling
 
-When F16 passes and Q4K fails:
+Run the [quantized failure control](debug-protocol.md#4-quantized-failure-control)
+first. When F16 passes and Q4K fails on a Qwen lane:
 
 1. Keep F16 and Q4K as separate catalog/runtime claims.
-2. Diff tokenizer IDs first, then pooled embeddings or logits.
+2. For embedding and reranker lanes, compare pooled embeddings or scores after
+   the boundary ladder's token-ID check.
 3. Compare final norm, LM head, and scoring head materialization.
 4. Check quantized dequant scales and row/group layout before changing model
    semantics.

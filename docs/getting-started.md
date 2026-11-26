@@ -6,20 +6,21 @@ qualification, and benchmarking are separate engineering workflows.
 
 ## Published first run
 
-This guide pins `dopplerx@0.1.5`, the published revision whose package and model
-artifact endpoints were checked for this example. For newer source revisions and
-published versions, see the [changelog](../CHANGELOG.md) and
+This guide pins `dopplerx@0.1.7`, the current published release (npm `latest`).
+Source revisions after it, including the unpublished 0.2.0 candidate, are in
+the [changelog](../CHANGELOG.md); published versions are in the
 [npm package history](https://www.npmjs.com/package/dopplerx?activeTab=versions).
 The pinned quickstart includes the
 `gemma3-270m` alias for the hosted Gemma 3 270M Q4K model:
 
 ```sh
-npx --yes --package dopplerx@0.1.5 dopplerx --help
-npx --yes --package dopplerx@0.1.5 dopplerx --list-models
-npx --yes --package dopplerx@0.1.5 dopplerx --model gemma3-270m --prompt "Describe WebGPU briefly"
+npx --yes --package dopplerx@0.1.7 dopplerx --help
+npx --yes --package dopplerx@0.1.7 dopplerx --list-models
+npx --yes --package dopplerx@0.1.7 dopplerx --model gemma3-270m --prompt "Describe WebGPU briefly"
 ```
 
-Use Node 20 or newer and a working WebGPU provider. The published package has
+Use Node 22 (what CI and qualified runs use) and a working WebGPU provider; the
+package declares no `engines` minimum and older Node versions are untested. The published package has
 optional native provider dependencies; JavaScript does not remove host GPU,
 driver, or native installation requirements. A provider error needs an explicit
 supported configuration, not a silent CPU or cloud fallback. Browser use requires
@@ -28,19 +29,32 @@ a WebGPU-capable browser; browser and Node qualification are separate.
 The package's registry pins model revision
 `a8591b20bce7c22d75becde1315482e76ff85fc9`. The six hosted weight shards total
 399,357,184 bytes, plus tokenizer, manifest, package, and cache overhead.
-Package retrieval and those artifact endpoints were checked for this guide;
-that check is not a fresh physical inference, minimum-memory, or offline-reopening
-qualification. See the [model evidence](model-support-matrix.md) for exact support
+This guide makes no fresh physical inference, minimum-memory, or
+offline-reopening qualification claim. See the [model evidence](model-support-matrix.md) for exact support
 scope. First execution downloads model assets. Retain required assets before
 expecting offline operation.
+
+## Package name
+
+The package was published as `doppler-gpu` up to 0.7.x (last 0.7.8) and is now
+`dopplerx`, whose version numbering restarts at 0.1. `doppler-gpu` remains a
+separate npm package; new installs and imports use `dopplerx`. The `dopplerx`
+package still ships a `doppler-gpu` bin alias for the quickstart. Older text
+that names `doppler-gpu` versions or subpaths describes the former package.
 
 ## Embed the published compatibility path
 
 Install the exact release:
 
 ```sh
-npm install --save-exact dopplerx@0.1.5
+npm install --save-exact dopplerx@0.1.7
 ```
+
+The shortest embedding path is `dopplerx/compat`, the manifest-loading
+[compatibility facade](api/compat.md). It is tier `experimental` in the
+[subsystem support matrix](subsystem-support-matrix.md); the primary
+application surface is the [signed Run API](api/root.md) (`dopplerx/host`),
+which opens signed Capsules under application-supplied trust.
 
 ```js
 import { dr } from 'dopplerx/compat';
@@ -53,9 +67,8 @@ try {
 }
 ```
 
-This is the published manifest-loading compatibility API. Keep sessions open
-across requests when appropriate and close them at application shutdown.
-The [signed Run API](api/root.md), [choice scoring](api/choice-scoring.md), and
+Keep sessions open across requests when appropriate and close them at
+application shutdown. The [signed Run API](api/root.md), [choice scoring](api/choice-scoring.md), and
 [resident partitions](distribution/resident-partition-execution.md) have their
 own version, model, and host qualification boundaries. Consult those contracts
 before using them. Applications own prompts, policy, trust, updates, and

@@ -1,5 +1,14 @@
 # Kernel-Path Builder Report
 
+> **Stale generated snapshot, not maintained (noted 2026-11-26).** Its generator,
+> `tools/sync-kernel-path-builder-index.js`, was removed in commit 417b2bcaf
+> (2026-03-23), and no document or script names this file. Its recorded
+> WGSL digests no longer match the current sources for 20 of the 21 kernel files it
+> lists, and its summary says 11 models while it has 12 model sections. The builder
+> library remains at `src/tooling/kernel-path-builder/index.js`
+> ([tooling surface](../../docs/agents/tooling-surface.md#repository-operator-entrypoint-kernel-path-builder)).
+> Do not use this file as evidence.
+
 ## Summary
 
 - Models indexed: 11

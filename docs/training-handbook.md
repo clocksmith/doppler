@@ -20,7 +20,7 @@ import {
   getTrainingCapabilities,
   loadTrainingWorkloadCapsule,
   trainSftLoRA,
-} from 'doppler-gpu/training';
+} from 'dopplerx/training';
 ```
 
 The library requires explicit `webgpu-native` or `external` backend selection (`webgpu_native` is read throughout 0.x).
@@ -103,7 +103,7 @@ Action requirements:
 ## Current Implementation Notes
 
 - `lora` and `distill` remain Node-only in the command API. The public
-  `doppler-gpu/training` library separately exposes native Qwen LoRA training
+  `dopplerx/training` library separately exposes native Qwen LoRA training
   to browser, Node, and Bun callers that already own a loaded text pipeline.
 - `lora run` executes the built-in `baseModelId="training-toy"` /
   `datasetFormat="toy_linear_classification_jsonl"` fixture, the native
@@ -204,55 +204,15 @@ Action requirements:
 
 ## Verifier-Guided Optimizer Boundary
 
-V8 qualified teacher repairs and trained them with completion-masked SFT.
-Passing executable checks made the data execution-verified; it did not turn
-that optimizer into RLVR.
-
-V9 introduced grouped on-policy rollouts, policy/reference token log-probabilities,
-reward vectors, advantages, DPO, and a clipped GRPO update through the Gamma
-ROCm protocol. Qwen 3.5 9B is provisioned at exact revision
-`c202236235762e1c871ad0ccb60c8ee5ba337b9a`. V10 completed seed-11 SFT and
-raised family-disjoint public compiler-repair pass@1 from 8.36% to 88.29%.
-That is a narrow SFT capability result, not RLVR, semantic kernel correctness,
-or promotion. Base and adapted rollouts use the same task order, sample count,
-sampling parameters, and per-sample seeds. Generation receipts record KV-cache,
-sample-batch, and log-probability-batch behavior, and resumable prefixes fail
-closed on any model, policy, dataset, sampling, or training mismatch.
-
-DPO is skipped when verifier-derived data contains no preference pair. GRPO is
-skipped when every group has zero advantages. Executing optimizer steps on an
-all-zero learning signal is not RLVR evidence. The primary GRPO implementation
-filters zero-advantage samples, seed-shuffles
-the remaining samples, accumulates the declared microsteps against one frozen
-rollout policy, and performs exactly one optimizer update with zero stale-policy
-updates. V11 derived DPO and GRPO inputs only from the diagnostic split and
-reserved the public split for one policy comparison. Twelve groups supplied
-96 nonzero-advantage samples; 11 groups had constructive verifier variance and
-one varied only on exact-reference match. The one-update GRPO policy raised
-public pass@1 from 88.29% to 94.98%, with 20 paired wins and zero losses. The
-400-step DPO policy trained on 11 pairs regressed to 36.79% pass@1 and is
-rejected. This is one-seed compiler-repair capability evidence, not semantic
-kernel correctness or promotion. See the
-[V11 optimizer result](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v11-2026-07-12.md).
-
-These optimizer surfaces, and any future minimum-risk, process-supervision,
-CISPO, or on-policy distillation lane, must follow the
-[Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) and
-materialize the complete artifact chain before making a training claim. The
-[V8 rejection](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-student-replay-v8-2026-07-11.md) and
-[V10 SFT result](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v10-2026-07-12.md) remain separate.
-
-V12 completed the corrected data-lane ablation. The old 800-step dataset order
-exposed byte-identical prefixes in anchor, external20, and random20; V12 instead
-seed/hash-ordered all 1,200 rows and consumed every lane once at seeds 11, 29,
-and 47. On the 299-task public compiler set, external20 reached 99.443% mean
-pass@1 versus 98.439% for anchor and 98.885% for random20. It beat anchor at all
-three seeds and replayed the frozen diagnostic selection rule on public data,
-but none of the six per-seed control tests was significant after Holm
-correction. This is seed-confirmed data-centric SFT compiler evidence, not
-teacher distillation, semantic-kernel correctness, or promotion. See the
-[V12 controlled-data result](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v12-2026-07-13.md) and the
-[historical design](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v12-design-2026-07-12.md).
+V8 trained qualified teacher repairs with completion-masked SFT; passing
+executable checks made the data execution-verified, not the optimizer RLVR.
+V9 to V12 results, the primary-model revision, and their claim boundaries are
+canonical in
+[Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md#current-support-boundary).
+Every optimizer surface, including any future minimum-risk,
+process-supervision, CISPO, or on-policy distillation lane, must follow that
+contract and materialize the complete artifact chain before making a training
+claim.
 
 Legacy Distill Studio helpers are compatibility tooling only:
 - `tools/distill-studio-mvp.js`
@@ -313,50 +273,12 @@ Rule: if it changes behavior, it belongs in the workload capsule.
 
 ## Run Roots and Artifacts
 
-Deterministic run roots:
-- `reports/training/lora/<workload-id>/<timestamp>/`
-- `reports/training/distill/<workload-id>/<timestamp>/`
-
-Each run root contains:
-- `run_contract.json`
-- `workload.lock.json`
-- `logs/`
-- `checkpoints/`
-- `eval/`
-- `scoreboard/`
-- `exports/`
-- `compare/`
-- `quality-gate/`
-
-Checkpoint readiness is explicit:
-- checkpoint metadata is written separately from raw state
-- finalized checkpoints are marked with `checkpoint.complete.json`
-- watchers evaluate only finalized checkpoints
-
-Canonical artifact classes:
-- `training_run_contract`
-- `training_checkpoint`
-- `training_eval_report`
-- `training_scoreboard`
-- `training_compare_report`
-- `training_quality_gate`
-- `lora_adapter_manifest`
-- `distill_stage_manifest`
-- `subset_manifest`
+Run-root layout, checkpoint finalization, and artifact classes are canonical in
+[Training Artifact Policy](training-artifact-policy.md#run-root-layout).
 
 ## Claim Traceability Requirements
 
-A publishable claim must include:
-- `reportId`
-- `workloadId`
-- `workloadPath`
-- `workloadSha256`
-- `configHash`
-- `datasetPath`
-- `datasetHash`
-- `claimBoundary`
-
-Mapping is deterministic from workload-capsule bytes and derived artifact payloads.
+See [Training Artifact Policy: Required Traceability Fields](training-artifact-policy.md#required-traceability-fields).
 
 ## Governance Rules
 

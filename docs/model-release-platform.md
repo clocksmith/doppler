@@ -136,8 +136,9 @@ are unique, rollout percentages advance monotonically to 100%, and the rollback
 target must be the pinned previous release.
 
 The public command forms are `doppler release` and
-`npx --package doppler-gpu doppler release`; the npm package is named
-`doppler-gpu`. The command has explicit `qualify` and `decide` phases. It emits
+`npx --package dopplerx@<version> doppler release`; the `doppler` bin ships in
+the `dopplerx` package, and the reusable release action runs
+`dopplerx@$DOPPLER_VERSION`. The command has explicit `qualify` and `decide` phases. It emits
 signed fleet receipts or an eligible/blocked decision plus immutable evidence,
 including a retained copy of the exact candidate Capsule envelope, and always
 reports `activationPerformed: false`. The reusable workflow preserves every

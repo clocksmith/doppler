@@ -150,7 +150,7 @@ exports/
 ```
 
 Format reference:
-- `docs/spec/RDRR_LORA_FORMAT.md`
+- [LoRA adapter format](../../../docs/lora-format.md)
 
 Optional GGUF conversion helper: removed in browser-only migration.
 

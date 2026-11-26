@@ -29,9 +29,9 @@ source/declaration types, style, architecture and export parity pass against
 5d2c13bf. The phase/layer selection cache is scoped by immutable kernel-path
 and kernel-registry identities; changing registry scope revalidates admission.
 
-mac-host Node22.20.0 with existing webgpu0.4.0 selected observed Apple M3 Metal3.
+mac-host Node 22.20.0 with existing webgpu 0.4.0 selected observed Apple M3 Metal 3.
 Twelve physical immediate/recorded cases (one token, 32/33/53 tokens, hidden
-widths1/7/2048, saturated scalar gates and null/positive/zero/negative clamp)
+widths 1/7/2048, saturated scalar gates and null/positive/zero/negative clamp)
 match the existing three-dispatch composition element for element: maxAbs=0.
 These are component correctness receipts, not amd-host Chrome qualification.
 The default-sandbox adapter-unavailable attempt and a missing-helper shader

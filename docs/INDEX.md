@@ -12,6 +12,7 @@ host qualification, and external adoption are separate.
 - [Performance and sizing](performance-sizing.md) — measured limits and prerequisites.
 - [Product priorities](../GOALS.md#current-priorities) — durable goals and ownership.
 - [Product acceptance](../GOALS.md#product-acceptance-and-evidence) — technical requirements and retained campaign evidence.
+- [Receipt index](evidence/receipt-index.md) — which retained receipts are superseded by later ones, and errata for receipt summaries that contradict their own data.
 
 ## Supported operations and evidence
 
@@ -23,7 +24,7 @@ host qualification, and external adoption are separate.
 - [Model support inventory](model-support-inventory.md) — evidence gaps.
 - [Subsystem support](subsystem-support-matrix.md) — public, experimental, and internal-only status.
 - [Model competition scoreboard](model-competition-scoreboard.md) — comparison receipts.
-- [Release matrix](release-matrix.md) — model/platform evidence snapshot.
+- [Release matrix](release-matrix.md) — historical 2026-09-07 model/platform snapshot.
 
 ## Model preparation
 
@@ -62,16 +63,19 @@ host qualification, and external adoption are separate.
 
 ## Historical and experimental campaigns
 
-- [Archived package changelog through 0.4.15](status/archive/package-changelog-through-0.4.15.md) — retained release history.
+- Archived package changelogs [through 0.6.1](status/archive/package-changelog-through-0.6.1.md) and [through 0.4.15](status/archive/package-changelog-through-0.4.15.md) — retained history of the former `doppler-gpu` package.
 - [Search starter](../examples/document-search/README.md) — versioned example; fresh-install metadata expired.
 - [Glimmer campaign](programs/glimmer-architectural-generalization.md) — lowered candidates with failing source parity; separate capability gates.
 - [MoM layer draft](distribution/mom-layer-draft.md) — experimental coordination/research proposal.
 
 ## Testing and Benchmarks
 
-- [Testing](testing.md) - testing index.
-- [Testing Runbook](testing-runbook.md) - operational test execution.
+- [Testing Runbook](testing-runbook.md) - canonical test tiers, repository gate, and what CI runs.
+- [Inference test matrix](inference-test-matrix.md) - layered coverage and representative-model slicing.
+- [Debug playbook](debug-playbook.md) - debug workflow.
+- [Test harness guide](../tests/GUIDE.md) and [kernel test coverage](../tests/kernels/GUIDE.md) - harness and kernel test references.
 - [Kernel Testing Design](kernel-testing-design.md) - kernel correctness design guidance.
+- [Kernel compatibility and overrides](style/wgsl-style-guide.md#kernel-compatibility-and-overrides) - override and compatibility policy.
 - [Potential Doppler optimizations](performance/potential-optimizations.md) - single prepared-execution opportunity inventory, ordered implementation and evidence gates.
 - [Kernel Performance Optimization](developer-guides/16-kernel-performance-optimization.md) - phase-led GPU optimization, negative results, and parity stopping rules.
 - [Kernel Benchmark Baselines](../tests/kernels/benchmarks.md) - expected kernel perf ranges and reference baselines.
@@ -85,6 +89,7 @@ host qualification, and external adoption are separate.
 - [Training Artifact Policy](training-artifact-policy.md)
 - [Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) - method names, rollout and reward receipts, verifier separation, and promotion gates.
 - [WGSL Repair and Writer Campaign](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/README.md) - moved to Gamma: V8 student replay, V9-V13 repair, writer v1-v3, and source catalog v2 receipts, tools, and policies.
+- [Qwen 3.5 9B Metal status](status/qwen35-9b-metal-status.md) - current verdict and dated chronology for the Qwen 3.5 9B M3 lane; the dated status pages link here.
 - [WGSL Writer v2 Result](status/wgsl-writer-v2-result-2026-07-14.md) - Qwen 3.5 9B seed 47 is selected, three-seed semantic confirmation passes at 95.83% mean, and the selected LoRA has exact Transformers-to-Doppler completion parity; external promotion and general writing remain blocked.
 - [Qwen 3.5 9B Doppler-Native Training Parity Design](status/qwen35-9b-doppler-native-training-parity-design-2026-07-12.md) - SAME-R backend-parity gates, implemented F16 frozen-weight mechanics, and explicit Qwen hybrid-graph blockers.
 - [Training Migrations](training-migrations.md)

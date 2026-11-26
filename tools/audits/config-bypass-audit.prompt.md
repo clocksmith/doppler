@@ -97,13 +97,13 @@ rg -n 'modelType\s*===' src/ --glob '*.js'
 rg -n 'architectureHint\s*===' src/ --glob '*.js'
 
 # Literal returns inside detect/resolve/build functions
-rg -n -A5 'function detect|function resolve|function build' src/converter/manifest-inference.js
+rg -n -A5 'function detect|function resolve|function build' src/converter/ --glob '*.js'
 
 # Hardcoded dtype literals in runtime code
 rg -n "return 'f16'|return 'f32'|return 'bf16'" src/ --glob '*.js' --glob '!*.test.js'
 
 # Literal fallbacks for config tunables
-rg -n 'return true|return false' src/converter/manifest-inference.js
+rg -n 'return true|return false' src/converter/ --glob '*.js'
 ```
 
 ## What Is NOT a Violation
@@ -145,56 +145,14 @@ For each finding:
 6. **Propose fix** — move the value to a config/schema/rule asset, or remove
    the guard if the config chain already has the correct value.
 
-## Known Violations (seed findings)
+## Resolved Seed Findings (historical)
 
-### 1. `detectRmsNormWeightOffset` — CRITICAL
-
-**File:** `src/converter/manifest-inference.js:275-278`
-
-```javascript
-function detectRmsNormWeightOffset(converterInference, modelConfig, defaults) {
-  if (isQwen35LinearAttentionConfig(modelConfig)) {
-    return true;  // ← hardcoded, fires BEFORE config check
-  }
-  if (typeof converterInference?.normalization?.rmsNormWeightOffset === 'boolean') {
-    return converterInference.normalization.rmsNormWeightOffset;
-  }
-  return defaults.normalization.rmsNormWeightOffset;
-}
-```
-
-**Gate:** `isQwen35LinearAttentionConfig` (model-type identity check).
-**Hardcoded value:** `true`.
-**Config chain value:** the Qwen conversion config sets `"rmsNormWeightOffset": false`.
-**Contradiction:** Yes — JS says `true`, config says `false`.
-**Impact:** Applies Gemma-style `(1 + w) * x` RMS norm instead of standard
-`w * x`, causing ~2x scaling error at every norm layer.
-**Fix:** Remove the guard. Let the conversion config drive the value.
-
-### 2. `detectAttentionOutputGate` — MEDIUM
-
-**File:** `src/converter/manifest-inference.js:235-248`
-
-```javascript
-function detectAttentionOutputGate(converterInference, modelConfig, defaults) {
-  if (typeof converterInference?.attention?.attentionOutputGate === 'boolean') {
-    return converterInference.attention.attentionOutputGate;
-  }
-  if (typeof modelConfig?.attn_output_gate === 'boolean') {
-    return modelConfig.attn_output_gate;
-  }
-  if (isQwen35LinearAttentionConfig(modelConfig)) {
-    return true;  // ← hardcoded, after config but before defaults
-  }
-  return defaults.attention.attentionOutputGate;
-}
-```
-
-**Gate:** `isQwen35LinearAttentionConfig` (model-type identity check).
-**Hardcoded value:** `true`.
-**Config chain value:** the Qwen conversion config does not specify `attentionOutputGate`.
-**Contradiction:** No (config is silent), but the value should be in the config.
-**Fix:** Add `"attentionOutputGate": true` to the conversion config, remove the JS guard.
+The two original seed findings, `detectRmsNormWeightOffset` (CRITICAL) and
+`detectAttentionOutputGate` (MEDIUM), were Qwen 3.5 model-type guards in
+`src/converter/manifest-inference.js`. That file was deleted in 0dc425df9
+(2026-03-20, "Remove model preset system"), the guards no longer exist, and the
+Qwen 3.5 conversion configs now set `"rmsNormWeightOffset": true` and
+`"attentionOutputGate": true` explicitly. Do not report them again.
 
 ## Output Format
 
@@ -203,11 +161,11 @@ function detectAttentionOutputGate(converterInference, modelConfig, defaults) {
   "findings": [
     {
       "id": "CBA-001",
-      "function": "detectRmsNormWeightOffset",
-      "file": "src/converter/manifest-inference.js",
-      "lines": [275, 278],
+      "function": "detectExampleField",
+      "file": "src/converter/example.js",
+      "lines": [10, 14],
       "severity": "CRITICAL",
-      "gate": "isQwen35LinearAttentionConfig (model-type identity)",
+      "gate": "isExampleFamilyConfig (model-type identity)",
       "hardcodedValue": true,
       "configField": "normalization.rmsNormWeightOffset",
       "configSource": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
@@ -225,6 +183,6 @@ function detectAttentionOutputGate(converterInference, modelConfig, defaults) {
 
 ## Scope
 
-- Primary: `src/converter/manifest-inference.js` (highest density of detect/resolve functions)
-- Secondary: `src/converter/*.js`, `src/inference/**/*.js`, `src/config/**/*.js`, `src/loader/**/*.js`
+- Primary: `src/converter/*.js` (conversion plan, manifest builder and other detect/resolve functions)
+- Secondary: `src/inference/**/*.js`, `src/config/**/*.js`, `src/loader/**/*.js`
 - Exclude: `tests/`, `tools/`, `benchmarks/`, `docs/`, `demo/`

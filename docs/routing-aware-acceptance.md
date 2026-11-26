@@ -125,8 +125,23 @@ evidence file:
 ```
 
 The CPU fixture is the existing `doppler.flash-next-routing-selection-fixture/v1`
-format, written by
-[prepare-routing-fixture.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-forced-routing-20261112/prepare-routing-fixture.py).
+format. Use the tie-aware converter,
+[prepare-routing-fixture-tie-aware.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/run-20261112/prepare-routing-fixture-tie-aware.py).
+The earlier
+[prepare-routing-fixture.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-forced-routing-20261112/prepare-routing-fixture.py)
+compares the CPU expert indices with one stable argsort and wrongly rejects rows
+with an exact float32 tie between rank 10 and rank 11; the tie-aware version
+checks values instead (no unselected logit may exceed the smallest selected
+logit) and leaves experts, scores, logits and margins byte-identical. See
+[RESUME.md, deviation 4](../reports/flash-next-routing-aware-fresh-20261112/RESUME.md#deviations-from-run-freshsh).
+
+**Historical Python steps.** The CPU-side helpers named below
+(`prepare-routing-fixture-tie-aware.py`, `compare-forced-routing.py`,
+`audit-same-input-all-layers.py`, `cpu-reference.py`, `build-evidence.py`)
+are Python scripts that Doppler no longer ships, because the repository is
+JavaScript-only. The scripts are kept at commit `3e485ca93`;
+run them from a checkout of that commit. No JavaScript replacement exists yet.
+
 Task-quality results use `doppler.routing-aware-task-quality/v1`:
 
 - `caseTokenCounts`
@@ -149,29 +164,42 @@ Task-quality results use `doppler.routing-aware-task-quality/v1`:
    GPU execution. Check each case's token bounds.
 3. **CPU reference.** Use the pinned producer
    (`cpuReference.producerSha256`). For every case, write:
-   - all-position router rows, converted to fixtures with
-     `prepare-routing-fixture.py`;
+   - all-position router rows, converted to fixtures with the tie-aware
+     converter above;
    - logits at the sampled positions;
    - greedy continuations.
 
-   It never reads GPU output.
+   It never reads GPU output. The retained run used
+   [cpu-reference.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/cpu-reference.py)
+   (historical; kept at commit `3e485ca93`).
 4. **Unforced GPU run.** Run each case on the tuple's runtime profile, with
    `tools/run-flash-next-forced-routing.js`, `mode: "observe"` and
    `recordSelections: true`. This writes `selections/gpu-experts-<L>.u32`.
    Also run each case once without instrumentation, to check observation
    neutrality.
+   [run-routing-controls.js](../reports/flash-next-routing-aware-fresh-20261112/run-routing-controls.js)
+   runs the observe and forced-indices modes for many cases in one model load.
 5. **Forced-indices control.** Run each case with `mode: "indices"`. Score the
    final logits with
    [compare-forced-routing.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-forced-routing-20261112/compare-forced-routing.py)
-   under unchanged quantized-v1. Take the router-logit envelope and
+   (historical; kept at commit `3e485ca93`) under unchanged quantized-v1. Take the router-logit envelope and
    `ownSelectionDifferences` from `control.json`.
-6. **Same-input operator checks.** Use the
+6. **Same-input operator checks.** On one pinned long case, capture a complete
+   unforced prefill with
+   [flash-next-same-input-capture-physical.test.js](../tests/integration/flash-next-same-input-capture-physical.test.js),
+   then replay every operator on the pinned CPU source with
+   [audit-same-input-all-layers.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/audit-same-input-all-layers.py)
+   (historical; kept at commit `3e485ca93`). It covers all 48 layers, the root
+   hyper-connection mixer (Flash-Next's final-norm position) and the LM head.
+   Record quantized-v1 violation counts for each family. The earlier
    [same-input audit](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-new-prompts-20261110/audit-same-input-operators.py)
-   method on one pinned long case, extended to all 48 layers, final norm and LM
-   head. Record quantized-v1 violation counts for each family.
+   covered Layers 0 to 24 only.
 7. **Task quality.** Run teacher-forced prefill at the sampled positions and
-   greedy decoding on the GPU. Compare with the CPU reference, and write the
-   task-quality file.
+   greedy decoding on the GPU with
+   [flash-next-task-quality-physical.test.js](../tests/integration/flash-next-task-quality-physical.test.js).
+   Compare with the CPU reference, and write the task-quality file
+   ([build-evidence.py](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/reports/flash-next-routing-aware-fresh-20261112/build-evidence.py),
+   historical; kept at commit `3e485ca93`).
 8. **Evaluate.** Run
    `node tools/evaluate-routing-aware-acceptance.js --evidence EVIDENCE.json --out VERDICT.json`.
    Exit code 0 means `pass` for the recorded tuple only.
@@ -179,11 +207,16 @@ Task-quality results use `doppler.routing-aware-task-quality/v1`:
 Only step 8 decides. Do not tune between steps. A failed run stays failed. A
 new attempt needs a new policy version or a new approved prompt set.
 
-## Gaps this procedure depends on
+## Status of the fresh run
 
-- Same-input checks for Layers 25 to 47, final norm and LM head do not exist
-  yet. The retained audit covers Layers 0 to 24 at one position.
-- Step 7 needs a GPU teacher-forced sampled-position logit capture and a greedy
-  decode harness that bind this policy hash. Neither is written yet.
-- The selection dump (`recordSelections`) and per-token own-selection records
-  are new. They have unit tests only and have not run on a GPU.
+Commit `210719b7` added the all-layer same-input capture and audit (step 6) and
+the GPU task-quality capture (step 7); see the
+[fresh-test README](../reports/flash-next-routing-aware-fresh-20261112/README.md).
+The [paused run](../reports/flash-next-routing-aware-fresh-20261112/RESUME.md)
+completed, for all 22 pinned cases, the frozen inputs, GPU task quality, CPU
+reference round 0 and greedy round 1, the tie-aware routing fixtures, the
+uninstrumented GPU run, and the observe and forced-indices routing controls, plus the same-input GPU capture on
+`ledger-05`. Still missing: the forced-indices comparisons under quantized-v1,
+CPU greedy rounds 2 to 7, the same-input audit, evidence assembly, and the
+evaluator. No result has been scored against the policy, and the policy is still
+proposed.

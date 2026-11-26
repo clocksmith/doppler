@@ -65,7 +65,7 @@ Public and tooling-oriented rather than app-facing.
 This subpath is mixed-tier: the command/storage/registry core is `tier1`, while
 Node operator flows on the same export surface remain `experimental`.
 Browser import helpers and P2P helpers are not package exports (the former
-`dopplerx/tooling-experimental` subpath was removed in 0.7.0). See [Subsystem Support Matrix](../subsystem-support-matrix.md).
+`doppler-gpu/tooling-experimental` subpath was removed in `doppler-gpu` 0.7.0, the package's former name). See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
 
@@ -103,40 +103,14 @@ A seed is capture input, not by itself a verified parity receipt.
 
 ## Command Families
 
-Canonical tooling commands:
+The complete CLI command list, including CLI-only paths such as `program-bundle`
+and `profiles`, is in [the CLI reference](../cli.md#supported-commands). The
+normalized command contract accepts the commands in the table under
+[Command Contract Summary](#command-contract-summary); `diagnose`, `lora`, and
+`distill` are experimental operator commands.
 
-- `convert`
-- `refresh-integrity`
-- `debug`
-- `bench`
-- `verify`
-
-Experimental operator commands:
-
-- `diagnose`
-- `lora`
-- `distill`
-
-Maintenance/export path:
-
-- `program-bundle` is a CLI/tool script for exporting `doppler.program-bundle/v1`.
-  It is intentionally outside `normalizeToolingCommandRequest(...)` because it
-  reads local artifacts and does not have browser command semantics.
-- `program-bundle:reference` is the one-click portable reference-capture lane
-  for fresh bundles. It
-  runs a bounded `verify`, writes the returned report locally, and calls the
-  Program Bundle exporter with that report.
-- `profiles` is a CLI-local discovery path for checked-in runtime profile IDs.
-  It is intentionally outside `normalizeToolingCommandRequest(...)` because it
-  only reads local config metadata and does not execute a workload.
-
-Program Bundle parity:
-
-- use `verify` with `workload="inference"` and `workloadType="program-bundle"`.
-- set `programBundle` or `programBundlePath`.
-- set explicit `parityProviders`, for example `["browser-webgpu", "node:webgpu", "node:doe-gpu"]`.
-- set explicit `programBundleParityMode` to `contract` or `execute`.
-- inspect `schemaValid`, `providerAvailable`, `executed`, and `transcriptMatched` independently for each provider.
+Program Bundle parity runs through `verify` with `workloadType="program-bundle"`.
+See [Program Bundle](../integration/program-bundle.md#cli) for the required fields and per-provider results.
 
 Operator command families:
 
@@ -161,6 +135,7 @@ Important surface rules:
 | --- | --- | --- |
 | `convert` | `request.inputDir`, `request.convertPayload.converterConfig` | CLI/browser relay: Node-only. Direct `runBrowserCommand(...)`: supported with injected `convertHandler` |
 | `refresh-integrity` | `request.modelDir` | Node-only. Rebuilds `manifest.integrityExtensions` from local shard bytes; rejects runtime config inputs |
+| `release` | `request.action` (`qualify` or `decide`), `request.manifestPath`, `request.outputDirectory`, `request.capsuleTrustedSignersPath`, `request.signingPrivateKeyPath`, `request.signingPublicKeyPath`, `request.signingAuthority` | Node-only. `qualify` also requires `targetId` and `deviceIdentityPath`; `decide` requires `fleetTrustedSignersPath`; rejects runtime config inputs. See [Production release command](../cli.md#production-release-command) |
 | `verify` | `request.workload` plus `request.modelId` except `kernels` and `workloadType="program-bundle"` | `request.workload` is required and may be `embedding` or `rerank` for retrieval-model correctness checks; `request.modelUrl` is optional when `request.modelId` is present; `request.inferenceInput` is available for request-owned inference payloads when `workload="inference"`; Program Bundle parity requires `programBundle` or `programBundlePath` |
 | `debug` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference` or `embedding`; `request.inferenceInput` is available when `workload="inference"` |
 | `bench` | `request.workload` plus `request.modelId` | `request.workload` is required and may be `inference`, `embedding`, `training`, `diffusion`, or `energy`; `workload="training"` intentionally allows `modelId: null`; `request.inferenceInput` is available when `workload="inference"` |
@@ -177,7 +152,7 @@ Operator-action notes:
 
 Supported surfaces:
 - `convert`: `--surface auto|node`
-- `refresh-integrity`: `--surface auto|node`
+- `refresh-integrity`, `release`: `--surface auto|node`
 - `debug`, `bench`, `verify`: `--surface auto|node|browser`
 - `diagnose`, `lora`, `distill`: `--surface auto|node`; `--surface browser` is rejected
 
@@ -340,7 +315,7 @@ console.log(result.result?.subset?.subsetManifestPath);
 - `watch`, `compare`, and `quality-gate` are run-root-driven actions
 - `eval` and `export` can operate from an explicit checkpoint path or from finalized checkpoints already present in the run root
 - behavior-changing training/eval policy belongs in workload JSON, not in ad hoc command flags
-- browser conversion/file-picker helpers and P2P helpers are repository-internal; `dopplerx/tooling-experimental` was removed in 0.7.0
+- browser conversion/file-picker helpers and P2P helpers are repository-internal; `doppler-gpu/tooling-experimental` was removed in `doppler-gpu` 0.7.0
 
 ## Code Pointers
 

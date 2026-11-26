@@ -22,14 +22,10 @@ resolved runtime profile, cache state, execution surface, and a comparable basel
 3. Report the first mismatch; only if repair is requested, patch its owner and rerun
    the same command plus the focused regression under identical controls.
 
-## Mandatory Style Guides
+## Style Guides
 
-Read these before non-trivial debug-flow, parity, or harness-contract changes:
-- `docs/style/general-style-guide.md`
-- `docs/style/javascript-style-guide.md`
-- `docs/style/config-style-guide.md`
-- `docs/style/command-interface-design-guide.md`
-- `docs/style/harness-style-guide.md`
+Before non-trivial debug-flow, parity, or harness-contract changes, open the guides in
+the "Debugging inference output" row of the [AGENTS.md owner table](../../AGENTS.md#style-guides).
 
 ## Developer Guide Routing
 
@@ -78,65 +74,28 @@ Infra triage steps:
 
 ## Required Debug Ladder
 
-Use this order for inference failures that load successfully but generate bad output:
+For inference failures that load successfully but generate bad output, follow the
+[Inference Debug Protocol](../../docs/agents/debug-protocol.md) in order (manifest-config
+parity, classify, trusted reference, boundary diffs, quantized control) and stop at the
+first divergent boundary.
 
-1. Classify the failure:
-- tokenization/chat-template
-- conversion/artifact integrity
-- runtime numerics
-- surface/harness parity
-- benchmark-only
+Before the boundary diffs, dump the phase-specific execution contract
+([Debug Protocol, step 3](../../docs/agents/debug-protocol.md#3-use-boundary-diffs-not-broad-speculation)).
 
-2. Establish a trusted reference before patching runtime code:
-- exact prompt text
-- exact token IDs
-- one early activation slice
-- one output/logits slice
+For decode performance regressions, classify the wall (`decodeRecordMs` versus
+`decodeSubmitWaitMs` / `decodeReadbackWaitMs`) as described in
+[Localize the Phase Before Patching](../../docs/agents/benchmark-protocol.md#localize-the-phase-before-patching)
+before editing kernels.
 
-3. Dump the phase-specific execution contract:
-- resolved prefill kernel path
-- resolved decode kernel path
-- active `decodeMode` and `batchGuardReason`
-- speculation / multi-token decode state
-- actual loaded weight/materialization dtype for the hot ops
-
-4. Compare boundary-by-boundary and stop at first divergence:
-- embeddings
-- post input norm
-- Q/K/V pre-RoPE
-- Q/K post-RoPE
-- attention output
-- FFN output
-- final logits
-
-5. Once token IDs or embeddings match, stop changing prompt wrappers or harness formatting until later evidence requires it.
-
-6. For quantized failures, run one F16 or source-precision control before changing quantized kernels.
-- F16/source-precision good + quantized bad => quantized path issue
-- F16/source-precision bad + quantized bad => shared conversion/layout/runtime issue
-
-7. Prefer one config-driven probe over one new theory.
-
-For decode performance regressions, classify the wall before editing kernels:
-- `decodeRecordMs` high => GPU compute or recording path
-- `decodeSubmitWaitMs` / `decodeReadbackWaitMs` high => orchestration or readback path
-- `singleTokenReadbackWaitMs` high on a fair parity lane => likely not a phase-math problem first
-
-Reference workflow: `docs/debug-playbook.md`
-Reusable report template: `docs/debug-investigation-template.md`
-Canonical protocol source: `docs/agents/debug-protocol.md`
+Interpretation: `docs/debug-playbook.md`. Report template:
+`docs/debug-investigation-template.md`.
 
 ## Conversion Completion Discipline
 
-See also: `docs/agents/conversion-protocol.md`
-
-Do not report conversion success unless all of these are true:
-- process exited successfully
-- `manifest.json` exists
-- shard set is present
-- conversion report is valid
-
-If shards exist without a manifest, classify the output as interrupted/incomplete and clean or overwrite it before retrying. Do not treat it as a reference artifact.
+Conversion status is fail-closed; see
+[Conversion status is fail-closed](../../docs/agents/debug-protocol.md#7-conversion-status-is-fail-closed).
+If shards exist without a manifest, clean or overwrite the output before retrying; do
+not treat it as a reference artifact.
 
 ## Fast Triage
 
@@ -174,13 +133,10 @@ Notes:
 
 ## Focused Probes
 
+The trace-heavy run and the logit-focused browser relay run are in
+[Fast Triage](#fast-triage).
+
 ```bash
-# Broad trace-heavy debug run
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID"},"run":{"surface":"auto"}}' --runtime-profile profiles/verbose-trace --json
-
-# Logit-focused browser relay run
-npm run debug -- --config '{"request":{"modelId":"MODEL_ID","runtimeProfile":"diagnostics/debug-logits"},"run":{"surface":"browser","browser":{"channel":"chrome","console":true}}}' --json
-
 # Minimal deterministic decode probe
 npm run debug -- \
   --config '{"request":{"modelId":"MODEL_ID"},"run":{"surface":"auto"}}' \

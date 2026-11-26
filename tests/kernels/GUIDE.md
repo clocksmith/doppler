@@ -6,7 +6,7 @@ GPU kernel correctness validation and benchmarks for the DOPPLER WebGPU inferenc
 
 ```bash
 # From repo root
-python3 -m http.server 8080
+node tools/serve-static.js --port 8080
 ```
 
 Open the harness in a WebGPU-capable browser:

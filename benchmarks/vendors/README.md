@@ -93,33 +93,19 @@ Claim format to keep reports auditable:
 
 ## Claimable Evidence Rules
 
-Use these before turning a compare result into README copy, a chart, or a release-facing statement:
+Claim requirements and fairness rules (output-parity policy, product-format versus
+format-identical comparisons, artifact source, real performance lane) are canonical
+in [Benchmark Methodology](../../docs/benchmark-methodology.md#fair-comparison-rules);
+the pre-promotion checklist is in
+[Claimable compare checklist](../../docs/benchmark-methodology.md#claimable-compare-checklist).
+What the compare tooling in this folder adds:
 
-- Output-policy status must be clean on the promoted lane.
-  By default, deterministic greedy text or token mismatch is diagnostic evidence,
-  not claimable speed evidence. A product-format throughput lane may relax exact
-  match only when `compare-engines.config.json` declares
-  `outputParityPolicy.requireMatch=false` with `matchMode="decode-valid"`; the
-  claim must then say exact correctness parity is not being claimed.
-- Prompt rendering must be explicit and shared.
-  `tools/compare-engines.js` records `promptContract` with raw/rendered prompt
+- `tools/compare-engines.js` records `promptContract` with raw/rendered prompt
   text and passes the same rendered model-input prompt to both engines whenever
   compare-owned rendering is used.
-- Zero-decode runs are invalid evidence.
-  If an engine returns no decode tokens or an empty generated text sample for a
-  multi-token benchmark, the compare artifact must mark the lane non-comparable
-  instead of reporting a speed claim.
-- Verify the measured artifact source.
-  Published HF artifacts, local manifests, and compare-profile defaults can diverge; claim only from the source the artifact actually used.
-- Use the real performance lane.
-  Do not promote timing from a debug-only `f32`, `http`, or otherwise investigation-specific profile as if it were the warmed compare lane.
-- Separate product-engine wins from format-identical wins.
-  A Doppler RDRR or direct-source LiteRT lane may be compared with the best
-  available Transformers.js ONNX/WebGPU lane, but the artifact and claim must
-  say the formats differ.
-- Keep one traceable artifact per claim.
-  A claim should point back to one saved compare JSON and one reproducible command.
-- If a chart mixes legacy `warm` fixtures with newer `compute/parity` fixtures, the chart tool must normalize that intentionally and have a regression test covering it.
+- A multi-token run where an engine returns no decode tokens or an empty generated
+  sample marks the lane non-comparable (for example
+  `doppler-invalid-zero-decode-tokens`) instead of reporting a speed claim.
 
 ## Registry Files
 

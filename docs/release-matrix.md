@@ -1,5 +1,12 @@
 # Release Matrix
 
+> **Historical snapshot (generated 2026-09-07 at version 0.6.0 of `doppler-gpu`, the package's former name).**
+> It lists 26 models; the catalog now has 33, and some vendor mappings have since
+> changed. It is not regenerated: `node tools/vendor-bench.js matrix` currently
+> fails on a stale compare-config hash in a retained compare artifact. For current
+> model scope see the [model support inventory](model-support-inventory.md) and
+> [model support matrix](model-support-matrix.md).
+
 Generated: 2026-09-07T18:11:16.222Z
 Release: channel=main-snapshot, version=0.6.0, commit=7451ce780039fb320a6f0798cac8b23c3070d4af, dirty=yes
 

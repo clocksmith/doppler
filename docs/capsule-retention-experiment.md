@@ -5,6 +5,13 @@ reduces process memory while preserving the same model programs, frozen source
 references, and opening/inference budgets. It measures the opening-time cost as
 well as the memory benefit. Unlimited retention remains the runtime default.
 
+This page covers the 20260907 retention-experiment campaign
+(`reports/retention-experiment/20260907`) and its independent public-reconstruction
+replay (`reports/retention-experiment/20260907-independent`). The earlier
+retention comparison in the 20260906 capsule-baseline campaign is a separate
+campaign with its own receipt; see
+[Capsule physical baseline](capsule-physical-baseline.md#measured-retention-tradeoff).
+
 The [separate public-reconstruction replay](../reports/retention-experiment/20260907-independent/acceptance.json)
 passed from a clean isolated checkout and a freshly installed consumer built from
 independently reconstructed artifacts. Both application arms passed their full

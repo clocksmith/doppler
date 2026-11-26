@@ -44,7 +44,7 @@ Checked-in config inventory:
 | `diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json` | `diffusiongemma-26b-a4b-it-q4k-ehf16-af16` | DiffusionGemma text-only Q4K f16 activation block-diffusion artifact |
 | `gpt-oss-20b-f16-xmxfp4.json` | `gpt-oss-20b-f16-xmxfp4` | GPT-OSS F16/XMXFP4 config |
 | `janus/janus-pro-1b-text-q4k-ehaf16.json` | `janus-pro-1b-text-q4k-ehaf16` | Janus text-only Q4K artifact |
-| `lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json` | `lfm2.5-1.2b-instruct-q4k-ehf16-af32` | LFM2 hybrid conv/attention scheduling |
+| `lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json` | `lfm2.5-1.2b-instruct-q4k-ehf16-af32` | LFM2 hybrid conv/attention scheduling. This `modelBaseId` predates the naming rule (it contains dots), so the converter rejects it until the config is renamed |
 | `qwen3/qwen-3-5-0-8b-q4k-ehaf16.json` | `qwen-3-5-0-8b-q4k-ehaf16` | Qwen hybrid linear/full attention graph |
 | `qwen3/qwen-3-5-2b-q4k-ehaf16.json` | `qwen-3-5-2b-q4k-ehaf16` | Qwen hybrid linear/full attention graph |
 | `qwen3/qwen-3-5-9b-f16-af32.json` | `qwen-3-5-9b-f16-af32` | Qwen 3.5 9B F16 correctness control |

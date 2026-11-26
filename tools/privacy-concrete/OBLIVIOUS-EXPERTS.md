@@ -1,5 +1,7 @@
 # All-expert operator baseline
 
+> Historical research record: see [Status](README.md#status) for the code removal and the 2026-11-17 stop; the commands for the removed scripts are kept in [this guide at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/OBLIVIOUS-EXPERTS.md).
+
 `oblivious_experts.py` implements trusted-client SwiGLU expert composition over a fixed public schedule. Every invocation evaluates gate, up and down projections for **every** expert, validates every returned vector and completes all verification callbacks before locally combining private selected experts and routing weights. Selected IDs and weights are never arguments to the projection adapter. No selected-only calls, weight fetches or integrity checks occur. A failure in an unselected expert aborts just as it does for a selected expert, avoiding that selective-failure distinction.
 
 Private inputs, routing and returned vectors are owned snapshots; a reused adapter buffer or concurrent caller mutation cannot rewrite prior expert results. Operation metadata is immutable. Cancellation is checked before and after each projection; rejected and completed attempts cannot be resumed or reused. No private request state is stored globally.
@@ -15,5 +17,3 @@ A complete Flash backend still needs full integration/numerical qualification of
 `FlashMoEProgram` now composes the shared SwiGLU path, trusted-client float32 softmax/top-k (using Torch tie semantics), optional top-k normalization, the complete all-expert path and sigmoid shared-expert mixing. Its public program has five additional projections: 1,541 for one Flash-sized MoE block. The source is pinned to the official Transformers commit recorded in `operatorReference`, including the default normalization policy omitted from the checkpoint JSON.
 
 The isolated reference workflow downloads those exact hash-verified source files and uses only the four inspected pure-PyTorch MoE classes, disabling the optional fused-expert dispatch decorator. It compares public small FP32 fixtures against the official sparse block. This is component numerical evidence when the check passes; it uses no actual Flash weights, BF16 qualification, FHE adapter or full-model generation. The conflicting Transformers runtime is not installed into the current Qwen/CML environment.
-
-> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `oblivious_experts.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

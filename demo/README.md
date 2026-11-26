@@ -90,10 +90,8 @@ Markdown. Picking an alternative continues a live answer from that exact token
 boundary and keeps the original, with a switcher at each fork. Branching is always
 available without a toggle. Branches can branch again. A branch
 replays the run's exact `inputTokenIds`, the answer's token IDs before the fork,
-and the chosen ID through `model.inspect.generate(prompt, { inputTokenIds })`;
-generation starts from cleared attention and recurrent state, so displayed text
-is never re-tokenized. Replay prefills the prefix in one pass, so its numerics
-can differ slightly from the original token-by-token decode. Fragments of one
+and the chosen ID, so displayed text is never re-tokenized; see
+[exact-prefix replay](../docs/api/compat.md#streaming-inspection). Fragments of one
 character display together but fork at their first token. Recording changes
 execution (probability capture disables command batching), so every live run
 uses `demo/model-activity` by default (`demo/model-activity-timing` with GPU timing), or `demo/guided-quality` / `demo/deep-xray` after activity is turned off and its timings are
@@ -116,25 +114,30 @@ import/export, and confirmed cache removal keep their controls synchronized.
 
 ## Public boundaries
 
+This file describes `main`. The hosted demo is older: its
+[`release.json`](https://d4da.com/doppler/release.json) (checked 2026-11-26) names
+demo source commit `df761c156` and runtime version 0.7.3 of `doppler-gpu`, the
+package's former name.
+
 The model picker, verified OPFS cache, model lifetime, and generation path use
-the root `dr` API from `dopplerx`. Runtime-profile controls use
-`dopplerx/tooling/runtime`. Evidence views use
-`dopplerx/tooling/evidence` and the public `model.inspect` handle. Live demo
-code may not import the compatibility `dopplerx/tooling` barrel.
+`dr` from `dopplerx/compat`, the experimental
+[compatibility facade](../docs/api/compat.md); the root `dopplerx` export has no
+`dr`. In the page this resolves through the import map in `demo/index.html`,
+which maps `dopplerx` and `dopplerx/compat` to `src/index-browser.js` and the
+tooling subpaths to their `src/` files. Precision replay
+(`demo/ui/precision-replay/live.js`) still reads `dr` from bare `dopplerx`, which
+works only through that import map. Runtime-profile controls use
+`dopplerx/tooling/runtime`. Evidence views use `dopplerx/tooling/evidence` and the
+public `model.inspect` handle.
+
+`npm run demo:reachability:check` allows live demo code only the bare imports
+`dopplerx`, `dopplerx/compat`, `dopplerx/tooling/runtime` and
+`dopplerx/tooling/evidence`. The `dopplerx/tooling` barrel is not allowed, although
+the import map defines it.
 
 The demo passes `{ messages }`, including retained prior turns, to inspection.
-Branch replay uses the exact templated prefix returned in `inputTokenIds`.
-
-`model.inspect.generate(prompt, { onEvent, generation, policyId })` emits ordered
-`{ type: 'token', tokenId, index, token? }` events during generation, including
-the first and stop tokens. Probability-capturing policies attach the matching
-inspection token record so interfaces can render confidence as the answer arrives.
-Consumers decode IDs using `model.advanced.decodeTokenIds(ids)`;
-an ID is not necessarily a complete character. Events do not change decode
-batching or request extra GPU readbacks. Callbacks are synchronous and should
-buffer work. The final `{ type: 'inspection-complete', receipt }` event and returned
-receipt retain the existing contract. Aborted or failed runs do not emit completion;
-callback errors reject the run and follow normal generation cleanup.
+Token events, decoding, completion and branch replay follow
+[streaming inspection](../docs/api/compat.md#streaming-inspection).
 
 ## Observation tiers
 
@@ -150,6 +153,10 @@ Observation behavior is owned by
   execution and prohibit performance claims.
 - `demo/deep-xray` enables diagnostic execution and GPU timestamps. It changes
   execution and permits diagnostic claims only.
+- `demo/activation-grid` captures probabilities, word quality and layer activations
+  without GPU timestamps. It changes execution and permits diagnostic claims only.
+  The demo page does not select it; `observatory/` and
+  `tools/experiments/activation-grid-browser.js` use it.
 
 Every inspection receipt contains a canonical full fingerprint plus separate
 quality and performance fingerprints. Quality comparison rejects tokenizer
@@ -183,10 +190,13 @@ a lower-level prerequisite, not proof that the demo works.
 
 ## Public hosting
 
-The canonical demo is https://d4da.com/doppler/. D4DA owns its world-site
+The hosted demo is https://d4da.com/doppler/demo/index.html. On 2026-11-26
+https://d4da.com/doppler/ redirected to https://d4da.com/observatory/, although
+`release.json` still lists it as `canonicalUrl`. D4DA owns its world-site
 Firebase configuration and deployment. The source stays in this repository;
-`../d4da/scripts/sync-world-doppler.mjs` copies tracked demo/runtime/catalog
-assets, rewrites their URLs to `/doppler/`, and regenerates the shell inventory.
+`scripts/sync-world-doppler.mjs` in the sibling d4da repository (checked out at
+`../d4da`) copies tracked demo/runtime/catalog assets, rewrites their URLs to
+`/doppler/`, and regenerates the shell inventory.
 Model weights and local artifacts are excluded. This repository's hosting
 commands delegate to D4DA and cannot overwrite CanvasContext's Fawn deployment.
 

@@ -23,9 +23,9 @@ Even with 2-3 values per dimension, the cross-product exceeds 10,000 combination
 
 ## Strategy: layered coverage + representative slicing
 
-### Layer 1: Contract and config tests (PR-fast, no GPU)
+### Layer 1: Contract and config tests (fast, no GPU)
 
-Test that invalid combinations fail fast before reaching the GPU. These are cheap, exhaustive within their domain, and run on every PR.
+Test that invalid combinations fail fast before reaching the GPU. These are cheap and exhaustive within their domain; run them while editing and before pushing. CI runs a subset of them.
 
 - Manifest schema validation: required fields, nullable-required semantics
 - Config merge order: profile/config precedence, override semantics, execution compile
@@ -65,9 +65,9 @@ Test that all generation surfaces honor the same contract obligations without ru
 - **Structural parity test:** `tests/inference/generate-token-ids-contract.test.js` verifies that `generateTokenIds()`, `_runDecodeLoop()`, and `_generateTokensInternal()` all include the same contract checks (abort, EOS, stop sequences, finiteness handling, stats, cleanup).
 - **Behavioral parity benchmark:** `tools/bench-text-decode-paths.js --teacher-forced` runs both the token-return and logits-return paths on the same teacher sequence and fails if outputs diverge.
 
-### Layer 5: Performance benchmarks (nightly/adhoc)
+### Layer 5: Performance benchmarks (on demand)
 
-Cross-engine and cross-configuration benchmarks. Not part of the PR gate.
+Cross-engine and cross-configuration benchmarks. Not part of CI.
 
 - Vendor benchmark registry: `benchmarks/vendors/`
 - Workload definitions: `benchmarks/vendors/workloads.json`
@@ -87,16 +87,14 @@ Example: KV cache layout change
 
 This covers the risk surface (layout × attention mode, layout × batch size) without multiplying by every quant format and model family.
 
-## CI tiers
+## Where each layer runs
 
-| Tier | Runs when | What |
-| --- | --- | --- |
-| PR-fast | every PR | Layer 1 + Layer 4 structural (`Smoke` workflow: `npm run test:smoke`, `npm run test:unit:webgpu`, `npm run test:unit:browser`, `npm run package:smoke`, `npm run test:demo:contract`) |
-| Repository gate | before push | `npm run check:green`: behavior checks plus the checks whose inputs changed ([gate policy](../tools/policies/check-gate-policy.json)) |
-| PR-GPU | manual dispatch | Layer 2 (`Manual Runtime Validation` workflow) |
-| Verify | model change | Layer 3 (`npm run verify:model`) |
-| Nightly | scheduled | Layer 5 + broader profile sweeps |
-| Adhoc | investigation | `bench-text-decode-paths.js`, `vendor-bench.js`, `compare-engines.js` |
+Test tiers and what CI runs are defined in the
+[testing runbook](testing-runbook.md#ci-notes). For this matrix: CI runs a
+subset of Layer 1 contract tests; Layer 2 runs locally or through the
+`Manual Runtime Validation` workflow; Layer 3 uses `npm run verify:model` on
+model changes; Layers 4 and 5 run on demand (`tools/bench-text-decode-paths.js`,
+`tools/vendor-bench.js`, `tools/compare-engines.js`).
 
 ## Adding a new dimension
 

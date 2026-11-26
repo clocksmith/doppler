@@ -35,93 +35,40 @@ Every guide in this directory should answer the same four questions:
 
 ## Start Here If You Want To Add X
 
-| Goal | Start with | Notes |
-| --- | --- | --- |
-| Understand ownership before changing config, kernels, registries, or hosted models | [config-source-of-truth.md](config-source-of-truth.md) | Front door for layered ownership and single-source checks |
-| Add a model end to end with research, debug, verify, and bench discipline | [model-onboarding-playbook.md](model-onboarding-playbook.md) | Use this before picking the smaller atomic/composite guides |
-| Tune runtime behavior without code changes | [01-runtime-profile.md](01-runtime-profile.md) | JSON-only runtime profile work |
-| Put an existing chat format on a model | [02-assign-chat-template.md](02-assign-chat-template.md) | Uses an existing built-in formatter |
-| Add a new model family contract | [03-model-family-config.md](03-model-family-config.md) | Explicit conversion config, no family registry |
-| Convert a checkpoint with an existing family | [04-conversion-config.md](04-conversion-config.md) | Explicit conversion config + existing kernels |
-| Publish a verified artifact | [05-promote-model-artifact.md](05-promote-model-artifact.md) | Curated metadata + external storage + HF |
-| Migrate model artifacts to source/weight/manifest identity | [historical artifact identity migration](https://github.com/clocksmith/doppler/blob/4b28d7831f12884c53e3a4c6e3470ca0dea9775f/docs/developer-guides/artifact-identity-migration-plan.md) | Retained migration evidence |
-| Compose existing kernels differently | [06-kernel-path-config.md](06-kernel-path-config.md) | New execution identity, no new WGSL |
-| Check config ownership before cross-runtime work | [config-source-of-truth.md](config-source-of-truth.md) | Source-of-truth map for conversion, runtime, harness, kernel, model, hosted registry, and evidence policy |
-| Export a portable Doe/Cerebras model program | [../integration/program-bundle.md](../integration/program-bundle.md) | Program Bundle schema, exporter, transcript gate |
-| Add a new config/manifest field | [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | Schema + merge + parser + tests |
-| Add a new built-in chat formatter | [08-chat-template-formatter.md](08-chat-template-formatter.md) | New formatter function and registry key |
-| Add a new sampler or sampling knob | [09-sampling-strategy.md](09-sampling-strategy.md) | Sampling pipeline work |
-| Add a new activation | [10-activation-implementation.md](10-activation-implementation.md) | WGSL + runtime wiring + config |
-| Add a new kernel or kernel variant | [11-wgsl-kernel.md](11-wgsl-kernel.md) | Selection/wrapper/testing work |
-| Add a new top-level command | [12-command-surface.md](12-command-surface.md) | Browser/Node parity contract |
-| Add a new attention mechanism | [13-attention-variant.md](13-attention-variant.md) | Existing transformer pipeline only |
-| Add a new quantization format | [14-quantization-format.md](14-quantization-format.md) | Converter + loader + kernels |
-| Add a new KV-cache layout | [15-kvcache-layout.md](15-kvcache-layout.md) | Deep cache and attention integration |
-| Optimize a correct GPU kernel path | [16-kernel-performance-optimization.md](16-kernel-performance-optimization.md) | Profile by phase, preserve parity, and close with paired evidence |
-| Add a new model family that still fits an existing pipeline | [composite-model-family.md](composite-model-family.md) | Composes several atomic guides |
-| Add a new pipeline family or new `modelType` ecosystem | [composite-pipeline-family.md](composite-pipeline-family.md) | Largest extension path |
+Atomic guides (numbered) describe one extension point; composite guides compose
+several atomic guides.
 
-## Journey Map
+| Goal | Start with | Kind | Blast radius |
+| --- | --- | --- | --- |
+| Understand ownership before changing config, kernels, registries, or hosted models | [config-source-of-truth.md](config-source-of-truth.md) | reference | source-of-truth map for conversion, runtime, harness, kernel, model, hosted registry, and evidence policy |
+| Run a first verify, local conversion, or benchmark from the repository | [library-engineering-workflows.md](library-engineering-workflows.md) | reference | CLI commands only |
+| Add a model end to end with research, debug, verify, and bench discipline | [model-onboarding-playbook.md](model-onboarding-playbook.md) | composite | conversion, runtime, debug, verify, and bench planning |
+| Tune runtime behavior without code changes | [01-runtime-profile.md](01-runtime-profile.md) | atomic | JSON only |
+| Put an existing chat format on a model | [02-assign-chat-template.md](02-assign-chat-template.md) | atomic | JSON only |
+| Add a new model family contract | [03-model-family-config.md](03-model-family-config.md) | atomic | migration note: explicit conversion config, no family registry |
+| Convert a checkpoint with an existing family | [04-conversion-config.md](04-conversion-config.md) | atomic | JSON only |
+| Publish a verified artifact | [05-promote-model-artifact.md](05-promote-model-artifact.md) | atomic | catalog metadata, external storage, HF publication |
+| Migrate model artifacts to source/weight/manifest identity | [historical artifact identity migration](https://github.com/clocksmith/doppler/blob/4b28d7831f12884c53e3a4c6e3470ca0dea9775f/docs/developer-guides/artifact-identity-migration-plan.md) | migration | retained migration evidence |
+| Compose existing kernels differently | [06-kernel-path-config.md](06-kernel-path-config.md) | atomic | execution graph + transforms, no new WGSL |
+| Export a portable Doe/Cerebras model program | [../integration/program-bundle.md](../integration/program-bundle.md) | reference | Program Bundle schema, exporter, transcript gate |
+| Add a new config/manifest field | [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | atomic | schema + merge + parser + tests |
+| Add a new built-in chat formatter | [08-chat-template-formatter.md](08-chat-template-formatter.md) | atomic | JS + type declarations + tests |
+| Add a new sampler or sampling knob | [09-sampling-strategy.md](09-sampling-strategy.md) | atomic | schema + runtime + tests |
+| Add a new activation | [10-activation-implementation.md](10-activation-implementation.md) | atomic | WGSL + runtime + config + tests |
+| Add a new kernel or kernel variant | [11-wgsl-kernel.md](11-wgsl-kernel.md) | atomic | WGSL + wrapper/selection + tests |
+| Add a new top-level command | [12-command-surface.md](12-command-surface.md) | atomic | both runners + command contract + docs |
+| Add a new attention mechanism | [13-attention-variant.md](13-attention-variant.md) | atomic | deep pipeline + kernels + tests (existing transformer pipeline only) |
+| Add a new quantization format | [14-quantization-format.md](14-quantization-format.md) | atomic | converter + loader + kernels + tests |
+| Add a new KV-cache layout | [15-kvcache-layout.md](15-kvcache-layout.md) | atomic | cache internals + attention integration |
+| Optimize a correct GPU kernel path | [16-kernel-performance-optimization.md](16-kernel-performance-optimization.md) | atomic | WGSL + runtime profile + GPU tests + benchmark evidence |
+| Add a new model family that still fits an existing pipeline | [composite-model-family.md](composite-model-family.md) | composite | cross-cutting within an existing pipeline family |
+| Add a new pipeline family or new `modelType` ecosystem | [composite-pipeline-family.md](composite-pipeline-family.md) | composite | full vertical slice across a new pipeline family |
 
-| Guide | Kind | Blast Radius |
-| --- | --- | --- |
-| [model-onboarding-playbook.md](model-onboarding-playbook.md) | composite | end-to-end planning across conversion, runtime, debug, verify, and bench |
-| [01-runtime-profile.md](01-runtime-profile.md) | atomic | JSON only |
-| [02-assign-chat-template.md](02-assign-chat-template.md) | atomic | JSON only |
-| [03-model-family-config.md](03-model-family-config.md) | atomic | migration note |
-| [04-conversion-config.md](04-conversion-config.md) | atomic | JSON only |
-| [05-promote-model-artifact.md](05-promote-model-artifact.md) | atomic | metadata + publication workflow |
-| [historical artifact identity migration](https://github.com/clocksmith/doppler/blob/4b28d7831f12884c53e3a4c6e3470ca0dea9775f/docs/developer-guides/artifact-identity-migration-plan.md) | migration | source checkpoint + weight capsule + manifest variant identity |
-| [06-kernel-path-config.md](06-kernel-path-config.md) | atomic | execution graph + transforms |
-| [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | atomic | schema + merge + parser + tests |
-| [08-chat-template-formatter.md](08-chat-template-formatter.md) | atomic | JS + type declarations + tests |
-| [09-sampling-strategy.md](09-sampling-strategy.md) | atomic | schema + runtime + tests |
-| [10-activation-implementation.md](10-activation-implementation.md) | atomic | WGSL + runtime + config + tests |
-| [11-wgsl-kernel.md](11-wgsl-kernel.md) | atomic | WGSL + wrapper/selection + tests |
-| [12-command-surface.md](12-command-surface.md) | atomic | both runners + command contract + docs |
-| [13-attention-variant.md](13-attention-variant.md) | atomic | deep pipeline + kernels + tests |
-| [14-quantization-format.md](14-quantization-format.md) | atomic | converter + loader + kernels + tests |
-| [15-kvcache-layout.md](15-kvcache-layout.md) | atomic | cache internals + attention integration |
-| [16-kernel-performance-optimization.md](16-kernel-performance-optimization.md) | atomic | WGSL + runtime profile + GPU tests + benchmark evidence |
-| [composite-model-family.md](composite-model-family.md) | composite | cross-cutting within an existing pipeline family |
-| [composite-pipeline-family.md](composite-pipeline-family.md) | composite | full vertical slice across a new pipeline family |
-
-## Atomic Guides
-
-These are the numbered guides. Each should describe one extension point.
-
-1. [01-runtime-profile.md](01-runtime-profile.md)
-   Add a runtime profile without changing runtime code.
-2. [02-assign-chat-template.md](02-assign-chat-template.md)
-   Assign an existing built-in chat template through a conversion config.
-3. [03-model-family-config.md](03-model-family-config.md)
-   Migration note: family registries were removed; author explicit conversion configs instead.
-4. [04-conversion-config.md](04-conversion-config.md)
-   Add a conversion config for an existing supported family.
-5. [05-promote-model-artifact.md](05-promote-model-artifact.md)
-   Promote a locally verified RDRR artifact into curated metadata and hosted publication.
-6. [06-kernel-path-config.md](06-kernel-path-config.md)
-   Compose kernel paths from execution graphs using existing kernels.
-7. [07-manifest-runtime-field.md](07-manifest-runtime-field.md)
-   Add a new manifest/runtime contract field.
-8. [08-chat-template-formatter.md](08-chat-template-formatter.md)
-   Add a new built-in chat formatter type.
-9. [09-sampling-strategy.md](09-sampling-strategy.md)
-   Add a new sampling strategy or sampling knob.
-10. [10-activation-implementation.md](10-activation-implementation.md)
-    Add a new activation implementation.
-11. [11-wgsl-kernel.md](11-wgsl-kernel.md)
-    Add a new WGSL kernel or kernel variant.
-12. [12-command-surface.md](12-command-surface.md)
-    Add a new top-level Doppler command.
-13. [13-attention-variant.md](13-attention-variant.md)
-    Add a new attention variant inside the existing transformer pipeline.
-14. [14-quantization-format.md](14-quantization-format.md)
-    Add a new quantization format end to end.
-15. [15-kvcache-layout.md](15-kvcache-layout.md)
-    Add a new KV-cache layout or inference memory-management strategy.
-16. [16-kernel-performance-optimization.md](16-kernel-performance-optimization.md)
-    Optimize an already-correct GPU kernel path with parity and statistical gates.
+Feature notes for specific runtime paths:
+[hyper-connection-mix-branch.md](hyper-connection-mix-branch.md),
+[mapped-expert-upload-cache.md](mapped-expert-upload-cache.md),
+[routed-expert-tracing.md](routed-expert-tracing.md),
+[verified-piece-gather.md](verified-piece-gather.md).
 
 ## Composite Guides
 
@@ -200,24 +147,3 @@ These apply to every guide in this directory:
 - Run/record parity matters for kernel work. If a wrapper supports both paths, they must use the same resolved constants and behavior.
 - No ad hoc runtime logging. Use the debug system in runtime code and keep direct `console.*` limited to allowed entrypoints.
 - Contract updates are same-change work. If behavior changes, update schema, config, docs, and tests together.
-
-## Suggested Build Order
-
-Write these first:
-1. `07-manifest-runtime-field.md`
-2. `11-wgsl-kernel.md`
-3. `12-command-surface.md`
-4. `03-model-family-config.md`
-5. `04-conversion-config.md`
-6. `06-kernel-path-config.md`
-
-Then add:
-- `08-chat-template-formatter.md`
-- `09-sampling-strategy.md`
-- `10-activation-implementation.md`
-- `13-attention-variant.md`
-- `14-quantization-format.md`
-- `15-kvcache-layout.md`
-- `16-kernel-performance-optimization.md`
-
-Composite guides should come last, once the atomic guides exist.

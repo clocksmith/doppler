@@ -10,18 +10,18 @@ names; compiler, runtime, and host remain useful technical descriptions.
   `node tools/rig-model-capsule.js --config <path>` from the repository.
 - Preparation implementation: `rigModelCapsule()` and `buildRigOptions()` in
   `src/tooling/model-capsule-rig.js`; compiler entry: `runRigPipeline()`.
-- Execution import: `doppler-gpu`. The former `doppler-gpu/run` alias was removed
-  in 0.7.0; import the same module from `doppler-gpu`.
+- Execution import: `dopplerx`. The `/run` alias of the former `doppler-gpu`
+  package was removed in `doppler-gpu` 0.7.0; `dopplerx` does not export it.
 - Injected execution core: `createDopplerRun()` and `RUN_CORE_VERSION`.
 - Execution types: `DopplerRun`, `DopplerRunSession`, and `RunPorts`.
-- Applications can continue using `openCapsule()` through `doppler-gpu/host`.
+- Applications can continue using `openCapsule()` through `dopplerx/host`.
 
 Rig is repository preparation tooling. This rename does not add a Rig compiler
 or signing authority to the browser execution package.
 
 ## Compatibility
 
-`doppler-gpu/runtime`, `createDopplerRuntime`, `RUNTIME_CORE_VERSION`, and their
+`dopplerx/runtime`, `createDopplerRuntime`, `RUNTIME_CORE_VERSION`, and their
 existing types remain aliases of the same implementation.
 `tools/forge-model-capsule.js` and old preparation exports continue to forward
 to Rig. The `forge:*` npm script aliases were removed on 2026-10-29; use

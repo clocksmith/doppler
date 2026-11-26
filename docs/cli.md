@@ -2,14 +2,18 @@
 
 The canonical CLI entrypoint is `src/cli/doppler-cli.js`.
 
-For the npm-facing quickstart path, use `npx doppler-gpu`. That bin is a thin
-first-run surface for local generation. The `doppler` CLI below is the
-contract-driven tooling surface for `verify`, `debug`, `bench`, `convert`, and
-operator workflows. It also exposes the Node-only `release` command for signed,
-non-promoting Electron release eligibility. Other Node-only maintenance and
-investigation paths include `program-bundle` and `diagnose`.
-It also exposes `profiles`, a read-only discovery command for checked-in
-runtime profile IDs.
+The `dopplerx` package ships four bins:
+
+| Bin | Source | Purpose |
+| --- | --- | --- |
+| `doppler` | `src/cli/doppler-cli.js` | Contract-driven tooling CLI (this page). |
+| `dopplerx` | `src/cli/doppler-quickstart.js` | First-run quickstart for local generation; see [getting started](getting-started.md). |
+| `doppler-gpu` | `src/cli/doppler-quickstart.js` | Alias of `dopplerx`, kept from the package's former name. |
+| `doppler-serve` | `src/cli/doppler-serve.js` | OpenAI-compatible localhost server. |
+
+The command list below is complete; it follows `TOOLING_COMMAND_SET` in
+`src/tooling/command-api-constants.js` plus the CLI-only commands dispatched in
+`src/cli/doppler-cli.js`. `doppler --help` lists the same commands with their flags.
 
 ## Command Surface
 
@@ -17,12 +21,14 @@ runtime profile IDs.
 node src/cli/doppler-cli.js <command> --config <request> [flags]
 ```
 
-- `--config` is required for workload commands. `profiles` does not take a config.
+- `--config` is required for command-runner commands (`release` also accepts flags). CLI-only commands take their own flags; `program-bundle` also accepts `--config`.
 - `--help` prints CLI usage.
 - `--pretty` prints human-readable output.
 - JSON output is default; `--json` is accepted for explicit automation.
 
 ### Supported commands
+
+Command-runner commands (shared browser/Node contract in `src/tooling/command-api.js`):
 
 | Command | Workload intent | Notes |
 | --- | --- | --- |
@@ -31,11 +37,21 @@ node src/cli/doppler-cli.js <command> --config <request> [flags]
 | `verify` | `verify` | Requires `request.workload` (except legacy `kernels` shape). |
 | `diagnose` | `investigate` | Node-only operator-diff investigation command. |
 | `convert` | `convert` | Node-only command. |
+| `refresh-integrity` | maintenance | Node-only; recomputes `integrityExtensions` for a local RDRR model directory (`request.modelDir`; optional `manifestPath`, `blockSize`, `dryRun`, `skipShardCheck`). Rejects runtime-input fields. |
 | `release` | production eligibility | Node-only; emits signed `eligible` or `blocked` evidence and never activates. |
-| `profiles` | discovery | Lists checked-in runtime profile IDs; no workload is executed. |
 | `lora` | operator lifecycle | Node-only command. |
 | `distill` | operator lifecycle | Node-only command. |
-| `program-bundle` | maintenance/export | Node-only artifact exporter; outside the browser/Node command-runner contract. |
+
+CLI-only commands (dispatched in `src/cli/doppler-cli.js`, outside the command-runner contract):
+
+| Command | Purpose | Notes |
+| --- | --- | --- |
+| `profiles` | discovery | Lists checked-in runtime profile IDs; no workload is executed. |
+| `program-bundle` | maintenance/export | Artifact exporter; see [Program Bundle Export](#program-bundle-export). |
+| `onboard inspect` | source intake | `--source <checkpoint-dir> --out <dir> [--family-intake <json>]`; writes `source-intake.json`, a conversion-config skeleton, and a contract-test plan before conversion. See [onboarding tooling](onboarding-tooling.md). |
+| `boundary` | boundary evidence | Actions `capture`, `source-capsule`, `token-evidence`, `compare`; each requires `--out`. See the [evidence loop](evidence-loop.md). |
+| `intake` | post-conversion validation | `--convert-config <path\|json> [--manifest <path>] [--model-dir <dir>] [--skip-convert] [--out <report.json>]`; exits nonzero when the report has blockers. |
+| `bundle` | one-command Program Bundle | `--manifest <path> --out <dir>` (reference capture plus export; `--surface node\|browser`) or `--convert-config <path\|json> --out <dir>`. See [Program Bundles](integration/program-bundle.md#one-command-composition-doppler-bundle). |
 
 ## `--config` inputs
 
@@ -58,8 +74,10 @@ The parsed object is contract-validated by `resolveConfigEnvelope()`:
 
 ## Model resolution
 
-- The CLI resolves `request.modelId` from the external RDRR root:
-  `/Volumes/models/rdrr` on macOS, `/media/$USER/models/rdrr` on Linux.
+- The CLI resolves `request.modelId` from the external RDRR root
+  `$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/`. When that variable is unset, the root
+  is the first existing of `/Volumes/models`, `/Volumes/models2`, and
+  `/media/$USER/models` (see `src/tooling/hf-registry/catalog-io.js`).
 - For a model outside that root, set the request-level `request.modelUrl` to a
   `file://` path.
 - Run `doppler profiles --json` to discover checked-in runtime profile IDs before
@@ -133,23 +151,27 @@ inside `--config`; use one runtime input path per command.
 - `--surface node` forces Node execution.
 - `--surface browser` forces headless Chromium relay.
 
-`convert`, `release`, `diagnose`, `lora`, and `distill` reject `--surface browser`.
-`convert`, `lora`, and `distill` reject runtime-input fields in the Node operator surface.
+`convert`, `refresh-integrity`, `release`, `diagnose`, `lora`, and `distill` reject `--surface browser`.
+`convert`, `refresh-integrity`, `lora`, and `distill` reject runtime-input fields in the Node operator surface.
 
 Command-level surface support:
 
 - `bench`, `debug`, `verify`: `auto|node|browser`
-- `convert`: `auto|node` (`browser` is rejected)
+- `convert`, `refresh-integrity`: `auto|node` (`browser` is rejected)
 - `release`: `auto|node` (`browser` is rejected)
 - `lora`, `distill`: `auto|node` (`browser` is rejected)
 - `diagnose`: `auto|node` (`browser` is rejected)
 - `program-bundle`: no `--surface`; reads declared files and writes a JSON artifact
 - `profiles`: no `--surface`; reads checked-in runtime config metadata only
+- `onboard`, `boundary`, `intake`: no `--surface`; read and write local files
+- `bundle`: `node|browser` for the `--manifest` form
 
 ## Production release command
 
-The installable public binary is `doppler` from the `doppler-gpu` package. Use
-either an installed binary or the explicit npm package form:
+The `doppler` bin ships in the `dopplerx` package. Use either an installed
+binary or the explicit npm package form (pin the version you qualified, as the
+[release action](../.github/actions/doppler-release/action.yml) does with
+`dopplerx@$DOPPLER_VERSION`):
 
 ```bash
 doppler release --manifest doppler-release.json \
@@ -161,7 +183,7 @@ doppler release --manifest doppler-release.json \
   --signing-public-key "$RELEASE_PUBLIC_JWK_PATH" \
   --signing-authority doppler-release-authority
 
-npx --package doppler-gpu doppler release --config release-command.json
+npx --package dopplerx@<version> doppler release --config release-command.json
 ```
 
 The default CLI phase is `decide`. Customer-operated Windows and macOS agents

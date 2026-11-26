@@ -42,8 +42,8 @@ Legacy UL manifests remain part of the broader training lineage story, but UL ha
 
 ## Verifier-Guided Artifact Classes
 
-The V9 experimental verifier-guided surface implements validators and writers
-for:
+The experimental verifier-guided surface (introduced in V9, current through V11)
+implements validators and writers for:
 
 - `training_rollout_group`
 - `training_reward_vector`
@@ -54,8 +54,10 @@ for:
 
 The class contract is implemented; a particular run may still be missing one
 or more instances and must then fail closed. The rejected V8 runner did not
-emit them. V9 remains `harness_ready` until the primary model is provisioned
-and the optimizer receipts exist.
+emit them. The primary model (Qwen 3.5 9B) is provisioned, and the primary V11
+run supplies a linked rollout, reward, GRPO update, checkpoint, and
+verification chain; V10 to V12 results and their claim boundaries are in
+[rlvr-training-contract.md](rlvr-training-contract.md#current-support-boundary).
 
 Before any such artifact becomes claimable, its validator binds:
 
@@ -124,7 +126,11 @@ LoRA run roots typically include:
 
 ## Required Traceability Fields
 
-Each claimable artifact should carry:
+This section is canonical for training claim traceability.
+
+Every operator artifact carries these base fields, written by
+`buildArtifactBase()` in `src/experimental/training/operator-artifacts.js`
+(fields that do not apply are `null`):
 
 - `artifactType`
 - `schemaVersion`
@@ -145,6 +151,11 @@ Each claimable artifact should carry:
 - `runtime`
 - `surface`
 - `claimBoundary`
+
+A publishable claim must have non-null values for at least `reportId`,
+`workloadId`, `workloadPath`, `workloadSha256`, `configHash`, `datasetPath`,
+`datasetHash`, and `claimBoundary`. The mapping is deterministic from
+workload-capsule bytes and derived artifact payloads.
 
 ## Lineage Requirements
 
@@ -174,7 +185,8 @@ helpers live in
 `src/experimental/bridge/trainer-artifact-bridge.js`, and the Node byte verifier
 and importer live in `src/tooling/trainer-artifact-handoff.js`. The
 environment-neutral descriptor and plan helpers are repository modules (the
-`doppler-gpu/tooling-experimental` export was removed in 0.7.0); file-system
+former package name, `doppler-gpu`, removed its `tooling-experimental` export
+in 0.7.0); file-system
 verification remains a repository tool. The bridge supports two explicit profiles:
 
 - `translation_full_checkpoint`, which enters through

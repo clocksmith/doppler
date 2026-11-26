@@ -557,27 +557,9 @@ For MoE storage research, the first clean target is expert paging:
 
 9. Use the debug ladder in a fixed order.
 
-   When output is wrong, do not jump straight into kernels.
-
-   Use this order:
-
-   - manifest/config parity
-   - tokenization and chat-template parity
-   - conversion integrity
-   - embedding boundary
-   - Q/K/V pre-RoPE
-   - Q/K post-RoPE
-   - attention output
-   - FFN output
-   - final logits
-
-   Rules:
-
-   - pick exactly one falsifiable hypothesis at a time
-   - run one diagnostic before reading five more files
-   - if quantized output is wrong, run an F16/source-precision control before
-     changing quantized kernels
-   - add permanent probes or trace extensions, not throwaway `console.log`
+   When output is wrong, do not jump straight into kernels. Follow the
+   [Inference Debug Protocol](../agents/debug-protocol.md) and stop at the first
+   divergent boundary.
 
 10. Add multimodal support as separate contracts, not as an afterthought.
 
@@ -629,27 +611,9 @@ For MoE storage research, the first clean target is expert paging:
 
 12. Promote only after the model is boring.
 
-   A model is ready for promotion only when:
-
-   - conversion is reproducible from a checked-in config
-   - manifest matches the config
-   - deterministic verify succeeds
-   - the canonical semantic boundary comparison gate passes, including the F16
-     control for quantized artifacts
-   - exact deterministic token evidence covers at least 128 generated tokens
-   - Program Bundle export succeeds with a browser/WebGPU reference transcript
-     when the model needs cross-runtime portability
-   - any benchmark claim points to one saved artifact and one reproducible command
-   - a human has reviewed output coherence if the artifact is to be reused or
-     published
-
-   Then, and only then:
-
-   - move to external volume / hosted artifact workflow
-   - update `models/catalog.json`
-   - sync support matrix and related registries
-   - run `npm run program-bundle:check` if a checked-in bundle example changes
-   - publish hosted subsets
+   The promotion gates and the post-gate steps (external volume, catalog,
+   support matrix, hosted publish) are canonical in the
+   [Model Promotion Playbook](../model-promotion-playbook.md#promotion-gate).
 
 ## Verification
 
@@ -667,27 +631,10 @@ Minimum gate for a new model:
 - browser verification when kernels, attention, cache behavior, or multimodal
   execution changed
 
-Recommended command sequence:
-
-```bash
-npm run onboarding:check:strict
-```
-
-```bash
-node src/cli/doppler-cli.js convert --config '<path|url|json>'
-```
-
-```bash
-node src/cli/doppler-cli.js verify --config '{
-  "request": {
-    "workload": "inference",
-    "modelId": "<model-id>",
-    "modelUrl": "file://<artifact-dir>",
-    "runtimeProfile": "profiles/production"
-  },
-  "run": { "surface": "node" }
-}' --json
-```
+Command recipes for `convert`, a local `verify`, and `bench` are in
+[Library engineering workflows](library-engineering-workflows.md#path-b-convert-locally-then-verify);
+use the workload that matches the model (`inference`, `embedding`, ...).
+For a first `debug` pass on a local artifact, use the trace profile:
 
 ```bash
 node src/cli/doppler-cli.js debug --config '{
@@ -698,20 +645,6 @@ node src/cli/doppler-cli.js debug --config '{
     "runtimeProfile": "profiles/verbose-trace"
   },
   "run": { "surface": "node" }
-}' --json
-```
-
-```bash
-node src/cli/doppler-cli.js bench --config '{
-  "request": {
-    "workload": "inference",
-    "modelId": "<model-id>",
-    "runtimeProfile": "profiles/production"
-  },
-  "run": {
-    "surface": "auto",
-    "bench": { "save": true, "saveDir": "benchmarks/vendors/results" }
-  }
 }' --json
 ```
 

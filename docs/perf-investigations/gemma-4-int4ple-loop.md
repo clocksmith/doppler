@@ -33,11 +33,11 @@ Potential follow-up work is consolidated in
 The per-iteration decisions below are historical experiment records, not a current
 priority list or promises of speedup.
 
-**Where things live:**
-- Per-kernel profile JSON: `reports/perf/gemma-4-int4ple-loop/iter-002-profile.json`
-- All sweep + verify outputs: `reports/perf/gemma-4-int4ple-loop/`
-- Sweep harness: `reports/perf/gemma-4-int4ple-loop/iter-005-sweep.sh`
-- This file (full per-iter detail below): `reports/perf/gemma-4-int4ple-loop/notes.md`
+**Where things lived** (none of these paths is retained in the tree):
+- Per-kernel profile JSON: `reports/perf/gemma-4-int4ple-loop/iter-002-profile.json` (not retained)
+- All sweep + verify outputs: `reports/perf/gemma-4-int4ple-loop/` (not retained)
+- Sweep harness: `reports/perf/gemma-4-int4ple-loop/iter-005-sweep.sh` (not retained)
+- Original working notes: `reports/perf/gemma-4-int4ple-loop/notes.md` (not retained; this file is the surviving copy)
 
 **State**: clean. No persistent edits to source. Capability rules file restored. No backup files left. The `.claude/scheduled_tasks.lock` is loop runtime state.
 
@@ -121,7 +121,7 @@ WGSL kernels (already in repo, possibly unrouted for INT4 PLE):
 - `fused_rmsnorm_q4_widetile.wgsl` (fused rmsnorm + q4 matmul)
 - `fused_ffn_q4k.wgsl`, `fused_ffn_q4k_f16.wgsl`
 
-Reports for this model: 19 bench JSONs from 2026-04-24 in `reports/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/`. Need to scan the variance to see which knobs were swept.
+Reports for this model: 19 bench JSONs from 2026-04-24 in `reports/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/` (not retained in the tree). Need to scan the variance to see which knobs were swept.
 
 ### Iter 1 conclusion
 
@@ -144,7 +144,7 @@ The "obvious" iter 23–25-style manifest swap doesn't apply — the model is al
 
 ### Profiler-enabled run (investigate intent, 82-tok prompt, 32 decode)
 
-Ran `doppler debug` with `runtime.shared.debug.profiler.enabled: true` against int4ple. Output saved to `reports/perf/gemma-4-int4ple-loop/iter-002-profile.json`. Note this is investigate mode, slower than the calibrate baseline by design.
+Ran `doppler debug` with `runtime.shared.debug.profiler.enabled: true` against int4ple. Output saved to `reports/perf/gemma-4-int4ple-loop/iter-002-profile.json` (not retained). Note this is investigate mode, slower than the calibrate baseline by design.
 
 Headline (investigate-mode, NOT comparable to calibrate baseline):
 - decode 9.82 tok/s (vs 10.6 calibrate)
@@ -388,7 +388,8 @@ Fixing this NaN unlocks 30–50% throughput on Apple Metal — high ROI. But the
 A. **Try retainQ4K + force f32 throughout** — `runtime.inference.compute.activationDtype: f32` (already default) + force any remaining f16 narrowing off via kernel-path overrides, then run probe. If this works without NaN and is faster than baseline, that's the win without kernel work.
 
 B. **Pivot to non-q4k targets** — runtime-only knobs that don't depend on retainQ4KMaterialization:
-   - PLE cache sizing (75% decode miss rate currently)
+   - PLE cache sizing (unsourced "75% decode miss rate"; the only recorded
+     figure is iter 1's 44% miss rate, 28 misses of 63 tokens)
    - decode batchSize tuning (`session.decodeLoop.batchSize`)
    - lm_head GEMV constants (14.3% of decode time)
    - Flash prefill attention `useOrtFlashPrefillAttention` (only 4.5% of prefill, small target)

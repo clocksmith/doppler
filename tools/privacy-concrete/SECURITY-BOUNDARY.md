@@ -1,14 +1,16 @@
 # Research security boundary
 
+> Historical research record: see [Status](README.md#status) for the code removal and the 2026-11-17 stop; the commands for the removed scripts are kept in [this guide at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/SECURITY-BOUNDARY.md).
+
 This directory is an internal research client/evaluator, not an available Doppler or Reploid cryptographic backend. `assertExecutionBackendAvailable()` rejects cryptographic descriptors. Completing a functional fixture does not change that gate.
 
-Direction, 2026-11-17: no further model execution is planned on the homomorphic design. The owner re-scoped the protected tier to a light requester on ordinary mesh computers; see the [two-server shares route](SHARES.md), which has its own parties, assumptions and leakage. This boundary still describes the retained homomorphic code and receipts.
+The [two-server shares route](SHARES.md) has its own parties, assumptions and leakage. This boundary describes the homomorphic research code (kept at commit 3e485ca93) and its retained receipts.
 
 ## Parties and computation
 
 The trusted client holds secret keys, prompt/output tokens, embeddings, attention and nonlinear operations, quantization metadata, KV caches and sampling. The evaluator receives public model weights, public evaluation material and encrypted linear inputs. Subsequent autoregressive inputs are encrypted again on the client; there is no plaintext-token feedback message to the evaluator. The complete Qwen candidate covers all 169 linear modules, including its vocabulary head.
 
-A future remote deployment must tolerate every remote operator colluding without obtaining the client key. That is a qualification target, **not an established security property of this implementation**. The current process harness runs client and evaluator on one host. Separate interpreters test dataflow and protocol behavior; they do not isolate the client's memory from that host's operator, root, a debugger or another sufficiently privileged process. GitHub Actions is the trusted test-client host and uses a fixed public prompt.
+A future remote deployment must tolerate every remote operator colluding without obtaining the client key. That is a qualification target, **not an established security property of this implementation**. The current process harness runs client and evaluator on one host. Separate interpreters test dataflow and protocol behavior; they do not isolate the client's memory from that host's operator, root, a debugger or another sufficiently privileged process. GitHub Actions was the trusted test-client host for the removed workflows and used a fixed public prompt.
 
 The client also performs every encrypted multiplication again. Only an exact serialized result from that trusted deterministic replay reaches the native result deserializer/decryptor. This rejects response substitutions tested by the harness, but gives no client compute saving, succinct proof or independently reviewed malicious-security guarantee. A malformed, missing, reordered or rejected response terminates the attempt. No token/activation values, numerical error magnitude or noise-budget diagnostic is sent to the evaluator. Older research drivers let reference-validation outcomes affect observable protocol termination. The current fixed-phase owner removes those two comparison-controlled paths, with the remaining limits described below.
 
@@ -29,7 +31,7 @@ The process pipe protocol binds model, plan, key, session, sequence and tile ide
 
 ## Unfinished qualification
 
-Production admission must remain closed until the actual deployment establishes: cryptographic parameter and implementation review; an explicit adversary/leakage contract bound into its admitted route; authenticated endpoint/key/participant binding; replay/proof soundness and selective-failure analysis; malformed-input and side-channel review; request-state isolation and cancellation under real concurrency; and model-wide correctness, memory, wire and latency evidence. The native variant retains an exact Cargo dependency lock. Python/runtime direct pins are not a transitive hash lock, and a measured native-binary hash is not an independent reproducible-build or security audit.
+Production admission must remain closed until the actual deployment establishes: cryptographic parameter and implementation review; an explicit adversary/leakage contract bound into its admitted route; authenticated endpoint/key/participant binding; replay/proof soundness and selective-failure analysis; malformed-input and side-channel review; request-state isolation and cancellation under real concurrency; and model-wide correctness, memory, wire and latency evidence. The native variant had an exact Cargo dependency lock (kept at commit 3e485ca93). Python/runtime direct pins are not a transitive hash lock, and a measured native-binary hash is not an independent reproducible-build or security audit.
 
 The pinned [native CPU implementation](https://github.com/zama-ai/concrete-ml-extensions/blob/6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4/rust/src/lib_python.rs) computes per-column encrypted dot products and compresses their outputs. Its [correctness tests](https://github.com/zama-ai/concrete-ml-extensions/blob/6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4/tests/test_matmul.py) compare approximate high-order result bits. Tiling addresses the tested arithmetic-width limit; it does not establish exact full-model arithmetic, useful throughput or a new security level. Flash client operator composition and fixed all-expert access are implemented as reference/component paths. Actual complete-model/table provisioning, encrypted autoregression and qualification remain separate blockers.
 
@@ -68,13 +70,10 @@ ownership enforcement, not physical memory zeroization or a new security claim.
 
 ## Recorded full-Qwen functional result
 
-The twelve-bit route completed all 169 linear modules and four greedy steps for
-one actual Qwen2.5-0.5B-Instruct public prompt. Replay verified all 1,548 tiles;
-greedy choices matched quantized/FP32 references, while logit error still reached
-0.1350. The client/evaluator ran as separate processes on one trusted test host,
-and the client performed complete encrypted replay and full-model plaintext
-validation. This is functional hybrid-computation evidence; it changes none of
-the uncompleted deployment, parameter, leakage or security gates above.
+The twelve-bit result is recorded in
+[the complete Qwen guide](FULL-QWEN.md#completed-twelve-bit-full-model-functional-observation).
+It is functional hybrid-computation evidence; it changes none of the uncompleted
+deployment, parameter, leakage or security gates above.
 
 ## Observable reference-validation feedback
 

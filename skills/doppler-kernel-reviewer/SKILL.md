@@ -8,9 +8,8 @@ description: Review a named Doppler kernel and wrapper against the existing styl
 ## Prerequisites
 
 - Identify the kernel JS wrapper, declaration, WGSL sources, and review diff.
-- Read `docs/style/general-style-guide.md`,
-  `docs/style/javascript-style-guide.md`, and `docs/style/wgsl-style-guide.md`.
-- Read `docs/style/config-style-guide.md` when selection or path metadata changes.
+- Open the guides in the "Kernels or shaders" row of the
+  [AGENTS.md owner table](../../AGENTS.md#style-guides).
 
 ## Procedure
 

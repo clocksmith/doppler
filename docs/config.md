@@ -573,7 +573,7 @@ weight precisions. This does not qualify a mixed-precision model end to end.
 
 ### Measured two-device partition proposals
 
-`doppler-gpu/partitions` exports `proposeHardwarePartitionPlan(manifest, request)`.
+`dopplerx/partitions` exports `proposeHardwarePartitionPlan(manifest, request)`.
 It proposes geometry before opening a session; it does not change an active
 allocation, rank existing routes, or qualify a device/model combination.
 

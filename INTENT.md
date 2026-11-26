@@ -14,13 +14,7 @@ Deliver a simple, fast, portable JavaScript inference library, supported by Rig
 model preparation and signed immutable Capsules. Run executes the declared
 implementation; the application retains publisher trust and upgrade authority.
 
-Public product priorities are stated in [GOALS.md](GOALS.md#current-priorities).
-Generation, embeddings, reranking, narrow choice scoring, and supported partitions
-share one maintained implementation. Useful outputs, installation, opening,
-bounded memory, session reuse, cancellation, and recovery determine the work.
-Reploid exercises public loading and partition interfaces; coordination and
-application policy remain outside Doppler. Doe remains optional. Retained search
-and rewriting plans do not impose a competing priority or adoption prerequisite.
+Mission and priorities: see [GOALS.md](GOALS.md#current-priorities).
 
 ## Invariants
 

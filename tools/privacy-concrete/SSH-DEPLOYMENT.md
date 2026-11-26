@@ -1,5 +1,7 @@
 # Authenticated research evaluator interface
 
+> Historical research record: see [Status](README.md#status) for the code removal and the 2026-11-17 stop; the commands for the removed scripts are kept in [this guide at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/SSH-DEPLOYMENT.md).
+
 The all-linear client can use an explicitly configured OpenSSH endpoint instead of spawning its evaluator locally. This interface installs nothing and transfers no repository source. It does not provision or authorize a host connection; use an independently authorized endpoint.
 
 The client requires a locally supplied route manifest, an explicit private SSH identity file and a requester operator allowlist. The manifest pins one Ed25519 host key, host/port/account, exact base model/plan/protocol and pre-provisioned interpreter/provider/cache/manifest paths. Its immutable identity includes the SSH policy and is bound into every encrypted frame. Endpoint, key, participant or executable-path changes produce a different route; no local fallback or retry is selected after failure.
@@ -8,7 +10,7 @@ Ambient SSH configuration, known-host files, agents, forwarding and password/int
 
 On an independently authorized, pre-provisioned endpoint, place the same route manifest at its declared `remoteManifest` path and the same validated public model cache at `remoteCache`. The SSH command starts the installed provider with the manifest identity. Both ends must currently match the exact implementation versions recorded in the model plan; no cross-platform dependency variant is silently substituted.
 
-The client invocation adds:
+The historical client invocation (`full_model.py`, kept at commit 3e485ca93) added:
 
 ```sh
 --ssh-deployment /client/trusted-route.json \
@@ -18,7 +20,7 @@ The client invocation adds:
 
 `ssh-policy.json` and `SSHRoute` own the manifest contract. The manifest fields are `schema`, `operatorId`, `host`, `port`, `user`, `hostKey` (`algorithm`, `base64`), `basePlanId`, `modelId`, `backendProtocol`, `remotePython`, `remoteProvider`, `remoteCache` and `remoteManifest`. Unknown fields, duplicate JSON keys, unsupported keys/protocols and malformed paths fail before evaluator startup/key export. No attestation flag is accepted.
 
-The isolated transport workflow exercises a real loopback SSH daemon with ephemeral fixture keys, opaque framing, wrong-host-key rejection and wrong-client-key rejection. It does not establish separate-machine model execution, endpoint software appraisal, hardware attestation or production cryptographic privacy. SSH authenticates an endpoint/account; it does not attest its application, accelerators or complete downstream execution. The existing pre-decryption replay remains required. Production admission stays closed.
+The isolated transport workflow (removed in 1e4bd1ffa) exercised a real loopback SSH daemon with ephemeral fixture keys, opaque framing, wrong-host-key rejection and wrong-client-key rejection. It does not establish separate-machine model execution, endpoint software appraisal, hardware attestation or production cryptographic privacy. SSH authenticates an endpoint/account; it does not attest its application, accelerators or complete downstream execution. The existing pre-decryption replay remains required. Production admission stays closed.
 
 Direct transport launch rechecks the requester allowlist, base plan/model binding and private identity file; callers cannot bypass admission by skipping bridge construction. Client evidence carries the bound execution-route identity and actual frame protocol. The constructed public-fixture artifact may include only the route digest and a closed transport-kind label, never the endpoint manifest or credential path.
 
@@ -57,17 +59,10 @@ exactly `operatorId`, `host`, `port`, `user`, `hostKey`, `remotePython`,
 described above; `hostKey` must be an independently authenticated Ed25519 key.
 Do not put credentials in this file or supply model/plan identity overrides.
 
-```sh
-python tools/privacy-concrete/ssh_route.py \
-  --cache-dir /client/prepared-qwen-cache \
-  --backend-profile qwen-all-linear-ntt12 \
-  --endpoint /client/pinned-endpoint.json \
-  --allowed-operator research-provider \
-  --output /client/prepared-route.json
-```
+`ssh_route.py` (kept at commit 3e485ca93) took the prepared cache directory, `--backend-profile qwen-all-linear-ntt12`, the pinned endpoint file, `--allowed-operator` and an `--output` path.
 
 Endpoint syntax and requester permission are checked before cache admission.
-The command creates a version-two manifest with mode `0600`, refuses to replace
+The command created a version-two manifest with mode `0600`, refuses to replace
 an existing file or symlink, and prints only its route identity and research
 status. It connects nowhere and reads no private SSH identity. Place the resulting
 manifest on the independently provisioned evaluator at its declared path, then
@@ -84,5 +79,3 @@ all four model steps after route closure. Its trusted client host held the keys;
 this was neither a browser client nor hardware attestation. The evidence records
 the pinned older experiment revision and actual costs, and does not qualify
 subsequent repository changes, arbitrary private inputs or production security.
-
-> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `ssh_route.py` was removed from the tree. It lives at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

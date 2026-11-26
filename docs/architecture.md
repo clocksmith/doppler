@@ -540,8 +540,9 @@ implementation lives in explicitly named modules; the architecture check does
 not permit unclassified generic-module debt or oversize exemptions.
 
 This finer module graph is reflected in the npm runtime closure. The package
-boundary gate permits at most 1,625 entries, 2,050,000 packed bytes, and
-10,400,000 unpacked bytes. These remain blocking artifact budgets: new semantic
+boundary gate (`PACKAGE_CONTENT_LIMITS` in `tools/check-public-boundaries.js`)
+caps entry count, packed bytes, and unpacked bytes; the measurement behind each
+cap is recorded beside it. These remain blocking artifact budgets: new semantic
 owners must be reachable from an exported runtime or type entry, and generated
 `src/.npmignore` state must exactly match that closure.
 
@@ -615,8 +616,8 @@ DOPPLER's structure can be understood through multiple lenses. Each view serves 
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ config/                          │ gpu/kernels                               │
 │ ├─ schema/ (all DEFAULT_*)       │ ├─ *.js (selection + dispatch)           │
-│ ├─ conversion/                   │ ├─ kernel-configs.js (from registry)     │
-│ ├─ runtime/                      │ └─ kernel-tuning.js (auto-benchmarking)  │
+│ ├─ conversion/                   │ └─ kernel-configs.js (from registry)     │
+│ ├─ runtime/                      │                                          │
 │ └─ runtime.js (get/set API)      │                                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ types/                                                                       │
@@ -650,8 +651,9 @@ Browser harness (explicit suite context + runtime config)
         |
 Runtime Config (runtime.shared.tooling, runtime.shared.debug, runtime.shared.benchmark)
         |
-  debug/            gpu/                   inference/pipelines/
-  - log.js          - profiler.js           - kernel-trace.js
+  debug/            gpu/                   inference/pipelines/text/observation/
+  - log.js          - recorder-timestamps.js - kernel-trace.js
+                    - submit-tracker.js
   - trace.js
   - tensor.js
   - perf-guards.js
@@ -677,7 +679,7 @@ This shows actual import dependencies. Use for refactoring decisions.
                     ├───────────────────────────┤
                     │  config/    kernels       │
                     │  schema     configs       │
-                    │     │       tuning        │
+                    │     │                     │
                     └─────┼─────────────────────┘
                           │
                     ┌─────┼─────┐
@@ -1099,7 +1101,9 @@ materialized buffer → dispatch.
 
 ### RDRR Format (`formats/rdrr/`)
 
-Custom model format optimized for browser streaming:
+Custom model format optimized for browser streaming. The manifest, shard, and
+hash-algorithm contract is canonical in [RDRR format](rdrr-format.md) (with
+`src/formats/rdrr/validation.js`); this section covers only the storage code.
 
 Note: RDRR helpers are canonically exported from `src/formats/rdrr/index.js`.
 `src/storage/shard-manager.js` keeps a limited compatibility re-export (`getManifest`) for existing callers.
@@ -1107,40 +1111,7 @@ Shared file/HTTP artifact loading for both `rdrr` and persisted direct-source ar
 `src/storage/artifact-storage-context.js`; direct-source bundles enter the text runtime as
 runtime-model contracts rather than synthetic RDRR manifests.
 
-```
-model-directory/
-├── manifest.json          # Tensor locations, config, hashes
-├── shard_00000.bin        # 64MB shard
-├── shard_00001.bin
-├── ...
-└── tokenizer.json         # Optional bundled tokenizer
-```
-
-**manifest.json structure (illustrative subset):**
-Use `docs/rdrr-format.md` and `src/formats/rdrr/validation.js` as canonical contract sources.
-```json
-{
-  "modelId": "gemma-3-1b-q4",
-  "version": "1.0",
-  "quantization": "q4k",
-  "totalSize": 1073741824,
-  "hashAlgorithm": "blake3",
-  "config": { /* HuggingFace config */ },
-  "inference": { /* required model-specific inference config */ },
-  "tensors": {
-    "model.embed_tokens.weight": {
-      "shard": 0,
-      "offset": 0,
-      "size": 8388608,
-      "shape": [262144, 1536],
-      "dtype": "Q4_K_M"
-    }
-  },
-  "shards": [
-    { "filename": "shard_00000.bin", "size": 67108864, "hash": "..." }
-  ]
-}
-```
+For the artifact layout and manifest fields, see [RDRR format](rdrr-format.md#core-structure).
 
 ### shard-manager.js - Storage Backends
 
@@ -1304,17 +1275,21 @@ the full debugging timeline.
 ## 9. Tools
 
 DOPPLER ships Node tooling via `src/cli/doppler-cli.js` and npm scripts
-(`convert`, `debug`, `bench`, `verify:model`). The demo UI and browser harness
-remain the primary interactive diagnostics surfaces.
+(`convert`, `debug`, `bench`, `verify:model`); the complete command list is in
+the [CLI reference](cli.md). The demo UI and browser harness remain the primary
+interactive diagnostics surfaces.
 
 ---
 
 ## 10. Client API (`client/api`)
 
-Primary application-facing API for model loading and generation via the root facade:
+The primary application surface is the [signed Run API](api/root.md)
+(`dopplerx/host`, or `dopplerx` with explicit ports). The root entry has no
+`dr`; the manifest-loading `dr` facade is the experimental
+[compatibility API](api/compat.md) in `dopplerx/compat`:
 
 ```javascript
-import { dr } from 'doppler-gpu';
+import { dr } from 'dopplerx/compat';
 
 const model = await dr.load('qwen3-0.8b');
 
@@ -1327,7 +1302,7 @@ const response = await model.chatText([
 ]);
 ```
 
-This layer owns convenience caching, facade normalization, and public call-shape validation. It does not expose the legacy singleton surface as the primary entry point.
+The compatibility layer owns convenience caching, facade normalization, and public call-shape validation.
 
 For runtime capability classes and sizing guidance, use the canonical doc:
 `docs/performance-sizing.md`.
@@ -1505,7 +1480,7 @@ See `config.md` for kernel selection rules and runtime overrides.
 *Last reviewed for repo accuracy: 2026-03-05*
 
 ## Kernel Overrides & Compatibility
-See `operations.md#kernel-overrides--compatibility` (canonical section).
+See [kernel compatibility and overrides](style/wgsl-style-guide.md#kernel-compatibility-and-overrides).
 
 
 

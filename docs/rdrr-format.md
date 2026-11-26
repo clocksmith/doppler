@@ -9,7 +9,7 @@ RDRR is the runtime contract consumed by Doppler loading and inference paths.
 Related specs and contracts:
 - [lora-format.md](lora-format.md) for adapter manifests
 - [conversion-runtime-contract.md](conversion-runtime-contract.md) for conversion-vs-runtime ownership
-- [getting-started.md](getting-started.md) for first-run convert/verify flow
+- [library engineering workflows](developer-guides/library-engineering-workflows.md) for repository convert/verify commands
 - [distribution/execution-contract.md](distribution/execution-contract.md) for additive distributed execution planning
 - [distribution/collective-transport-contract.md](distribution/collective-transport-contract.md) for collective transport rules
 
@@ -63,14 +63,22 @@ from `modelId` as the combined release/artifact/runtime identity.
   variant that does not own its local shards.
 - Legacy manifests may omit both fields during migration.
 - When either field is present, its shape is validated by the RDRR parser.
-- Runtime shard resolution does not yet consume `weightsRef`; incomplete local
-  shard sets must still fail unless an explicit loader path supports the
-  reference.
+- The client model-source path consumes `weightsRef`
+  (`resolveManifestArtifactSource()` in `src/client/runtime/model-source.js`).
+  It resolves `weightsRef.artifactRoot` (relative roots against the model base
+  URL), fetches the target manifest, checks `manifestDigest` (SHA-256 of the
+  manifest text) when declared, and requires the target's
+  `artifactIdentity.weightCapsuleId`, and `shardSetHash` when declared, to match.
+  Any mismatch fails. Quickstart registry entries require `weightsRefAllowed: false`.
+- A manifest without `weightsRef` whose local shard set is incomplete must still fail.
 
 ## Shard hash algorithms and legacy BLAKE3
 
 `hashAlgorithm: "blake3"` means standard unkeyed BLAKE3 with a 32-byte digest;
-`"sha256"` means SHA-256. Hashes are not interchangeable. Unknown algorithms
+`"sha256"` means SHA-256. The converter default is `sha256`
+(`src/config/schema/manifest/converter.schema.js`); a conversion config may
+select `blake3`. Manifest conversion postflight and retained source shards
+require `sha256`. Hashes are not interchangeable. Unknown algorithms
 must not select BLAKE3 implicitly. Verification does not retry a mismatch using
 the historical Doppler hash implementation.
 
@@ -179,7 +187,7 @@ At minimum, manifests must include:
 
 ## Kernel override note
 
-For override and compatibility policy, use the canonical section in [operations.md#kernel-overrides--compatibility](operations.md#kernel-overrides--compatibility).
+See [kernel compatibility and overrides](style/wgsl-style-guide.md#kernel-compatibility-and-overrides).
 
 
 ## Packed FP8 weight blocks

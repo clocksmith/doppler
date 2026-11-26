@@ -1,6 +1,6 @@
 # Cleanup review
 
-The [April 2026 sweep log](archive/loop-sweep-2026-04.md) is retained unchanged
+The [April 2026 sweep log](archive/loop-sweep-2026-04.md) is retained
 as historical evidence. Its test counts, dirty-file observations, skip lists,
 and claims of unused code describe those runs, not the current checkout.
 

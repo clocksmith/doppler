@@ -200,7 +200,7 @@ weight layout. See `docs/integration/program-bundle.md`.
 ## Scoped registry construction and migration
 
 `createRuleRegistry()` and `createKernelRegistry()` are available through
-`doppler-gpu/tooling/runtime`. They construct immutable instances from the existing
+`dopplerx/tooling/runtime`. They construct immutable instances from the existing
 canonical metadata, without changing another instance. Rule extensions are
 `{ domain, group, rules }` entries. Kernel extensions are operation schemas keyed
 by operation, with explicitly supplied variants. All resolved metadata, including
@@ -240,7 +240,7 @@ Capability transformations remain in Rig behind the existing
 `config/transforms/execution-graph-transforms.js` compatibility export.
 
 Reusable debug imports never install `globalThis.DOPPLER`. Applications may call
-`installDebugGlobal()` from `doppler-gpu/tooling` explicitly; its return value
+`installDebugGlobal()` from `dopplerx/tooling` explicitly; its return value
 restores the previous property. The demo opts in during initialization. Separate
 pipeline observers use the existing `observe(event)` port, while JSON continues
 to select levels and categories. JavaScript observers own formatting, redaction,

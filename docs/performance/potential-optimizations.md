@@ -47,12 +47,15 @@ union. Unknown consumers remain conservative; legacy callers without resolved
 paths retain their existing loading policy. This is not universal optimization
 of every quantization format or implicit sharing of alias allocations.
 
-The [frozen comparison and open gates](../../reports/weight-representation-20261017/README.md)
+The [frozen comparison](../../reports/weight-representation-20261017/README.md)
+and its [hosted closure](../../reports/weight-representation-closure-20261017/README.md)
 own qualification status. A physical mixed-consumer fixture demonstrates one
 removed F16 shadow while preserving fallback copies. The final 2B comparison on
 M3/AMD and 27B comparison on AMD retain identical model and peak pool bytes;
-these profiles were already packed. Their timings establish no speedup. M3 27B
-and the separate hosted CI gates remain open in that report.
+these profiles were already packed. Their timings establish no speedup. Hosted
+CI run 39085130244 passed at `bbcf7ffd` (software Vulkan, with the logged
+optional skips retained), and the closure corrected BLAKE3. Only the M3 27B lane
+remains open: that model is unprovisioned on the M3.
 
 Expected benefit: less startup conversion and GPU residency. Removing an F16
 shadow saves roughly `2N` bytes for `N` elements; F32 saves `4N`, before alignment
@@ -215,6 +218,12 @@ not a competing roadmap. Reprofile the selected model before reviving them.
 | PLE preparation and prefetch | Move repeated immutable preparation off the request path where profiling supports it; keep token-dependent work and ownership exact. |
 | Persistent dispatch or megakernels | Require a measured dispatch bottleneck and a portable target contract; do not add architecture merely because another runtime reports gains. |
 | Decode submission and readback overlap | Reduce actual token-delivery stalls while preserving CPU/GPU overlap. Measure streamed iterator delivery, cancellation, and complete decode, not just callback timestamps. |
+| [Dense decode specialization](dense-decode-candidate.md) | Opt-in M=1 subgroup GEMV selection; CPU admission only. Physically qualify the emitted programs and full model with unchanged weights and tolerances before any manifest promotion. |
+| [Native cooperative and shared-slot MoE programs](native-cooperative-shared-slot-candidate.md) | Opt-in engine programs with software-only compile and reference tests. Require full-model numerics, continuation and matched performance receipts on the physical Radeon target. |
+| [Native packed prefill grid guard](native-prefill-padded-tiles.md) | Padded workgroups now return before shared-memory work; component numerics pass on M3. Full-model numerical, quality and performance qualification on AMD Chrome are pending; no speedup is claimed. |
+| [Native prefill token budget](native-prefill-token-budget.md) | Native profile declares 256-token prefill chunks; bounded component evidence on M3 only. Full-model numerical, quality and long-request qualification on AMD Chrome are pending. |
+| [Shared expert combine](shared-expert-combine-candidate.md) | One `sigmoid_gated_add` dispatch replaces three; component cases match exactly on M3. Full-model logit/token gates and balanced timing on AMD Chrome are pending; do not promote on dispatch count. |
+| [F32 KV online decode attention](attention-f32kv-online-qualification.md) | F32-KV decode now selects the online kernel; operator and component timing pass on M3. Full-model continuation, quality and balanced production-path timing remain separate gates. |
 
 Historical observations and failed trials remain in the
 [Gemma INT4 PLE investigation](../perf-investigations/gemma-4-int4ple-loop.md),

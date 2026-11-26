@@ -16,18 +16,18 @@ This directory contains DOPPLER's inference pipeline and its main building block
 - `pipelines/text.js`: end-to-end text orchestration (prefill, decode loop, sampling, debug)
 - `pipelines/diffusion/`: image diffusion pipeline modules
 - `pipelines/energy/`: energy-model pipeline modules
-- `tokenizer.js`: tokenizer backends and manifest-driven selection
-- `kv-cache.js`: KV cache layouts and policies (full and sliding-window)
+- `tokenizer.js` and `tokenizers/`: tokenizer backends and manifest-driven selection
+- `kv-cache/`: KV cache layouts and policies (base, sliding-window, tiered, quantized, paged)
 - `moe-router.js`: MoE routing and expert execution planning
 - `speculative.js`: speculative decoding scaffolding
-- `pipelines/text/`: modular text helpers (split for maintainability)
-  - **WIRED**: `config.js`, `init.js`, `generator.js`, `generator-steps.js`,
-    `embed.js`, `layer.js`, `logits.js`, `sampling.js`, `attention/`, `ffn/`
-  - Modular entrypoints are used by `pipelines/text.js` + `pipelines/text/generator.js`
-  - No separate prefill/decode modules are required in current layout
+- `pipelines/text/`: modular text helpers
+  - `config.js`, `init.js`, `state.js`
+  - `generator/generator.js` (generation loop), `generator/generator-steps.js`,
+    `generator/prefill/`, `generator/decode/`, `generator/sampling/`
+  - `embedding/embed.js`, `execution/layer.js`, `logits/`, `attention/`, `ffn/`, `moe/`
 
 ## Related
-- [Line-by-Line Pipeline Steps](#line-by-line-pipeline-steps) below for detailed execution map
+- [Pipeline Steps (Overview)](#pipeline-steps-overview) below for the module that owns each step
 - `docs/architecture.md` for system terminology and runtime dataflow context
 - `gpu/kernel-selector.js` for the WGSL wrapper API (`run*` and `record*`)
 
@@ -193,357 +193,34 @@ WGSL kernels are in `gpu/kernels/`. The wrappers in `gpu/kernel-selector.js` com
 
 ---
 
-## Line-by-Line Pipeline Steps
+## Pipeline Steps (Overview)
 
-### Legend
-```
-[STEP]     = Required step
-[STEP]?    = Conditional step
-├─ FORK    = Model-specific branch
-├─ DEP     = External dependency
-└─ SKIP    = Step skipped under condition
-```
+The order below is the text path. Each step names the module that owns it;
+the [inference pipeline section](../../docs/architecture.md#2-inference-pipeline-inference)
+of the architecture guide has the detailed dataflow.
 
----
-
-### PHASE 0: INITIALIZATION
-
-```
-[0.1] getMemoryCapabilities()
-      ├─ DEP: Browser Memory64 support (Chrome 111+, Firefox 119+)
-      ├─ DEP: Unified memory detection (Apple Silicon, AMD Strix)
-      └─ Output: { hasMemory64, isUnifiedMemory, maxHeapSize }
-
-[0.2] initDevice()
-      ├─ DEP: WebGPU adapter availability
-      ├─ DEP: GPU features: shader-f16, subgroups, timestamp-query
-      └─ Output: { device, hasF16, hasSubgroups, limits }
-
-[0.3] loadManifestFromStore()
-      ├─ DEP: OPFS support (Chrome 102+)
-      ├─ ALT: Native Bridge (if storageContext.loadShard provided)
-      └─ Output: manifest JSON
-```
-
----
-
-### PHASE 1: MODEL LOADING
-
-```
-[1.1] DopplerLoader.init()
-      ├─ FORK: Dense model on discrete GPU → Warning (10x slowdown expected)
-      ├─ FORK: MoE model → Set useMoE flag
-      └─ Output: Loader ready
-
-[1.2] _buildTensorLocations()
-      └─ Output: Map<tensorName, {shard, offset, size, shape, dtype}>
-
-[1.3] _loadEmbeddings()
-      ├─ FORK: Gemma 3 → "language_model.model.embed_tokens.weight"
-      ├─ FORK: LLaMA/Mistral → "model.embed_tokens.weight"
-      ├─ FORK: GPT → "wte.weight"
-      ├─ DEP: GPU available → Upload to GPU buffer
-      └─ Output: embeddings (GPUBuffer or Float32Array)
-
-[1.4] _loadLayer(layerIdx) × numLayers
-      │
-      ├─[1.4.1] Load inputNorm
-      │         └─ "input_layernorm.weight"
-      │
-      ├─[1.4.2] Load Q/K/V/O projections
-      │         ├─ FORK: Gemma 3 → "language_model.model.layers.{l}.self_attn.*"
-      │         └─ FORK: LLaMA → "model.layers.{l}.self_attn.*"
-      │
-      ├─[1.4.3] Load Q/K norms?
-      │         ├─ FORK: Gemma → Load "self_attn.q_norm.weight", "self_attn.k_norm.weight"
-      │         └─ SKIP: LLaMA/Mistral (no Q/K norms)
-      │
-      ├─[1.4.4] Load postAttentionNorm?
-      │         ├─ FORK: Gemma 3 → "post_attention_layernorm.weight"
-      │         └─ SKIP: LLaMA (uses postNorm = post_attention_layernorm before FFN)
-      │
-      ├─[1.4.5] Load preFeedforwardNorm?
-      │         ├─ FORK: Gemma 3 → "pre_feedforward_layernorm.weight"
-      │         └─ SKIP: LLaMA/Mistral
-      │
-      ├─[1.4.6] Load postFeedforwardNorm?
-      │         ├─ FORK: Gemma 3 → "post_feedforward_layernorm.weight"
-      │         └─ SKIP: LLaMA/Mistral
-      │
-      ├─[1.4.7] Load FFN weights (Dense only)
-      │         ├─ FORK: Dense layer → Load gate/up/down
-      │         └─ SKIP: MoE layer (experts loaded on demand)
-      │
-      └─[1.4.8] F16 downcast?
-                ├─ DEP: hasF16 = true → Downcast Q/K/V/O/gate/up/down to F16
-                └─ SKIP: No F16 support → Keep F32
-
-[1.5] loadExpert(layerIdx, expertIdx)? [MoE only, on-demand]
-      ├─ FORK: MoE model → Load when router selects expert
-      └─ SKIP: Dense model
-
-[1.6] _loadFinalWeights()
-      ├─[1.6.1] Load finalNorm
-      │         ├─ FORK: Gemma 3 → "language_model.model.norm.weight"
-      │         └─ FORK: LLaMA → "model.norm.weight"
-      │
-      └─[1.6.2] Load lmHead
-                ├─ FORK: Tied embeddings → Reuse embeddings buffer (transposeB=true)
-                └─ FORK: Untied → Load "lm_head.weight"
-
-[1.7] Dequantization (during tensor load)
-      ├─ FORK: Q4_K_M → dequantize() kernel
-      │         ├─ DEP: hasSubgroups → dequant_subgroup (faster)
-      │         └─ ALT: dequant_shared (fallback)
-      ├─ FORK: BF16 → bf16_to_f32 kernel
-      ├─ FORK: F16 + hasF16 → Direct GPU upload
-      └─ FORK: F32 → Direct GPU upload
-```
-
----
-
-### PHASE 2: ROPE FREQUENCIES
-
-```
-[2.1] _initRoPEFrequencies()
-      ├─ CONFIG: ropeTheta (default 10000, Gemma3=1000000)
-      ├─ CONFIG: ropeScale (context extension factor)
-      ├─ CONFIG: headDim (Gemma3=256, LLaMA=128)
-      └─ Output: ropeFreqsCos, ropeFreqsSin (GPUBuffer)
-```
-
----
-
-### PHASE 3: KV CACHE
-
-```
-[3.1] KVCache initialization
-      ├─ FORK: slidingWindow > 0 → SlidingWindowKVCache
-      │         └─ CONFIG: Mistral slidingWindow=4096
-      └─ FORK: No window → Standard KVCache
-
-      ├─ DEP: hasF16 → F16 KV cache (50% memory)
-      └─ ALT: F32 KV cache
-
-      └─ Output: Per-layer K,V buffers [maxSeqLen × numKVHeads × headDim]
-```
-
----
-
-### PHASE 4: TOKENIZER
-
-```
-[4.1] Tokenizer.init()
-      ├─ Load tokenizer.json (bundled or network)
-      └─ Output: encode/decode functions
-```
-
----
-
-### PHASE 5: GENERATION START
-
-```
-[5.1] generate(prompt, options)
-      │
-      ├─[5.1.1] Apply chat template?
-      │         ├─ FORK: modelConfig.chatTemplateType is set
-      │         │         → applyChatTemplate(prompt, type)
-      │         │         (gemma / llama3 / gpt-oss / chatml / qwen)
-      │         └─ SKIP: chatTemplateType unset (raw prompt)
-      │
-      └─[5.1.2] Tokenize
-                └─ Output: inputIds[]
-```
-
----
-
-### PHASE 6: PREFILL (Process entire prompt)
-
-```
-[6.1] _embed(inputIds)
-      │
-      ├─[6.1.1] runGather(tokenIds, embeddings)
-      │         ├─ DEP: GPU → Zero-copy gather kernel
-      │         └─ ALT: CPU loop
-      │
-      └─[6.1.2] Scale embeddings?
-                ├─ FORK: Gemma → embeddings *= sqrt(hiddenSize)
-                └─ SKIP: LLaMA/Mistral
-
-[6.2] FOR l = 0 to numLayers-1:
-      │
-      └─ _processLayerGPU(l, hiddenStates, numTokens, isPrefill=true)
-         │
-         ├─[6.2.1] Detect norm architecture
-         │         ├─ useSandwichNorm = (preFeedforwardNorm || postFeedforwardNorm) exists
-         │         ├─ FORK: Gemma 3 → useSandwichNorm = true
-         │         └─ FORK: LLaMA/Mistral → useSandwichNorm = false
-         │
-         ├─[6.2.2] _attentionGPU()
-         │         │
-         │         ├─[6.2.2.1] runRMSNorm(input, inputNorm)
-         │         │
-         │         ├─[6.2.2.2] Q = runMatmul(normed, qProj, transposeB=true)
-         │         ├─[6.2.2.3] K = runMatmul(normed, kProj, transposeB=true)
-         │         ├─[6.2.2.4] V = runMatmul(normed, vProj, transposeB=true)
-         │         │
-         │         ├─[6.2.2.5] Q/K norms?
-         │         │           ├─ FORK: Gemma → runRMSNorm(Q, qNorm), runRMSNorm(K, kNorm)
-         │         │           └─ SKIP: LLaMA/Mistral
-         │         │
-         │         ├─[6.2.2.6] runRoPE(Q, K, freqsCos, freqsSin)
-         │         │
-         │         ├─[6.2.2.7] runAttention(Q, K, V, kvCache)
-         │         │           ├─ DEP: sharedMem >= 49KB → prefill_large (tileSize=64)
-         │         │           ├─ DEP: sharedMem >= 8KB → prefill_small (tileSize=32)
-         │         │           └─ ALT: prefill_streaming (no shared mem)
-         │         │           ├─ DEP: hasF16 → *_f16kv variant (F16 KV in shared mem)
-         │         │           └─ Output: attnOutput
-         │         │
-         │         └─[6.2.2.8] output = runMatmul(attnOutput, oProj, transposeB=true)
-         │
-         │ ┌─────────────────────────────────────────────────────────────┐
-         │ │ FORK: useSandwichNorm (Gemma 3)                             │
-         │ ├─────────────────────────────────────────────────────────────┤
-         ├─[6.2.3a] postAttnNormed = runRMSNorm(attnOutput, postAttentionNorm)
-         ├─[6.2.4a] postAttn = runResidualAdd(postAttnNormed, input)  ← RESIDUAL AFTER NORM
-         ├─[6.2.5a] ffnInput = runRMSNorm(postAttn, preFeedforwardNorm)
-         ├─[6.2.6a] ffnOutput = _feedForwardGPU() or _moeFeedForwardGPU()
-         ├─[6.2.7a] ffnNormed = runRMSNorm(ffnOutput, postFeedforwardNorm)
-         └─[6.2.8a] output = runResidualAdd(ffnNormed, postAttn)      ← RESIDUAL AFTER NORM
-         │ └─────────────────────────────────────────────────────────────┘
-         │
-         │ ┌─────────────────────────────────────────────────────────────┐
-         │ │ FORK: Standard (LLaMA/Mistral)                              │
-         │ ├─────────────────────────────────────────────────────────────┤
-         ├─[6.2.3b] postAttn = runResidualAdd(attnOutput, input)      ← RESIDUAL FIRST
-         ├─[6.2.4b] normed = runRMSNorm(postAttn, postAttnNorm)
-         ├─[6.2.5b] ffnOutput = _feedForwardGPU() or _moeFeedForwardGPU()
-         └─[6.2.6b] output = runResidualAdd(ffnOutput, postAttn)      ← RESIDUAL AFTER FFN
-         │ └─────────────────────────────────────────────────────────────┘
-         │
-         │ ┌─────────────────────────────────────────────────────────────┐
-         │ │ _feedForwardGPU (Dense)                                     │
-         │ ├─────────────────────────────────────────────────────────────┤
-         │ ├─ gate = runMatmul(input, ffnGate, transposeB=true)
-         │ ├─ up = runMatmul(input, ffnUp, transposeB=true)
-         │ ├─ gated = runSiLU(gate) * up
-         │ └─ output = runMatmul(gated, ffnDown, transposeB=true)
-         │ └─────────────────────────────────────────────────────────────┘
-         │
-         │ ┌─────────────────────────────────────────────────────────────┐
-         │ │ _moeFeedForwardGPU (MoE) [Mixtral, etc.]                    │
-         │ ├─────────────────────────────────────────────────────────────┤
-         │ ├─ routerLogits = runMatmul(input, routerWeight)
-         │ ├─ (expertIndices, expertWeights) = runSoftmaxTopK(routerLogits, topK)
-         │ ├─ FOR each selected expert:
-         │ │   ├─ loadExpert(layerIdx, expertIdx) if not cached
-         │ │   ├─ gathered = runMoEGather(input, expertIndices)
-         │ │   ├─ expertOut = _feedForwardGPU(gathered, expertWeights)
-         │ │   └─ output = runScatterAdd(output, expertOut, expertIndices)
-         │ └─────────────────────────────────────────────────────────────┘
-         │
-         └─ Output: hiddenStates for next layer
-
-[6.3] _computeLogits(finalHiddenStates, numTokens)
-      │
-      ├─[6.3.1] runRMSNorm(hiddenStates, finalNorm)
-      │
-      ├─[6.3.2] logits = runMatmul(normed, lmHead)
-      │         ├─ FORK: Tied embeddings → transposeB=true
-      │         └─ FORK: Untied → transposeB=true (SafeTensors layout)
-      │
-      └─[6.3.3] Extract last position logits
-                └─ Output: logits[vocabSize] for position (numTokens-1)
-```
-
----
-
-### PHASE 7: SAMPLING
-
-```
-[7.1] _applyRepetitionPenalty(logits, generatedIds, penalty)
-      └─ logits[token] /= penalty for each token in history
-
-[7.2] _sample(logits, opts)
-      │
-      ├─[7.2.1] Temperature scaling
-      │         └─ logits /= temperature
-      │
-      ├─[7.2.2] Top-K?
-      │         ├─ CONFIG: topK > 0 → Apply
-      │         └─ SKIP: topK = 0
-      │
-      ├─[7.2.3] Top-P (nucleus)?
-      │         ├─ CONFIG: topP < 1.0 → Apply
-      │         └─ SKIP: topP = 1.0
-      │
-      └─[7.2.4] Softmax + categorical sample
-                └─ Output: nextToken
-```
-
----
-
-### PHASE 8: DECODE LOOP
-
-```
-[8.1] WHILE tokensGenerated < maxTokens AND NOT stopped:
-      │
-      ├─[8.1.1] _embed([lastToken])
-      │         └─ Same as prefill but numTokens=1
-      │
-      ├─[8.1.2] FOR l = 0 to numLayers-1:
-      │         │
-      │         └─ _processLayerGPU(l, hiddenStates, numTokens=1, isPrefill=false)
-      │            │
-      │            └─ Attention uses DECODE kernel variant:
-      │               ├─ DEP: sharedMem → decode kernel (256 workgroup)
-      │               ├─ Reads full KV cache from previous positions
-      │               └─ Appends new K,V to cache
-      │
-      ├─[8.1.3] _computeLogits(hiddenStates, 1)
-      │         └─ Output: logits[vocabSize] for position 0
-      │
-      ├─[8.1.4] _sample(logits, opts)
-      │         └─ Output: nextToken
-      │
-      ├─[8.1.5] Check stop conditions
-      │         ├─ stopTokenIds from modelConfig (model-specific)
-      │         └─ Check stopSequences in generated text
-      │
-      └─[8.1.6] currentSeqLen++
-```
-
----
-
-## External Dependencies Summary
-
-| Dependency | Detection | Impact |
-|------------|-----------|--------|
-| **Memory64** | `getMemoryCapabilities().hasMemory64` | >4GB heap allocation |
-| **Unified Memory** | `getMemoryCapabilities().isUnifiedMemory` | Dense model performance |
-| **WebGPU** | `getDevice()` | GPU vs CPU path |
-| **shader-f16** | `getKernelCapabilities().hasF16` | F16 matmul, F16 KV cache |
-| **subgroups** | `getKernelCapabilities().hasSubgroups` | Fast dequantization |
-| **Shared Memory** | `device.limits.maxComputeWorkgroupStorageSize` | Attention kernel variant |
-| **OPFS** | Browser support | Model storage |
-| **Native Bridge** | `storageContext.loadShard` | Bypass OPFS, mmap access |
-
----
-
-## Model-Specific Forks Summary
-
-| Step | Gemma 3 | LLaMA/Mistral | Mixtral |
-|------|---------|---------------|---------|
-| Tensor prefix | `language_model.model.layers` | `model.layers` | `model.layers` |
-| Q/K norms | Yes | No | No |
-| Embedding scale | `*= sqrt(hiddenSize)` | No | No |
-| Norm architecture | Sandwich (4 norms) | Standard (2 norms) | Standard (2 norms) |
-| Residual pattern | Norm BEFORE residual | Residual BEFORE norm | Residual BEFORE norm |
-| FFN type | Dense | Dense | MoE (8 experts, top-2) |
-| Sliding window | 1024 | None / 4096 (Mistral) | None |
-| Stop tokens | From manifest | From manifest | From manifest |
-| Chat template | Yes | No | No |
+1. **Device**: `initDevice()` and `getKernelCapabilities()` in
+   `src/gpu/device.js` (adapter, `shader-f16`, `subgroups`, limits).
+2. **Manifest and config**: the RDRR manifest is parsed by
+   `src/formats/rdrr/`; model parameters come from the manifest through
+   `parseModelConfigFromManifest()` in `pipelines/text/config.js`. There is no
+   runtime model-family detection.
+3. **Weights**: `src/loader/doppler-loader.js` loads embeddings, layers and
+   final weights (`embedding-loader.js`, `layer-loader.js`,
+   `final-weights-loader.js`) through the pipeline's storage context.
+4. **KV cache**: `kv-cache/` (base, sliding-window, tiered, quantized and
+   paged layouts).
+5. **Tokenizer**: `tokenizer.js` with backends in `tokenizers/`.
+6. **Prefill**: `pipelines/text/generator/prefill/` runs every prompt token
+   through the per-layer path in `pipelines/text/execution/layer.js`
+   (`attention/`, `ffn/`, `moe/`), writing K/V into the cache.
+7. **Logits**: `pipelines/text/logits/` projects the final hidden state and
+   reads back what sampling needs.
+8. **Sampling**: `pipelines/text/generator/sampling/` (temperature, top-k,
+   top-p, stop checks); `token-sampling.js` owns the seeded per-token draw.
+9. **Decode loop**: `pipelines/text/generator/decode/` appends one token per
+   step until a stop condition or `maxTokens`; the loop is driven by
+   `pipelines/text/generator/generator.js`.
 
 ---
 
@@ -579,10 +256,6 @@ See the [architecture file map](../../docs/architecture.md#key-files) and
 [pipeline submodules](../../docs/architecture.md#pipeline-submodules-inferencepipelines)
 for maintained source entrypoints.
 
----
-
-*Last updated: December 2025*
-
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/operations.md#kernel-overrides--compatibility` (canonical section).
+See [Kernel Compatibility and Overrides](../../docs/style/wgsl-style-guide.md#kernel-compatibility-and-overrides) (canonical section).

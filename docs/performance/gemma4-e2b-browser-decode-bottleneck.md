@@ -240,22 +240,24 @@ drain the submitted command list. `decodeRecordMs` is the CPU-side time
 spent *building* the command encoder before the submit. The two together
 with `decodeReadbackWaitMs` approximate total decode wall:
 
-- `decodeRecordMs` ≈ CPU encoding time (small, ~17–18% of wall)
-- `decodeSubmitWaitMs` ≈ GPU execution wall time (large, ~78% of wall)
+- `decodeRecordMs` ≈ CPU encoding time (small, ~17–19% of wall)
+- `decodeSubmitWaitMs` ≈ GPU execution wall time (large, ~81–83% of wall)
 - `decodeReadbackWaitMs` ≈ wall from submit to readback mapAsync resolving
   (reports ~the same number as submit wait on M3; they are observing the
   same GPU-completion fence from two sides, plus a small readback tail)
 
 The correct interpretation of the per-batch breakdown is:
 
-- Per batch of 8 tokens at batch=8/readback=8: ~360 ms wall,
-  ~62 ms CPU encoding, ~300 ms GPU executing the recorded command list.
-- Per token: ~45 ms of which ~37 ms is GPU kernel execution.
-- TJS on the same hardware does ~35 ms per token end-to-end.
+- Post-fix, one timed run decodes 64 tokens in 8 batches (5534.20 ms total
+  `decodeMs`, consistent with 11.56 tok/s). Per batch of 8 tokens at
+  batch=8/readback=8: ~690 ms wall, ~130 ms CPU encoding, ~560 ms GPU
+  executing the recorded command list.
+- Per token: ~87 ms (1000 / 11.56 tok/s), of which ~70 ms is GPU execution.
+- TJS on the same hardware does ~35 ms per token end-to-end (28.46 tok/s).
 
-So Doppler's GPU kernel list is doing roughly **2.6× more GPU-second work
-per token than TJS's ONNX runtime**. That is a kernel/plan issue, not a
-CPU round-trip issue.
+So Doppler's GPU execution alone takes **roughly 2× TJS's complete per-token
+time** (~70 ms vs ~35 ms), and its end-to-end decode is ~2.5× slower. That
+is a kernel/plan issue, not a CPU round-trip issue.
 
 ### What the override is still good for
 

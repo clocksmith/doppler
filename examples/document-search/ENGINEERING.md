@@ -5,7 +5,19 @@ maintainers reproducing model releases and installed-application evidence.
 
 ## Qualify the distributable
 
-Run the clean consumer and physical acceptance together from the repository:
+From the repository, `node tools/check-document-search-starter.js [output-dir] [qualification-config.json]`
+copies the starter outside the checkout (without `node_modules` or local model
+shards), runs frozen `npm ci --omit=optional`, verifies the installed build and
+every served asset, and reopens the application shell in Chromium with the server
+stopped and browser networking disabled. No ancestor of the output directory may
+contain `node_modules`. It writes `check.json` and never substitutes checkout
+runtime files.
+
+- Without a configuration it stops there. This install-and-shell check executes no
+  model; its receipt says `physicalExecution: false`. UI cancellation tests use
+  synthetic model ports and are separate from GPU qualification.
+- With a configuration it also runs physical acceptance
+  (`tools/qualify-document-search.js`) against the installed copy:
 
 ```sh
 node tools/check-document-search-starter.js /absolute/new-consumer /absolute/qualification-config.json
@@ -15,8 +27,7 @@ The configuration supplies `fixturePath`, `requiredVendor`, `channel`,
 `launchArgs`, `temporaryDirectory`, `timeoutMs`, and `recovery: true`. Use
 `tests/fixtures/document-search-unseen.json` unchanged. The runner sets the
 application and evidence directories after copying the starter and running
-frozen `npm ci`; it never substitutes checkout runtime files. Omitting the
-configuration runs the separately labeled shell-only check.
+frozen `npm ci`.
 
 The physical path serves the copied starter through its own `server.js`, checks
 archive/lock/asset/Capsule identity before and after execution, retains both model
@@ -31,6 +42,9 @@ Receipts include browser/hardware/probe identity, filesystem type, installation,
 artifact I/O and verification, indexing, query, reopening, cancellation, and
 closure observations. Filesystem backing and other workload conditions constrain
 timing interpretation; no historical throughput result qualifies this package.
+A final model receipt must bind this installed archive, generated manifest, signed
+model identities, environment, fixture, and probe; no source copying after
+qualification.
 
 ## Build and qualify the Node application
 
@@ -133,29 +147,35 @@ reuse rather than accepted from untrusted import metadata.
 `installation.js` manages local artifact caching in OPFS, checksum verification, and rollback protection.
 `service-worker.js` caches application assets for complete offline availability.
 
-From the repository, `node tools/check-document-search-starter.js` copies the starter
-outside the checkout, runs frozen `npm ci`, verifies every served asset, and reopens
-the actual application shell with the server stopped and browser networking disabled.
-Its retained receipt explicitly says `physicalExecution: false`. UI cancellation
-tests use synthetic model ports and are separate from GPU qualification. A final
-model receipt must bind this installed archive, generated manifest, signed model
-identities, environment, fixture, and probe; no source copying after qualification.
+## Retain an installed-package bundle
 
-## Engineering build and reproduction
-
-First retain a passing installed-package smoke bundle and source-qualified
-embedding and reranking Capsule builds. The build tool accepts a JSON file:
-
-Create the package consumer outside the repository and any directory whose
-ancestors contain `node_modules`. Node otherwise resolves ancestor dependencies,
-which defeats the standalone-provider isolation check. Install repository
-dependencies with `npm ci` and Chromium with `npx playwright install chromium`.
-On Linux, install Chromium system dependencies with
-`npx playwright install-deps chromium` when the host does not already supply them.
+`node tools/check-packed-package.js --retain <new-directory>` packs one candidate,
+installs it into an isolated consumer, copies standalone contract consumers and
+signed fixture data into that bundle, and runs them. Create the bundle outside the
+repository and any directory whose ancestors contain `node_modules`. Node otherwise
+resolves ancestor dependencies, which defeats the standalone-provider isolation
+check. Install repository dependencies with `npm ci` first. The browser
+qualification tools on this page also need Chromium: `npx playwright install chromium`,
+and on Linux `npx playwright install-deps chromium` when the host does not already
+supply its system dependencies.
 
 ```sh
 TMPDIR=/var/tmp node tools/check-packed-package.js --retain /var/tmp/doppler-package-evidence
 ```
+
+`--retain` preserves the exact tarball, npm file inventory (`npm-pack.json`),
+installed consumer, source commit and dirty-state declaration
+(`source-state.json`), command outputs, and terminal `receipt.json` on success or
+failure. The destination must not exist; an earlier bundle is never overwritten.
+Verify the tarball's SHA-256 against `receipt.json`. Dirty source is declared, not
+represented as reproducible from the commit alone. The injected contract fixtures
+test API wiring; physical model receipts are recorded separately.
+
+## Engineering build and reproduction
+
+First retain a passing [installed-package bundle](#retain-an-installed-package-bundle)
+and source-qualified embedding and reranking Capsule builds. The build tool
+accepts a JSON file:
 
 ```json
 {
@@ -217,10 +237,7 @@ console.log(server.baseUrl + '/index.html');
 JS
 ```
 
-1. Open the application and explicitly choose retained local use.
-2. Install the models, select text or Markdown files, and save the document index.
-3. Search, close the browser, and reopen the same address and browser profile
-   with networking disabled. Choose **Open installed models**.
+Then follow the [usage walkthrough](README.md#3-usage-walkthrough).
 
 Normal opening rejects damaged files. **Repair damaged model files** explicitly
 reacquires missing or damaged artifacts after signature and release checks.
@@ -230,8 +247,8 @@ for outstanding writes to settle. Storage errors remain visible to the user.
 
 An incompatible embedding identity invalidates the old vector index. Retained
 text remains available to **Rebuild retained index**; damaged retained text or
-index data is rejected. Browser-managed storage remains subject to eviction or
-user deletion. Offline retained use cannot observe new remote revocations.
+index data is rejected. See [limits](README.md#limits) for storage eviction,
+revocation, and cancellation boundaries.
 
 Device loss rejects active sessions. Close them and explicitly reopen the
 installed models; pipeline cleanup preserves an acquired replacement device and

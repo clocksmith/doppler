@@ -18,17 +18,15 @@ Track 1 does not change Doe/CSL lowering or existing f32 receipts.
 
 | Item | Status | Notes |
 | --- | --- | --- |
-| Gemma 4 31B af16 manifest sibling | Done | Existing `weightsRef` manifest at `models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json`. |
-| Gemma 4 31B af16 runtime profile | Done | Existing profile `profiles/gemma4-31b-f16-activations-probe`. |
-| Gemma 4 31B af16 transform | Done | Existing `useGemma431BTextF16Activations` transform and tests route the f16 lane. |
-| Gemma 4 31B af16 frozen reference | Done | Browser/WebGPU and Node/WebGPU both decode `blue`; Doe fixture `r3-1-31b-doppler-frozen-af16` validates with `q4k-ehf16-af16`. |
+| Gemma 4 31B af16 manifest, profile and transform | Done | See [Gemma 4 31B F16 compute target](gemma-4-31b-f16-activations.md#runtime-contract). |
+| Gemma 4 31B af16 frozen reference | Done, unretained | Browser/WebGPU and Node/WebGPU decodes of `blue` and Doe fixture `r3-1-31b-doppler-frozen-af16` validation (`q4k-ehf16-af16`) were reported, but no receipt is committed; see [Decode Evidence](gemma-4-31b-f16-activations.md#decode-evidence). |
 | Qwen 3.6 af32 guardrail | Done | Existing `qwen-3-6-27b-q4k-ehaf16` is the f32 lane despite the legacy model id. |
 | Qwen 3.6 af16 manifest sibling | Done | Added `models/local/qwen-3-6-27b-q4k-eaf16/manifest.json` as a `weightsRef` sibling with f16 compute/session policy. |
 | Qwen 3.6 af16 runtime profile | Done | Added experimental profile `profiles/qwen3-6-27b-f16-activations-probe`. |
 | Qwen 3.6 af16 transform | Done | Added `useQwen36F16Activations` and a capability rule that routes the f16 lane onto f16 kernels. |
 | Reference-run `weightsRef` preflight | Done | `run-program-bundle-reference.js` checks shared weight-capsule files for manifest-only siblings instead of requiring local shard copies. |
 | Fixture-capture command docs | Done | `docs/cerebras-tsir-fixture-capture.md` has f32 and f16 commands with explicit output/report paths and Qwen L=3 capture. |
-| Qwen 3.6 af16 frozen reference | Done | Node/WebGPU decodes coherent text ending in `blue`; Doe fixture `r3-2-27b-doppler-frozen-af16` validates with `q4k-eaf16`. |
+| Qwen 3.6 af16 frozen reference | Done, unretained | Node/WebGPU decodes coherent text ending in `blue`; Doe fixture `r3-2-27b-doppler-frozen-af16` validates with `q4k-eaf16`. No receipt is committed. |
 | Qwen 3.6 af16 browser coherence | Follow-up | Browser attempt did not produce a report before manual stop; Node/WebGPU fixture and validator are bound. |
 
 ## Guardrails

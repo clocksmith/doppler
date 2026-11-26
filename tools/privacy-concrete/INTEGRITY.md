@@ -1,16 +1,15 @@
 # Malicious-evaluator threat model and the checked-integrity route
 
+> Historical research record: see [Status](README.md#status) for the code removal and the 2026-11-17 stop; the commands for the removed scripts are kept in [this guide at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/INTEGRITY.md).
+
 Status: research. Production cryptographic admission remains closed. No
 cryptographer has reviewed this. One independent automated review has been done
 and its findings are applied or stated below; see the [review record](#review-record).
 The full-replay routes and their retained receipts are unchanged and remain the
 reference integrity mechanism.
 
-Direction, 2026-11-17: the owner stopped further execution on the homomorphic route
-this check belongs to, because the requester still holds the weights and does more
-work than running the model itself. The mechanism and its small-Qwen evidence are
-retained. The protected tier continues in the [two-server shares route](SHARES.md),
-where the requester holds no linear weights and the result is exact.
+This check belongs to the homomorphic route stopped on 2026-11-17 (see
+[Status](README.md#status)); the mechanism and its small-Qwen evidence are retained.
 
 This document owns the adversary model for a malicious evaluator and the
 argument for `secret-linear-check-sampled-replay/v1`. Two separate installed
@@ -354,5 +353,3 @@ behaviour, A1 on real activations, A2 or A4.
 | The linear-check policy could be weakened without changing any identity | Floors enforced; the digest is reported, not bound into the plan |
 | Not every parse or decrypt failure is deferred | Stated |
 | The cost link pointed at a missing section; one profile was named, two exist | Corrected |
-
-> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `bridge.py`, `calibrate_linear_check.py`, `checked_bridge.py`, `linear_check.py`, `ssh_route.py`, `test_checked_bridge.py`, `test_checked_native.py`, `test_linear_check.py`, `test_ssh_route.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

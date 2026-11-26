@@ -14,10 +14,11 @@ selects one automatically.
 
 ## Runtime enforcement
 
-The root API rejects matching quickstart, explicit-URL, inline-manifest, cached,
-and weights-ref loads. Known identity is checked during source resolution, then
+The model-loading facade in `dopplerx/compat` (`doppler` / `dr`, tier
+`experimental`) rejects matching quickstart, explicit-URL, inline-manifest,
+cached, and weights-ref loads. Known identity is checked during source resolution, then
 the complete manifest identity is checked before device initialization and
-weight loading. The exported legacy model manager checks the requested model
+weight loading. The legacy model manager (`dopplerx/client/model-manager`) checks the requested model
 before loading and the manifest-owned source, weight-capsule, and variant IDs
 before pipeline construction.
 
@@ -50,7 +51,10 @@ rejected evidence stays retained; it does not remain claimable.
 
 ## Signed live update mechanism
 
-The root API exposes an opt-in control plane:
+The `dopplerx/compat` facade exposes an opt-in control plane as
+`dr.revocations` (`doppler.revocations`, defined in
+`src/client/model-host/index.js`). The root `dopplerx` entry is the Capsule
+runtime (`src/capsule-runtime.js`) and does not export `dr`.
 
 - `dr.revocations.configure(options)` binds one exact HTTPS endpoint, trusted
   online and recovery P-256 public keys, resource limits, clock policy, and an

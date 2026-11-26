@@ -74,7 +74,7 @@ This document describes the benchmark configurations and expected baseline perfo
 ## Running Benchmarks
 
 ```bash
-python3 -m http.server 8080
+node tools/serve-static.js --port 8080
 # Open http://localhost:8080/tests/harness.html?runtimeConfig=...
 # Then invoke benchmark helpers from the console (window.testHarness).
 ```
@@ -129,4 +129,4 @@ console.log(`Median: ${stats.medianMs}ms`);
 
 <!-- DOPPLER_KERNEL_OVERRIDES -->
 ## Kernel Overrides & Compatibility
-See `docs/KERNEL_COMPATIBILITY.md` for runtime kernel modes and the OPFS purge helper.
+See [Kernel Compatibility and Overrides](../../docs/style/wgsl-style-guide.md#kernel-compatibility-and-overrides) for runtime kernel modes and the OPFS purge helper.

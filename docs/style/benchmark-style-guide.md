@@ -115,8 +115,8 @@ Promote only after both gates pass, as a single change:
 
 ### Do not
 
-- Promote based on synthetic or fixture-only timings (Class `C` evidence per
-  the model-failure action plan rules).
+- Promote based on synthetic or fixture-only timings; claimable-evidence rules
+  are in [Benchmark Methodology](../benchmark-methodology.md).
 - Edit the conversion config first and chase regressions afterwards.
 - Reuse a baseline from a different host or driver revision for a
   hardware-targeted change.

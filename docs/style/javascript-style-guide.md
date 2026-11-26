@@ -166,7 +166,7 @@ Kernel path overrides are config-only; harness/UI surfaces must not set kernel s
 - Runtime tunables come from runtime config only. Harness/UI controls must not override them (prompt selection, max tokens, sampling temperature/topK/topP, trace categories, log levels, warmup/timed runs).
 - Command intent and harness selection stay in explicit command/suite context, never in `runtime.shared.*`.
 - Per-field URL overrides are forbidden; use `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`.
-- To tweak a tunable, create a runtime profile or pass `--config` with a runtime config file.
+- To tweak a tunable, create a runtime profile or pass a runtime config: on the CLI with `--runtime-config`, or as `runtimeConfig`/`runtimeConfigUrl` inside the `--config` request (one location, not both); in the browser harness with `runtimeConfigUrl`.
 See `config-style-guide.md` for merge order and category rules.
 
 ## Shared Contract + Engine Overlay (Bench Tools)
@@ -293,12 +293,18 @@ Use sparingly for long files. Keep them minimal:
 
 ## Kernel Wrapper Structure
 
+Registry kernels declare uniform layouts in `src/config/kernels/registry.json`
+and use generated writers (`npm run kernels:uniforms:sync`; see
+[Config Style Guide: Rules](./config-style-guide.md#rules)). The hand-written
+layout below shows the wrapper shape only.
+
 ```javascript
 // gpu/kernels/kernel-name.js
 // Types in kernel-name.d.ts
 
 import { getDevice } from '../device.js';
-import { createPipelineWithConstants, createUniformBuffer } from './utils.js';
+import { createPipeline } from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
 
 // ═══════════════════════════════════════════════════════════════════
 // UNIFORM BUFFER (must match WGSL struct)
@@ -334,7 +340,7 @@ async function getPipeline(constants) {
   const key = getPipelineKey(constants);
   let pipeline = pipelineCache.get(key);
   if (!pipeline) {
-    pipeline = await createPipelineWithConstants('kernel_name', 'main', {
+    pipeline = await createPipeline('kernel_name', 'default', null, {
       HIDDEN_SIZE: constants.HIDDEN_SIZE,
       HEAD_DIM: constants.HEAD_DIM,
       NUM_HEADS: constants.NUM_HEADS,
@@ -353,7 +359,7 @@ export async function runKernel(input, weights, output, constants, uniforms) {
   const device = getDevice();
   const pipeline = await getPipeline(constants);
 
-  const uniformBuffer = createUniformBuffer(UNIFORM_SIZE, (view) => {
+  const uniformBuffer = createUniformBufferWithView('kernel_name_uniforms', UNIFORM_SIZE, (view) => {
     writeUniforms(view, uniforms);
   });
 
@@ -491,8 +497,11 @@ throws when no rule matches. Read the source for the operator set. Do not call
 
 ## Kernel Selection Architecture
 
-Kernel variant selection is **per-op and context-driven**, with pipelines cached per variant.
-Selection logic lives in `src/gpu/kernels/*.js`. Config files provide data only; they do not execute selection.
+Which kernel a model step runs is pinned by the manifest execution graph; see
+[General: Kernel Selection](./general-style-guide.md#kernel-selection). This
+section covers how kernel wrapper modules in `src/gpu/kernels/*.js` organize
+variant selection helpers and pipeline caching. Config files provide data only;
+they do not execute selection.
 
 ### Structure
 
@@ -502,12 +511,13 @@ src/gpu/kernels/
   attention.js           # Attention selection + dispatch
   rmsnorm.js             # RMSNorm selection + dispatch
   ...
-  pipeline-cache.js      # Shared pipeline caching
-  utils.js               # Shared utilities, KERNEL_CONFIGS
-  index.js               # Barrel export
+  pipeline-cache.js      # Shared pipeline caching (createPipeline)
+  kernel-configs.js      # KERNEL_CONFIGS, derived from the kernel registry
+  rule-registry.js       # selectRuleValue for kernel rule maps
+  uniform-utils.js       # Uniform buffer helpers
 ```
 
-`src/gpu/kernel-selector.js` is only a thin backward-compatibility re-export.
+`src/gpu/kernel-selector.js` is a re-export namespace for the browser kernel suite; source modules import the owning module directly.
 
 ### Rule Registry
 
@@ -538,7 +548,7 @@ Pull thresholds into the context object before matching so rules stay data-only:
 
 ```javascript
 import { getKernelThresholds } from '../../config/schema/index.js';
-import { selectRuleValue } from '../rules/rule-registry.js';
+import { selectRuleValue } from './rule-registry.js';
 
 function selectSoftmaxVariant(innerSize) {
   const { smallThreshold } = getKernelThresholds().softmax;
@@ -645,8 +655,10 @@ This pattern applies to: `gather.js`, `residual.js`, and any kernel using `vec4<
 Quantization block sizes are **invariants** derived from the format spec, defined once in a single module and never redefined.
 
 ```javascript
-// config/schema/manifest/quantization.schema.js
-export { QK_K, K_SCALE_SIZE } from '../converter/quantizer.js';
+// src/config/schema/manifest/quantization.schema.js (re-exported by
+// src/config/schema/index.js; src/converter/quantizer.js re-exports QK_K and K_SCALE_SIZE)
+export const QK_K = 256;
+export const K_SCALE_SIZE = 12;
 
 // Block byte sizes - derived from format spec, never hardcode elsewhere
 export const Q4K_BLOCK_BYTES = 144;   // Q4_K: 2 + 2 + K_SCALE_SIZE + QK_K/2
@@ -670,7 +682,7 @@ const Q6K_BLOCK_BYTES = 210;  // Same constant, different file
 const numBlocks = buffer.byteLength / 144;  // What is 144?
 
 // GOOD - import from single source
-import { Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from './quantization-constants.js';
+import { Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from '../config/schema/index.js';
 const numBlocks = buffer.byteLength / Q4K_BLOCK_BYTES;
 ```
 
@@ -680,37 +692,44 @@ const numBlocks = buffer.byteLength / Q4K_BLOCK_BYTES;
 
 ### Layer 1: Manifest → ModelConfig
 
+The real parser is `parseModelConfigFromManifest()` in
+`src/inference/pipelines/text/config.js`. The manifest is complete, so the
+parser reads fields and fails on missing ones; it does not fill defaults with
+`??`. Illustrative shape:
+
 ```javascript
-// config/model-config.js
-// Types in model-config.d.ts
+function requireField(source, key) {
+  const value = source[key];
+  if (value === undefined) {
+    throw new Error(`manifest is missing "${key}"; re-stamp it from the conversion config`);
+  }
+  return value;
+}
 
 export function parseModelConfig(manifest, device) {
-  const numHeads = manifest.num_attention_heads;
-  const numKvHeads = manifest.num_key_value_heads ?? numHeads;
+  const numHeads = requireField(manifest, 'num_attention_heads');
+  const numKvHeads = requireField(manifest, 'num_key_value_heads');
 
   return {
-    hiddenSize: manifest.hidden_size,
+    hiddenSize: requireField(manifest, 'hidden_size'),
     numHeads,
-    headDim: manifest.head_dim ?? manifest.hidden_size / numHeads,
+    headDim: requireField(manifest, 'head_dim'),
     numKvHeads,
-    intermediateSize: manifest.intermediate_size,
-    vocabSize: manifest.vocab_size,
-    numLayers: manifest.num_hidden_layers,
+    intermediateSize: requireField(manifest, 'intermediate_size'),
+    vocabSize: requireField(manifest, 'vocab_size'),
+    numLayers: requireField(manifest, 'num_hidden_layers'),
 
-    // Derived
-    kvHeadDim: manifest.hidden_size / numKvHeads,
+    // Derived from required fields only
     isGQA: numKvHeads !== numHeads,
 
-    // Features
+    // Features: explicit manifest values, never presence heuristics
     features: {
-      scaleEmbeddings: manifest.scale_embeddings ?? false,
-      rmsNormWeightOffset: manifest.rms_norm_weight_offset ?? false,
-      sandwichNorm: !!manifest.pre_feedforward_layernorm,
-      dualRoPE: !!manifest.rope_local_base_freq,
+      scaleEmbeddings: requireField(manifest, 'scale_embeddings'),
+      rmsNormWeightOffset: requireField(manifest, 'rms_norm_weight_offset'),
     },
 
-    // Device
-    workgroupSize: WORKGROUP_SIZES[device.vendor]?.matmul ?? WORKGROUP_SIZES.default.matmul,
+    // Device: a missing vendor entry is a configuration error, not a default
+    workgroupSize: requireField(WORKGROUP_SIZES, device.vendor).matmul,
   };
 }
 ```
@@ -718,8 +737,8 @@ export function parseModelConfig(manifest, device) {
 ### Layer 2: ModelConfig → KernelSpecs
 
 ```javascript
-// config/kernel-specs.js
-// Types in kernel-specs.d.ts
+// Illustrative pattern; there is no shared kernel-specs module.
+// Each kernel wrapper owns its spec.
 
 /** Kernel spec factories - pure functions from model config */
 export const KERNEL_SPECS = {
@@ -818,18 +837,19 @@ const wgSize = options.workgroupSize || 256;
 const maxSeq = config.maxSeqLen || 4096;
 const maxTokens = opts.maxTokens || 1024;
 
-// GOOD - reference named constant
-const wgSize = options.workgroupSize ?? WORKGROUP_SIZES.DEFAULT;
-
-// GOOD - required values should fail fast, not silently default
+// GOOD - required values fail fast, not silently default
 const maxSeq = config.maxSeqLen;
 if (maxSeq === undefined) throw new Error('maxSeqLen is required');
 
-// GOOD - use config schema defaults
-const maxTokens = opts.maxTokens ?? getRuntimeConfig().inference.generation.maxTokens;
+// GOOD - read the resolved config; the schema default was merged once in the config layer
+const wgSize = resolvedKernelConfig.workgroupSize;
+const maxTokens = resolvedSession.decodeLoop.maxTokens;
 ```
 
-**Rule:** If a value has a fallback, the fallback must be a named constant or config getter. If the value is truly required, don't provide a fallback. Fail fast with a descriptive error.
+**Rule:** Defaults live in schemas and are merged once by the config layer;
+runtime code reads the resolved value and never re-applies a fallback with `||`
+or `??`. If a required value is absent, fail fast with a descriptive error. See
+[General: No Runtime Defaults in Code](./general-style-guide.md#no-runtime-defaults-in-code).
 
 ---
 

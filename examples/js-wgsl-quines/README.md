@@ -10,15 +10,30 @@ This is Doppler's standalone JavaScript/WGSL quine gallery, located at
 source generation, and exact CPU/GPU output comparison without depending on
 Doppler's model inference or artifact runtime.
 
-The current GPU runner uses standard browser WebGPU or the optional Node
-`webgpu` binding. The retained reports in `verification/` came with the original
-bundle; relocating this gallery does not establish new GPU execution evidence.
+The GPU runner uses standard browser WebGPU or the optional Node `webgpu`
+binding. See [verification records](#verification-records) for which runs
+reached a GPU.
 
-Imported from `~/Desktop/js-wgsl-five-quines`. The generated programs, manifest,
-and existing verification records are preserved; the Desktop original remains
-in place.
+## Start here
 
-## Start with the small one
+The gallery is self-contained, with all five initial programs embedded. It does
+not download libraries, models, fonts, or other runtime resources.
+
+```bash
+npm run serve
+```
+
+Open `http://localhost:8000/demo.html` in a WebGPU-capable browser. Choose a program,
+run its JavaScript checks, then run its GPU rounds. The gallery displays the
+adapter, exact source hashes, and failure diagnostics. Successful descendants are
+used as the next programs; a saved expected source is never substituted for output.
+The visual example offers a lossless PNG after actual GPU execution.
+
+The page is a controlled demo of bundled code, not a sandbox for arbitrary
+programs. Stopping a worker and destroying a WebGPU device are best-effort timeout
+mechanisms, not a security isolation guarantee.
+
+### The small one
 
 [`quines/00-minimal.js`](quines/00-minimal.js) is a JavaScript-only introduction
 to the quotation mechanism behind the larger constructions:
@@ -39,10 +54,10 @@ npm run test:minimal
 ```
 
 The check executes returned stdout as the next program in a fresh Node process,
-without passing it a source-file path, and compares the complete bytes.
-[`verification/minimal-results.json`](verification/minimal-results.json) records
-the source hash, environment, and checked generations. This addition does not
-change the original gallery's generated JS/WGSL programs or their manifest.
+without passing it a source-file path, and compares the complete bytes. It writes
+`verification/minimal-results.json` (source hash, environment, and checked
+generations); that file is not tracked and exists only after `npm run test:minimal`
+or `npm test` has run.
 
 ## A small, GPU-built JavaScript quine
 
@@ -84,32 +99,24 @@ Five complete constructions, not pseudocode. Generated programs are under
 `quines/`; the readable construction logic is in `build.js`,
 `compiler/build-compiler.js` and `compiler/build-wasm.js`.
 
-**Verification boundary:** the supplied JavaScript, independent character-emission
-reference, and independent Sprout interpreter tests pass. All five also pass their
-JavaScript checks in Chromium. Actual WGSL compilation and WebGPU dispatch have
-**not** been verified in the construction environment: browser navigation was
-blocked by administrator policy, and a Node WebGPU binding was unavailable.
+### Verification records
+
+- The original records (`cpu-results.json`, `browser-cpu-results.json`,
+  `gpu-results.json`, `environment.json`, `rebuild-results.json`) come from the
+  construction environment. The JavaScript, independent character-emission
+  reference, and independent Sprout interpreter checks passed, and all five passed
+  their JavaScript checks in Chromium. WGSL compilation and WebGPU dispatch were
+  not reached there: browser navigation was blocked by administrator policy and
+  no Node WebGPU binding was available (`gpu-results.json` status `blocked`).
+- `verification/sprout-three-backend-2026-09-12/` and
+  `verification/sprout-simpler-js-2026-09-12/` are later Chrome runs of the Sprout
+  compiler on a hardware adapter (Apple `metal-3`, not a fallback adapter).
+- `verification/gpu-quine/` holds two browser runs of `gpu-quine.js`; both
+  report the SwiftShader software adapter.
+
+No retained record shows GPU rounds of constructions 1 to 4 on hardware.
 `tests/gpu.js` and the browser demo perform real GPU tests and never substitute
 CPU output for a GPU result. A reported software adapter is not physical GPU proof.
-
-## Start here
-
-The gallery is self-contained, with all five initial programs embedded. It does
-not download libraries, models, fonts, or other runtime resources.
-
-```bash
-npm run serve
-```
-
-Open `http://localhost:8000/demo.html` in a WebGPU-capable browser. Choose a program,
-run its JavaScript checks, then run its GPU rounds. The gallery displays the
-adapter, exact source hashes, and failure diagnostics. Successful descendants are
-used as the next programs; a saved expected source is never substituted for output.
-The visual example offers a lossless PNG after actual GPU execution.
-
-The page is a controlled demo of bundled code, not a sandbox for arbitrary
-programs. Stopping a worker and destroying a WebGPU device are best-effort timeout
-mechanisms, not a security isolation guarantee.
 
 ## The five constructions
 
@@ -220,7 +227,8 @@ compiler source P
 ```
 
 JS defaults to compiling P to its own JS. WGSL defaults to compiling P to its own
-WGSL. Set the WGSL `TARGET` override to 0 for JS, or 1 for WGSL.
+WGSL. The WGSL `TARGET` override selects the output; [LANGUAGE.md](compiler/LANGUAGE.md)
+is canonical for the API, `TARGET` values (including Wasm) and limits.
 
 Both backends also compile unrelated Fibonacci, factorial, text-output, branch,
 and unsigned-overflow programs. The independent interpreter compiles the compiler
@@ -292,12 +300,11 @@ already generated source plus a pixel output buffer.
 
 ```bash
 npm run build
-npm test
 ```
 
-Rebuilding requires only Node. Runtime reproduction needs neither the
-builder nor any original source file. `manifest.json` records all ten source-file
-sizes and SHA-256 hashes. It is external verification metadata, not an ingredient
+Then rerun the [checks without WebGPU](#run-without-webgpu). Rebuilding requires
+only Node. Runtime reproduction needs neither the builder nor any original source
+file. `manifest.json` records all twelve program files' sizes and SHA-256 hashes. It is external verification metadata, not an ingredient
 used by the quines.
 
 `build.js` builds the first four fixed points and embeds the complete launcher.
@@ -306,10 +313,7 @@ backend templates and build the Sprout compiler. `compiler/compiler.sprout` is t
 with its generic emission templates as data. `compiler/assemble.js` assembles that
 text form. `tests/reference.js` independently interprets the numeric language.
 
-The Sprout language has unsigned 32-bit registers, explicit data and input reads,
-arithmetic, comparisons, loops, branches, and byte/decimal output. Division and
-remainder by zero produce zero in both targets. Data reads outside the embedded
-program or supplied input return zero. See `compiler/LANGUAGE.md`.
+The Sprout language is specified in [LANGUAGE.md](compiler/LANGUAGE.md).
 
 ## References
 
@@ -327,22 +331,16 @@ and compare them, exactly as an interpreter or test runner ordinarily would.
 
 ## Sprout's third backend: native Wasm
 
-The compiler now emits JavaScript, WGSL, or an import-free Wasm binary. It still
-uses 19 opcodes and 64 u32 registers. Generated Wasm contains direct native
-instructions, not a Sprout interpreter. Its embedded numeric source supplies
+The compiler also emits an import-free Wasm binary. Generated Wasm contains direct
+native instructions, not a Sprout interpreter. Its embedded numeric source supplies
 quotation, just as it does for the two text backends. No descendant reads its
-source file, calls the builder, or embeds a precompiled compiler module.
-
-The one output-domain change is that `put` accepts bytes 0..255 rather than only
-ASCII. Text targets remain strings; the Wasm target returns a `Uint8Array`.
-`Quine.executeBytes()` exposes raw program output. `Quine.fromWasm(bytes)`
-instantiates the supplied module and only transports input/output through its
-memory; compilation runs inside that module.
+source file, calls the builder, or embeds a precompiled compiler module. The JS API,
+byte output, Wasm memory layout and limits are in [LANGUAGE.md](compiler/LANGUAGE.md).
 
 `compiler/complexity.json` records instruction count, source sizes, deterministic
-gzip sizes (reference zlib level 9, reproduced by `compiler/zlib-gzip.js`), and hashes. These are description-size measurements, not a proof of
-minimal Kolmogorov complexity. Dynamic binary sizes and i32 constants use legal
-five-byte LEB128: fewer compiler rules, somewhat larger emitted binaries.
+gzip sizes (reference zlib level 9, reproduced by `compiler/zlib-gzip.js`), and
+hashes. These are description-size measurements, not a proof of minimal
+Kolmogorov complexity.
 
 `node compiler/compile.js compiler/fibonacci.sprout --target wasm` emits a real
 Wasm module on stdout. `node quines/05-compiler.js --wasm` emits the compiler's
@@ -362,6 +360,6 @@ and executes all five unrelated programs through every compiler/runtime pairing.
 A software fallback does not qualify as physical-GPU evidence. Fresh receipts
 and returned descendants go in
 `verification/sprout-three-backend-2026-09-12/`; the original CPU/blocked-GPU
-receipts describe the earlier two-backend construction, not this new run.
+records describe the earlier two-backend construction.
 
 Source filenames migrated from `.mjs` to `.js` on 2026-11-14. Archived verification records retain the original command names; current scripts above use the same ES-module execution mode.

@@ -1,16 +1,28 @@
 # Installed local document search
 
+> **Expired: fresh installs fail until the signed metadata is renewed.**
+> The model release events in this directory's `models.json` expired at
+> 2026-09-08 13:29:51 UTC. The published 0.1.1 browser archive's events expired at
+> 2026-09-28 00:55:40.930 UTC. After expiry the bundled runtime rejects a new
+> installation with `Release eligibility has expired.` Installations that already
+> recorded an explicit retained-local-use decision keep their offline use. A fresh
+> install needs a new deliverable with renewed signed release events; the archive
+> and its published hashes stay immutable. The procedure below applies once such
+> a deliverable exists.
+
 This reference application composes qualified embedding and reranking Capsules
-through the installed `doppler-gpu/host` API. `search.js` owns text/Markdown
+through the installed `doppler-gpu/host` API (`doppler-gpu` is the package's former
+name; this starter vendors doppler-gpu 0.6.2). `search.js` owns text/Markdown
 indexing, cosine candidate retrieval, and candidate-to-document mapping. Document
 parsing and index policy stay outside the inference runtime.
 
-This is the canonical implementation for Doppler's
-[next product increment](../../GOALS.md#next-product-increment-copy-and-run-local-search):
-a complete copy-and-run local-search application. That contract requires reusable
-sessions and indexes, application-owned cancellation/disposal, complete pinned
-setup, honest progress, and clean-environment physical acceptance. The [engineering build](ENGINEERING.md) is retained for reproduction; installed application evidence and limitations are recorded below. Do not create a second search engine in the
-[one-shot capability example](../capsule-capabilities/README.md).
+This is Doppler's reference copy-and-run local-search application. Its acceptance
+requirements are in [search application acceptance](../../GOALS.md#next-product-increment-copy-and-run-local-search):
+reusable sessions and indexes, application-owned cancellation/disposal, complete
+pinned setup, honest progress, and clean-environment physical acceptance. The
+[engineering build](ENGINEERING.md) is retained for reproduction; installed
+application evidence and limitations are recorded below. Do not create a second
+search engine in the [one-shot capability example](../capsule-capabilities/README.md).
 
 Initial completion uses embeddings and reranking, not generation. The runnable
 delivery must include complete pinned descriptors, accepted implementations,
@@ -18,12 +30,35 @@ publisher trust, and release metadata for the developer to inspect and adopt.
 It must not require private signing keys. The application retains both healthy
 sessions across queries and rebuilds incompatible indexes from preserved documents.
 
+## Limits
+
 Local processing, cancellation/reuse, cleanup, and offline reopening are scoped
-acceptance requirements, not automatic guarantees. Cancellation does not interrupt
-submitted GPU commands; cleanup does not guarantee immediate physical reclamation.
-Offline reopening needs retained application/runtime files, metadata, models, and
-the index; it cannot discover unseen revocations. Declare host/provider and memory
-requirements, and test network/logging behavior across the complete application.
+acceptance requirements, not automatic guarantees. Application-shell caching alone
+does not establish that documents and queries stay local. Cancellation does not
+interrupt submitted GPU commands: they finish, cancelled results are suppressed,
+and healthy sessions stay reusable. Cleanup does not guarantee immediate physical
+reclamation. Offline reopening needs retained application/runtime files, metadata,
+models, and the index; it cannot discover unseen revocations. Declare host/provider
+and memory requirements, and test network/logging behavior across the complete
+application.
+
+## Which build this is
+
+This directory is the **0.1.0** build: `package.json` version 0.1.0 and
+`vendor/doppler-gpu-0.6.2.tgz` with SHA-256
+`625b8ed8c8e86c28a5b49e1e5ce43969885acd3df309f456eba719d3eeaa5539`, the archive
+pinned by `package-lock.json`, recorded in `build-receipt.json`, and qualified in the
+[0.1.0 delivery receipt](../../artifacts/document-search-delivery-2026-09-23/README.md)
+(tmpfs browser profile).
+
+The **0.1.1** maintenance deliverable is a separate archive on Hugging Face:
+[doppler-document-search-0.1.1.tgz](https://huggingface.co/clocksmith/rdrr/resolve/eafe756a6b11d19eafc9e030b720a2c92e63b2c7/document-search/releases/0.1.1/4ac65ca5152f43ef0ba39ea2c50a012950de2ba1bdec7cfc236442b04dd85a8c/doppler-document-search-0.1.1.tgz),
+SHA-256 `4ac65ca5152f43ef0ba39ea2c50a012950de2ba1bdec7cfc236442b04dd85a8c`. It vendors
+a different runtime archive, also named `doppler-gpu-0.6.2.tgz`, with SHA-256
+`c5be891b3451944f3ff8cf951e46ed6b7fe0f2180d117207bb0b1833669797af`. The
+[maintenance receipt](../../artifacts/document-search-maintenance-2026-09-26/README.md)
+and the measurements below cover 0.1.1, not this directory. Both use the same model
+Capsules. The Node starter is described in [NODE.md](NODE.md).
 
 ## Copy and run
 
@@ -36,13 +71,13 @@ a minimum RAM or GPU-memory configuration has not been established. Both models
 and their working buffers must fit simultaneously. Other devices and browsers
 need separate qualification.
 
-- Node.js 18+ installs the frozen dependency and runs the local server; inference
-  executes in Chromium, without a Node GPU provider.
+- Node 22 (what CI and qualified runs use) installs the frozen dependency and runs
+  the local server; inference executes in Chromium, without a Node GPU provider.
 - Model acquisition is **2,145,462,810 bytes**: 1,200,631,926 for embeddings and
   944,830,884 for reranking. Allow additional space for runtime/application files,
   browser overhead, documents, indexes, and temporary writes.
 - Keep the same browser profile and origin to reopen offline. Browser storage
-  can be evicted or deleted; offline use cannot discover new revocations.
+  can be evicted or deleted.
 
 All 32 shards have immutable public URLs and passed full downloaded size/hash
 checks. The model identities and trusted publishers are unchanged. Before
@@ -52,20 +87,17 @@ sources; unsupported hardware or missing model files prevent installation.
 The 0.1.1 maintenance acceptance used a persistent ext4 browser profile.
 Installation, browser-process restart, offline search, quota failures and recovery
 passed. Machine reboot and smaller-memory hardware remain unqualified.
-The earlier 0.1.0 tmpfs result remains retained separately.
 
 ### 2. Install and Start
 
-The 0.1.1 archive's signed metadata permits fresh installation before
-**2026-09-28 00:55:40.930 UTC**. Later fresh installations need a new deliverable
-with renewed signed metadata. Already accepted installations retain explicit
-offline use. The archive and its published hashes remain immutable.
+Fresh installation currently fails; see the notice at the top.
 
 ```sh
 cd /path/to/document-search
 npm ci --omit=optional
 npm start
 ```
+
 The entire directory can be copied outside the repository, including `vendor/`.
 The lockfile pins the included runtime archive by integrity; no private signing
 keys or developer-local paths are needed. `--omit=optional` omits native Node GPU
@@ -101,13 +133,13 @@ The page checks the features before acquiring model bytes.
 6. Type a query into the search box (e.g., *"How do I change a flat tire?"* or *"How does wild yeast fermentation work?"*) and press Enter or click **"Search"**.
 7. After installation and indexing succeed, close models and the browser, stop the
    server, disconnect networking, and reopen the same URL/profile. Choose **Open
-   installed models**. Model search acceptance must establish that documents and
-   queries remain local; application-shell caching alone does not establish this.
+   installed models**.
 
 ## Measured application behavior
 
-The [installed acceptance receipt](https://github.com/clocksmith/doppler/blob/main/artifacts/document-search-maintenance-2026-09-26/README.md)
-binds the vendored archive, all application assets, both signed model identities,
+These measurements come from the 0.1.1 archive. The
+[installed acceptance receipt](../../artifacts/document-search-maintenance-2026-09-26/README.md)
+binds that archive, all application assets, both signed model identities,
 browser, hardware, reference corpus, and qualification probe. All six reference
 queries passed online and offline, with identical rankings and scores. Both
 models stayed resident during search; indexing and search made no observed
@@ -127,14 +159,10 @@ controlled comparison with the older browser release. The UI
 shows installation and query timings on your machine. Cancellation, unchanged
 index reuse, superseded queries, interrupted saves, corruption repair, index
 rebuilding, explicit closure, and device-loss recovery passed in the same run.
-Submitted GPU commands are allowed to finish after cancellation; cancelled results
-are suppressed and healthy sessions remain reusable.
 
-The inference dependency is the included `doppler-gpu-0.6.2.tgz`, pinned by its
-lockfile and SHA-256 `c5be891b3451944f3ff8cf951e46ed6b7fe0f2180d117207bb0b1833669797af`.
-This maintenance release vendors that exact archive; it does not overwrite the
-npm release or change either model Capsule.
-Node model execution, packaged Electron, and Bun are outside this browser release.
+The maintenance release does not overwrite the npm release or change either model
+Capsule. Node model execution, packaged Electron, and Bun are outside this browser
+release.
 
 Maintainers can reproduce installation and qualification using
 [ENGINEERING.md](ENGINEERING.md). Independent integration and a second revision

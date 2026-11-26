@@ -14,9 +14,7 @@ same selected token, generated tokens, output, and complete raw-logit hash.
 | Field | Mixed Q4 | F16 control |
 | --- | --- | --- |
 | Source revision | `c202236235762e1c871ad0ccb60c8ee5ba337b9a` | same |
-| Manifest SHA-256 | `ac1eff7f371b7d676a5b9a7ddcf94e2d01d3e1043f499dede2fc41249ef55956` | `2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398` |
-| Shard-set hash | `sha256:27c1ba6d379e43eff7eae12b6ccc83081fe5248d1739e7877e82428d52daf228` | `sha256:7d4053a21a45d06690a1e4ac3377cd4d2d46a7239ce94f739bb2e5830f16900d` |
-| Weight-pack hash | `sha256:dfeea5dc362804bd197d1f96effea74c4cd803eb93b8304c633057f4f172f237` | `sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46` |
+| Manifest, shard-set and weight-pack hashes | See [canonical status](qwen35-9b-metal-status.md#fixed-identities) | same |
 | First token | `f` (`69`) | `f` (`69`) |
 | Output | `f32` | `f32` |
 
@@ -38,5 +36,7 @@ matrix was not changed or rerun.
 Machine-readable evidence:
 [qwen35-9b-metal-049-base-parity-2026-07-14.json](qwen35-9b-metal-049-base-parity-2026-07-14.json).
 
-Raw receipts and logits are under
-`reports/qwen-3-5-9b-metal/2026-07-14/`.
+Raw receipts and logits were written to
+`reports/qwen-3-5-9b-metal/2026-07-14/` and are not retained in the tree; their
+SHA-256 values are in the JSON receipt. The canonical summary is
+[qwen35-9b-metal-status.md](qwen35-9b-metal-status.md).

@@ -216,7 +216,7 @@ limits; a fast but incorrect or unreliable result does not qualify.
 
 #### Bounded recursive improvement
 
-[Optimization contracts](src/config/schema/optimization-contract.schema.json) and
+[Optimization contracts](src/config/schema/policy/optimization-contract.schema.json) and
 [training artifact policy](docs/training-artifact-policy.md) own candidate, evaluator,
 lineage, budget, and promotion boundaries. Applications retain activation
 control. Training remains separately scoped; available code is not support.

@@ -7,21 +7,13 @@ shared operating rules. This file covers Doppler-specific commands and contracts
 a standalone checkout does not require the Deco workspace.
 
 **Prime Directive:** Build Doppler as a dependable JavaScript library for local
-WebGPU inference: easy to embed, fast to start and execute, and safe to reuse.
-Rig is the supporting model compiler/preparation system producing source-truth,
-qualified, signed immutable Capsules; the deliberately uncreative Run validates,
-selects, binds, executes, and observes their declared programs. Browser and Node
-support are qualified separately; Bun remains experimental.
+WebGPU inference; Rig prepares signed Capsules and Run executes them unchanged.
 
-**Current priorities:** Work within the product boundaries in
-[GOALS.md](GOALS.md#current-priorities). The maintainers' ordered roadmap is
-private (in the deco workspace: `../ouroboros/docs/projects/doppler/roadmap.md`);
-public contributors follow GitHub issues and GOALS.md. Reploid is a demanding
-consumer, not the owner of Doppler's roadmap; Doe is optional. Historical search,
-rewriting, and provider campaigns are retained evidence and acceptance contracts,
-not mandatory next work. Preserve model identity, compatibility, trust/checkpoint
-protections, and scoped qualification. Verification supports useful, fast,
-simple, portable execution.
+**Current priorities:** [GOALS.md](GOALS.md#current-priorities) owns mission and
+priorities. The maintainers' ordered roadmap is private (in the deco workspace:
+`../ouroboros/docs/projects/doppler/roadmap.md`); public contributors follow
+GitHub issues and GOALS.md. Reploid is a consumer, not the owner of Doppler's
+roadmap. Retained campaigns are evidence, not mandatory next work.
 
 **File Extensions:** Always use `.js`; never create `.mjs`. `package.json` sets `"type": "module"`, so every `.js` file is already an ES module. Code is JavaScript only (WGSL shaders are fine): no Python or Go files, and no scripts that run them. `npm run js-only:check`, part of `check:fast`, enforces this; run vendor or reference stacks that need Python outside the repository and import their JSON.
 
@@ -110,7 +102,7 @@ doppler/
 │   ├── converter/        # SafeTensors/GGUF → RDRR conversion
 │   ├── debug/            # Logging and tracing
 │   ├── errors/           # Error types and handling
-│   ├── experimental/     # Quarantined internal-only lanes: adapters, bridge, browser, diffusion, distribution, energy, hotswap, orchestration, training
+│   ├── experimental/     # Quarantined internal-only lanes: adapters, audio, bdpa, bridge, browser, diffusion, distribution, embeddings, energy, hotswap, loader, logits, orchestration, training, turboquant
 │   ├── formats/          # Format parsing utilities
 │   ├── gpu/              # WebGPU device, buffer pools, kernels
 │   ├── inference/        # Pipeline, attention, FFN, embeddings
@@ -153,7 +145,7 @@ run `npm run catscan:check`.
 
 Full breakdown: `docs/agents/tooling-surface.md`.
 
-- **Public CLI**: `src/cli/doppler-cli.js` — ships as `bin.doppler`
+- **Public CLI**: `src/cli/doppler-cli.js` — ships as `bin.doppler`. The package's other bins are `dopplerx` and `doppler-gpu` (both `src/cli/doppler-quickstart.js`, the quickstart) and `doppler-serve` (`src/cli/doppler-serve.js`, the OpenAI-compatible localhost server).
 - **Command infrastructure**: `src/tooling/` — partially exported via `./tooling`
 - **Dev scripts**: `tools/` — internal, never shipped (except `tools/convert-safetensors-node.js`)
 

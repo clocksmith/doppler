@@ -560,13 +560,15 @@ Kernel-path precedence and `null` semantics are defined in
 
 The execution-v1 step names the exact `matmul` variant; the families below are
 registry variant IDs (`src/config/kernels/registry.json`), not selectable modes.
+`q4kLayout` is `row` or `col` (`src/converter/quantization-info.js`); the converter
+also accepts `row_wise` and `column_wise` as input aliases.
 
 | RDRR Quantization | Layout Metadata | Matmul variant families | Requirements | Notes |
 |---|---|---|---|---|
 | F16 / BF16 | `defaultWeightLayout=row` or `column` | `f16_vec4`, `f16_tiled`, `f16w_f32a`, `f16w_f32a_tiled`, `bf16w_f32a`, `gemv_subgroup_bf16w*` | `shader-f16` for F16 | Layout affects transpose; the step controls arithmetic. |
-| Q4_K_M | `q4kLayout=row_wise` | `q4_fused_*` (gemv, multicol, batched, widetile) or `dequant` + an F16 family | `subgroups` for most fused variants; `shader-f16` for F16 | Row-wise layout required for fused Q4K. |
-| Q4_K_M | `q4kLayout=column_wise` | `dequant` + an F16 family | `shader-f16` for F16 | Column-wise capsules are not fused-compatible. |
-| Q4_K_M | `q4kLayout=flat` | `dequant` + an F16 family | `shader-f16` for F16 | Flat packing has no fused kernel. |
+| Q4_K_M | `q4kLayout=row` | `q4_fused_*` (gemv, multicol, batched, widetile) or `dequant` + an F16 family | `subgroups` for most fused variants; `shader-f16` for F16 | Row-wise layout required for fused Q4K. |
+| Q4_K_M | `q4kLayout=col` | `dequant` + an F16 family | `shader-f16` for F16 | Column-wise capsules are not fused-compatible. |
+| Q4_K_M | non-2-D tensor (flat block packing) | `dequant` + an F16 family | `shader-f16` for F16 | Flat packing has no fused kernel. |
 | GGUF Q4_0 / Q4_1 / Q8_0 | GGUF block layout | `q4_0_cooperative`, `q4_1_cooperative`, `q8_0_cooperative`, `q4_0_pair*`, `q8_0_pair` | `subgroups` for pair variants | Native GGUF blocks; no repacking. |
 | MXFP4 | N/A | `dequant` + matmul | `shader-f16` for F16 | Used for MoE experts; no fused matmul. |
 

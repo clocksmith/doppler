@@ -17,13 +17,10 @@ model ID, conversion configuration, output root, and the inference probe to vali
 3. Validate manifest and shard integrity, load the exact generated model, and run the
    supplied inference probe before any copy or promotion.
 
-## Mandatory Style Guides
+## Style Guides
 
-Read these before non-trivial conversion or manifest-contract changes:
-- `docs/style/general-style-guide.md`
-- `docs/style/javascript-style-guide.md`
-- `docs/style/config-style-guide.md`
-- `docs/style/command-interface-design-guide.md`
+Before non-trivial conversion or manifest-contract changes, open the guides in the
+Conversion row of the [AGENTS.md owner table](../../AGENTS.md#style-guides).
 
 ## Developer Guide Routing
 
@@ -105,10 +102,11 @@ jq '.modelId, .modelType, .quantization, .quantizationInfo, .inference.schema, (
 # 3) Verify shards exist
 ls /tmp/OUTPUT_ID-rebuild/shard_*.bin | wc -l
 
-# 4) After verification passes, copy to the external RDRR root (source of truth)
-# macOS: /Volumes/models/rdrr/OUTPUT_ID/
-# Linux: /media/$USER/models/rdrr/OUTPUT_ID/
-cp -a /tmp/OUTPUT_ID-rebuild/. "$RDRR_ROOT/OUTPUT_ID/"
+# 4) After verification passes, copy to the external RDRR root (source of truth):
+#    $DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/OUTPUT_ID/ (see models/GUIDE.md)
+: "${DOPPLER_EXTERNAL_MODELS_ROOT:?set DOPPLER_EXTERNAL_MODELS_ROOT first (e.g. /Volumes/models)}"
+mkdir -p "$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/OUTPUT_ID"
+cp -a /tmp/OUTPUT_ID-rebuild/. "$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/OUTPUT_ID/"
 
 # 5) Sanity-run inference
 npm run cli -- profiles --json
@@ -132,42 +130,24 @@ Before using a converted artifact in benchmark claims, hand off to
 format disclosure, runtime surface, fallback status, timing scope, work
 accounting, and correctness policy.
 
-For publication candidates, the verification bar is higher:
-
-1. Promote successful ad hoc configs
-- If the conversion used a temporary or inline config and the model runs successfully, copy/promote that config into `src/config/conversion/` so the conversion is reproducible.
-
-2. Run an actual coherence check
-- Use a deterministic prompt and deterministic sampling, not just a load-only run.
-- Recommended shape:
+For publication candidates, follow the
+[Conversion Promotion Gate](../../docs/agents/conversion-protocol.md#conversion-promotion-gate-required)
+(promote the config, prove coherent output, stop for human review, offer perf
+follow-up). The coherence check from this skill:
 
 ```bash
 npm run debug -- \
   --config '{"request":{"modelId":"OUTPUT_ID"},"run":{"surface":"auto"}}' \
-  --runtime-config '{"shared":{"tooling":{"intent":"verify"}},"inference":{"prompt":"Explain what this model is in one short sentence.","sampling":{"temperature":0,"topK":1}}}' \
+  --runtime-config '{"inference":{"prompt":"Explain what this model is in one short sentence.","sampling":{"temperature":0,"topK":1}}}' \
   --json
 ```
 
-- Inspect `result.output` (and summary metrics) for non-empty, coherent text.
-
-3. Pause for HITL review before promotion
-- Summarize the prompt and observed output for the human.
-- Before adding `models/catalog.json` entries, syncing support-matrix metadata, or uploading/publishing to Hugging Face, stop and ask for confirmation.
-
-4. Offer optional perf validation
-- If the output looks correct, propose:
-  - `npm run bench -- --config ... --json`
-  - `node tools/vendor-bench.js ...`
-  - `node tools/compare-engines.js ...`
+Inspect `result.output` (and summary metrics) for non-empty, coherent text.
 
 ## Conversion Triage Contract
 
-When conversion quality is in question, follow the triage protocol in `docs/agents/conversion-protocol.md`:
-1. Verify source dtypes.
-2. Verify manifest `quantization` + `quantizationInfo` + execution-v1/session fields.
-3. Verify shard integrity vs manifest hashes.
-4. Verify sampled tensor numeric sanity source vs converted bytes.
-5. Verify layer pattern semantics (`every-n` behavior).
+When conversion quality is in question, follow the
+[Conversion Triage Protocol](../../docs/agents/conversion-protocol.md#conversion-triage-protocol-required).
 
 ## Canonical Files
 

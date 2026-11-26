@@ -15,7 +15,7 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
 
 ## Required Touch Points
 
-- External-volume artifact directory (`/media/$USER/models/rdrr/<model-id>/`)
+- External-volume artifact directory (`$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/<model-id>/`)
 - `models/catalog.json` (repo model registry metadata — no weights)
 - `docs/model-support-matrix.md` via sync tooling
 - Artifact identity inventory via sync/check tooling
@@ -23,19 +23,16 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
   `sourceCheckpointId`, `weightCapsuleId`, `manifestVariantId`,
   `artifactCompleteness`, `runtimePromotionState`, `weightsRefAllowed`
 
-## Recommended Order
+## Checklist
 
-1. Finish local convert, verify, and debug work first.
-2. Get human review on deterministic output quality before touching catalog or hosted state.
-3. For raw SafeTensors/GGUF release candidates, materialize the persisted direct-source manifest with `node tools/materialize-source-manifest.js <source-path>`.
-4. Copy the verified artifact to the external volume (`/media/$USER/models/rdrr/<model-id>/`).
-5. Update `models/catalog.json` for repo-visible model metadata and HF
-   coordinates. The external volume remains the source for artifact bytes.
-6. Run support-matrix, support-inventory, and artifact-identity checks if
-   catalog or external storage changed.
-7. Run catalog validation before any Hugging Face publication.
-8. Publish with `npm run registry:publish:hf` only after the metadata state is clean. The remote registry catalog should be rebuilt from the approved hosted subset, not patched from a stale local mirror.
-9. Publish manifest-only updates only when the manifest declares a valid `weightsRef` and the referenced weight capsule is already hosted and checker-verified. Otherwise hosted publication requires every manifest-declared artifact file to be present.
+The gate and the step order are canonical in the
+[Model Promotion Playbook](../model-promotion-playbook.md#promotion-workflow);
+registry tool mechanics are in [registry-workflow.md](../registry-workflow.md).
+Before starting, confirm:
+
+- [ ] local convert, verify, and debug work is finished and a human reviewed the deterministic output
+- [ ] raw SafeTensors/GGUF release candidates have a persisted direct-source manifest (`node tools/materialize-source-manifest.js <source-path>`)
+- [ ] manifest-only updates declare a valid `weightsRef` whose weight capsule is already hosted and checker-verified; otherwise every manifest-declared file is published
 
 ## Verification
 

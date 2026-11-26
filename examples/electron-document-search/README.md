@@ -1,8 +1,9 @@
 # Electron Capsule integration
 
-This example composes the shipped `doppler-gpu/host` and `doppler-gpu/host/electron`
-exports. It is integration code, not a customer application, model-quality
-qualification, or evidence that a production release was adopted.
+This example composes the shipped `dopplerx`, `dopplerx/host` and
+`dopplerx/host/electron` exports. It is integration code, not a customer
+application, model-quality qualification, or evidence that a production release
+was adopted.
 
 ## Main and preload
 
@@ -93,7 +94,7 @@ const receipt = await renderer.rerank({
 }, { signal: abortController.signal });
 ```
 
-`doppler-gpu/host` composes the existing WebGPU provider, verified artifact store,
+`dopplerx/host` composes the existing WebGPU provider, verified artifact store,
 and Doppler program adapter. It does not choose trusted publishers or accepted
 TargetPlans for the application. Browser bundles select the browser export;
 Node selects the native JavaScript host export. Bun remains experimental.
@@ -153,14 +154,12 @@ consumer, copies this example, executes the signed-Capsule contract, and compile
 consumer types using only public package imports. Neither command proves
 physical Electron inference, Qwen quality, external operation, or revenue.
 
-`--retain` preserves the exact tarball, npm file inventory, installed consumer,
-source commit and dirty-state declaration, command outputs, and terminal receipt
-on success or failure. The destination must not exist. Verify the tarball's
-SHA-256 against `receipt.json`; rerun `node electron-smoke.js` from the retained
-`consumer/` directory without rebuilding Doppler. The consumer contains only a
-signed synthetic Capsule, not the Qwen model. Its type check records the repository's
-TypeScript invocation separately from the runtime installation. Dirty source is
-declared, not represented as reproducible from the commit alone.
+For `--retain` prerequisites and what the bundle preserves, see
+[retain an installed-package bundle](../document-search/ENGINEERING.md#retain-an-installed-package-bundle).
+From the retained `consumer/` directory, rerun `node electron-smoke.js` without
+rebuilding Doppler. The consumer contains only a signed synthetic Capsule, not the
+Qwen model. Its type check records the repository's TypeScript invocation
+separately from the runtime installation.
 
 ## Physical component probe
 

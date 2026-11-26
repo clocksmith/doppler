@@ -3,7 +3,7 @@
 Auto-generated from `package.json` exports and shipped `.d.ts` entrypoints.
 This is a reference inventory, not the behavior guide. Manual API guides live one level up in `docs/api/`.
 
-## `doppler-gpu`
+## `dopplerx`
 
 - Audience: app authors
 - Stability: preferred public (tier1)
@@ -59,7 +59,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `validateGenerationInput`
   - `validateTargetSequenceScoreResult`
 
-## `doppler-gpu/runtime`
+## `dopplerx/runtime`
 
 - Audience: app authors
 - Stability: preferred public
@@ -114,7 +114,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `validateGenerationInput`
   - `validateTargetSequenceScoreResult`
 
-## `doppler-gpu/generation-contract`
+## `dopplerx/generation-contract`
 
 - Audience: unspecified
 - Stability: unspecified
@@ -132,7 +132,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `ResolvedGenerationOptions`
   - `RuntimeSamplingOptions`
 
-## `doppler-gpu/host`
+## `dopplerx/host`
 
 - Audience: unspecified
 - Stability: unspecified
@@ -192,7 +192,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `verifyCapsule`
   - `verifyCapsuleReleaseEvents`
 
-## `doppler-gpu/host/electron`
+## `dopplerx/host/electron`
 
 - Audience: unspecified
 - Stability: unspecified
@@ -203,7 +203,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `*`
   - `verifyProductionReleaseEvidenceSignature`
 
-## `doppler-gpu/compat`
+## `dopplerx/compat`
 
 - Audience: legacy application authors
 - Stability: experimental export
@@ -246,7 +246,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `SequenceEncodeResult`
   - `validateGenerationInput`
 
-## `doppler-gpu/provider`
+## `dopplerx/provider`
 
 - Audience: unspecified
 - Stability: unspecified
@@ -258,6 +258,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `FailureClass`
   - `FaultInjectionConfig`
   - `InferenceSource`
+  - `LegacyFailureClass`
   - `ModelHandle`
   - `PolicyMode`
   - `ProviderConfig`
@@ -276,7 +277,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `wrapPipelineAsDreamProvider`
   - `wrapPipelineAsHandle`
 
-## `doppler-gpu/tooling`
+## `dopplerx/tooling`
 
 - Audience: tool builders
 - Stability: experimental export
@@ -319,7 +320,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `verifyClosedProgramBundle`
   - `writeProgramBundle`
 
-## `doppler-gpu/tooling/storage`
+## `dopplerx/tooling/storage`
 
 - Audience: unspecified
 - Stability: unspecified
@@ -370,7 +371,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `verifyStoredSourceArtifact`
   - `writeShard`
 
-## `doppler-gpu/tooling/device`
+## `dopplerx/tooling/device`
 
 - Audience: unspecified
 - Stability: unspecified
@@ -387,7 +388,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `isWebGPUAvailable`
   - `registerShaderSources`
 
-## `doppler-gpu/tooling/manifest`
+## `dopplerx/tooling/manifest`
 
 - Audience: unspecified
 - Stability: unspecified
@@ -403,7 +404,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `parseManifest`
   - `setManifest`
 
-## `doppler-gpu/tooling/runtime`
+## `dopplerx/tooling/runtime`
 
 - Audience: unspecified
 - Stability: unspecified
@@ -422,7 +423,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `loadRuntimeProfile`
   - `setRuntimeConfig`
 
-## `doppler-gpu/tooling/evidence`
+## `dopplerx/tooling/evidence`
 
 - Audience: unspecified
 - Stability: unspecified
@@ -467,7 +468,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `validateDemoHardwareReceipt`
   - `validateRegisteredVariantCalibrationPlan`
 
-## `doppler-gpu/structured`
+## `dopplerx/structured`
 
 - Audience: unspecified
 - Stability: unspecified
@@ -494,7 +495,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `LabeledChoiceScoringExample`
   - `StructuredJsonHeadPipeline`
 
-## `doppler-gpu/client/model-manager`
+## `dopplerx/client/model-manager`
 
 - Audience: unspecified
 - Stability: unspecified
@@ -513,7 +514,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `verifyExplicitModelUrlMatch`
   - `writeOPFSFile`
 
-## `doppler-gpu/generation`
+## `dopplerx/generation`
 
 - Audience: advanced runtime consumers
 - Stability: tier1 advanced
@@ -547,7 +548,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `RouterWeights`
   - `SamplingOptions`
 
-## `doppler-gpu/training`
+## `dopplerx/training`
 
 - Audience: training and adapter pipeline authors
 - Stability: experimental export
@@ -621,7 +622,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `trainStep`
   - `watchLoraCheckpoints`
 
-## `doppler-gpu/partitions`
+## `dopplerx/partitions`
 
 - Audience: unspecified
 - Stability: unspecified

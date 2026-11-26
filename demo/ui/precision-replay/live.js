@@ -1,6 +1,4 @@
-import * as browserRuntime from 'dopplerx';
-// The demo's browser import map resolves the supported host API; Node's root types expose the minimal Capsule API.
-const { dr } = /** @type {typeof import('dopplerx/compat')} */ (/** @type {unknown} */ (browserRuntime));
+import { dr } from 'dopplerx/compat';
 import { loadRuntimeProfile } from 'dopplerx/tooling/runtime';
 import { state } from '../state.js';
 import { getPrompt, setGenerating } from '../../input.js';

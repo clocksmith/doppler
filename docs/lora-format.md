@@ -72,10 +72,11 @@ retain the configured native layout and their prior execution identity.
 
 ## Export path
 
-Use training export helper:
+Use the training export helper, exported from `dopplerx/training`
+(implemented in `src/experimental/training/export.js`):
 
 ```js
-import { exportLoRAAdapter } from '../src/experimental/training/export.js';
+import { exportLoRAAdapter } from 'dopplerx/training';
 ```
 
 Runtime loader paths:

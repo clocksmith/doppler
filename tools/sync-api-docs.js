@@ -156,6 +156,10 @@ async function buildReferenceMarkdown() {
       .filter((entry) => entry.exported && typeof entry.packageExport === 'string' && entry.packageExport)
       .map((entry) => [entry.packageExport, entry])
   );
+  const packageName = packageJson.name;
+  if (typeof packageName !== 'string' || packageName.length === 0) {
+    throw new Error('package.json must declare a non-empty "name".');
+  }
   const exportsList = normalizeExportMap(packageJson.exports);
   const lines = [];
   lines.push('# Public Export Inventory');
@@ -172,8 +176,8 @@ async function buildReferenceMarkdown() {
       notes: 'No manual classification recorded for this export path.',
     };
     const importPath = entry.exportPath === '.'
-      ? 'doppler-gpu'
-      : `doppler-gpu/${entry.exportPath.replace(/^\.\//, '')}`;
+      ? packageName
+      : `${packageName}/${entry.exportPath.replace(/^\.\//, '')}`;
     let symbols = [];
     if (entry.typesFile) {
       const absTypesPath = path.join(REPO_ROOT, relativeFromRepo(entry.typesFile));

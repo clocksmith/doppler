@@ -1,20 +1,24 @@
 # Testing Runbook
 
-Canonical guide for running Doppler tests.
+Canonical guide for running Doppler tests and for what CI runs. Changes are
+committed and pushed straight to `main` ([AGENTS.md](../AGENTS.md#style-guides));
+there is no pull-request or pre-merge gate.
 
 ## Quick reference
 
 | Action | How | When |
 | --- | --- | --- |
-| Repository acceptance | `npm run check:green` | source, contract, or integration changes |
+| Focused test | `node tools/run-node-tests.js <file>` | while editing the loader, pipeline or kernel that file covers |
 | Fast source checks | `npm run check:fast` | before every push (about 22 s, no GPU) |
-| Behavior checks only | `npm run check:behavior` | includes the whole unit suite, which opens a GPU device; see [AGENTS.md](../AGENTS.md#style-guides) |
+| Contract tests and triggered checks | the contract tests for the changed behavior ([AGENTS.md](../AGENTS.md#style-guides)) and `npm run check:changed` | before pushing to `main` |
+| Repository acceptance | `npm run check:green` | release, hardware work, or a change that justifies it |
+| Behavior checks only | `npm run check:behavior` | includes the whole unit suite, which opens a GPU device |
 | Full check sweep | `npm run check:all` | release preparation or gate-policy changes |
-| Node tests | `npm run test:unit` | all non-kernel test directories |
-| Kernel correctness | `tests/harness.html` mode `kernels` | after kernel changes |
-| Inference smoke | `tests/harness.html` mode `inference` | after pipeline changes |
-| Training harness | `tests/harness.html` mode `training` | training work |
-| Coverage gate | `npm run test:coverage` | before merge |
+| Node tests | `npm run test:unit` | all non-kernel test directories; opens a GPU device |
+| Kernel correctness | `tests/harness.html?workload=kernels` | after kernel changes |
+| Inference smoke | `tests/harness.html?workload=inference` | after pipeline changes |
+| Training harness | `tests/harness.html?workload=training` | training work |
+| Coverage report | `npm run test:coverage` | on demand; not run by CI |
 
 ## Discover and target checks
 
@@ -95,18 +99,37 @@ runtime configuration fields.
 
 ## CI notes
 
-- The [automatic CI workflow](../.github/workflows/check-green.yml) runs only
-  `npm run package:smoke` on Node 22. It packs and installs the library offline,
-  checks public imports and declarations, and exercises synthetic consumer
-  contracts. No browser, GPU provider, or model download is required.
-- Reproduce the job with `npm ci --ignore-scripts --omit=optional --no-audit --no-fund`
-  followed by `npm run package:smoke`. A failed assertion fails the job.
-- Broader behavior suites remain available through the commands above; a green
-  package smoke does not mean every test passed or qualify numerical correctness.
+The automatic CI workflow is `Smoke`
+([check-green.yml](../.github/workflows/check-green.yml)). It runs on every push
+to `main` (and on pull requests and manual dispatch) on Node 22, with no browser,
+GPU provider, or model download. Its `smoke` job runs, in order:
+
+1. `npm ci --ignore-scripts --omit=optional --no-audit --no-fund`
+2. four contract tests: `tests/inference/execution-backend-contract.test.js`,
+   `tests/config/runtime-transform-ownership.test.js`,
+   `tests/config/error-taxonomy.test.js`, `tests/config/public-error-contract.test.js`
+3. `npm run typecheck:source`
+4. the Capsule tests through `node tools/run-node-tests.js` (`tests/capsule/capsule-v2.test.js`,
+   `capsule-v3.test.js`, `capsule-retained-local-use.test.js`,
+   `tests/runtime/capsule-artifact-source.test.js`, `capsule-load-options.test.js`)
+5. `tests/integration/execution-graph-transforms.test.js`
+6. `npm run check:fast`, `npm run style:guides:check`, `npm run style:guides:test`
+7. `npm run package:smoke`: packs and installs the library offline, checks public
+   imports and declarations, and exercises synthetic consumer contracts.
+
+A separate `privacy-protocol-experiment` job runs `npm test --prefix tools/privacy-demo`.
+Reproduce a step locally after the same `npm ci` command; because CI installs
+with `--omit=optional`, no Node test there can open a GPU device.
+
+- CI does not run `check:green`, the whole unit suite, or coverage. A green
+  `Smoke` run does not mean every test passed or qualify numerical correctness.
+- No workflow has a `schedule:` trigger; there is no nightly tier.
 - [Manual runtime validation](../.github/workflows/manual-runtime-validation.yml)
-  and [installed consumers](../.github/workflows/installed-consumers.yml) remain
-  on demand. Physical GPU and model-artifact qualification require their declared
-  hardware and inputs; hosted software rendering is not physical GPU evidence.
+  and [installed consumers](../.github/workflows/installed-consumers.yml) run on
+  demand; [doppler-release.yml](../.github/workflows/doppler-release.yml) is the
+  reusable release-eligibility workflow. Physical GPU and model-artifact
+  qualification require their declared hardware and inputs; hosted software
+  rendering is not physical GPU evidence.
 - Node coverage policy is defined in `tools/policies/test-coverage-policy.json`.
 
 ## Related
@@ -117,4 +140,5 @@ runtime configuration fields.
 - Kernel coverage details: [../tests/kernels/GUIDE.md](../tests/kernels/GUIDE.md)
 - Kernel benchmark baselines: [../tests/kernels/benchmarks.md](../tests/kernels/benchmarks.md)
 - Kernel test design guidance: [kernel-testing-design.md](kernel-testing-design.md)
-- Kernel override policy (canonical): [operations.md#kernel-overrides--compatibility](operations.md#kernel-overrides--compatibility)
+- Inference matrix strategy: [inference-test-matrix.md](inference-test-matrix.md)
+- Kernel override policy (canonical): [WGSL style guide](style/wgsl-style-guide.md#kernel-compatibility-and-overrides)

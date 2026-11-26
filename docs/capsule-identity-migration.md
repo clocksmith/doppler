@@ -8,11 +8,11 @@ does not change that executable root; re-signing changes the envelope digest.
 
 ## Migration and public API
 
-The source API is exported from `doppler-gpu/host`. It is not a claim that a
+The source API is exported from `dopplerx/host`. It is not a claim that a
 published package, customer release, or peer network already consumes v3.
 
 ```js
-import { migrateCapsuleV2, getCapsuleIdentity, signCapsuleReleaseEvent } from 'doppler-gpu/host';
+import { migrateCapsuleV2, getCapsuleIdentity, signCapsuleReleaseEvent } from 'dopplerx/host';
 
 const migrated = await migrateCapsuleV2(oldCapsule, { trustedSigners, signer });
 const { schema, semanticRoot, envelopeDigest } = getCapsuleIdentity(migrated.capsule);
@@ -36,8 +36,8 @@ separately authorized act. The old envelope digest is retained as provenance.
 
 ## Opening and trust
 
-`doppler-gpu` and `doppler-gpu/runtime` retain explicit device, artifact-store,
-signer, and program-factory ports. `doppler-gpu/compat` exposes the application
+`dopplerx` and `dopplerx/runtime` retain explicit device, artifact-store,
+signer, and program-factory ports. `dopplerx/host` and `dopplerx/compat` expose the application
 `openCapsule` facade with the built-in program adapter. Both use the same verifier.
 An artifact source must implement `readArtifact(descriptor)` returning bytes.
 Runtime recomputes each SHA-256 and size and supplies copies from verified storage

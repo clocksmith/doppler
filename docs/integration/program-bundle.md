@@ -345,6 +345,7 @@ node src/cli/doppler-cli.js verify --config '{
 }'
 ```
 
+Set `programBundlePath`, or pass the bundle object inline as `programBundle`.
 Parity mode and providers are required. `contract` validates the closed bundle
 and probes selected Node providers without claiming execution. `execute` runs
 selected executable providers. Every provider row reports `schemaValid`,

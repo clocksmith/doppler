@@ -1,14 +1,14 @@
 # Flash encrypted execution and client operator integration
 
+> Historical research record: see [Status](README.md#status) for the code removal and the 2026-11-17 stop; the commands for the removed scripts are kept in [this guide at commit 3e485ca93](https://github.com/clocksmith/doppler/blob/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete/FLASH-WEIGHTS.md).
+
 Production cryptographic admission remains closed. The paths below are source-pinned
 research implementations with scoped functional evidence; none establishes full
 Flash generation, independent malicious-security review or trusted hardware.
 
-**Stopped, 2026-11-17.** By owner decision no encrypted Flash generation will be run
-on the homomorphic design. The requester would hold 250 GB of coefficients and
-pay for the cryptography. The checkpoint admission and clear-generation results
-below stay as evidence. The protected tier continues in the
-[two-server shares route](SHARES.md), which has not been extended to Flash.
+**Stopped, 2026-11-17.** See [Status](README.md#status). The checkpoint admission and
+clear-generation results below stay as evidence; the
+[two-server shares route](SHARES.md) has not been extended to Flash.
 
 ## Current execution evidence
 
@@ -22,13 +22,8 @@ below stay as evidence. The protected tier continues in the
 | Full attention / QSA | Five actual layer-3 projections and client normalization | Four cached public-input steps; 96 encrypted tiles passed under a distinct NTT profile; no token generation |
 | Ngram / PLE | Small local-table FP32 source fixtures | EOS-aware cached updates, local lookup and history isolation checks passed; actual Flash table unsupported |
 
-The [dense Qwen results](FULL-QWEN.md) remain separate: stock exhausted its
-six-hour budget, and both int8 NTT variants failed the third-step numerical gate
-after 1,161 verified tiles. The distinct twelve-bit profile completed all 24
-Qwen2.5-0.5B decoder layers plus head over four autoregressive steps and 1,548
-encrypted tiles, matching greedy reference tokens on one public prompt. This is
-full small-Qwen hybrid functional evidence, with client nonlinear operations and
-full replay/reference validation; it does not establish full Flash output or
+The [dense Qwen results](FULL-QWEN.md), including the twelve-bit full small-Qwen
+functional result, remain separate; they do not establish full Flash output or
 cryptographic qualification. Component results cannot substitute for either.
 
 ## Actual measured components
@@ -211,10 +206,10 @@ protocol, native source/binary identities and no substitution into stock profile
 The fixed public-input fixture is a four-row prefill followed by three cached
 single-row updates. It is not model token generation or full Flash inference.
 
-The isolated `flash-qsa.yml` workflow builds the retained native lock, verifies
-native ciphertext equivalence and admission before provisioning the complete
-public shard, then runs that component. Trigger only manually or with
-`[flash-qsa-e2e]`; original Qwen/MoE runs remain untouched. The [actual result](evidence/flash/qsa-four-step.json) passed at revision
+The isolated `flash-qsa.yml` workflow (removed in 1e4bd1ffa) built the native lock,
+verified native ciphertext equivalence and admission before provisioning the complete
+public shard, then ran that component. It was triggered manually or with
+`[flash-qsa-e2e]`; original Qwen/MoE runs were untouched. The [actual result](evidence/flash/qsa-four-step.json) passed at revision
 `e4d79a3cf70841eb128f1e929225fccc1c743600`: 96 encrypted tiles, 170.58 s process
 elapsed, 80.37 s full client replay and 80.72 s evaluator round trip. Prefill took
 91.12 s; the three single-row updates took 23.54, 23.64 and 23.63 s. The evaluation
@@ -226,11 +221,11 @@ installation/download is excluded. This is one public component fixture on proce
 pipes, not full-model throughput, separate-machine security or Flash tokens.
 Production admission remains closed.
 
-`python tools/privacy-concrete/inventory_flash_ngram.py --check` reproduces the
+`inventory_flash_ngram.py --check` (kept at commit 3e485ca93) reproduced the
 installed storage mapping from pinned config/index, public revision-specific LFS
-metadata and bounded headers. `--output <path>` writes a reviewable candidate;
-neither command downloads table weights or enables a backend. The generator also
-verifies the pinned conversion sources and resolves the absent seed from the
+metadata and bounded headers; `--output <path>` wrote a reviewable candidate.
+Neither command downloaded table weights or enabled a backend. The generator also
+verified the pinned conversion sources and resolves the absent seed from the
 exact configuration declaration rather than introducing a runtime default.
 
 ## Wired PLE candidate and remaining data gate
@@ -377,9 +372,9 @@ field and rejects changes before input embedding or projection callbacks.
 
 The actual input tensor is `[248320, 2560]` in checkpoint object
 `model-00130-of-00131.safetensors`; the whole object is 2,974,788,136 bytes.
-`flash-embedding.yml` qualifies the actual tokenizer-to-input-activation path on an
-isolated hosted CPU, comparing mapped results with independent safetensors rows.
-It downloads that entire public object before accepting any indices and uploads
+`flash-embedding.yml` (removed in 1e4bd1ffa) qualified the actual tokenizer-to-input-activation
+path on an isolated hosted CPU, comparing mapped results with independent safetensors rows.
+It downloaded that entire public object before accepting any indices and uploaded
 only the fixed public fixture's shape/digest/cost evidence. No full FP32 embedding
 table is constructed by the adapter. Client-host/filesystem access patterns remain
 visible; this is neither PIR nor encrypted lookup.
@@ -776,5 +771,3 @@ and no encrypted Flash generation has run. At the measured 1.3 to 1.5 seconds
 per full tile row on a two-core host, or 0.55 seconds on the retained native
 fixture, one token row of 150,868 tiles is between about one and two and a half
 days of evaluator time on four threads before any client work.
-
-> **Removed scripts (2026-11-25).** Doppler is JavaScript-only, so `flash_mlp.py`, `flash_model_assembly.py`, `flash_model_graph.py`, `flash_model_state.py`, `flash_ple_model.py`, `flash_qsa_model.py`, `flash_reference.py`, `flash_request_state.py`, `flash_stage_source.py`, `flash_storage_plan.py`, `flash_text_config.py`, `flash_tokenizer.py`, `flash_weights.py`, `inventory_flash_ngram.py`, `inventory_flash_text.py`, `local_ngram_rows.py`, `prepare_flash_tokenizer.py`, `public_weights.py`, `validate_flash_checkpoint.py` were removed from the tree. They live at commit [`3e485ca93`](https://github.com/clocksmith/doppler/tree/3e485ca9303ee51131884b6242ce4a7fe4753c24/tools/privacy-concrete); the recorded receipts here are unchanged.

@@ -55,4 +55,5 @@ Add a new built-in chat template type that can be referenced by `manifest.infere
 - `src/inference/pipelines/text/generator/request/chat-format.js`
 - `src/inference/pipelines/text/generator/request/chat-format.d.ts`
 - `tests/integration/qwen-chat-template.test.js`
-- `tests/integration/translate-request-shape.test.js`
+- `tests/integration/gemma4-chat-template.test.js`
+- `tests/inference/glmocr-chat-format-contract.test.js`

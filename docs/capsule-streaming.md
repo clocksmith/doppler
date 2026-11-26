@@ -48,11 +48,11 @@ repeated chat-template formatting in the pipeline option projection.
 
 ## Consume and render
 
-The public root and `doppler-gpu/host` export `createCapsuleStreamAccumulator` and
+The public root (`dopplerx`) and `dopplerx/host` export `createCapsuleStreamAccumulator` and
 `capsuleOperationSnapshots`. Use the accumulator to verify and reconstruct once:
 
 ```js
-import { createCapsuleStreamAccumulator } from 'doppler-gpu/host';
+import { createCapsuleStreamAccumulator } from 'dopplerx/host';
 
 const request = {
   ...reviewedOperationRequest,

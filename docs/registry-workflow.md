@@ -88,8 +88,8 @@ Validation guarantees:
 After adding or removing models on the external volume:
 
 ```bash
-npm run artifact-identity:inventory -- --root /media/$USER/models/rdrr --json --pretty
-npm run artifact-identity:check -- --root /media/$USER/models/rdrr
+npm run artifact-identity:inventory -- --root $DOPPLER_EXTERNAL_MODELS_ROOT/rdrr --json --pretty
+npm run artifact-identity:check -- --root $DOPPLER_EXTERNAL_MODELS_ROOT/rdrr
 ```
 
 This scans manifests, shards, `weightsRef` links, catalog entries, and identity
@@ -97,27 +97,72 @@ metadata without creating another registry file.
 
 ## Publish a hosted model to Hugging Face
 
+The catalog fields the tool requires before it uploads anything are the
+promotion gate in
+[Model Promotion Playbook](model-promotion-playbook.md#7-verify-the-publish-tool-gate-before-publishing).
+
 Publish a canonically approved artifact directory and rebuild the remote `clocksmith/rdrr` registry from the approved hosted set in one workflow:
 
 ```bash
-npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32
+npm run registry:publish:hf -- \
+  --model-id translategemma-4b-it-q4k-ehf16-af32 \
+  --local-dir "$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/translategemma-4b-it-q4k-ehf16-af32"
 ```
 
 The publish workflow:
-1. reads the model entry from `models/catalog.json`
-2. uploads the artifact directory from the external volume (`rdrr/<model-id>`)
-3. captures the artifact commit SHA
+1. reads the model entry from `models/catalog.json` and checks the promotion gate
+2. stages `manifest.json` and `origin.json` from the manifest directory, and
+   links every other file (shards, tokenizer, tensor metadata) from the shard
+   directory
+3. uploads the staged artifact and captures the artifact commit SHA
 4. rebuilds `registry/catalog.json` from the approved catalog subset, pinning the just-published revision
 5. verifies the published manifest resolve URL
+6. writes the new `hf.revision` back to `models/catalog.json`
+
+Source directories (`buildArtifactUploadPlan()` in `tools/publish-hf-registry-model.js`):
+
+| Source | Flag | Default |
+| --- | --- | --- |
+| Manifest directory (`manifest.json`, `origin.json`) | `--local-dir <dir>` or `--local-root <root>` (`<root>/<model-id>`) | `models/local/<model-id>` (repo-local cache) |
+| Shard directory (all other files) | `--shard-dir <dir>` or `--shard-root <root>` (`<root>/<model-id>`) | `$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/<model-id>` |
+
+`models/local/` is a non-authoritative developer cache (see
+[models/GUIDE.md](../models/GUIDE.md)). For release publishing, pass
+`--local-dir` pointing at the external-volume artifact so the manifest and the
+shards come from the same canonical directory.
 
 Dry run:
 
 ```bash
-npm run registry:publish:hf -- --model-id translategemma-4b-it-q4k-ehf16-af32 --dry-run
+npm run registry:publish:hf -- \
+  --model-id translategemma-4b-it-q4k-ehf16-af32 \
+  --local-dir "$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/translategemma-4b-it-q4k-ehf16-af32" \
+  --dry-run
 ```
 
 Dry-run validates the local manifest and all manifest-declared artifact files before it prints the upload plan.
-Always pass `--local-dir` and `--shard-dir` explicitly if the manifest or shard source differs from the default external volume.
+In a manifest-only dry run, `shardDir` is `null` in the output because shard
+staging is skipped; a real manifest-only publish still fails unless
+`manifest.weightsRef` is present and resolves.
+
+### First publish (bootstrap)
+
+Pass `--bootstrap` for an entry that has never been uploaded (`hf` has no
+`revision` and `lifecycle.availability.hf` is `false`). The flag rejects any
+entry whose `availability.hf` is not `false`, so it cannot be used for
+republishes. On success the tool writes the new `hf.revision` into
+`models/catalog.json` and sets `availability.hf` to `true`; later publishes
+are normal republishes without the flag.
+
+### Manifest-only `weightsRef` republish
+
+When a kernel-ref swap or routing change regenerates only `manifest.json`, the
+manifest must declare `weightsRef` to the already-hosted weight capsule and the
+catalog entry must set `weightsRefAllowed: true`. Pass `--manifest-only`; the
+tool uploads only manifest metadata, verifies the referenced weight-capsule
+manifest digest and required artifact files before upload, rebuilds the hosted
+registry, probes the published manifest, and verifies the referenced files again
+at the published revision.
 
 ## Lane variants and weights-ref siblings
 
@@ -163,16 +208,17 @@ this.
 If `clocksmith/rdrr` drifted behind the local catalog or manifest contract, first validate the exact repair set without uploading:
 
 ```bash
-npm run registry:publish:hf:all -- --local-root models/local --shard-root models/local --dry-run
+npm run registry:publish:hf:all -- \
+  --local-root "$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr" \
+  --shard-root "$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr" \
+  --dry-run
 ```
 
-After `hf auth login`, run the same command without `--dry-run` to republish every approved hosted artifact and rebuild `registry/catalog.json` after each successful upload:
+After `hf auth login`, run the same command without `--dry-run` to republish every approved hosted artifact and rebuild `registry/catalog.json` after each successful upload.
 
-```bash
-npm run registry:publish:hf:all -- --local-root models/local --shard-root models/local
-```
-
-Use the external volume roots instead of `models/local` for release publishing when `$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr` is mounted and up to date.
+`--all-approved` (what `registry:publish:hf:all` passes) accepts only
+`--local-root` and `--shard-root`. Without `--local-root` it reads manifests
+from `models/local/`, which is not a release source; do not publish from it.
 
 ## After publishing
 

@@ -77,9 +77,12 @@ after nine generated tokens. The 16-token browser/WebGPU debug sample generated
 `The sky is a clear, bright blue.` with `activationDtype=f16`, `kvDtype=f16`,
 `batchSize=3`, and `readbackInterval=1`.
 
-Future committed reports for this lane belong under
+This debug sample is not retained as a committed receipt. Future committed
+reports for this lane belong under
 `reports/gemma-4-31b-it-text-q4k-ehf16-af16/` so they cannot be confused with
-the af32 or Qwen 3.6 evidence namespaces.
+the af32 or Qwen 3.6 evidence namespaces; none exists yet. The
+[Track 1 tracker](f16-lane-track-1-tracker.md) records the frozen-reference
+status on the same basis.
 
 ## Claim Boundary
 

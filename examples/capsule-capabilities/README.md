@@ -1,17 +1,27 @@
 # Installed Capsule capabilities
 
 `runCapability()` intentionally opens a session for one operation and closes it
-afterward. For repeated queries with models and a document index kept resident,
-use the existing [document-search application](../document-search/README.md).
-Its [copy-and-run product increment](../../GOALS.md#next-product-increment-copy-and-run-local-search)
-is the next priority; this example remains one-shot and must not become a second
-search engine.
+afterward. For repeated queries with resident models and a document index, see the
+[document-search application](../document-search/README.md); this example stays
+one-shot and must not become a second search engine.
 
-Install the exact accepted archive in an ordinary JavaScript application:
+`app.js` imports `doppler-gpu/host`, so it needs `doppler-gpu`, the package's
+former name. Install the published `doppler-gpu@0.6.1` from npm in an ordinary
+JavaScript application:
 
 ```sh
-npm install ./doppler-gpu-0.6.1.tgz
+npm install doppler-gpu@0.6.1
 ```
+
+That registry tarball has SHA-256
+`96d2699a3e677815890f804459c023bea4fb2e2a1a59d157b5b6a04c9e573d5f`, the
+"Published npm 0.6.1" archive in the
+[installed-consumer baseline](../../artifacts/installed-consumers-2026-09-12/README.md),
+where the standalone and Reploid contract consumers passed. It exports `./host`
+with `openCapsule()`. The same baseline tested a separately built archive that is
+not interchangeable with the npm one. The current package is `dopplerx`
+([getting started](../../docs/getting-started.md)); using it requires changing the
+import in `app.js` to `dopplerx/host`, which has not been checked for this example.
 
 Copy `app.js` and explicitly adopt a versioned model descriptor from the release
 acceptance bundle. The descriptor includes its signed Capsule URL, trust roots,
@@ -46,9 +56,10 @@ Capsule v3 requires the application to persist release checkpoints; persistence
 errors must propagate. On subsequent opens, supply the saved checkpoint through
 the descriptor's release policy rather than discarding its accepted history.
 
-`node tools/check-packed-package.js --retain /absolute/new-bundle` builds one
-candidate and copies standalone contract consumers plus signed fixture data into
-that bundle. Reploid consumes the same installed bytes with
+To run the standalone contract consumers against a candidate build, retain an
+installed-package bundle as described in
+[document-search ENGINEERING.md](../document-search/ENGINEERING.md#retain-an-installed-package-bundle).
+Reploid consumes the same installed bytes with
 `DOPPLER_TEST_CONSUMER=/absolute/new-bundle/consumer npm run test:doppler-consumer`.
 Those injected contract fixtures test API wiring; physical model receipts are
 recorded separately in the release acceptance bundle.

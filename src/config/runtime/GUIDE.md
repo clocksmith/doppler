@@ -8,7 +8,7 @@ Runtime config JSON files fall into three categories:
 - Runtime overlays: profile wrappers whose `runtime` object is intentionally
   small and meant to be composed with another profile.
 - Non-profile policy assets: files with their own `$schema`, such as
-  `diagnostics/drift-policies.json`. These are loaded by specific subsystems
+  `src/config/diagnostics/drift-policies.json` (outside this directory). These are loaded by specific subsystems
   and are not runtime profiles.
 
 Rules:
