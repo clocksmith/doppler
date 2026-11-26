@@ -701,7 +701,12 @@
 
     async function initSimulationMode() {
       const { createTestState } = await import('../src/tooling/test-harness.js');
-      const { createEmulationContext, isEmulationSupported, getEmulationCapabilities } = await import('/proto/simulator/index.js');
+      // Doppler does not ship the simulator: the serving host provides it at /proto/simulator/
+      // (the contract init-emulation.js declares). Fail with that, not a bare 404.
+      const simulator = await import('/proto/simulator/index.js').catch((error) => {
+        throw new Error(`Simulation mode needs the host-provided simulator at /proto/simulator/index.js, which Doppler does not ship (${error.message}).`);
+      });
+      const { createEmulationContext, isEmulationSupported, getEmulationCapabilities } = simulator;
       const { formatBytes } = await import('../src/config/schema/platform/emulation.schema.js');
 
       const paramAutorun = harnessConfig.autorun;
