@@ -218,6 +218,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // dopplerx 0.1.5 (2062 entries) measures 3,878,157 packed bytes plus 2,158-byte allowance.
   // Target sequence scoring (2069 entries) measures 3,886,419 packed bytes plus the same allowance.
   // DopplerX 0.1.7 plus the legacy enum alias reader (2070 entries) measures 3,890,514 packed bytes.
+  // DopplerX 0.2.0 (2070 entries, runtime-config legacy reads, changelog) measures 3,892,412 packed bytes.
   maxPackedSize: 3_892_672,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
@@ -313,6 +314,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // dopplerx 0.1.5 (2062 entries) measures 16,387,941 unpacked bytes; allow 8 KB for README/receipt updates.
   // Target sequence scoring (2069 entries) measures 16,419,257 unpacked bytes; same 8 KB allowance.
   // DopplerX 0.1.7 plus the legacy enum alias reader (2070 entries) measures 16,431,211; same 8 KB allowance.
+  // DopplerX 0.2.0 (2070 entries) measures 16,436,907 unpacked bytes.
   maxUnpackedSize: 16_439_403,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([

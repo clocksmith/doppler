@@ -4,7 +4,11 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
-## Unreleased
+## DopplerX 0.2.0
+
+Breaking: Doppler-owned enum values are kebab-case. Nothing else in the public API, Capsule formats or
+defaults changed since 0.1.7. What a consumer must change, and which old spellings are still read and for
+how long, is in the migration guide: `docs/api/migration-0.2.md` in the source repository.
 
 ### Breaking: Doppler-owned enum values are kebab-case
 
@@ -12,6 +16,12 @@ Doppler now emits only kebab-case for the values it owns. The old snake_case spe
 (through `src/config/legacy-enum-values.js`), so existing manifests, runtime configs and policies keep
 loading; code that compares emitted values must use the new spellings.
 
+- Runtime config overrides (`loadOptions.runtimeConfig`, `setRuntimeConfig`, runtime profiles and every
+  runtime-config merge) now read legacy spellings too. Before this, a legacy `kvcache.layout` such as
+  `contiguous_quantized` passed validation unchanged and a legacy `tooling.diagnostics: "on_failure"` was
+  rejected.
+- `encodeSequence()` results report `alphabet: "amino-acid"` (was `amino_acid`), also for manifests
+  written before 0.2.0; sequence qualification aborts are `before-execution` and `after-start`.
 - Provider failure classes (`failureClass`, receipts, `fallbackDecision.reason`): `gpu-device-lost`,
   `gpu-oom`, `gpu-timeout`, `gpu-unsupported`, `gpu-unavailable`, `model-load-failed`, `policy-denied`,
   `runtime-internal`, `fallback-failed`. `policy.fallbackOn` accepts both spellings. The fallback surface is

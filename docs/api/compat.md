@@ -19,6 +19,13 @@ New integrations should import `dopplerx` and execute signed Capsules. The
 compatibility `openCapsule()` still requires explicit signer trust and rejects
 behavior-changing `modelLoadOptions`.
 
+## Enum spellings (0.2.0)
+
+Since 0.2.0 this facade, like every entry point, emits kebab-case enum values and
+still reads the 0.1.x snake_case spellings in manifests, runtime configs and
+provider policies. The changed values and how long each old spelling is read
+are in [Migrating to 0.2.0](migration-0.2.md).
+
 ## Streaming inspection
 
 Models returned by `dr.load()` expose

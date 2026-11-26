@@ -12,6 +12,7 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 - [Doppler Run API](root.md) - start with `dopplerx/host`; use `dopplerx`
   when supplying explicit execution ports
 - [Compatibility API](compat.md) - `dopplerx/compat`
+- [Migrating to 0.2.0](migration-0.2.md) - the kebab-case enum rename and the old spellings still read
 - [Choice scoring](choice-scoring.md) - typed, contextual answer scores and operation qualification
 - [Target sequence scoring](target-sequence-scoring.md) - teacher-forced log-probability of an exact target continuation
 
