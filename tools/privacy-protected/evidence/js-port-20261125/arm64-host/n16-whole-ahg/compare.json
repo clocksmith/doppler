@@ -1,0 +1,33 @@
+{
+ "model": "sha256:90d4efb8e2e05df08082a2dc1a2d8ad49479e1750467f70ee2b0759d3578ae92",
+ "prompt": "ahg",
+ "encryptedTokens": [
+  8,
+  9,
+  10,
+  11,
+  12,
+  13
+ ],
+ "approximateReferenceTokens": [
+  8,
+  9,
+  10,
+  11,
+  12,
+  13
+ ],
+ "exactReferenceTokens": [
+  8,
+  9,
+  10,
+  11,
+  12,
+  13
+ ],
+ "matchesApproximateReference": true,
+ "matchesExactReference": true,
+ "maxLogitErrorVsApproximate": 0.8924076577073721,
+ "maxLogitErrorVsExact": 0.3847670732307392,
+ "minEncryptedTop1Margin": 1.6337077868969399
+}

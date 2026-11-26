@@ -1,0 +1,35 @@
+{
+ "schema": "doppler.protected-evaluator-report/v0",
+ "arch": "darwin/arm64",
+ "cpus": 8,
+ "profile": "research-n16-u32",
+ "keyEpoch": "589206d8f84f6dbb4df7a52786cecd04",
+ "keysFromStore": false,
+ "keysDigest": "sha256:f78d1b828798bd0d5f5c42ae144b7ebb43f4f94c7531c6a0008999a5c7ae66dd",
+ "keyLoadSeconds": 1856.485295,
+ "steps": [
+  {
+   "computeSeconds": 82.949491042,
+   "kind": "prefill",
+   "position": 2,
+   "resultDigest": "sha256:0271ea50419769a5bca3e196e84a277e0af731fd701cee60860056d00326ea04",
+   "seq": 1
+  }
+ ],
+ "ops": {
+  "mul-plain": 352,
+  "mul-relin": 13,
+  "poly-exp": 3,
+  "poly-gelu": 1,
+  "poly-inverse": 1,
+  "poly-ln2-inverse-sqrt": 1,
+  "poly-lnf-inverse-sqrt": 1,
+  "rotate": 114
+ },
+ "bytesReceived": 608700364,
+ "bytesSent": 1049491,
+ "peakRSSBytes": 4228890624,
+ "misbehave": "",
+ "encodingPrecisionBits": 64,
+ "outcome": "completed"
+}

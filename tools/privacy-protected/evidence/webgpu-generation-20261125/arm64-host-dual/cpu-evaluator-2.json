@@ -1,0 +1,77 @@
+{
+ "schema": "doppler.protected-evaluator-report/v0",
+ "arch": "darwin/arm64",
+ "cpus": 8,
+ "profile": "research-n16-u32",
+ "keyEpoch": "21b7d25c47c41d18acc2d22a5b502a23",
+ "keysFromStore": true,
+ "keysDigest": "sha256:83644f9df25bae42cb7c46608a3d617c90d29e411ffeb4a19c8a636bc385be11",
+ "keyLoadSeconds": 0.833777959,
+ "steps": [
+  {
+   "computeSeconds": 49.522119958,
+   "kind": "prefill",
+   "position": 1,
+   "resultDigest": "sha256:f980a142d6442dbf2c180334c31fd04d67f5fb1f46bcf0af78092bac522d0b48",
+   "seq": 1
+  },
+  {
+   "computeSeconds": 53.996318958,
+   "kind": "decode",
+   "position": 2,
+   "resultDigest": "sha256:4043a6fb51eaaef19885c5aee12de1b929e6aae472b9275906b27cc3d51fb24c",
+   "seq": 2
+  },
+  {
+   "computeSeconds": 58.472453,
+   "kind": "decode",
+   "position": 3,
+   "resultDigest": "sha256:643125281d53bb9c3b0d17f55fef99dac296da423e575dfa14659c724319a860",
+   "seq": 3
+  },
+  {
+   "computeSeconds": 62.920062958,
+   "kind": "decode",
+   "position": 4,
+   "resultDigest": "sha256:e44241234d2aaa9058e73609396a68481595647616951ad3c114e35fac9e6187",
+   "seq": 4
+  },
+  {
+   "computeSeconds": 68.606947417,
+   "kind": "decode",
+   "position": 5,
+   "resultDigest": "sha256:cc01d934191a4aa5f64e4ddd986198da4b54ae3da2d3d171054f73fdda329c5a",
+   "seq": 5
+  },
+  {
+   "computeSeconds": 78.246801,
+   "kind": "decode",
+   "position": 6,
+   "resultDigest": "sha256:61a5b1fc302cf30ac87da61efb1f7659d54339af87c8df1fbac46fdce473ab60",
+   "seq": 6
+  },
+  {
+   "computeSeconds": 85.985507167,
+   "kind": "decode",
+   "position": 7,
+   "resultDigest": "sha256:a887acb6c94b54ef7fcf0c5149c276072d2cae7845efeb3d80d05b5d94da75d6",
+   "seq": 7
+  }
+ ],
+ "ops": {
+  "mul-plain": 1632,
+  "mul-relin": 133,
+  "poly-exp": 35,
+  "poly-gelu": 7,
+  "poly-inverse": 7,
+  "poly-ln2-inverse-sqrt": 7,
+  "poly-lnf-inverse-sqrt": 7,
+  "rotate": 659
+ },
+ "bytesReceived": 155191189,
+ "bytesSent": 7342494,
+ "peakRSSBytes": 4601511936,
+ "misbehave": "",
+ "encodingPrecisionBits": 64,
+ "outcome": "completed"
+}

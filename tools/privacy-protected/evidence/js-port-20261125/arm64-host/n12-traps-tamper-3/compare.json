@@ -1,0 +1,34 @@
+{
+ "model": "sha256:90d4efb8e2e05df08082a2dc1a2d8ad49479e1750467f70ee2b0759d3578ae92",
+ "prompt": "ojn",
+ "encryptedTokens": [
+  0,
+  0,
+  15,
+  0,
+  15,
+  15
+ ],
+ "approximateReferenceTokens": [
+  15,
+  16,
+  17,
+  18,
+  19,
+  20
+ ],
+ "exactReferenceTokens": [
+  15,
+  16,
+  17,
+  18,
+  19,
+  20
+ ],
+ "matchesApproximateReference": false,
+ "matchesExactReference": false,
+ "maxLogitErrorVsApproximate": 10056426866.595812,
+ "maxLogitErrorVsExact": 10056426866.586424,
+ "minEncryptedTop1Margin": 2126077198.0980415
+}
+error: encrypted tokens differ from a reference

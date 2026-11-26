@@ -1,0 +1,84 @@
+{
+ "schema": "doppler.protected-evaluator-report/v0",
+ "arch": "darwin/arm64",
+ "cpus": 8,
+ "profile": "research-n16-u32",
+ "keyEpoch": "21b7d25c47c41d18acc2d22a5b502a23",
+ "keysFromStore": false,
+ "keysDigest": "sha256:83644f9df25bae42cb7c46608a3d617c90d29e411ffeb4a19c8a636bc385be11",
+ "keyLoadSeconds": 41.786249459,
+ "steps": [
+  {
+   "computeSeconds": 52.966431209,
+   "kind": "prefill",
+   "position": 0,
+   "resultDigest": "sha256:9ea3c581095ecf0fd47f1216dec8bceb03ca5712c312f0704384e98da8f2ad24",
+   "seq": 1
+  },
+  {
+   "computeSeconds": 50.80548525,
+   "kind": "decode",
+   "position": 1,
+   "resultDigest": "sha256:5a92cca0c1b5eafa6988ddf0ba171296a28b38d37077d5ea1d08a95073c42e2a",
+   "seq": 2
+  },
+  {
+   "computeSeconds": 54.058797458,
+   "kind": "decode",
+   "position": 2,
+   "resultDigest": "sha256:9283172a21f28241c5036eee43748279323676c8a0f4eda8d2e2887f387637fe",
+   "seq": 3
+  },
+  {
+   "computeSeconds": 53.083979375,
+   "kind": "decode",
+   "position": 3,
+   "resultDigest": "sha256:849131608102ebb2498425f5036020705147cae3ea57990c103bc3b16cab8085",
+   "seq": 4
+  },
+  {
+   "computeSeconds": 56.611659084,
+   "kind": "decode",
+   "position": 4,
+   "resultDigest": "sha256:9f4f586421b4946701ff7e8350fe1712badda61ff1256e2974f28e84541a7c80",
+   "seq": 5
+  },
+  {
+   "computeSeconds": 70.90001025,
+   "kind": "decode",
+   "position": 5,
+   "resultDigest": "sha256:eb296b713fed70b2c5b488f93ea5db1d71b684e1f8cc11ddeac15020a40e1f4c",
+   "seq": 6
+  },
+  {
+   "computeSeconds": 80.094220125,
+   "kind": "decode",
+   "position": 6,
+   "resultDigest": "sha256:8fd5a0435240dc33ed9b55355bdc2e7c22103fbf1aa45c6ea4bf08e1bbb36b74",
+   "seq": 7
+  },
+  {
+   "computeSeconds": 79.579859209,
+   "kind": "decode",
+   "position": 7,
+   "resultDigest": "sha256:b5b197783a2c618a089e34c9ff25231408425bd55c3d3440b44438403d89e428",
+   "seq": 8
+  }
+ ],
+ "ops": {
+  "mul-plain": 1792,
+  "mul-relin": 140,
+  "poly-exp": 36,
+  "poly-gelu": 8,
+  "poly-inverse": 8,
+  "poly-ln2-inverse-sqrt": 8,
+  "poly-lnf-inverse-sqrt": 8,
+  "rotate": 720
+ },
+ "bytesReceived": 705694808,
+ "bytesSent": 8391250,
+ "peakRSSBytes": 4223483904,
+ "misbehave": "",
+ "encodingPrecisionBits": 64,
+ "outcome": "completed"
+}

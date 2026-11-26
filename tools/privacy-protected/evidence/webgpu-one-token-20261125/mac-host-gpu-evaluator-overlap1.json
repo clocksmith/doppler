@@ -1,0 +1,46 @@
+{
+ "schema": "doppler.protected-evaluator-report/v0",
+ "backend": "webgpu",
+ "arch": "darwin/arm64",
+ "misbehave": "",
+ "outcome": "completed",
+ "steps": [
+  {
+   "seq": 1,
+   "kind": "prefill",
+   "position": 2,
+   "computeSeconds": 4.594592625000001,
+   "gpuProgramMs": 4546.185791,
+   "dispatches": 19407,
+   "timing": "overlap",
+   "hostMs": 781.6679740000102,
+   "gpuWaitMs": 3785.645749000001,
+   "layers": [],
+   "resultDigest": "sha256:b370f0272ca0c631b04439642464bc52027cf8f093ec85041526aeb774269c3c",
+   "resultBytes": 1048608
+  }
+ ],
+ "profile": "research-n16-u32",
+ "programDigest": "sha256:af0089540207ba583662143e779e1bbf7611d9cb2f0390b54b038548a1241cc9",
+ "provider": "webgpu",
+ "adapter": {
+  "vendor": "apple",
+  "architecture": "metal-3",
+  "device": "apple-m3",
+  "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)"
+ },
+ "setupSeconds": 1.53605175,
+ "keyEpoch": "03d5b8c92320e2abbda88083324d51e8",
+ "keysDigest": "sha256:0ba3f29cde600098d4b5cefefcb423e4de3eec0771328452047fd1304dac3853",
+ "keyLoadSeconds": 3.971743541,
+ "bytesReceived": 608700364,
+ "bytesSent": 1049585,
+ "gpu": {
+  "dispatches": 19414,
+  "submits": 77,
+  "peakBufferBytes": 3104865248,
+  "evaluationKeyBytesResident": 550502400,
+  "uploadBytes": 58195968,
+  "readbackBytes": 1048576
+ }
+}

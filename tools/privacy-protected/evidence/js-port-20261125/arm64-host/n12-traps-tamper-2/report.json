@@ -1,0 +1,73 @@
+{
+ "schema": "doppler.protected-requester-report/v1",
+ "implementation": "javascript",
+ "protocol": "doppler-protected-ckks-tiny/v0-research",
+ "profile": "dev-insecure-n12-u32",
+ "profileDigest": "sha256:568415cc3fd27d7c6a0ccd0da0eb167a1a0100c0a1426644cd015346a5245bbe",
+ "insecureDevelopmentProfile": true,
+ "model": "sha256:90d4efb8e2e05df08082a2dc1a2d8ad49479e1750467f70ee2b0759d3578ae92",
+ "integrity": "known-answer traps (v2, oracle): 2 secret trap lane(s) checked before the real lane is decrypted",
+ "evaluators": 1,
+ "prompt": "ojn",
+ "promptTokens": [
+  14,
+  9,
+  13
+ ],
+ "generatedTokens": [],
+ "generatedText": "",
+ "keygenSeconds": 1.3831794930000003,
+ "evaluationKeyBytesPerEvaluator": 34406624,
+ "keyUploadSeconds": 0.3633299049999996,
+ "steps": [
+  {
+   "seq": 1,
+   "kind": "prefill",
+   "inputTokens": 3,
+   "encryptSeconds": 0.39055886099999976,
+   "uploadBytesPerEvaluator": 10912032,
+   "roundTripSeconds": 1.046524207,
+   "evaluatorReportedComputeSeconds": [
+    1.0328728319999996
+   ],
+   "downloadBytesPerEvaluator": 196704,
+   "verifySeconds": 0.0019911919999999555,
+   "decryptSeconds": 0,
+   "outputLevel": 1,
+   "token": -1,
+   "logits": [],
+   "resultDigest": "sha256:440b7501d381d2ec4aec99f9138c85c877b586817ea316698e0eb40da79a77fe"
+  }
+ ],
+ "decryptCalls": 1,
+ "keyEpoch": "db5be8fea132456b0b335b559e7fffcf",
+ "keyEpochExpires": 1795728129,
+ "keyEpochReusedFromStore": false,
+ "evaluationKeysReusedNoUpload": false,
+ "timeToFirstTokenSeconds": 0,
+ "sessionBytesPerEvaluator": [
+  {
+   "evaluator": 1,
+   "sent": 45320245,
+   "received": 197641
+  }
+ ],
+ "requesterPeakRSSBytes": 140673024,
+ "totalSeconds": 3.296941428,
+ "outcome": "refused",
+ "traps": {
+  "source": "oracle",
+  "batch": "7d84c8d0dc0a8f5e1a04d04c5e13d906",
+  "lanes": 3,
+  "trapLanes": 2,
+  "tolerance": 0.75,
+  "checks": 1,
+  "maxAbsError": 10056426859.546755,
+  "failedAt": {
+   "step": 1,
+   "maxAbsError": 10056426859.546755,
+   "argmaxOk": true
+  }
+ },
+ "error": "trap lane failed at step 1 (max error 10056426859.547); route closed, the real lane was not decrypted"
+}
