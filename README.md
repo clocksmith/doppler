@@ -16,7 +16,7 @@ The demo opens with a recorded answer. Select a token to inspect its alternative
 ## Get started
 
 ```sh
-npx --package dopplerx@0.1.7 dopplerx --model gemma3-270m --prompt "Describe WebGPU briefly"
+npx --package dopplerx@0.2.0 dopplerx --model gemma3-270m --prompt "Describe WebGPU briefly"
 ```
 
 Use Node 22 (what CI and qualified runs use) and a WebGPU provider; the first run downloads the model. [Getting started](docs/getting-started.md) covers host requirements and embedding; the [Signed Run API](docs/api/root.md) covers Capsule sessions.

@@ -6,7 +6,7 @@ qualification, and benchmarking are separate engineering workflows.
 
 ## Published first run
 
-This guide pins `dopplerx@0.1.7`, the current published release (npm `latest`).
+This guide pins `dopplerx@0.2.0`, the current release.
 Source revisions after it, including the unpublished 0.2.0 candidate, are in
 the [changelog](../CHANGELOG.md); published versions are in the
 [npm package history](https://www.npmjs.com/package/dopplerx?activeTab=versions).
@@ -14,9 +14,9 @@ The pinned quickstart includes the
 `gemma3-270m` alias for the hosted Gemma 3 270M Q4K model:
 
 ```sh
-npx --yes --package dopplerx@0.1.7 dopplerx --help
-npx --yes --package dopplerx@0.1.7 dopplerx --list-models
-npx --yes --package dopplerx@0.1.7 dopplerx --model gemma3-270m --prompt "Describe WebGPU briefly"
+npx --yes --package dopplerx@0.2.0 dopplerx --help
+npx --yes --package dopplerx@0.2.0 dopplerx --list-models
+npx --yes --package dopplerx@0.2.0 dopplerx --model gemma3-270m --prompt "Describe WebGPU briefly"
 ```
 
 Use Node 22 (what CI and qualified runs use) and a working WebGPU provider; the
@@ -47,7 +47,7 @@ that names `doppler-gpu` versions or subpaths describes the former package.
 Install the exact release:
 
 ```sh
-npm install --save-exact dopplerx@0.1.7
+npm install --save-exact dopplerx@0.2.0
 ```
 
 The shortest embedding path is `dopplerx/compat`, the manifest-loading
