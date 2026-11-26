@@ -1,6 +1,6 @@
 export const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-export const SHELL_MANIFEST_DIGEST = 'sha256:266dc839a158c38c1d45838c54a14d4dafd67065fae7ee32413e234bde86b659';
-export const CACHE_NAME = 'doppler-demo-shell-266dc839a158c38c';
+export const SHELL_MANIFEST_DIGEST = 'sha256:98ad409720c439c2d3079ee0163fa22c0ab6493696ef2a70c007133d2f1edbf7';
+export const CACHE_NAME = 'doppler-demo-shell-98ad409720c439c2';
 export const APP_SHELL = Object.freeze([
   "/demo/assets/activity-preview-attention-prefill.png",
   "/demo/assets/activity-preview-contributions.png",
@@ -137,6 +137,7 @@ export const APP_SHELL = Object.freeze([
   "/src/config/kernels/registry.js",
   "/src/config/kernels/registry.json",
   "/src/config/layer-partition-plan.js",
+  "/src/config/legacy-enum-values.js",
   "/src/config/lora-layouts.js",
   "/src/config/lora-layouts.json",
   "/src/config/manifest-inference-validation.js",

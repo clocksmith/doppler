@@ -73,7 +73,8 @@ const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // buffer-pool readback, and fused hyper-connection up projection.
 // This changes file boundaries and runtime owners; retain the existing byte limit.
 // The bounded recording reader, its offline worker and cancellable model host add three modules.
-const MAX_MODULES = 880;
+// Load-time legacy enum canonicalization (config/legacy-enum-values.js, 5a31eec83) adds one; remove it with that table.
+const MAX_MODULES = 881;
 const MAX_TOTAL_BYTES = 10_000_000;
 // The worker answers only requests under these folders (isDemoAsset in demo/sw.js).
 // A file anywhere else would be downloaded at install and never served from the
