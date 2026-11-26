@@ -394,7 +394,7 @@ The application owns publication admission, distribution permission and fetching
 Runtime checks their size and SHA-256 before the existing LoRA loader activates
 them. There is no adapter URL fallback or base-model duplication.
 
-`peft_safetensors` declares PEFT matrix orientation: A is `[rank, input]` and B
+`peft-safetensors` declares PEFT matrix orientation: A is `[rank, input]` and B
 is `[output, rank]`. The format resolves through
 [layout policy](../../src/config/lora-layouts.json); the loader retains the
 declared shapes and WGSL reads that orientation directly. Conflicting layout
@@ -402,7 +402,9 @@ or projection geometry fails before dispatch. Layout is included in the active
 adapter identity. Raw model-handle imports can declare `weightsLayout: 'peft'`
 in their manifest or load options. The configured legacy raw-import layout
 remains `input-major` for existing Doppler training exports; those exports
-must not be labeled `peft_safetensors` without conversion.
+must not be labeled `peft-safetensors` without conversion. Adapters and
+TargetPlans signed before 0.2.0 that declare `peft_safetensors` are read
+throughout 0.x and resolve to the same format.
 
 Adapter execution requires a signed TargetPlan v2 `adapterExecution` declaration:
 
@@ -411,7 +413,7 @@ Adapter execution requires a signed TargetPlan v2 `adapterExecution` declaration
   "schema": "doppler.capsule-adapter-execution/v1",
   "maxAdapters": 1,
   "combination": "single",
-  "formats": ["peft_safetensors"],
+  "formats": ["peft-safetensors"],
   "operations": ["generate"],
   "kernelModules": ["exact-matmul-module", "exact-scale-module", "exact-residual-module"]
 }

@@ -63,7 +63,7 @@ Matrix layout is explicit in [layout policy](../src/config/lora-layouts.json).
 Native `input-major` exports store A as `[input, rank]` and B as
 `[rank, output]`. Standard PEFT stores A as `[rank, input]` and B as
 `[output, rank]`; raw imports must declare `weightsLayout: "peft"` in the
-manifest or load options. Signed `peft_safetensors` requests select that layout
+manifest or load options. Signed `peft-safetensors` requests (also read as `peft_safetensors`) select that layout
 from their format and reject a conflicting manifest. WGSL reads the original
 matrix orientation; JavaScript does not transpose tensor data during inference.
 The loader retains the declared shapes, validates the rank axes, and binds

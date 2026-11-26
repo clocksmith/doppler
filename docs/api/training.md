@@ -27,11 +27,12 @@ const loadedWorkload = await loadTrainingWorkloadCapsule('./workload.json');
 const capabilities = getTrainingCapabilities(loadedWorkload.workload);
 
 const backend = capabilities.backends.webgpuNative.supported
-  ? 'webgpu_native'
+  ? 'webgpu-native'
   : 'external';
 ```
 
-`webgpu_native` means Doppler owns forward, backward, optimization, and adapter
+`webgpu-native` (the legacy `webgpu_native` is read throughout 0.x) means Doppler
+owns forward, backward, optimization, and adapter
 export. `external` means an injected trainer owns gradient execution while
 Doppler owns the workload contract, evaluation artifacts, lineage, and runtime
 adapter package. Unsupported combinations fail before training starts.
@@ -40,7 +41,7 @@ adapter package. Unsupported combinations fail before training starts.
 
 ```js
 const result = await trainSftLoRA({
-  backend: 'webgpu_native',
+  backend: 'webgpu-native',
   loadedWorkload,
   pipeline: loadedQwenPipeline,
   samples: tokenizedCompletionMaskedSamples,

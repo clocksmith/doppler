@@ -23,7 +23,7 @@ import {
 } from 'doppler-gpu/training';
 ```
 
-The library requires explicit `webgpu_native` or `external` backend selection.
+The library requires explicit `webgpu-native` or `external` backend selection (`webgpu_native` is read throughout 0.x).
 See [Training API](api/training.md).
 
 ### Contract and release gates

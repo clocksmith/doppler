@@ -4,17 +4,38 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+The package was published as `doppler-gpu` through 0.7.8 and renamed to `dopplerx` with a version reset
+to 0.1.x; the DopplerX entries below continue after the last `doppler-gpu` entry.
+
 ## DopplerX 0.2.0
 
 Breaking: Doppler-owned enum values are kebab-case. Nothing else in the public API, Capsule formats or
 defaults changed since 0.1.7. What a consumer must change, and which old spellings are still read and for
 how long, is in the migration guide: `docs/api/migration-0.2.md` in the source repository.
 
+### Compatibility rule
+
+Legacy spellings are read throughout 0.x. Doppler emits only kebab-case. Aliases are removed no earlier than 1.0, and only with at least one minor release of notice.
+
 ### Breaking: Doppler-owned enum values are kebab-case
 
-Doppler now emits only kebab-case for the values it owns. The old snake_case spellings are still read
-(through `src/config/legacy-enum-values.js`), so existing manifests, runtime configs and policies keep
-loading; code that compares emitted values must use the new spellings.
+Doppler now emits only kebab-case for the values it owns, including every value in results, errors and
+error-message codes, failure classes, reasons, statuses, modes, decode stats, receipts, diagnostics and
+training artifacts. The old snake_case spellings are still read (through `src/config/legacy-enum-values.js`),
+so existing manifests, runtime configs, workloads, recorded receipts, handoffs and signed adapter
+declarations keep loading; code that compares emitted values must use the new spellings.
+
+- An emitted-value audit (`tools/list-emitted-enum-values.js`) converted 355 more values the earlier
+  rename had missed; the checked list is `tests/fixtures/emitted-enum-values.json` and the migration guide
+  has the table. Among them: decode stats `batchGuardReason` (`batch-size-1`, `no-gpu`,
+  `linear-attention-layers`, ...) and `decodeMode: "target-verified-lookup"`; LoRA activation reasons
+  (`no-model-loaded`); `TRAINING_BACKENDS` (`webgpu-native`, `external`) and training error codes
+  (`training-backend-invalid`); the Capsule adapter format `peft-safetensors`; download, P2P and
+  hot-swap error codes and reasons (`hash-mismatch`, `http-content-range-invalid`, `p2p-disabled`);
+  kernel selection reasons; trainer handoff, parity and translation-competition blockers, check ids,
+  profiles and decisions; training artifact types, eval categories, metric alerts and reward ids; tooling
+  and harness codes, stages and phase ids; and the provider and serve receipt versions
+  (`doppler-provider-receipt-v1`, `doppler-serve-receipt-v2`).
 
 - Runtime config overrides (`loadOptions.runtimeConfig`, `setRuntimeConfig`, runtime profiles and every
   runtime-config merge) now read legacy spellings too. Before this, a legacy `kvcache.layout` such as
@@ -37,9 +58,11 @@ loading; code that compares emitted values must use the new spellings.
 - Translation artifact lane: `selective-f16`. The recorded 2026-07-13 readiness receipt keeps its original
   spelling and hash; `readTranslationArtifactCompetitionReceipt` verifies it and returns kebab-case lanes.
 
-Execution-graph op ids and probe stage names (`q_proj`, `input_norm`, `logits_final`) keep their spelling:
-they mirror Hugging Face module names and are bound into published manifests and `executionGraphHash`
-digests.
+Identifiers keep their spelling: execution-graph op ids, kernel variants and probe stage names (`q_proj`,
+`input_norm`, `logits_final`), values bound into manifest and artifact-identity hashes, the P2P shard
+protocol message types, GPU labels and third-party names (`tools/policies/emitted-enum-values.json`).
+Op ids and probe stage names mirror Hugging Face module names and are bound into published manifests and
+`executionGraphHash` digests.
 
 ## DopplerX 0.1.7
 
@@ -53,6 +76,8 @@ digests.
 
 ## DopplerX 0.1.6
 
+Not published to npm (the registry has `dopplerx` 0.0.0-stage and 0.1.7 only); its changes shipped in 0.1.7.
+
 - Add `scoreTargetSequence` for teacher-forced log-probability scoring of an exact target continuation:
   one prefill over the prompt plus target, per-token log-softmax over the full vocabulary row, and the
   total, mean and a 0.01-rounded total. Targets that do not tokenize as a clean continuation of the prompt
@@ -63,10 +88,14 @@ digests.
 
 ## DopplerX 0.1.5
 
-- Publish the Doppler runtime as `dopplerx`, using the paired Reploid 0.1.5 release version.
+Not published to npm; the first `dopplerx` release on the registry is 0.1.7.
+
+- Rename the Doppler runtime package to `dopplerx`, using the paired Reploid 0.1.5 release version.
 - Use `npx dopplerx` for the quickstart and `doppler` for the tooling CLI.
 
-## [0.7.9] - 2026-11-20
+## [0.7.9] - 2026-11-20 (never published)
+
+`doppler-gpu` 0.7.9 was prepared but not published; the registry's last `doppler-gpu` release is 0.7.8.
 
 - Preserve explicit F16 transform selection for the reissued Qwen 0.8B and 2B model IDs.
 - Validate model name suffixes during conversion and support manifest-only renaming.
@@ -316,6 +345,9 @@ Supported entry points for modules that applications imported by internal path:
   because an application adopts a different transport format.
 
 ## Capsule naming migration (0.6.0)
+
+Historical (0.6.0): this note predates 0.7.0, which removed `doppler-gpu/capsule`; import the Capsule
+helpers from `dopplerx/host` instead.
 
 Use `openCapsule()`, `doppler-gpu/capsule`, and `Capsule*` types. Former Pack names
 and schemas have no runtime aliases. Rebuild and sign migrated Capsules;
