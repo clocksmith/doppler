@@ -29,13 +29,17 @@
         "properties": {
           "operation": { "type": "string" },
           "partitionPlanHash": { "$ref": "#/$defs/digest" },
-          "partitionIndex": { "type": "integer", "minimum": 0, "maximum": 1 },
+          "partitionIndex": { "type": "integer", "minimum": 0 },
           "comparedSteps": { "type": "integer", "minimum": 1 }
         },
         "allOf": [{
           "if": { "properties": { "operation": { "const": "residentPartition" } }, "required": ["operation"] },
           "then": { "required": ["surface", "status", "evidenceArtifactId", "evidenceHash",
             "transcriptHash", "partitionPlanHash", "partitionIndex", "comparedSteps"] }
+        }, {
+          "if": { "properties": { "operation": { "const": "residentPartition" } }, "required": ["operation"],
+            "not": { "required": ["orderedContract"] } },
+          "then": { "properties": { "partitionIndex": { "maximum": 1 } } }
         }, {
           "if": { "properties": { "operation": { "const": "scoreChoices" } }, "required": ["operation"] },
           "then": { "required": ["surface", "status", "evidenceArtifactId", "evidenceHash", "transcriptHash", "scoredChoices"],

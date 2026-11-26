@@ -6,6 +6,35 @@ import { normalizeQualificationEvidence } from '../../src/converter/forge-qualif
 import { assertOrderedResidentQualificationSet } from '../../src/config/ordered-resident-qualification.js';
 import { createTargetPlanV2, assertQualifiedResidentPartition, validateTargetPlan } from '../../src/config/target-plan.js';
 import { createInitialExecutionIdentity } from '../../src/config/initial-execution-identity.js';
+import targetPlanV2Schema from '../../src/config/schema/capsule/target-plan-v2.schema.json' with { type: 'json' };
+
+// The keywords the published TargetPlan v2 qualification-item schema uses, evaluated as JSON Schema 2020-12
+// does. An unknown keyword throws, so a schema edit cannot pass here by being ignored.
+function schemaErrors(value, schema, at = '') {
+  if (schema.$ref) return schemaErrors(value, targetPlanV2Schema.$defs[schema.$ref.replace('#/$defs/', '')], at);
+  const errors = [];
+  const isObject = value !== null && typeof value === 'object' && !Array.isArray(value);
+  for (const [keyword, rule] of Object.entries(schema)) {
+    if (keyword === 'type') {
+      const ok = { object: isObject, string: typeof value === 'string', integer: Number.isInteger(value) }[rule];
+      if (ok === undefined) throw new Error(`schemaErrors: unsupported type ${rule}`);
+      if (!ok) errors.push(`${at} is not ${rule}`);
+    } else if (keyword === 'properties') {
+      if (isObject) for (const [key, sub] of Object.entries(rule)) if (key in value) errors.push(...schemaErrors(value[key], sub, `${at}.${key}`));
+    } else if (keyword === 'required') {
+      if (isObject) for (const key of rule) if (!(key in value)) errors.push(`${at}.${key} is required`);
+    } else if (keyword === 'const') { if (value !== rule) errors.push(`${at} must be ${rule}`); }
+    else if (keyword === 'minimum') { if (typeof value === 'number' && value < rule) errors.push(`${at} < ${rule}`); }
+    else if (keyword === 'maximum') { if (typeof value === 'number' && value > rule) errors.push(`${at} > ${rule}`); }
+    else if (keyword === 'pattern') { if (typeof value === 'string' && !new RegExp(rule, 'u').test(value)) errors.push(`${at} does not match ${rule}`); }
+    else if (keyword === 'allOf') { for (const sub of rule) errors.push(...schemaErrors(value, sub, at)); }
+    else if (keyword === 'not') { if (schemaErrors(value, rule, at).length === 0) errors.push(`${at} matches a forbidden schema`); }
+    else if (keyword === 'if') { if (schemaErrors(value, rule, at).length === 0 && schema.then) errors.push(...schemaErrors(value, schema.then, at)); }
+    else if (keyword !== 'then') throw new Error(`schemaErrors: unsupported keyword ${keyword}`);
+  }
+  return errors;
+}
+const qualificationItemSchema = targetPlanV2Schema.properties.qualification.items;
 
 // Synthetic producer inputs test structural admission only, never physical qualification.
 const digest = hash('fixture');
@@ -43,6 +72,8 @@ for (const count of [2, 3, 4, 7]) {
     const qualification = records.map(({ artifact, ...record }) => record);
     const target = createTargetPlanV2({ ...targetBase, qualification });
     assert.equal(validateTargetPlan(target).ok, true);
+    // The published schema admits every stage index the validator admits, not only 0 and 1.
+    for (const record of qualification) assert.deepEqual(schemaErrors(record, qualificationItemSchema), [], `stage ${record.partitionIndex} of ${count}`);
     for (const record of records) assert.doesNotThrow(() => assertQualifiedResidentPartition(target, record.surface,
       { planId: partitionPlanHash, plan: partitionPlan, model: { identity: digest }, index: record.partitionIndex }));
     assert.throws(() => assertOrderedResidentQualificationSet(records.slice(1)), /missing/);
@@ -73,6 +104,12 @@ for (const count of [2, 3, 4, 7]) {
     assert.throws(() => normalizeQualificationEvidence(disguised), /plan and index/);
   }
 }
+// A legacy (two-group) record keeps the 0/1 bound in the schema as in validateTargetPlan.
+const legacyRecord = { operation: 'residentPartition', surface: 'node-webgpu', status: 'passed', evidenceArtifactId: 'e',
+  evidenceHash: digest, transcriptHash: digest, partitionPlanHash: digest, partitionIndex: 1, comparedSteps: 2 };
+assert.deepEqual(schemaErrors(legacyRecord, qualificationItemSchema), []);
+assert.notDeepEqual(schemaErrors({ ...legacyRecord, partitionIndex: 2 }, qualificationItemSchema), []);
+assert.notDeepEqual(schemaErrors({ ...legacyRecord, partitionIndex: -1 }, qualificationItemSchema), []);
 // A legacy report cannot acquire ordered-stage authority through its unchanged v1 schema.
 const legacy = createLayerPartitionPlan({ modelId: manifest.modelId, numLayers: 28, hiddenSize: 4, vocabSize: 16, splitLayer: 14 });
 assert.notEqual(legacy.schema, 'doppler.layer-partition-contract/v3');
