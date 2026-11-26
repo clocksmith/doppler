@@ -16,6 +16,10 @@
  *   node requester.js run --model DIR --plan PLAN.json --operators OPS.json --request REQUEST.json --out REPORT.json [...]
  *        One request for a supervisor: a JSON event per line on stdout (ready, token, end or failed); `stop` on stdin
  *        stops after the token in progress. REQUEST.json: {"messages": [{"role": "user", "content": ...}], "maxTokens": N}.
+ *        No speculation: one position per step. An operator that misses a reply deadline (--round-timeout-ms per
+ *        round and session message, --close-timeout-ms for the close) fails the request with a `failed` event naming
+ *        the stalled stage and share (code operator-stalled); every operator connection is closed at once and the
+ *        process exits, so a stalled operator cannot hold the request open.
  *   node requester.js bench-shape --shape 27b --operators NULL_OPS.json --out REPORT.json [--prompt-tokens 146]
  *        [--max-tokens 32] [--embedding-file FILE] [...]   requester-only work at a model's shape, against null-operator.js
  *
@@ -44,6 +48,7 @@ const { positionals, values: args } = parseArgs({ allowPositionals: true, option
   'max-tokens': { type: 'string', default: '32' }, 'return-shift': { type: 'string', default: '0' }, prg: { type: 'string', default: 'shake256' },
   'pipeline-steps': { type: 'boolean' }, 'full-digests': { type: 'boolean' }, threads: { type: 'string', default: '1' }, explicit: { type: 'boolean' }, 'keep-rounds': { type: 'boolean' }, strict: { type: 'boolean' },
   'source-config': { type: 'string' }, shape: { type: 'string' }, 'embedding-file': { type: 'string' }, 'prompt-tokens': { type: 'string', default: '146' }, 'exit-operators': { type: 'boolean' }, 'prompt-limit': { type: 'string' },
+  'round-timeout-ms': { type: 'string', default: '300000' }, 'close-timeout-ms': { type: 'string', default: '5000' },
   workloads: { type: 'string' }, ks: { type: 'string', default: '0,1,4,8' }, only: { type: 'string' }, plain: { type: 'boolean' } } });
 const command = positionals[0];
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -64,7 +69,8 @@ async function openModel(linear) {
 
 async function openCluster(plan) {
   return SharedCluster.open(plan, readJson(args.operators), nodeEnv, {
-    seeded: !args.explicit, returnShift: Number(args['return-shift']), prg: args.prg, pipelineSteps: args['pipeline-steps'], strict: args.strict, fullDigests: args['full-digests'] });
+    seeded: !args.explicit, returnShift: Number(args['return-shift']), prg: args.prg, pipelineSteps: args['pipeline-steps'], strict: args.strict, fullDigests: args['full-digests'],
+    roundTimeoutMs: Number(args['round-timeout-ms']), closeTimeoutMs: Number(args['close-timeout-ms']) });
 }
 
 /** Greedy decode (or teacher-forced on `forced`): one prefill pass, then one position per step. */
@@ -163,10 +169,11 @@ async function cmdRun() {
   readline.createInterface({ input: process.stdin }).on('line', line => { if (line.trim() === 'stop') stop = true; });
   const request = readJson(args.request);
   if (request.messages?.length !== 1 || request.messages[0].role !== 'user') throw Error('one user message');
+  let cluster = null, lastEventAt = performance.now();
+  const t0 = performance.now();
   try {
-    const t0 = performance.now();
     const plan = readJson(args.plan);
-    const cluster = await openCluster(plan);
+    cluster = await openCluster(plan);
     const { model, config, tokenizer, source } = await openModel(cluster);
     const ids = tokenizer.encode(template(request.messages[0].content));
     emit({ event: 'ready', promptTokens: ids.length, loadS: (performance.now() - t0) / 1e3,
@@ -178,13 +185,14 @@ async function cmdRun() {
       const full = tokenizer.decode(generated, true, false);
       const delta = full.slice(text.length); text = full;
       const reason = config.eos.includes(token) ? 'eos' : done ? 'max-tokens' : null;
+      lastEventAt = performance.now();
       emit({ event: 'token', step, tokenId: token, delta, done: Boolean(done), stopReason: reason, inputTokens: row.columns,
         ...Object.fromEntries(['wallMs', 'cpuMs', 'rounds', 'up', 'down', 'wireMs', 'operatorMs', 'margin'].map(k => [k, row[k] ?? null])) });
     } });
     const stopped = Boolean(steps.at(-1)?.stoppedAfter);
     const stats = await cluster.close();
     const report = { schema: 'doppler.secret-shared-run/v1', requester: 'javascript', modelId: plan.modelId, fx: plan.fx, fw: plan.fw,
-      protocol: { stages: cluster.describe(), pipelineSteps: Boolean(args['pipeline-steps']) },
+      protocol: { stages: cluster.describe(), pipelineSteps: Boolean(args['pipeline-steps']), speculation: 'off', roundTimeoutMs: cluster.roundTimeoutMs },
       requesterHolds: { tensors: source.heldTensors(), bytes: source.heldBytes(), projectionBytes: 0 },
       promptTokens: ids.length, tokens, text, steps, freshness: freshness(cluster), operatorStats: stats, requesterPeakRss: peakRss(), wallS: (performance.now() - t0) / 1e3 };
     fs.writeFileSync(args.out, JSON.stringify(report) + '\n');
@@ -192,7 +200,13 @@ async function cmdRun() {
       outputTokens: tokens.length, freshness: report.freshness, requesterPeakRss: report.requesterPeakRss });
     process.exit(0);
   } catch (error) {
-    emit({ event: 'failed', error: `${error?.name}: ${error?.message}`.slice(0, 500) });
+    // Cancel first: every operator connection closes now, so no operator keeps a round open for this request.
+    const cancelled = cluster ? cluster.cancel(error) : null;
+    const failedAt = performance.now();
+    emit({ event: 'failed', error: `${error?.name}: ${error?.message}`.slice(0, 500), code: error?.code ?? null,
+      stalled: error?.stalled ?? (error?.operator ? [error.operator] : null), timeoutMs: error?.timeoutMs ?? null,
+      sinceLastEventMs: failedAt - lastEventAt, wallMs: failedAt - t0, cancelled: Boolean(cancelled),
+      roundTimeoutMs: Number(args['round-timeout-ms']) });
     process.exit(1);
   }
 }
