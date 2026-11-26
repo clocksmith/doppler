@@ -13,13 +13,19 @@
  *   prg          'aes256-ctr' (AES-256-CTR, key = seed, IV = round as u64 big-endian || 8 zero bytes) or 'shake256'
  *   pipelineSteps  the end-of-step message's reply is read before the next round's reply instead of awaited
  *
+ * Sharing off (`sharing: false`): the plaintext control of the research harness. Each stage opens only the operator at
+ * `plaintextShare` (default 0) of its OPS entry, and every round sends that operator the encoded input x~ itself instead of a
+ * share; the operator, unchanged, returns W~ x~ in the same wire format (the same returnShift). Same plan, cut, hosts,
+ * encoding, framing, rounds and links as the secret-shared run, with one operator per stage and no sharing. **The
+ * operator reads the plaintext activations**: it is a measurement control, never a protection.
+ *
  * Stalls. Every reply the requester waits for has a deadline: `roundTimeoutMs` for a linear round and for the
  * session messages (hello, options, seed, step), and `closeTimeoutMs` for the closing message. A missed deadline
  * rejects with an `OperatorStallError` naming the stage and share(s) that did not reply, and cancels the session: every
  * operator connection is closed at once, so no operator is left waiting on a round that will never come and no later
  * message is sent. A close that misses its deadline does not throw; that operator's result is `{ timedOut: true }`.
  */
-import { encodeAndShare, recombine } from './ring.js';
+import { encode, encodeAndShare, recombine } from './ring.js';
 
 const MAGIC = 0x31535352;
 const enc = new TextEncoder(), dec = new TextDecoder();
@@ -155,13 +161,17 @@ export class SharedCluster {
     c.closeTimeoutMs = options.closeTimeoutMs ?? DEFAULT_CLOSE_TIMEOUT_MS;
     if (!(c.roundTimeoutMs > 0) || !(c.closeTimeoutMs > 0)) throw Error('roundTimeoutMs and closeTimeoutMs are positive milliseconds');
     c.cancelled = null;
+    c.sharing = options.sharing !== false;
+    c.plaintextShare = options.plaintextShare ?? 0;
+    if (![0, 1].includes(c.plaintextShare)) throw Error('plaintextShare is 0 or 1');
     c.where = new Map();
     for (const stage of plan.stages) for (const group of stage.groups) {
       c.where.set(group.id, { stage: stage.index, in: group.in, out: group.tensors.reduce((s, t) => s + t.shape[0], 0) });
     }
     const opened = [];
     try {
-      c.pairs = await Promise.all(operators.stages.map((pair, stage) => Promise.all(pair.map((o, share) =>
+      const entries = operators.stages.map(pair => c.sharing ? pair.map((o, share) => [o, share]) : [[pair[c.plaintextShare], c.plaintextShare]]);
+      c.pairs = await Promise.all(entries.map((pair, stage) => Promise.all(pair.map(([o, share]) =>
         openOperator(env.connect, o, operators.token, { where: { stage, share }, timeoutMs: c.roundTimeoutMs }).then(op => { opened.push(op); return op; })))));
       await c.configure(options);
     } catch (error) {
@@ -191,15 +201,22 @@ export class SharedCluster {
     const c = this;
     c.pairs.forEach((pair, index) => pair.forEach((op, share) => {
       const h = op.hello;
-      if (h.stage !== index || h.share !== share || h.fx !== c.fx || h.fw !== c.fw) throw Error(`operator hello does not match the plan: ${JSON.stringify(h)}`);
+      if (h.stage !== index || h.share !== (c.sharing ? share : c.plaintextShare) || h.fx !== c.fx || h.fw !== c.fw) throw Error(`operator hello does not match the plan: ${JSON.stringify(h)}`);
     }));
-    c.seeded = options.seeded !== false;
+    c.seeded = c.sharing && options.seeded !== false;
     c.pipelineSteps = Boolean(options.pipelineSteps);
     c.settings = [];
     c.seeds = [];
     for (const pair of c.pairs) {
       const wantShift = options.returnShift ?? 0;
       const shift = wantShift && pair.every(op => op.caps.has('returnShift')) ? wantShift : 0;
+      if (!c.sharing) {
+        if (options.strict && shift !== wantShift) throw Error('an operator lacks a requested capability');
+        if (shift) await c.callWithin(pair[0], { op: 'options', returnShift: shift });
+        c.seeds.push(null);
+        c.settings.push({ shift, width: (64 - shift) / 8, prg: 'none', key: null, zeros: null });
+        continue;
+      }
       let prg = options.prg ?? 'shake256';
       if (prg === 'aes256-ctr' && !pair[0].caps.has('prg:aes256-ctr')) prg = 'shake256';
       if (prg === 'shake256' && c.seeded && !c.env.shake256) throw Error('this environment has no SHAKE-256: use operators with the prg:aes256-ctr capability');
@@ -241,6 +258,7 @@ export class SharedCluster {
   async round(gid, x, n) {
     const { stage, in: width, out } = this.where.get(gid);
     if (x.length !== n * width) throw Error(`${gid}: input ${x.length}, want ${n} x ${width}`);
+    if (!this.sharing) return this.plainRound(gid, x, n, stage, out);
     const pair = this.pairs[stage];
     const s = this.settings[stage];
     const t0 = performance.now();
@@ -288,6 +306,29 @@ export class SharedCluster {
     return y;
   }
 
+  /** Sharing off: x~ goes to the stage's one operator; its W~ x~ is decoded as a share added to zero. */
+  async plainRound(gid, x, n, stage, out) {
+    const [op] = this.pairs[stage];
+    const s = this.settings[stage];
+    const t0 = performance.now();
+    const counter = ++this.counter;
+    const before = [op.sent, op.received];
+    const encoded = encode(x, this.fx);
+    op.write({ op: 'linear', group: gid, n, round: counter, ...(this.step !== null ? { step: this.step } : {}), seeded: false }, new Uint8Array(encoded.buffer));
+    const t1 = performance.now();
+    const reply = op.read().catch(error => { error.operator ??= op.where; throw error; });
+    const [h0, y0] = await withDeadline(reply, this.roundTimeoutMs, () => stall(`${gid} round ${counter}: no reply`, [op.where], this.roundTimeoutMs, 'linear'));
+    const t2 = performance.now();
+    if (!s.zeros || s.zeros.length < y0.length) s.zeros = new Uint8Array(y0.length);
+    const y = new Float32Array(n * out);
+    const maxAbs = recombine(y0, s.zeros, s.width, s.shift, this.fx, this.fw, y);
+    if (!(maxAbs < 2 ** (62 - this.fx - this.fw))) throw Error(`${gid}: output outside the fixed-point range`);
+    const t3 = performance.now();
+    this.rounds.push({ group: gid, stage, n, counter, shareBSha256: null, digestBytes: 0, encodeMs: t1 - t0, wireMs: t2 - t1, decodeMs: t3 - t2,
+      replyMs: [t2 - t1, 0], operatorMs: [h0.computeNs / 1e6, 0], up: [op.sent - before[0], 0], down: [op.received - before[1], 0] });
+    return y;
+  }
+
   /** Tells every operator that `step` ended, so each reports it before its output is acknowledged. */
   async endStep(step) {
     if (this.cancelled) throw Error(`the session was cancelled: ${this.cancelled.reason}`);
@@ -302,5 +343,8 @@ export class SharedCluster {
    *  reported as { timedOut: true }; after a cancellation nothing is sent and each result is { cancelled: true }. */
   async close(op = 'close') { return Promise.all(this.pairs.map(pair => Promise.all(pair.map(o => o.close(op, this.closeTimeoutMs))))); }
 
-  describe() { return this.settings.map(s => ({ returnShift: s.shift, returnBytes: s.width, prg: this.seeded ? s.prg : 'explicit' })); }
+  describe() {
+    return this.settings.map(s => ({ sharing: this.sharing ? 'on' : 'off', returnShift: s.shift, returnBytes: s.width,
+      prg: this.sharing ? (this.seeded ? s.prg : 'explicit') : 'none', ...(this.sharing ? {} : { operatorShare: this.plaintextShare }) }));
+  }
 }

@@ -23,6 +23,11 @@
  *   node requester.js bench-shape --shape 27b --operators NULL_OPS.json --out REPORT.json [--prompt-tokens 146]
  *        [--max-tokens 32] [--embedding-file FILE] [...]   requester-only work at a model's shape, against null-operator.js
  *
+ * --sharing off  the plaintext control (generate only): the same plan, cut, hosts, encoding, rounds
+ *        and links, with each stage's input sent unshared to one operator (--plaintext-share 0|1, default 0, the OPS
+ *        entry that is used; the other is not contacted). That operator reads the activations. Refused in `run`, which
+ *        serves the secret-shared route.
+ *
  * --threads N splits the DeltaNet value heads over N worker threads (default 1: everything on the main thread); the
  * arithmetic per head is the same either way.
  *
@@ -48,6 +53,7 @@ const { positionals, values: args } = parseArgs({ allowPositionals: true, option
   'max-tokens': { type: 'string', default: '32' }, 'return-shift': { type: 'string', default: '0' }, prg: { type: 'string', default: 'shake256' },
   'pipeline-steps': { type: 'boolean' }, 'full-digests': { type: 'boolean' }, threads: { type: 'string', default: '1' }, explicit: { type: 'boolean' }, 'keep-rounds': { type: 'boolean' }, strict: { type: 'boolean' },
   'source-config': { type: 'string' }, shape: { type: 'string' }, 'embedding-file': { type: 'string' }, 'prompt-tokens': { type: 'string', default: '146' }, 'exit-operators': { type: 'boolean' }, 'prompt-limit': { type: 'string' },
+  sharing: { type: 'string', default: 'on' }, 'plaintext-share': { type: 'string', default: '0' },
   'round-timeout-ms': { type: 'string', default: '300000' }, 'close-timeout-ms': { type: 'string', default: '5000' },
   workloads: { type: 'string' }, ks: { type: 'string', default: '0,1,4,8' }, only: { type: 'string' }, plain: { type: 'boolean' } } });
 const command = positionals[0];
@@ -68,7 +74,8 @@ async function openModel(linear) {
 }
 
 async function openCluster(plan) {
-  return SharedCluster.open(plan, readJson(args.operators), nodeEnv, {
+  if (!['on', 'off'].includes(args.sharing)) throw Error('--sharing on or off');
+  return SharedCluster.open(plan, readJson(args.operators), nodeEnv, { sharing: args.sharing === 'on', plaintextShare: Number(args['plaintext-share']),
     seeded: !args.explicit, returnShift: Number(args['return-shift']), prg: args.prg, pipelineSteps: args['pipeline-steps'], strict: args.strict, fullDigests: args['full-digests'],
     roundTimeoutMs: Number(args['round-timeout-ms']), closeTimeoutMs: Number(args['close-timeout-ms']) });
 }
@@ -134,6 +141,7 @@ async function runPrompts(model, config, tokenizer, cluster) {
 }
 
 function freshness(cluster) {
+  if (!cluster.sharing) return null;
   const digests = cluster.rounds.map(r => r.shareBSha256), counters = cluster.rounds.map(r => r.counter);
   return { rounds: digests.length, distinctShareBDigests: new Set(digests).size, countersStrictlyIncreasing: counters.every((c, i) => i === 0 || c > counters[i - 1]),
     digestOf: cluster.digestLimit ? `the first ${cluster.digestLimit} bytes of each share B (uniform, so distinct prefixes show distinct shares)` : 'every byte of each share B' };
@@ -148,7 +156,8 @@ async function cmdGenerate() {
   const results = await runPrompts(model, config, tokenizer, cluster);
   const stats = await cluster.close(args['exit-operators'] ? 'exit' : 'close');
   const report = { schema: 'doppler.secret-shared-generation/v1', requester: 'javascript', requesterThreads: pool?.threads ?? 1, node: process.version, modelId: plan.modelId, fx: plan.fx, fw: plan.fw,
-    seeded: !args.explicit, protocol: { stages: cluster.describe(), pipelineSteps: Boolean(args['pipeline-steps']) }, teacherForced: Boolean(args.forced), loadS,
+    seeded: cluster.seeded, sharing: cluster.sharing ? 'on' : 'off', speculation: 'off',
+    protocol: { stages: cluster.describe(), pipelineSteps: Boolean(args['pipeline-steps']), roundTimeoutMs: cluster.roundTimeoutMs }, teacherForced: Boolean(args.forced), loadS,
     requesterHolds: { tensors: source.heldTensors(), bytes: source.heldBytes(), embeddingBytesResident: 0, projectionBytes: 0 },
     results, freshness: freshness(cluster), operatorStats: stats, requesterPeakRss: peakRss(), rounds: args['keep-rounds'] ? cluster.rounds : null };
   fs.writeFileSync(args.out, JSON.stringify(report) + '\n');
@@ -167,6 +176,7 @@ async function cmdRun() {
   const emit = event => process.stdout.write(JSON.stringify(event) + '\n');
   let stop = false;
   readline.createInterface({ input: process.stdin }).on('line', line => { if (line.trim() === 'stop') stop = true; });
+  if (args.sharing !== 'on') { emit({ event: 'failed', error: 'run serves the secret-shared route: --sharing off is for generate only' }); process.exit(2); }
   const request = readJson(args.request);
   if (request.messages?.length !== 1 || request.messages[0].role !== 'user') throw Error('one user message');
   let cluster = null, lastEventAt = performance.now();
