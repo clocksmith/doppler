@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "gpuPresent": false,
+  "client/model-manager activateLoRAFromTrainingOutput(null) with no model": {
+    "activated": false,
+    "adapterName": null,
+    "source": null,
+    "reason": "no-model-loaded"
+  },
+  "training TRAINING_BACKENDS": [
+    "webgpu-native",
+    "external"
+  ],
+  "training assertTrainingBackend error": "training-backend-invalid: expected one of webgpu-native, external, got bogus."
+}

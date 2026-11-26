@@ -1,0 +1,13 @@
+{
+ "version": "0.1.7",
+ "compatLoadManifestObject": {
+  "ok": true
+ }
+}
+{
+ "version": "0.2.0",
+ "compatLoadManifestObject": {
+  "ok": false,
+  "message": "Manifest \"qwen-3-5-2b-q4k-ehaf16\" has invalid inference.session.perLayerInputs.prefetch.mode \"next_token\"."
+ }
+}

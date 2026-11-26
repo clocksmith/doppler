@@ -1,0 +1,2 @@
+16:51  up 20:11, 7 users, load averages: 4.48 5.40 8.95
+Other GPU user at the time: a headless Chromium contribution-journey e2e loop (functional tests, not a timing run).

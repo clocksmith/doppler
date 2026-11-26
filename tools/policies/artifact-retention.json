@@ -921,9 +921,9 @@
     },
     "reports/package-release-0.2.0": {
       "retentionClass": "frozen-evidence",
-      "files": 13,
-      "bytes": 43028,
-      "inventoryHash": "sha256:07091eefe4ed0154a2e1e50b2b2bb1b263fadb2681d4e2030cd3cf07136d4973"
+      "files": 26,
+      "bytes": 86771,
+      "inventoryHash": "sha256:2dc79acef591d39711affa250637ac9439017638007b45c0ca1780e3767fe988"
     },
     "reports/package-release-0.7.2": {
       "retentionClass": "frozen-evidence",

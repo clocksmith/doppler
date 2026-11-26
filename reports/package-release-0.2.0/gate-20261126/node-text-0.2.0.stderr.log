@@ -1,0 +1,13 @@
+file://<scratch>/gate/gpu-020/node_modules/dopplerx/src/inference/pipelines/text/config/normalization.js:79
+    throw new Error(
+          ^
+
+Error: Manifest "qwen-3-5-2b-q4k-ehaf16" has invalid inference.session.perLayerInputs.prefetch.mode "next_token".
+    at resolvePerLayerInputsSession (file://<scratch>/gate/gpu-020/node_modules/dopplerx/src/inference/pipelines/text/config/normalization.js:79:11)
+    at toParsedConfigFromMerged (file://<scratch>/gate/gpu-020/node_modules/dopplerx/src/inference/pipelines/text/config.js:531:33)
+    at parseModelConfigFromManifest (file://<scratch>/gate/gpu-020/node_modules/dopplerx/src/inference/pipelines/text/config.js:678:10)
+    at parseModelConfig (file://<scratch>/gate/gpu-020/node_modules/dopplerx/src/inference/pipelines/text/config.js:699:10)
+    at InferencePipeline.loadModel (file://<scratch>/gate/gpu-020/node_modules/dopplerx/src/inference/pipelines/text/lifecycle.js:213:24)
+
+Node.js v22.20.0
+exit 1

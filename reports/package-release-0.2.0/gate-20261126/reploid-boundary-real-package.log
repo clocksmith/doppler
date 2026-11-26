@@ -1,0 +1,10 @@
+ ✓ tests/unit/doppler-boundary-real-package.test.js > Doppler legacy spelling guard (Reploid source) > compares against no Doppler legacy spelling outside the reviewed list 162ms
+ ✓ tests/unit/doppler-boundary-real-package.test.js > Reploid Doppler boundary on ../../../../..<scratch>/gate/cpu-017/node_modules/dopplerx > is a real dopplerx install 1ms
+ ✓ tests/unit/doppler-boundary-real-package.test.js > Reploid Doppler boundary on ../../../../..<scratch>/gate/cpu-017/node_modules/dopplerx > maps the sequence alphabet Doppler reports for a pinned ESM-2 manifest 94ms
+ ✓ tests/unit/doppler-boundary-real-package.test.js > Reploid Doppler boundary on ../../../../..<scratch>/gate/cpu-017/node_modules/dopplerx > accepts a browser observation recorded with the abort mode and alphabet Doppler emits 272ms
+ ✓ tests/unit/doppler-boundary-real-package.test.js > Reploid Doppler boundary on ../../../../..<scratch>/gate/cpu-017/node_modules/dopplerx > reads the failure class and receipt of a real provider failure in a spelling it knows 33ms
+ ✓ tests/unit/doppler-boundary-real-package.test.js > Reploid Doppler boundary on ../../../../..<scratch>/gate/cpu-020/node_modules/dopplerx > is a real dopplerx install 4ms
+ ✓ tests/unit/doppler-boundary-real-package.test.js > Reploid Doppler boundary on ../../../../..<scratch>/gate/cpu-020/node_modules/dopplerx > maps the sequence alphabet Doppler reports for a pinned ESM-2 manifest 223ms
+ ✓ tests/unit/doppler-boundary-real-package.test.js > Reploid Doppler boundary on ../../../../..<scratch>/gate/cpu-020/node_modules/dopplerx > accepts a browser observation recorded with the abort mode and alphabet Doppler emits 337ms
+ ✓ tests/unit/doppler-boundary-real-package.test.js > Reploid Doppler boundary on ../../../../..<scratch>/gate/cpu-020/node_modules/dopplerx > reads the failure class and receipt of a real provider failure in a spelling it knows 24ms
+      Tests  9 passed (9)

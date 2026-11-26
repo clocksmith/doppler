@@ -1,0 +1,4 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+[1981.8ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[1981.9ms][Config] Using manifest-first config (source of truth)
+[1985.2ms][Pipeline] Unloaded

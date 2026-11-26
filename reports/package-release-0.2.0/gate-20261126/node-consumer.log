@@ -1,0 +1,11 @@
+2026-11-26T21:44:24Z
+v22.20.0
+sha512-qunxMrJFQy45xJn5Mjs2STy4QIaLewww4W+Z5THIpdkK0V/M6ZPNmz7uWc6DXMtx7ZIs+OpRTQTsJsOu+mxuCg==
+no webgpu/doe-gpu provider installed
+(node:78905) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<scratch>/gate/nogpu-v020/import-all.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <scratch>/gate/nogpu-v020/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"version":"0.2.0","entryPoints":18,"exportsPerEntry":{"dopplerx":21,"dopplerx/runtime":21,"dopplerx/generation-contract":5,"dopplerx/host":30,"dopplerx/host/electron":9,"dopplerx/compat":14,"dopplerx/provider":3,"dopplerx/tooling":143,"dopplerx/tooling/storage":39,"dopplerx/tooling/device":8,"dopplerx/tooling/manifest":7,"dopplerx/tooling/runtime":10,"dopplerx/tooling/evidence":31,"dopplerx/structured":13,"dopplerx/client/model-manager":10,"dopplerx/generation":5,"dopplerx/training":41,"dopplerx/partitions":48}}
+[510.1ms][doppler] Resolving model
+no-gpu load failed: Error - WebGPU is unavailable. Install a Node WebGPU provider or run in a WebGPU-capable browser.
