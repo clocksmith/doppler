@@ -2,26 +2,33 @@
   "schema": "doppler.release-status/v1",
   "package": "dopplerx",
   "version": "0.2.0",
-  "state": "gate-failed-not-published",
-  "recordedAtUtc": "2026-11-26T22:01:05Z",
+  "state": "gate-passed-awaiting-owner-publish",
+  "recordedAtUtc": "2026-11-26T22:25:59Z",
   "compatibilityRule": "Legacy spellings are read throughout 0.x. Doppler emits only kebab-case. Aliases are removed no earlier than 1.0, and only with at least one minor release of notice.",
   "sourceCommit": {
-    "packedFrom": "0205bbb18b58259acac23fdece7e9c78257ad7ce",
-    "packedTree": "9d75304c587615457db9d9df44185c8bbef9db88",
-    "note": "Packed once with npm pack --ignore-scripts from a clean detached worktree at Doppler main 0205bbb18 (the emitted-value conversion 35d087635..d17c7cb7f plus the docs consistency commit), after CI Smoke passed on that commit."
+    "packedFrom": "99ed4b80e2bb298887c189a6125b8ef32d218a1f",
+    "packedTree": "01eb1e5b6632af64cab376535909b6c9df0674e9",
+    "note": "Packed once with npm pack --ignore-scripts from a clean detached worktree at Doppler main 99ed4b80e (includes 5e7c7a8b2, the manifest-object legacy read, and the README/getting-started 0.2.0 install lines) after CI Smoke passed on that commit and the CPU-only unit suite passed (1167; the 22 device tests fail identically on the base)."
   },
   "archive": {
     "filename": "dopplerx-0.2.0.tgz",
-    "storedAs": "~/.cache/deco/dopplerx-0.2.0-rc/dopplerx-0.2.0-sha256-97b17c3e26005ef6b9a9b53bf36eacc8f904f1c6bf65b86ddf6ed0e17e0859e4.tgz (read-only; npm pack JSON beside it)",
-    "sha256": "97b17c3e26005ef6b9a9b53bf36eacc8f904f1c6bf65b86ddf6ed0e17e0859e4",
-    "integrity": "sha512-qunxMrJFQy45xJn5Mjs2STy4QIaLewww4W+Z5THIpdkK0V/M6ZPNmz7uWc6DXMtx7ZIs+OpRTQTsJsOu+mxuCg==",
-    "shasum": "f2b9e17eacd85a9ae36b6fbdfd1245b8391dd8d9",
-    "size": 3899161,
-    "unpackedSize": 16463195,
+    "storedAs": "~/.cache/deco/dopplerx-0.2.0-rc/dopplerx-0.2.0-sha256-a97cb41f02e8957c9cc646ad6ff333972987c5062dbbf3e7301e947190dc97a2.tgz (read-only; npm pack JSON beside it)",
+    "sha256": "a97cb41f02e8957c9cc646ad6ff333972987c5062dbbf3e7301e947190dc97a2",
+    "integrity": "sha512-6JqPVFXrS+2Q6FFqHfV0QOZtz9hwlGJCPRviE+ElFZEnpUS2qHCq4GVUIFpIv5tELEXhVJrD7x5kIK+sgXHDpQ==",
+    "shasum": "cb6d88515f7576036680ef1e4cef9cd6cd7c56b4",
+    "size": 3899388,
+    "unpackedSize": 16463808,
     "entryCount": 2070,
-    "packedAtUtc": "2026-11-26T21:43:22Z",
+    "packedAtUtc": "2026-11-26T22:18:34Z",
     "packCommand": "npm pack --ignore-scripts (npm 10.9.3, Node v22.20.0, macOS arm64)",
     "superseded": [
+      {
+        "sha256": "97b17c3e26005ef6b9a9b53bf36eacc8f904f1c6bf65b86ddf6ed0e17e0859e4",
+        "integrity": "sha512-qunxMrJFQy45xJn5Mjs2STy4QIaLewww4W+Z5THIpdkK0V/M6ZPNmz7uWc6DXMtx7ZIs+OpRTQTsJsOu+mxuCg==",
+        "packedFrom": "0205bbb18b58259acac23fdece7e9c78257ad7ce",
+        "packedAtUtc": "2026-11-26T21:43:22Z",
+        "reason": "GPU gate failed: rejected manifest objects with 0.1.x spellings (see history); kept read-only, never published."
+      },
       {
         "sha256": "1ab392c3dadc554a6fd45e405d578d94263a980204dce34b413ae70c08b5df8c",
         "integrity": "sha512-USjHspiS8VP3gHDOzWgiJN7njaEp04uj/bD8vzcKx/Z8/GnMxx4SfY/DAV1ZQTezv7kFm/bvNOTK+eGgQxfSrg==",
@@ -39,37 +46,64 @@
     "diffMethod": "Published 0.1.7 tarball fetched with npm pack dopplerx@0.1.7 (scripts not run) and compared file by file with the packed main; 197 files differ, all explained by the kebab-case rename, the legacy enum reader, the runtime-config reads, the version and the changelog/README."
   },
   "gate": {
-    "noGpuNode": {
-      "result": "pass",
-      "evidence": [
-        "gate-20261126/package-smoke-archive.log (tools/check-packed-package.js --archive <exact archive>)",
-        "gate-20261126/node-consumer.log (fresh install by path, --omit=optional: lockfile integrity equals the archive, 18 of 18 subpaths import, DOPPLER_VERSION 0.2.0, no-GPU dr.load fails named)",
-        "gate-20261126/emit-probe-candidate.json (no-model-loaded, webgpu-native, training-backend-invalid)"
-      ]
+    "evidenceDir": "gate3-20261126/",
+    "noGpuNode": "pass (package-smoke-archive.log, node-consumer.log, emit-probe-candidate.json)",
+    "noGpuBrowser": "pass (browser-qualification.json: headless Chromium 145.0.7632.6, navigator.gpu removed, 18/18 entries, failureClass gpu-unavailable, no external request)",
+    "reploidBoundary": "pass, 9/9 (reploid-boundary-real-package.log; Reploid main 48502973d with fresh installs of 0.1.7 and this archive)",
+    "gpuContention": "gpu-occupancy.log: no other browser or GPU job at each GPU step; load averages 8-10 from other sessions' CPU work. Correctness is the gate; timings are informational.",
+    "textModel": {
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "manifestSha256": "a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
+      "identityDigest": "f959e8a03c30b822a01e4a0bff164e02cf8fa943d6614d17c3205b484a9bd90c",
+      "prompt": "Explain in two sentences why the sky is blue.",
+      "sampling": {
+        "maxTokens": 32,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "repetitionPenalty": 1,
+        "useChatTemplate": true
+      }
     },
-    "noGpuBrowser": {
+    "nodeText": {
       "result": "pass",
-      "evidence": "gate-20261126/browser-qualification.json (headless Chromium 145.0.7632.6, navigator.gpu removed: 18 of 18 subpaths import; provider local-only failure DOPPLER_PROVIDER_LOCAL_FAILED with failureClass gpu-unavailable; no external request)"
-    },
-    "reploidBoundary": {
-      "result": "pass",
-      "evidence": "gate-20261126/reploid-boundary-real-package.log: Reploid main 2f786b809 tests/unit/doppler-boundary-real-package.test.js with DOPPLERX_BOUNDARY_PACKAGES = fresh installs of 0.1.7 (sha256 09e9ce2c...) and this archive: 9 of 9 pass (alphabet amino_acid / amino-acid from parseManifest of ESM-2 35M, abort after_start / after-start, failure class gpu_oom / gpu-oom, source guard, alias snapshot equals the archive table)"
-    },
-    "gpuNodeText": {
-      "result": "fail",
-      "failure": "The candidate cannot load a manifest object written with 0.1.x spellings. createPipeline(manifest) and dopplerx/compat dr.load({ manifest, baseUrl }) skip parseManifest, so Qwen 3.5 2B q4k ehaf16 (identity below) fails before generation with: Manifest \"qwen-3-5-2b-q4k-ehaf16\" has invalid inference.session.perLayerInputs.prefetch.mode \"next_token\". 0.1.7 loads the same object and generates. Reploid doppler-runtime loads through { manifest, baseUrl }. This breaks the rule \"legacy spellings are read throughout 0.x\".",
-      "evidence": [
-        "gate-20261126/node-text-0.2.0.stderr.log",
-        "gate-20261126/public-manifest-object-probe.log (public dopplerx/compat: 0.1.7 ok, 0.2.0 fails)",
-        "gate-20261126/node-text-0.1.7.json (control: 32 greedy tokens)"
+      "tokensIdentical": true,
+      "tokens": [
+        29108,
+        4009,
+        5435,
+        660,
+        7736,
+        314,
+        279,
+        9155,
+        19142,
+        11,
+        694,
+        948,
+        424,
+        12611,
+        279,
+        8964,
+        579,
+        16078,
+        11,
+        22602,
+        6105,
+        89661,
+        43000,
+        777,
+        6497,
+        1056,
+        4860,
+        2438,
+        89661,
+        13,
+        1061,
+        69377
       ],
-      "model": {
-        "modelId": "qwen-3-5-2b-q4k-ehaf16",
-        "manifestSha256": "a0dc69e917133a82780823d17fc771c0f6b882d7c86c571deeaef45be2ff108b",
-        "identityDigest": "f959e8a03c30b822a01e4a0bff164e02cf8fa943d6614d17c3205b484a9bd90c",
-        "note": "identityDigest = sha256 of { manifest sha256, every shard and tokenizer.json sha256 } as read from disk"
-      },
-      "control017": {
+      "text": "Sunlight contains all colors of the visible spectrum, but when it hits the Earth's atmosphere, shorter blue wavelengths scatter more easily than longer red wavelengths. This scattering",
+      "0.1.7": {
         "adapter": {
           "vendor": "apple",
           "architecture": "metal-3",
@@ -90,62 +124,209 @@
           }
         ],
         "useGPU": true,
+        "fallbackMarkers": [],
         "decodeMode": "batched_gpu",
-        "tokens": [
-          29108,
-          4009,
-          5435,
-          660,
-          7736,
-          314,
-          279,
-          9155,
-          19142,
-          11,
-          694,
-          948,
-          424,
-          12611,
-          279,
-          8964,
-          579,
-          16078,
-          11,
-          22602,
-          6105,
-          89661,
-          43000,
-          777,
-          6497,
-          1056,
-          4860,
-          2438,
-          89661,
-          13,
-          1061,
-          69377
-        ],
-        "text": "Sunlight contains all colors of the visible spectrum, but when it hits the Earth's atmosphere, shorter blue wavelengths scatter more easily than longer red wavelengths. This scattering",
         "timing": {
-          "loadMs": 2809.7494159999997,
-          "generateMs": 2203.0109169999996,
-          "firstTokenMs": 514.0244169999996,
-          "decodeTokensPerSec": 18.970002480760577
+          "loadMs": 3246.231167,
+          "generateMs": 2509.0237500000003,
+          "firstTokenMs": 559.7339160000001,
+          "decodeTokensPerSec": 16.42872960680039
         }
       },
-      "fix": "Doppler main 5e7c7a8b2 canonicalizes manifest objects in createPipeline and inline model sources (tests: legacy-outcome-reads); a non-candidate pack of that tree produced the same 32 tokens as 0.1.7 on this GPU. Not packed as a candidate."
+      "0.2.0": {
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "apple-m3",
+          "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32
+        },
+        "provider": "webgpu",
+        "providerAttempts": [
+          {
+            "providerId": "pre-installed",
+            "ok": false
+          },
+          {
+            "providerId": "webgpu",
+            "ok": true
+          }
+        ],
+        "useGPU": true,
+        "fallbackMarkers": [],
+        "decodeMode": "batched-gpu",
+        "timing": {
+          "loadMs": 2993.070208,
+          "generateMs": 2435.7292499999994,
+          "firstTokenMs": 523.5179999999991,
+          "decodeTokensPerSec": 16.747526182870473
+        }
+      },
+      "note": "providerAttempts: Doppler first looks for a pre-installed navigator.gpu (none in Node) and then opens the webgpu provider; that is provider selection, not a compute fallback."
     },
-    "gpuChromium": {
-      "result": "not run (stopped at gpuNodeText)"
+    "chromiumText": {
+      "result": "pass",
+      "browser": "Google Chrome 158.0.8127.37 headless (Playwright channel chrome), package served from the installed tarball files",
+      "tokensIdenticalAcrossVersions": true,
+      "tokensIdenticalToNode": true,
+      "0.1.7": {
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "0x0000",
+          "description": "Apple M3",
+          "isFallbackAdapter": false,
+          "features": [
+            "atomic-vec2u-min-max",
+            "bgra8unorm-storage",
+            "chromium-experimental-sampling-resource-table",
+            "chromium-experimental-subgroup-matrix",
+            "clip-distances",
+            "core-features-and-limits",
+            "depth-clip-control",
+            "depth32float-stencil8",
+            "dual-source-blending",
+            "float32-blendable",
+            "float32-filterable",
+            "indirect-first-instance",
+            "primitive-index",
+            "rg11b10ufloat-renderable",
+            "shader-f16",
+            "subgroup-size-control",
+            "subgroups",
+            "texture-component-swizzle",
+            "texture-compression-astc",
+            "texture-compression-astc-sliced-3d",
+            "texture-compression-bc",
+            "texture-compression-bc-sliced-3d",
+            "texture-compression-etc2",
+            "texture-compression-unaligned",
+            "texture-formats-tier1",
+            "texture-formats-tier2",
+            "timestamp-query"
+          ]
+        },
+        "decodeMode": "batched_gpu",
+        "timing": {
+          "loadMs": 29213.60000000149,
+          "generateMs": 2272.800000000745,
+          "firstTokenMs": 532.3999999985099
+        }
+      },
+      "0.2.0": {
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "0x0000",
+          "description": "Apple M3",
+          "isFallbackAdapter": false,
+          "features": [
+            "atomic-vec2u-min-max",
+            "bgra8unorm-storage",
+            "chromium-experimental-sampling-resource-table",
+            "chromium-experimental-subgroup-matrix",
+            "clip-distances",
+            "core-features-and-limits",
+            "depth-clip-control",
+            "depth32float-stencil8",
+            "dual-source-blending",
+            "float32-blendable",
+            "float32-filterable",
+            "indirect-first-instance",
+            "primitive-index",
+            "rg11b10ufloat-renderable",
+            "shader-f16",
+            "subgroup-size-control",
+            "subgroups",
+            "texture-component-swizzle",
+            "texture-compression-astc",
+            "texture-compression-astc-sliced-3d",
+            "texture-compression-bc",
+            "texture-compression-bc-sliced-3d",
+            "texture-compression-etc2",
+            "texture-compression-unaligned",
+            "texture-formats-tier1",
+            "texture-formats-tier2",
+            "timestamp-query"
+          ]
+        },
+        "decodeMode": "batched-gpu",
+        "timing": {
+          "loadMs": 26895.39999999851,
+          "generateMs": 3321,
+          "firstTokenMs": 1248.300000000745
+        }
+      },
+      "note": "Playwright's bundled chromium-headless-shell 1208 gave a SwiftShader fallback adapter (isFallbackAdapter true); that run was rejected by the no-fallback rule and the gate used the installed Chrome, which exposes the Apple M3 Metal adapter."
     },
     "protein": {
-      "result": "not run for the candidate (stopped at gpuNodeText)",
-      "finding": "The hosted ESM-2 35M RDRR artifact pinned in models/catalog.json (clocksmith/rdrr@feea324) does not pass Doppler shard verification in 0.1.7 either: both shards match the Hugging Face LFS sha256 (7d0c833b..., 42cfb7b6...) but their blake3 (73ab68b8..., 5d5506f8...) differs from the manifest (14b1ea87..., 2e4936c7...). A protein gate needs a re-verified or re-converted ESM-2 artifact."
-    }
+      "result": "pass",
+      "model": "ESM-2 35M converted locally from facebook/esm2_t12_35M_UR50D@6fbf070e (all five source files match the reference sha256) with each version's shipped converter; shards byte-identical between versions and verified by Doppler's own blake3 check; both versions ran the 0.1.7-written manifest (sha256 64ecd9a5e5bac31795ed94f3e6b563200301667926736df444703aa7fa24d8b9), 0.2.0 also its own manifest",
+      "sequence": "MKTIIALSYIFCLVFADYKDDDDK",
+      "tolerance": {
+        "pooledEmbeddingMaxAbs": 0.001,
+        "tokenEmbeddingMaxAbs": 0.001
+      },
+      "node": {
+        "0.1.7": {
+          "alphabet": "amino_acid",
+          "ref": {
+            "file": "esm2-t12-35m-ur50d-sequence-reference.json",
+            "source": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+            "tokenIdsMatch": true,
+            "pooledEmbeddingMaxAbs": 5.809078292839942e-7,
+            "tokenEmbeddingMaxAbs": 8.120964439389811e-7,
+            "tolerances": {
+              "pooledEmbeddingMaxAbs": 0.001,
+              "tokenEmbeddingMaxAbs": 0.001
+            },
+            "withinTolerance": true
+          }
+        },
+        "0.2.0": {
+          "alphabet": "amino-acid",
+          "ref": {
+            "file": "esm2-t12-35m-ur50d-sequence-reference.json",
+            "source": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+            "tokenIdsMatch": true,
+            "pooledEmbeddingMaxAbs": 5.809078292839942e-7,
+            "tokenEmbeddingMaxAbs": 8.120964439389811e-7,
+            "tolerances": {
+              "pooledEmbeddingMaxAbs": 0.001,
+              "tokenEmbeddingMaxAbs": 0.001
+            },
+            "withinTolerance": true
+          }
+        },
+        "bitIdenticalAcrossVersions": true
+      },
+      "chromium": {
+        "0.1.7": {
+          "alphabet": "amino_acid"
+        },
+        "0.2.0": {
+          "alphabet": "amino-acid"
+        },
+        "maxAbsAcrossVersions": 0,
+        "maxAbsVsNode": 0,
+        "referenceMaxAbs": {
+          "pooled": 5.809078292839942e-7,
+          "token": 8.120964439389811e-7
+        }
+      }
+    },
+    "hostedEsm2Artifact": "Broken for every version: clocksmith/rdrr@feea324 models/esm2-t12-35m-ur50d-f32-af32 shards are byte-identical to a fresh conversion (sha256 7d0c833b..., 42cfb7b6...) but the hosted manifest lists blake3 14b1ea87.../2e4936c7..., while the correct blake3 (from the fresh conversion's manifest and Doppler's hasher) is 73ab68b8.../5d5506f8.... The hosted manifest's shard hashes are wrong; the shards are fine. Not changed here (owner decides on republishing)."
   },
-  "registryPublication": "Not attempted: the GPU gate failed. Owner gate requires a new candidate packed from main at or after 5e7c7a8b2 and the whole gate rerun.",
-  "tagNote": "No dopplerx-v0.2.0 tag pushed. v0.2.0 (92068f442, doppler-gpu line) untouched.",
+  "registryPublication": "Not attempted: npm whoami returns 401 (no npm login on this machine). Owner command: npm publish ~/.cache/deco/dopplerx-0.2.0-rc/dopplerx-0.2.0-sha256-a97cb41f02e8957c9cc646ad6ff333972987c5062dbbf3e7301e947190dc97a2.tgz --access public",
+  "tagNote": "dopplerx-v0.2.0 is to be created on 99ed4b80e after publish; v0.2.0 (92068f442, doppler-gpu line) untouched.",
   "history": [
+    {
+      "recordedAtUtc": "2026-11-26T22:01:05Z",
+      "state": "gate-failed-not-published",
+      "archiveSha256": "97b17c3e26005ef6b9a9b53bf36eacc8f904f1c6bf65b86ddf6ed0e17e0859e4",
+      "gpuNodeTextFailure": "The candidate cannot load a manifest object written with 0.1.x spellings. createPipeline(manifest) and dopplerx/compat dr.load({ manifest, baseUrl }) skip parseManifest, so Qwen 3.5 2B q4k ehaf16 (identity below) fails before generation with: Manifest \"qwen-3-5-2b-q4k-ehaf16\" has invalid inference.session.perLayerInputs.prefetch.mode \"next_token\". 0.1.7 loads the same object and generates. Reploid doppler-runtime loads through { manifest, baseUrl }. This breaks the rule \"legacy spellings are read throughout 0.x\"."
+    },
     {
       "recordedAtUtc": "2026-11-26T20:12:00Z",
       "state": "qualified-not-published",

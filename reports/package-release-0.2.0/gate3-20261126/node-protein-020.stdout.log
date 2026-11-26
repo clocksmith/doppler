@@ -1,0 +1,85 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 1.9ms
+[555.2ms][Pipeline] Execution v1 enabled (steps=30, kernelPathInline=yes, pipelineInline=no)
+[555.5ms][Config] Using manifest-first config (source of truth)
+[559.6ms][Pipeline] Resolved session applied (esm2-t12-35m-ur50d-f32-af32): batchSize=1, stopCheckMode=per-token, readbackInterval=1, disableCommandBatching=false
+[560.5ms][Pipeline] KernelPath: esm2-t12-35m-ur50d-f32-af32-execution-inline (14 decode steps, 7 kernels, source=execution-v1)
+[560.9ms][Pipeline] 12L/480H/20heads (24dim), kernelPath=esm2-t12-35m-ur50d-f32-af32-execution-inline
+[561.3ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[562.1ms][Tokenizer] HuggingFace model.type="WordPiece", using type="wordpiece"
+[562.5ms][Tokenizer] Loaded HuggingFace 33 tokens (wordpiece), 5 special patterns, 0 merges
+[563.2ms][Pipeline] KV cache not allocated: embedding model with inference.session.skipEmbeddingKVCacheWrites=true never reads or writes attention KV.
+[564.2ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=esm2-t12-35m-ur50d-f32-af32-execution-inline
+[574.6ms][ShardCache] Custom shard loader configured
+[574.9ms][Loader] Initializing...
+[727.6ms][HeapManager] Allocated segment 0: 1024MB
+[727.7ms][HeapManager] Segmented heap: 1GB per segment
+[727.8ms][HeapManager] Initialized with strategy: SEGMENTED
+[727.9ms][Loader] Initialized (f16, subgroups, unified)
+[728.3ms][Loader] Loading: esm2-t12-35m-ur50d-f32-af32
+[729.3ms][Loader] [0.0s] Memory (start): | RSS=1.20 GB (heap=23.43 MB/61.91 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1021.2ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[33,480], isWeightBuffer=true
+[1021.7ms][Loader] Layers: 0-11
+[1359.7ms][Loader] Layers: 12 complete (0.34s)
+[1361.4ms][Loader] Complete: 126.93 MB in 0.62s (203.75 MB/s)
+[1362.3ms][Loader] [0.6s] Memory (complete): | RSS=1.29 GB (heap=28.54 MB/59.41 MB, external=1.06 GB, arrayBuffers=1.06 GB) | GPU=130.89 MB (206 active, 0 pooled, peak=130.89 MB) | ShardCache=0 B (0 shards) | Layers=12, GPUBuffers=206
+[1374.9ms][Pipeline] Model loaded successfully (825ms)
+[1399.3ms][KernelSelect] matmul variant=f32 reason=path-override
+[1416.6ms][KernelSelect] attention variant=prefill reason=tiled-large-capable
+[1494.9ms][ExpertCache] Cache cleared
+[1498.4ms][Pipeline] Unloaded
+{
+ "version": "0.2.0",
+ "mode": "protein",
+ "model": "esm2-t12-35m-ur50d-f32-af32",
+ "adapter": {
+  "vendor": "apple",
+  "architecture": "metal-3",
+  "device": "apple-m3",
+  "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+  "subgroupMinSize": 32,
+  "subgroupMaxSize": 32
+ },
+ "provider": "webgpu",
+ "noFallback": {
+  "providerAttempts": [
+   {
+    "providerId": "pre-installed",
+    "ok": false
+   },
+   {
+    "providerId": "webgpu",
+    "ok": true
+   }
+  ],
+  "useGPU": true,
+  "fallbackOrCpuMarkersInStats": [],
+  "pass": true
+ },
+ "timing": {
+  "loadMs": 832.6847499999999,
+  "encodeMs": 113.09841700000015
+ },
+ "decodeMode": null,
+ "batchGuardReason": null,
+ "protein": {
+  "alphabet": "amino-acid",
+  "dim": 480,
+  "pooled0": [
+   -0.06588375568389893,
+   -0.062349990010261536,
+   0.2845648527145386
+  ]
+ },
+ "reference": {
+  "file": "esm2-t12-35m-ur50d-sequence-reference.json",
+  "source": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+  "tokenIdsMatch": true,
+  "pooledEmbeddingMaxAbs": 5.809078292839942e-7,
+  "tokenEmbeddingMaxAbs": 8.120964439389811e-7,
+  "tolerances": {
+   "pooledEmbeddingMaxAbs": 0.001,
+   "tokenEmbeddingMaxAbs": 0.001
+  },
+  "withinTolerance": true
+ }
+}

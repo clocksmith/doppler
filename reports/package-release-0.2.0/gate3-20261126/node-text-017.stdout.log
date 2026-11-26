@@ -1,0 +1,76 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 2.5ms
+[2202.9ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[2203.2ms][Config] Using manifest-first config (source of truth)
+[2209.0ms][Pipeline] Resolved session applied (qwen-3-5-2b-q4k-ehaf16): batchSize=12, stopCheckMode=batch, readbackInterval=32, disableCommandBatching=false
+[2209.9ms][Pipeline] KernelPath: qwen-3-5-2b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[2210.3ms][Pipeline] 24L/2048H/8heads (256dim), kernelPath=qwen-3-5-2b-q4k-ehaf16-execution-inline
+[2210.8ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[2410.0ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[2624.3ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[2624.8ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[2626.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=512, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=512
+[2628.6ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-2b-q4k-ehaf16-execution-inline
+[2684.5ms][ShardCache] Custom shard loader configured
+[2684.8ms][Loader] Initializing...
+[2834.8ms][HeapManager] Allocated segment 0: 1024MB
+[2835.0ms][HeapManager] Segmented heap: 1GB per segment
+[2835.0ms][HeapManager] Initialized with strategy: SEGMENTED
+[2835.2ms][Loader] Initialized (f16, subgroups, unified)
+[2836.1ms][Loader] Loading: qwen-3-5-2b-q4k-ehaf16
+[2837.9ms][Loader] [0.0s] Memory (start): | RSS=1.46 GB (heap=61.48 MB/99.05 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[4120.5ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,2048], isWeightBuffer=true
+[4121.5ms][Loader] Layers: 0-23
+[5010.5ms][Loader] Layers: 24 complete (0.89s)
+[5417.3ms][Loader] Complete: 1.94 GB in 2.57s (771.79 MB/s)
+[5418.2ms][Loader] [2.6s] Memory (complete): | RSS=1.65 GB (heap=67.72 MB/101.30 MB, external=1.06 GB, arrayBuffers=1.06 GB) | GPU=1.94 GB (345 active, 0 pooled, peak=1.94 GB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[5433.7ms][Pipeline] Model loaded successfully (3237ms)
+[5473.9ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[5478.3ms][KernelSelect] matmul variant=f16w_f32a reason=default
+[5562.6ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[5951.8ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+[6001.7ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[6008.6ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[6027.5ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+[7946.5ms][Perf] Load: 3237ms | TTFT: 557ms | Prefill: 548ms | Decode: 1948ms (31 tokens @ 15.9 tok/s)
+[7950.4ms][ExpertCache] Cache cleared
+[8015.9ms][Pipeline] Unloaded
+{
+ "version": "0.1.7",
+ "mode": "text",
+ "model": "qwen-3-5-2b-q4k-ehaf16",
+ "adapter": {
+  "vendor": "apple",
+  "architecture": "metal-3",
+  "device": "apple-m3",
+  "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+  "subgroupMinSize": 32,
+  "subgroupMaxSize": 32
+ },
+ "provider": "webgpu",
+ "noFallback": {
+  "providerAttempts": [
+   {
+    "providerId": "pre-installed",
+    "ok": false
+   },
+   {
+    "providerId": "webgpu",
+    "ok": true
+   }
+  ],
+  "useGPU": true,
+  "fallbackOrCpuMarkersInStats": [],
+  "pass": true
+ },
+ "tokenCount": 32,
+ "text": "Sunlight contains all colors of the visible spectrum, but when it hits the Earth's atmosphere, shorter blue wavelengths scatter more easily than longer red wave",
+ "timing": {
+  "loadMs": 3246.231167,
+  "generateMs": 2509.0237500000003,
+  "firstTokenMs": 559.7339160000001,
+  "decodeTokensPerSec": 16.42872960680039
+ },
+ "decodeMode": "batched_gpu",
+ "batchGuardReason": null,
+ "stopReason": "max-tokens"
+}
