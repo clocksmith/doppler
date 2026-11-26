@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue } from '../../legacy-enum-values.js';
 const UL_STAGE_SET = new Set(['stage1-joint', 'stage2-base']);
 const DISTILL_STAGE_SET = new Set(['stage-a', 'stage-b']);
 const OBJECTIVE_SET = new Set([
@@ -148,9 +149,14 @@ export const DEFAULT_TRAINING_METRICS_REPORT = Object.freeze({
   stage1_latent_count: null,
 });
 
-export function validateTrainingMetricsEntry(entry) {
-  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+export function validateTrainingMetricsEntry(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
     throw new Error('training metrics: entry must be an object.');
+  }
+  // Metrics recorded before 0.2.0 spell objectives and stages in snake_case; read throughout 0.x.
+  const entry = { ...input };
+  for (const key of ['objective', 'distill_stage', 'ul_stage']) {
+    if (key in input) entry[key] = canonicalizeLegacyEnumValue(input[key]);
   }
 
   assertIntegerGte(entry.schemaVersion, 1, 'schemaVersion');

@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue } from '../config/legacy-enum-values.js';
 import { isPlainObject } from '../formats/plain-object.js';
 import { cloneJsonValue as cloneCommandValue } from '../formats/clone-json.js';
 import {
@@ -181,20 +182,21 @@ function normalizeInferenceInput(value, workload) {
         `tooling command: inferenceInput.sequence cannot be combined with ${conflictingFields.join(', ')}.`
       );
     }
-    const sequenceAlphabet = asOptionalString(
+    // amino_acid and the snake_case abort modes are read throughout 0.x.
+    const sequenceAlphabet = canonicalizeLegacyEnumValue(asOptionalString(
       inferenceInput.sequenceAlphabet,
       'inferenceInput.sequenceAlphabet'
-    );
+    ));
     if (sequenceAlphabet != null && sequenceAlphabet !== 'amino-acid' && sequenceAlphabet !== 'nucleotide') {
       throw new Error(
         'tooling command: inferenceInput.sequenceAlphabet must be "amino-acid" or "nucleotide" when provided.'
       );
     }
     const sequenceQualificationAbort = (() => {
-      const value = asOptionalString(
+      const value = canonicalizeLegacyEnumValue(asOptionalString(
         inferenceInput.sequenceQualificationAbort,
         'inferenceInput.sequenceQualificationAbort'
-      );
+      ));
       if (value != null && value !== 'before-execution' && value !== 'after-start') {
         throw new Error(
           'tooling command: inferenceInput.sequenceQualificationAbort must be "before-execution" or "after-start".'

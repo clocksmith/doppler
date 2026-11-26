@@ -23,6 +23,7 @@ import { validateVerifierGuidedArtifact } from '../../src/experimental/training/
 import { resolveUlScheduledLambda } from '../../src/experimental/training/ul_schedule.js';
 import { evaluateAgentHeldoutRows } from '../../src/experimental/training/operator-agent-eval.js';
 import { parseDiffusionGemmaConfig } from '../../src/inference/pipelines/diffusion-gemma/config.js';
+import { normalizeToolingCommandRequest } from '../../src/tooling/command-api.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const fixture = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests/fixtures/emitted-enum-values.json'), 'utf8'));
@@ -60,6 +61,18 @@ describe('converted outcome values: shared config reader', () => {
 });
 
 describe('converted outcome values: readers that take them as input', () => {
+  it('command requests read the 0.1.x sequence alphabet and abort spellings', () => {
+    const request = (sequenceAlphabet, sequenceQualificationAbort) => normalizeToolingCommandRequest({
+      command: 'verify',
+      workload: 'inference',
+      modelId: 'esm2-t12-35m-ur50d-f32-af32',
+      inferenceInput: { sequence: 'MKTIIALSYIFCLVFADYKDDDDK', sequenceAlphabet, sequenceQualificationAbort },
+    }).inferenceInput;
+    assert.deepEqual(request('amino_acid', 'after_start'), request('amino-acid', 'after-start'));
+    assert.equal(request('amino_acid', 'before_execution').sequenceQualificationAbort, 'before-execution');
+    assert.equal(request('amino_acid', 'after_start').sequenceAlphabet, 'amino-acid');
+  });
+
   it('training reads the legacy backend, workload and artifact spellings', async () => {
     const loaded = await loadTrainingWorkloadCapsule(
       path.join(ROOT, 'src/experimental/training/workload-capsules/lora-toy-tiny.json')

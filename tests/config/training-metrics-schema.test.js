@@ -154,6 +154,17 @@ function makeBaseEntry(overrides = {}) {
     distill_loss_total: 0.12,
   }));
   assert.equal(kd.distill_stage, 'stage-a');
+  // Metrics recorded before 0.2.0 spell the stage stage_a; it is read throughout 0.x.
+  const legacyKd = validateTrainingMetricsEntry(makeBaseEntry({
+    objective: 'kd',
+    loss_kd: 0.12,
+    distill_stage: 'stage_a',
+    distill_temperature: 1,
+    distill_alpha_kd: 1,
+    distill_alpha_ce: 0,
+    distill_loss_total: 0.12,
+  }));
+  assert.equal(legacyKd.distill_stage, 'stage-a');
 }
 
 {
