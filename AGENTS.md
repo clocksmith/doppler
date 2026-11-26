@@ -29,14 +29,19 @@ simple, portable execution.
 
 ### Style guides
 
+**Commit and push to `main`.** Every verified change goes straight to `main`: rebase, push,
+confirm CI is green, fix forward if it goes red. Do not open pull requests; if a direct push
+is refused, open one and merge it immediately yourself, then delete the branch. Never leave a
+PR or branch waiting for review. (Publishing to npm and release tags still need the owner.)
+
 Match the check to the risk. Times are from one laptop; CI runs on Linux.
 
 | When | Run | Time |
 | --- | --- | --- |
 | Editing, once the behavior is ready to verify | The test file for the loader, pipeline or kernel you changed: `node tools/run-node-tests.js <file>` | under 2 s a file |
 | Before every push | `npm run check:fast` (source style, architecture, changed-file style rules, artifact retention, kebab-case enums, JavaScript-only); `npm run typecheck:source` when declarations or exports changed | 22 s; 7 s |
-| Before merge | The contract tests for the behavior you changed (below) and `npm run check:changed`, which runs only the policy checks your files select | seconds |
-| Every push and pull request | CI `Smoke` (`.github/workflows/check-green.yml`): contract tests, declaration types, `check:fast`, style guides, the installed-package smoke. No GPU, browser or model download | 2.5 min |
+| Before pushing to `main` | The contract tests for the behavior you changed (below) and `npm run check:changed`, which runs only the policy checks your files select | seconds |
+| Every push to `main` | CI `Smoke` (`.github/workflows/check-green.yml`): contract tests, declaration types, `check:fast`, style guides, the installed-package smoke. No GPU, browser or model download | 2.5 min |
 | Release, hardware work, or a change that justifies it | `npm run check:green` and `npm run test:unit` (the whole unit suite), `test:unit:webgpu`, `test:gpu`, the browser harness and the manual workflows | not in CI |
 
 Contract tests that stay when their behavior changes:
