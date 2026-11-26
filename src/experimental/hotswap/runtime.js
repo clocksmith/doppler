@@ -61,7 +61,7 @@ export function evaluateHotSwapRollout(policy = {}, context = {}) {
     const disabled = {
       allowed: false,
       mode: 'disabled',
-      reason: 'hotswap_disabled',
+      reason: 'hotswap-disabled',
       bucket: null,
       threshold: null,
       subjectId: null,
@@ -87,7 +87,7 @@ export function evaluateHotSwapRollout(policy = {}, context = {}) {
     decision = {
       allowed: true,
       mode: rollout.mode,
-      reason: 'force_enable',
+      reason: 'force-enable',
       bucket,
       threshold: rollout.mode === 'canary' ? rollout.canaryPercent : null,
       subjectId,
@@ -96,7 +96,7 @@ export function evaluateHotSwapRollout(policy = {}, context = {}) {
     decision = {
       allowed: true,
       mode: rollout.mode,
-      reason: 'default_enabled',
+      reason: 'default-enabled',
       bucket,
       threshold: null,
       subjectId,
@@ -105,7 +105,7 @@ export function evaluateHotSwapRollout(policy = {}, context = {}) {
     decision = {
       allowed: bucket < rollout.canaryPercent,
       mode: rollout.mode,
-      reason: bucket < rollout.canaryPercent ? 'canary_selected' : 'canary_excluded',
+      reason: bucket < rollout.canaryPercent ? 'canary-selected' : 'canary-excluded',
       bucket,
       threshold: rollout.canaryPercent,
       subjectId,
@@ -117,7 +117,7 @@ export function evaluateHotSwapRollout(policy = {}, context = {}) {
     decision = {
       allowed,
       mode: rollout.mode,
-      reason: allowed ? 'opt_in_selected' : 'opt_in_required',
+      reason: allowed ? 'opt-in-selected' : 'opt-in-required',
       bucket,
       threshold: null,
       subjectId,
@@ -126,7 +126,7 @@ export function evaluateHotSwapRollout(policy = {}, context = {}) {
     decision = {
       allowed: false,
       mode: rollout.mode,
-      reason: 'shadow_mode',
+      reason: 'shadow-mode',
       bucket,
       threshold: null,
       subjectId,

@@ -190,7 +190,7 @@ async function buildPatchStatuses(datasetRows, candidateRows, policy, patchRoot)
 function buildReportPayload(context) {
   const agentEval = context.agentEval;
   return {
-    artifactType: 'training_eval_report',
+    artifactType: 'training-eval-report',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     workloadId: context.workload?.id || null,
@@ -201,7 +201,7 @@ function buildReportPayload(context) {
     datasetHash: sha256Hex(context.datasetRaw),
     baseModelId: context.workload?.baseModelId || null,
     baseModelRef: context.workload?.baseModelId || null,
-    stage: context.stage || 'agent_heldout_eval',
+    stage: context.stage || 'agent-heldout-eval',
     checkpointStep: context.checkpointStep ?? null,
     checkpointId: context.checkpointId || null,
     evalDatasetId: context.evalDatasetId,

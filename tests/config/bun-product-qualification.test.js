@@ -38,7 +38,7 @@ async function writeJson(relativePath, value) {
 
 function executionReceipt(qualification) {
   return {
-    receiptVersion: 'doppler_provider_receipt_v1',
+    receiptVersion: 'doppler-provider-receipt-v1',
     receiptId: `${qualification.id}-execution`,
     source: 'local',
     model: { id: qualification.logicalModelId, hash: ARTIFACT_ID },

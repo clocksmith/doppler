@@ -17,7 +17,7 @@ const DEFAULT_CHANNEL_ORDER = Object.freeze({
 });
 const PERSISTENT_LAUNCH_ERROR_HINTS = Object.freeze([
   'Target page, context or browser has been closed',
-  'bootstrap_check_in',
+  'bootstrap-check-in',
   'Permission denied',
   'org.chromium.Chromium.MachPortRendezvousServer',
 ]);

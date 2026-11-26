@@ -257,7 +257,7 @@ export function findFirstDivergence(baselineTimeline, observedTimeline, getDrift
         comparedRecords += 1;
         if (drift && (drift.maxAbsDiff > tolerance.maxAbsDiff || drift.maxRelDiff > tolerance.maxRelDiff)) {
           return {
-            type: 'numeric_drift',
+            type: 'numeric-drift',
             index: i,
             opId: baseline.opId,
             opType: baseline.opType,

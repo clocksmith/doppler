@@ -254,7 +254,7 @@ export function createGpuResidentEmbeddingLimitError({ name, location, embedding
       toGPU: true,
       streamedUpload: false,
       deviceLimitFailure: {
-        kind: 'gpu_resident_embedding_exceeds_device_limit',
+        kind: 'gpu-resident-embedding-exceeds-device-limit',
         maxGpuResidentBytes,
         maxStorageBufferBindingSize,
         maxBufferSize,

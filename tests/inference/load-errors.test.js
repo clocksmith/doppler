@@ -64,7 +64,7 @@ test('rewriteWeightLoadError rewrites device lifecycle failures with explicit gu
   );
   assert.equal(
     rewritten.details?.lifecycleFailure,
-    'device_unavailable_during_weight_load'
+    'device-unavailable-during-weight-load'
   );
   assert.equal(
     rewritten.details?.weightLoadFailure?.tensorName,

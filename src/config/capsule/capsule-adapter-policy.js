@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue } from '../legacy-enum-values.js';
 import policy from "../capsule-adapters.json" with { type: 'json' };
 import kernels from "../kernels/registry.json" with { type: 'json' };
 const assert = (ok, message) => { if (!ok) throw new Error(`Capsule adapter: ${message}`); };
@@ -9,7 +10,7 @@ export function validateCapsuleAdapterExecution(plan) {
   assert(Number.isSafeInteger(declaration.maxAdapters) && declaration.maxAdapters > 0
     && declaration.maxAdapters <= policy.maximumAdapters && declaration.combination === policy.combination, 'unsupported composition');
   assert(Array.isArray(declaration.formats) && declaration.formats.length > 0
-    && declaration.formats.every(format => policy.formats.includes(format)), 'unsupported format');
+    && declaration.formats.every(format => policy.formats.includes(canonicalizeLegacyEnumValue(format))), 'unsupported format');
   assert(Array.isArray(declaration.operations) && declaration.operations.length > 0
     && declaration.operations.every(operation => plan.qualification.some(row =>
       (row.operation === undefined ? policy.legacyQualificationOperation : row.operation) === operation)), 'invalid adapter operations');

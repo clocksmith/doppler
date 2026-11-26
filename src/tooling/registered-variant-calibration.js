@@ -301,7 +301,7 @@ export async function calibrateRegisteredVariants(planInput, options) {
           selectionPolicy: buildSelectionPolicy(candidate),
         }
         : null,
-      reason: accepted ? null : 'performance_evidence_failed',
+      reason: accepted ? null : 'performance-evidence-failed',
     });
   }
   const core = {

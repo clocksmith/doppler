@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue } from '../../config/legacy-enum-values.js';
 import { collectRequiredImprovementEvalIds, sortTrainingReports, summarizeQualityClaims } from './report-ranking.js';
 import { readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -55,7 +56,7 @@ async function loadTrainingEvalReports(rootDir) {
   const reports = [];
   for (const filePath of files) {
     const report = await readJson(filePath);
-    if (report?.artifactType === 'training_eval_report') {
+    if (canonicalizeLegacyEnumValue(report?.artifactType) === 'training-eval-report') {
       reports.push({
         ...report,
         reportPath: report.reportPath || filePath,
@@ -171,7 +172,7 @@ async function runDistillSftLoraStage(options) {
   const stageManifestPayload = {
     ...buildDistillArtifactBase(loadedWorkload, {
       prefix: 'dst_stage',
-      artifactType: 'distill_stage_manifest',
+      artifactType: 'distill-stage-manifest',
       datasetPath: options.datasetPath || loadedWorkload.workload.datasetPath,
       datasetHash: resolveLoraDatasetHash(loraResult),
       stage: stageId,
@@ -277,7 +278,7 @@ async function compareDistillRun(runRoot) {
   const workload = await loadWorkloadFromRunRoot(runRoot).then((loaded) => loaded.workload, () => null);
   const sorted = sortTrainingReports(await loadTrainingEvalReports(runRoot), workload);
   const payload = {
-    artifactType: 'training_compare_report',
+    artifactType: 'training-compare-report',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     runRoot,
@@ -340,7 +341,7 @@ async function qualityGateDistillRun(runRoot, loadedWorkload) {
   const requiredImprovementEvalIds = collectRequiredImprovementEvalIds(loadedWorkload.workload);
   if (evalReports.length > 0) {
     checks.push({
-      name: 'eval_reports',
+      name: 'eval-reports',
       path: runRoot,
       ok: true,
       count: evalReports.length,
@@ -348,7 +349,7 @@ async function qualityGateDistillRun(runRoot, loadedWorkload) {
   }
   if (qualitySummary.count > 0) {
     checks.push({
-      name: 'baseline_quality_claims',
+      name: 'baseline-quality-claims',
       path: runRoot,
       ok: qualitySummary.failedRequiredCount === 0,
       ...qualitySummary,
@@ -356,7 +357,7 @@ async function qualityGateDistillRun(runRoot, loadedWorkload) {
   }
   if (requiredImprovementEvalIds.length > 0 && qualitySummary.count === 0) {
     checks.push({
-      name: 'required_improvement_claims',
+      name: 'required-improvement-claims',
       path: runRoot,
       ok: false,
       requiredEvalDatasetIds: requiredImprovementEvalIds,
@@ -365,7 +366,7 @@ async function qualityGateDistillRun(runRoot, loadedWorkload) {
   }
   if (agentEvalSummary.requiredCount > 0) {
     checks.push({
-      name: 'agent_heldout_eval',
+      name: 'agent-heldout-eval',
       path: runRoot,
       ok: agentEvalSummary.failedCount === 0,
       ...agentEvalSummary,
@@ -376,7 +377,7 @@ async function qualityGateDistillRun(runRoot, loadedWorkload) {
   }
   const passed = checks.every((entry) => entry.ok === true);
   const payload = {
-    artifactType: 'training_quality_gate',
+    artifactType: 'training-quality-gate',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     runRoot,

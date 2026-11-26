@@ -238,8 +238,8 @@ export function negotiateDescriptorShardCache(options = {}) {
       missingShards.push({
         ...shard,
         reason: !descriptorHashMatches
-          ? 'descriptor_hash_mismatch'
-          : (!cached ? 'not_cached' : 'shard_hash_mismatch'),
+          ? 'descriptor-hash-mismatch'
+          : (!cached ? 'not-cached' : 'shard-hash-mismatch'),
       });
     }
   }
@@ -308,13 +308,13 @@ export function createDescriptorPeerAssignment(options = {}) {
 
   if (!cache.ready) {
     blockers.push({
-      code: 'descriptor_shards_missing',
+      code: 'descriptor-shards-missing',
       missingShards: cache.missingShards,
     });
   }
   if (requiredVramBytes != null && requiredVramBytes > support.profile.available_vram_bytes) {
     blockers.push({
-      code: 'insufficient_vram',
+      code: 'insufficient-vram',
       requiredVramBytes,
       availableVramBytes: support.profile.available_vram_bytes,
     });

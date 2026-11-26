@@ -7,14 +7,7 @@
     "benchmarks/vendors"
   ],
   "jsScopes": [
-    "src/config",
-    "src/rules",
-    "src/tooling",
-    "src/formats",
-    "src/inference",
-    "src/converter",
-    "src/loader",
-    "src/client"
+    "src"
   ],
   "excludeFiles": [
     "^src/config/legacy-enum-values\\.js$",
@@ -88,7 +81,15 @@
     "^src/converter/quantization-info\\.js$",
     "^src/rules/kernels/kv_quantize\\.rules\\.json$",
     "^src/config/schema/policy/trainer-artifact-handoff\\.schema\\.json$",
-    "^tools/policies/nativekd2-bf16-baseline-handoff\\.json$"
+    "^tools/policies/nativekd2-bf16-baseline-handoff\\.json$",
+    "^src/config/schema/policy/trainer-artifact-bridge\\.schema\\.json$",
+    "^src/config/schema/policy/trainer-artifact-parity-evidence\\.schema\\.json$",
+    "^src/config/schema/runtime/translation-artifact-competition\\.schema\\.json$",
+    "^tools/policies/translation-artifact-competition\\.json$",
+    "^benchmarks/vendors/fixtures/",
+    "^benchmarks/vendors/release-matrix\\.json$",
+    "^src/config/conversion/",
+    "^src/experimental/training/autograd\\.js$"
   ],
   "externalValuesNotes": {
     "ggufDtypes": "GGUF quantization type names.",
@@ -96,5 +97,5 @@
     "huggingFaceLayerTypes": "Hugging Face config.json layer_types values.",
     "executionGraphOpAndProbeStages": "Execution-graph op ids and probe stage names. Most mirror Hugging Face module names (q_proj, gate_proj) and the rest share that namespace; they are bound into published manifests, executionGraphHash digests of capsules and program bundles, and recorded operator-attribution receipts, so they keep their spelling."
   },
-  "legacyLiteralAllowedFilesNotes": "quantization-info and kv_quantize rules predate this list; the trainer handoff schema accepts the Gamma spelling huggingface_safetensors on read, and the nativekd2 handoff is a digest-bound Gamma input kept byte-for-byte."
+  "legacyLiteralAllowedFilesNotes": "quantization-info and kv_quantize rules predate this list; the trainer handoff schema accepts the Gamma spelling huggingface_safetensors on read, and the nativekd2 handoff is a digest-bound Gamma input kept byte-for-byte. The trainer-artifact bridge, parity-evidence and translation-competition schemas list each converted value in both spellings because Doppler reads descriptors written before 0.2.0. The translation competition policy is digest-bound by the recorded 2026-07-13 receipt. Benchmark fixtures and the release matrix are recorded results written before 0.2.0. Conversion configs are inputs; the converter reads their legacy spellings. The autograd tape op id cross_entropy (with its cross_entropy_backward kernel) is an op id that shares the legacy spelling of the training objective; op ids keep their spelling."
 }

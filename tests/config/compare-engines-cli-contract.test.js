@@ -471,7 +471,7 @@ function assertCommandOutputMatches(result, pattern) {
       orchestrationMs: 5,
       residualMs: null,
     });
-    assert.equal(bottleneckSection.dopplerBottleneck.dominant.id, 'readback_map_wait');
+    assert.equal(bottleneckSection.dopplerBottleneck.dominant.id, 'readback-map-wait');
     assert.equal(bottleneckSection.dopplerBottleneck.bottleneckClass, null);
     assert.equal(bottleneckSection.dopplerBottleneck.dominant.shareOfDecode, 0.42);
     assert.equal(bottleneckSection.dopplerBottleneck.shares.commandRecord, 0.35);
@@ -897,7 +897,7 @@ function assertCommandOutputMatches(result, pattern) {
     assert.equal(zeroSampleTimestampSection.dopplerBottleneck.componentsMs.gpuTimestampMs, null);
     assert.equal(zeroSampleTimestampSection.dopplerBottleneck.componentsMs.submitReadbackSlackMs, null);
     assert.equal(zeroSampleTimestampSection.dopplerBottleneck.componentsMs.readbackMapWaitMs, null);
-    assert.equal(zeroSampleTimestampSection.dopplerBottleneck.dominant.id, 'submit_readback_wait');
+    assert.equal(zeroSampleTimestampSection.dopplerBottleneck.dominant.id, 'submit-readback-wait');
 
     const diagnosticSharedContract = buildDiagnosticSharedBenchmarkContract(buildSharedBenchmarkContract({
       prompt: 'unit prompt',

@@ -176,7 +176,7 @@ function externalExecutionEvidence(record, role) {
 
 function dopplerExecutionReceipt(record) {
   return {
-    receiptVersion: 'doppler_provider_receipt_v1',
+    receiptVersion: 'doppler-provider-receipt-v1',
     receiptId: `${record.workload}-doppler-receipt`,
     source: 'local',
     model: { id: record.logicalModelId, hash: record.resolvedArtifactVariantId },

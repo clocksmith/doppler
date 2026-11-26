@@ -44,7 +44,7 @@ try {
     ['node', 'tools/inspect-prefill-logits.js', ...receipt.invocation.argv]
   );
   assert.equal(receipt.artifactFiles?.['manifest.json'], null);
-  assert.equal(receipt.error?.code, 'runtime_config_not_found');
+  assert.equal(receipt.error?.code, 'runtime-config-not-found');
   assert.equal(Object.hasOwn(receipt.host ?? {}, 'hostname'), false);
   assert.equal(Object.hasOwn(receipt.host ?? {}, 'serialNumber'), false);
 } finally {

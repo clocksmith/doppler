@@ -229,7 +229,7 @@ export async function tryActivateAdapterPayload(payload) {
       activated: false,
       adapterName: null,
       source: null,
-      reason: 'no_adapter_payload',
+      reason: 'no-adapter-payload',
     };
   }
   const { activateLoRAFromTrainingOutput } = await import('../../../client/runtime/model-manager.js');

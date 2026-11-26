@@ -224,7 +224,7 @@ export interface ManifestDiffusionGemmaSchema {
   /** Whether decoder self-conditioning logits are part of the runtime contract. */
   selfConditioning: boolean;
   /** Decoder attention must read encoder KV plus canvas K/V without committing the canvas to encoder cache. */
-  decoderCacheMode: 'encoder_kv_readonly_canvas_concat';
+  decoderCacheMode: 'encoder-kv-readonly-canvas-concat';
   /** Router contract for DiffusionGemma/Gemma 4 MoE layers. */
   router: {
     scaleHiddenStates: boolean;

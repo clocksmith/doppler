@@ -16,7 +16,7 @@ export interface DescriptorRequiredShard {
 }
 
 export interface DescriptorMissingShard extends DescriptorRequiredShard {
-  reason: 'descriptor_hash_mismatch' | 'not_cached' | 'shard_hash_mismatch';
+  reason: 'descriptor-hash-mismatch' | 'not-cached' | 'shard-hash-mismatch';
 }
 
 export interface DescriptorShardNegotiationResult {
@@ -39,11 +39,11 @@ export interface ActivationTransportValidationResult {
 
 export type DescriptorPeerAssignmentBlocker =
   | {
-      code: 'descriptor_shards_missing';
+      code: 'descriptor-shards-missing';
       missingShards: DescriptorMissingShard[];
     }
   | {
-      code: 'insufficient_vram';
+      code: 'insufficient-vram';
       requiredVramBytes: number;
       availableVramBytes: number;
     };

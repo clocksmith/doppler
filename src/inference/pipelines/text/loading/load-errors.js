@@ -34,7 +34,7 @@ export function rewriteWeightLoadError(error, context = {}) {
     ...(error?.details && typeof error.details === 'object' ? error.details : {}),
     loadPhase: 'loadWeights',
     modelId,
-    lifecycleFailure: 'device_unavailable_during_weight_load',
+    lifecycleFailure: 'device-unavailable-during-weight-load',
     originalMessage: message,
     lastDeviceLoss: lastDeviceLoss ? { ...lastDeviceLoss } : null,
   };

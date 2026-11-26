@@ -67,7 +67,7 @@ export function buildProviderReceiptV1({
 }) {
   const resolvedIdentity = normalizeResolutionIdentity(resolution);
   return {
-    receiptVersion: 'doppler_provider_receipt_v1',
+    receiptVersion: 'doppler-provider-receipt-v1',
     receiptId: safeRandomUUID(),
     source,
     policyMode: String(policyMode || ''),

@@ -94,7 +94,7 @@ export async function prepareAdapterEvaluationSource(config) {
     weightsFormat: 'safetensors', weightsPath, weightsSize: weights.length };
   await write(path.join(output, 'adapter-manifest.json'), adapter);
   const adapterExecution = { schema: 'doppler.capsule-adapter-execution/v1', maxAdapters: 1,
-    combination: 'single', formats: ['peft_safetensors'], operations: ['generate'],
+    combination: 'single', formats: ['peft-safetensors'], operations: ['generate'],
     kernelModules: [...adapterModules, config.residualModule] };
   await write(path.join(output, 'preparation.json'), { config, parentSha256: hash(parentBytes),
     manifestSha256: manifestArtifact.hash, adapterSha256: hash(weights), adapterExecution,

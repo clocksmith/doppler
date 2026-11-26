@@ -85,7 +85,7 @@ const workload = {
   },
   pipeline: {
     datasetFormat: 'text-pairs',
-    taskType: 'text_generation',
+    taskType: 'text-generation',
     adapter: {
       rank: 2,
       alpha: 4,
@@ -123,7 +123,7 @@ const result = await trainSftLoRA({
   },
   runRoot: join(tmpRoot, 'run'),
   causalLmTrainer: async (input) => {
-    assert.equal(input.runnerKind, 'causal_lm_lora');
+    assert.equal(input.runnerKind, 'causal-lm-lora');
     assert.equal(input.preflight.supported, true);
     assert.equal(input.dataset.rowCount, 2);
     assert.equal(input.adapter.rank, 2);
@@ -142,13 +142,13 @@ const result = await trainSftLoRA({
         primaryScore: 0.2,
         loss: 0.2,
         baseline: {
-          stage: 'base_model',
+          stage: 'base-model',
           primaryMetric: 'loss',
           primaryScore: 0.3,
           loss: 0.3,
         },
         qualityClaim: {
-          baseline: 'base_model',
+          baseline: 'base-model',
           metric: 'loss',
           selectionGoal: 'min',
           adapterScore: 0.2,
@@ -177,8 +177,8 @@ const result = await trainSftLoRA({
 });
 
 assert.equal(result.ok, true);
-assert.equal(result.runnerKind, 'causal_lm_lora');
-assert.equal(result.preflight.runnerKey, 'gemma4-e2b-it::text-pairs::text_generation');
+assert.equal(result.runnerKind, 'causal-lm-lora');
+assert.equal(result.preflight.runnerKey, 'gemma4-e2b-it::text-pairs::text-generation');
 assert.equal(result.exports.length, 1);
 assert.equal(result.evalReports.length, 1);
 assert.equal(result.evalReports[0].qualityClaim.improved, true);
@@ -189,7 +189,7 @@ const runtimeManifest = JSON.parse(await readFile(result.exports[0].runtimeManif
 assert.equal(exportManifest.baseModel, 'gemma4-e2b-it');
 assert.equal(runtimeManifest.id, exportManifest.id);
 assert.equal(exportManifest.weightsFormat, 'safetensors');
-assert.equal(exportManifest.metadata.runnerKind, 'causal_lm_text_generation');
+assert.equal(exportManifest.metadata.runnerKind, 'causal-lm-text-generation');
 assert.equal(exportManifest.metadata.runnerId, 'test-causal-lm-lora');
 assert.equal(exportManifest.metadata.trainerId, 'test-provider');
 
@@ -260,7 +260,7 @@ assert.equal(qwenCapabilities.supported, true);
 assert.equal(qwenCapabilities.backends.webgpuNative.supported, false);
 assert.deepEqual(
   qwenCapabilities.backends.webgpuNative.blockedReasons,
-  ['native_full_graph_runner_unavailable_for_base_model']
+  ['native-full-graph-runner-unavailable-for-base-model']
 );
 assert.equal(qwenCapabilities.backends.external.supported, true);
 
@@ -315,13 +315,13 @@ const qwenResult = await trainSftLoRA({
 });
 
 assert.equal(qwenResult.ok, true);
-assert.equal(qwenResult.preflight.runnerKey, 'qwen-3-5-0-8b-q4k-ehaf16::text-pairs::text_generation');
+assert.equal(qwenResult.preflight.runnerKey, 'qwen-3-5-0-8b-q4k-ehaf16::text-pairs::text-generation');
 assert.equal(qwenResult.evalReports.length, 1);
 assert.equal(qwenResult.evalReports[0].qualityClaim.improved, true);
 
 await assert.rejects(
   () => trainSftLoRA({
-    backend: 'webgpu_native',
+    backend: 'webgpu-native',
     loadedWorkload: {
       absolutePath: join(tmpRoot, 'qwen-q4k.workload.json'),
       path: join(tmpRoot, 'qwen-q4k.workload.json'),
@@ -347,7 +347,7 @@ await assert.rejects(
     },
     runRoot: join(tmpRoot, 'qwen-q4k-run'),
   }),
-  /native_full_graph_runner_unavailable_for_base_model/
+  /native-full-graph-runner-unavailable-for-base-model/
 );
 
 console.log('lora-causal-lm-provider-runner.test: ok');

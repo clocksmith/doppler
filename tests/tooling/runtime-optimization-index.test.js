@@ -31,8 +31,8 @@ function receipt(status, reason, suffix) {
 }
 
 const index = buildRuntimeOptimizationResultsIndex([
-  receipt('rejected', 'neighboring_workload_guard_failed', '1'),
-  receipt('invalid', 'baseline_verification_failed', '1'),
+  receipt('rejected', 'neighboring-workload-guard-failed', '1'),
+  receipt('invalid', 'baseline-verification-failed', '1'),
   receipt('accepted', null, '2'),
 ]);
 assert.equal(index.schema, 'doppler.runtime-optimization-results-index/v1');
@@ -42,7 +42,7 @@ assert.equal(index.entries.length, 2);
 const negativeEntry = index.entries.find(
   (entry) => entry.identity.candidateReferenceDigest.endsWith('1'.repeat(64))
 );
-assert.equal(negativeEntry.reasons.neighboring_workload_guard_failed, 1);
+assert.equal(negativeEntry.reasons['neighboring-workload-guard-failed'], 1);
 assert.equal(negativeEntry.retryConditions['kernel identity changes'], 2);
 assert.equal(negativeEntry.revocationConditions['output parity regresses'], 2);
 

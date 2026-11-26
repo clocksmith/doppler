@@ -81,10 +81,10 @@ function summarizeDivergence(difference) {
     };
   }
 
-  if (difference.type === 'within_tolerance') {
+  if (difference.type === 'within-tolerance') {
     return {
       found: false,
-      type: 'within_tolerance',
+      type: 'within-tolerance',
       opId: difference.opId ?? null,
       opType: difference.opType ?? null,
       tolerance: difference.tolerance ?? null,
@@ -199,7 +199,7 @@ async function materializeSemanticBundle(summary, providerModule, divergence) {
       providerInfo,
       reportInfo: cloneValue(summary.reportInfo ?? null),
       summary: buildSemanticBundleSummary(summary),
-      mode: 'operator_diff',
+      mode: 'operator-diff',
     });
   } catch {
     return null;
@@ -272,7 +272,7 @@ export async function runDiagnoseCommand(request, options = {}) {
     ))
     : {
       found: false,
-      type: 'missing_timeline',
+      type: 'missing-timeline',
       message: 'At least one provider run did not emit operator diagnostics.',
       baselineRecords: baseline.operatorDiagnostics?.recordCount ?? 0,
       observedRecords: observed.operatorDiagnostics?.recordCount ?? 0,
@@ -286,7 +286,7 @@ export async function runDiagnoseCommand(request, options = {}) {
   };
 
   return {
-    mode: 'operator_diff',
+    mode: 'operator-diff',
     baselineProvider,
     observedProvider,
     baseline,

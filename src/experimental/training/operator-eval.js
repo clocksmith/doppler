@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue } from '../../config/legacy-enum-values.js';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -180,7 +181,7 @@ export function computeAccuracy(labels, predictions) {
 }
 
 export function computeEvalMetrics(evalKind, hypotheses, references, options = {}) {
-  const normalizedKind = String(evalKind || '').trim();
+  const normalizedKind = String(canonicalizeLegacyEnumValue(evalKind) || '').trim();
   if (normalizedKind === 'translation') {
     const bleu = computeBleuScore(hypotheses, references, options.bleu || {});
     const chrf = computeChrfScore(hypotheses, references, options.chrf || {});
@@ -191,7 +192,7 @@ export function computeEvalMetrics(evalKind, hypotheses, references, options = {
       primaryScore: bleu.score,
     };
   }
-  if (normalizedKind === 'text_generation') {
+  if (normalizedKind === 'text-generation') {
     const exactMatch = computeExactMatch(hypotheses, references);
     return {
       exactMatch,

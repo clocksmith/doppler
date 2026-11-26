@@ -102,7 +102,7 @@ if (config.adapterExecution) {
   const adapter = { schema: 'doppler.capsule-adapter/v1',
     identity: computeCanonicalSha256({ manifest, purpose: 'controlled-zero-delta-fixture' }),
     baseModel: { ...getCapsuleIdentity(capsule), modelId: capsule.modelId },
-    format: 'peft_safetensors', manifest,
+    format: 'peft-safetensors', manifest,
     artifact: { artifactId: manifest.id, role: 'lora-weights', path: manifest.weightsPath,
       hash: digest, sizeBytes: bytes.length } };
   resolveCapsuleAdapterSet([adapter], { capsule: { ...capsule, ...getCapsuleIdentity(capsule) },

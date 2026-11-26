@@ -343,7 +343,7 @@ const converterConfig = createConverterConfig();
     eoiTokenId: 258882,
     imageTokenId: 258880,
     selfConditioning: true,
-    decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
+    decoderCacheMode: 'encoder-kv-readonly-canvas-concat',
     router: {
       scaleHiddenStates: true,
       normalizeTopK: true,

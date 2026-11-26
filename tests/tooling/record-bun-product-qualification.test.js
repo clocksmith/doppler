@@ -52,7 +52,7 @@ function capture(overrides = {}) {
 
 function executionReceipt(logicalModelId) {
   return {
-    receiptVersion: 'doppler_provider_receipt_v1',
+    receiptVersion: 'doppler-provider-receipt-v1',
     receiptId: 'bun-generation-execution',
     source: 'local',
     model: { id: logicalModelId, hash: ARTIFACT_ID },

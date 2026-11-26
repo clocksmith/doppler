@@ -261,7 +261,7 @@ export function createDistillTensorDataset(samples, options = {}) {
             const targetToken = Number.isInteger(baseDistill.topTokenIndices?.[targetClass])
               ? baseDistill.topTokenIndices[targetClass]
               : targetClass;
-            const targetTokenMode = distillRuntime.targetTokenMode === 'teacher_top_token';
+            const targetTokenMode = String(distillRuntime.targetTokenMode).replace(/_/g, '-') === 'teacher-top-token';
             targets[i] = targetTokenMode ? targetToken : targetClass;
             teacherTargetIndices.push(targetClass);
             teacherTargetTokenIds.push(targetToken);
@@ -314,7 +314,7 @@ export function createDistillTensorDataset(samples, options = {}) {
               teacherTopLogits,
               teacherTargetIndices,
               teacherTargetTokenIds,
-              targetTokenMode: distillRuntime.targetTokenMode || 'topk_class',
+              targetTokenMode: distillRuntime.targetTokenMode || 'topk-class',
               batchSampleCount: batchIndices.length,
               directionCounts,
               distillStage: stage,
@@ -664,8 +664,8 @@ export async function createDistillRuntimeContext(options = {}, trainingConfig =
     tripletMargin: Math.max(0, toFiniteNumber(distillConfig.tripletMargin, 0.2)),
     studentGraphMode,
     targetTokenMode: studentGraphMode === DISTILL_STUDENT_GRAPH_FULL
-      ? 'teacher_top_token'
-      : 'topk_class',
+      ? 'teacher-top-token'
+      : 'topk-class',
     async cleanup() {
       if (teacher?.pipeline && typeof teacher.pipeline.unload === 'function') {
         await teacher.pipeline.unload();

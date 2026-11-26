@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { canonicalizeLegacyEnumValue } from '../src/config/legacy-enum-values.js';
 
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
@@ -786,7 +787,7 @@ function validateGemma4ServeReceiptPayload(targetId, receipt, payload) {
     errors.push(`${targetId}: serve receipt ${receiptPath} modelId mismatch (${payloadModelId} != ${receiptModelId})`);
   }
   const historical = payload?.receiptVersion === 'doppler_serve_receipt_v1' && payload?.schemaVersion === 1;
-  const current = payload?.receiptVersion === 'doppler_serve_receipt_v2' && payload?.schemaVersion === 2;
+  const current = canonicalizeLegacyEnumValue(payload?.receiptVersion) === 'doppler-serve-receipt-v2' && payload?.schemaVersion === 2;
   if (!historical && !current) {
     errors.push(`${targetId}: serve receipt ${receiptPath} requires a versioned Doppler serve receipt schema`);
   }
@@ -827,7 +828,7 @@ function validateGemma4ServeReceiptPayload(targetId, receipt, payload) {
       if (normalizeText(weightFailure?.tensorLoadStage) === 'gpuresidentembeddinglimitpreflight') {
         const limitFailure = weightFailure?.deviceLimitFailure;
         if (!isObject(limitFailure)
-          || normalizeText(limitFailure?.kind) !== 'gpu_resident_embedding_exceeds_device_limit'
+          || canonicalizeLegacyEnumValue(normalizeText(limitFailure?.kind)) !== 'gpu-resident-embedding-exceeds-device-limit'
           || !hasFiniteNumber(limitFailure?.maxGpuResidentBytes)
           || !hasFiniteNumber(limitFailure?.maxStorageBufferBindingSize)
           || !hasFiniteNumber(limitFailure?.maxBufferSize)

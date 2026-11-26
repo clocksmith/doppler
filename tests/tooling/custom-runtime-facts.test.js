@@ -25,7 +25,7 @@ const { buildCustomRuntimeFacts } = await import('../../src/tooling/kernel-path-
   assert.deepEqual(linearRuntimeFact.assumptions, {
     registryBypass: true,
     recurrentState: true,
-    projectionDtype: 'f16_or_f32',
+    projectionDtype: 'f16-or-f32',
     recurrentStateDtype: 'f32',
     decodeBatchingConstraint: 'batch-capable',
   });

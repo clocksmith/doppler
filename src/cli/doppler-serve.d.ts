@@ -137,7 +137,7 @@ export declare function isLoopbackHost(host: string): boolean;
 export declare function parseServeArgs(argv: string[]): ServeSettings;
 
 export interface ServeReceiptBase {
-  receiptVersion: 'doppler_serve_receipt_v2';
+  receiptVersion: 'doppler-serve-receipt-v2';
   schemaVersion: 2;
   surface: 'serve';
   endpoint: '/v1/chat/completions';

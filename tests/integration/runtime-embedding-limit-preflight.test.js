@@ -240,7 +240,7 @@ try {
       );
       assert.equal(
         error.details?.weightLoadFailure?.deviceLimitFailure?.kind,
-        'gpu_resident_embedding_exceeds_device_limit'
+        'gpu-resident-embedding-exceeds-device-limit'
       );
       return true;
     }

@@ -32,7 +32,7 @@ if (!gpuProbe.ready) {
     const entries = result.metrics.trainingMetricsReport;
     assert.ok(Array.isArray(entries) && entries.length > 0);
     assert.ok(Array.isArray(entries[0].telemetry_alerts));
-    assert.ok(entries[0].telemetry_alerts.includes('max_step_time_ms_exceeded'));
+    assert.ok(entries[0].telemetry_alerts.includes('max-step-time-ms-exceeded'));
   }
 
   {
@@ -57,7 +57,7 @@ if (!gpuProbe.ready) {
           },
         },
       }),
-      /training telemetry alert\(s\): max_step_time_ms_exceeded/
+      /training telemetry alert\(s\): max-step-time-ms-exceeded/
     );
   }
 }

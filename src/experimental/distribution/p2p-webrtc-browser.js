@@ -407,7 +407,7 @@ export function createBrowserWebRTCDataPlaneTransport(config = {}) {
         `No WebRTC peer available for shard ${context?.shardIndex}.`,
         {
           shardIndex: context?.shardIndex ?? null,
-          policyReason: 'peer_unavailable',
+          policyReason: 'peer-unavailable',
         }
       );
     }

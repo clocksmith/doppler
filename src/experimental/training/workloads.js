@@ -15,22 +15,22 @@ export const TRAINING_WORKLOAD_SCHEMA_VERSION = 1;
 export const TRAINING_WORKLOAD_KINDS = Object.freeze(['lora', 'distill', 'ul']);
 export const TRAINING_WORKLOAD_SURFACE_SUPPORT = Object.freeze(['node', 'browser', 'both']);
 export const TRAINING_SELECTION_GOALS = Object.freeze(['max', 'min']);
-export const TRAINING_ROW_ORDERS = Object.freeze(['dataset_order', 'seed_hash_sorted_v1']);
+export const TRAINING_ROW_ORDERS = Object.freeze(['dataset-order', 'seed-hash-sorted-v1']);
 export const TRAINING_EVAL_KINDS = Object.freeze([
   'translation',
-  'text_generation',
+  'text-generation',
   'classification',
   'retrieval',
   'custom',
 ]);
 
 export const TRAINING_AGENT_EVAL_CATEGORIES = Object.freeze([
-  'js_patching',
-  'wgsl_review',
-  'manifest_config_review',
-  'reploid_vfs_status_tool_loop',
-  'patch_applies',
-  'no_hallucinated_files_tools',
+  'js-patching',
+  'wgsl-review',
+  'manifest-config-review',
+  'reploid-vfs-status-tool-loop',
+  'patch-applies',
+  'no-hallucinated-files-tools',
 ]);
 
 const LEGACY_DISTILL_TEST_IDS = Object.freeze(['distill-stage-a', 'distill-stage-b']);
@@ -307,7 +307,7 @@ function normalizeEvalQualityConfig(value, label) {
   const quality = asObject(value, label, { optional: true });
   if (!quality) return null;
   return {
-    baseline: asNonEmptyString(quality.baseline ?? 'base_model', `${label}.baseline`),
+    baseline: asNonEmptyString(quality.baseline ?? 'base-model', `${label}.baseline`),
     requireImprovement: asBoolean(quality.requireImprovement ?? false, `${label}.requireImprovement`),
     minAbsoluteImprovement: asFiniteNumber(
       quality.minAbsoluteImprovement ?? 0,
@@ -526,8 +526,10 @@ function normalizeLegacyUlPayload(payload, contextLabel) {
   };
 }
 
-export function normalizeTrainingWorkloadCapsule(payload, context = {}) {
+export function normalizeTrainingWorkloadCapsule(input, context = {}) {
   const contextLabel = context.label || 'training workload';
+  // Legacy snake_case spellings are read throughout 0.x and canonicalized here.
+  const payload = canonicalizeLegacyWorkloadEnums(input);
   const kind = inferLegacyKind(payload, contextLabel);
   if (kind === 'ul') {
     const workload = normalizeLegacyUlPayload(payload, contextLabel);
@@ -664,7 +666,7 @@ export async function loadTrainingWorkloadCapsule(input, options = {}) {
 export function serializeTrainingWorkloadLock(loadedWorkload) {
   return stableJson({
     schemaVersion: TRAINING_WORKLOAD_SCHEMA_VERSION,
-    artifactType: 'training_workload_lock',
+    artifactType: 'training-workload-lock',
     workloadId: loadedWorkload.workload.id,
     workloadPath: loadedWorkload.absolutePath,
     workloadSha256: loadedWorkload.workloadSha256,

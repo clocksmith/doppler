@@ -2,8 +2,8 @@
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
-  "fileCount": 90,
-  "sourceBytes": 1264795,
+  "fileCount": 91,
+  "sourceBytes": 1294864,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -145,7 +145,7 @@
     {
       "path": "src/config/capsule-adapters.json",
       "sizeBytes": 273,
-      "hash": "sha256:fdc319264ebd39573a354d63246bf2c5d1a1a7897be566b5a7fd853615dea621"
+      "hash": "sha256:5ab3fa226ed6ca75b20f800915324c8583487b7a041345ab99f912a59afa6c58"
     },
     {
       "path": "src/config/capsule-loading.schema.json",
@@ -164,13 +164,13 @@
     },
     {
       "path": "src/config/capsule/capsule-adapter-policy.js",
-      "sizeBytes": 2422,
-      "hash": "sha256:49e0b2aaab3fd98bbd7180578e8df5724e3f76d7725651854eba6139b915195b"
+      "sizeBytes": 2523,
+      "hash": "sha256:1ec0243dcfbd8b4765d2c78985a633333e250aa13bc4854c16ca616ec2c3a87e"
     },
     {
       "path": "src/config/capsule/capsule-adapters.js",
-      "sizeBytes": 3071,
-      "hash": "sha256:74544d681d49c7935360976307af602bc17314249b632177b9dab8f566041ecf"
+      "sizeBytes": 3308,
+      "hash": "sha256:325554fad48e9f536a3d2a7cc535b7afac6076769f29813a6b23129c86ef6367"
     },
     {
       "path": "src/config/capsule/capsule-loading.js",
@@ -278,14 +278,19 @@
       "hash": "sha256:25f627261b829f5622577831c645b73c7fdefd31f0cf942749381f482cc47bd2"
     },
     {
+      "path": "src/config/legacy-enum-values.js",
+      "sizeBytes": 29496,
+      "hash": "sha256:8b70d90065029f912cda077662a5885ea439eaa7b588a85923bcc2431afd361b"
+    },
+    {
       "path": "src/config/lora-layouts.js",
-      "sizeBytes": 875,
-      "hash": "sha256:9c7ec924435280d3749d6165ddb485916ccda23c9f26c4e90338f3c9ef116b29"
+      "sizeBytes": 1110,
+      "hash": "sha256:872390bb11ec5d86072aede729b401594a2eb37cb761a9b5f58ba8333678fcc7"
     },
     {
       "path": "src/config/lora-layouts.json",
       "sizeBytes": 346,
-      "hash": "sha256:6aa6b6ceb441576c5e1d58003e7df6ad079ae3348185c54f840f9650c64a6fb5"
+      "hash": "sha256:1c6327ca5acd8d4162b0120f9e93d7f64ac9a3c251f18a17a36615ac54448cba"
     },
     {
       "path": "src/config/model-ir-v2.js",
@@ -385,7 +390,7 @@
     {
       "path": "src/debug/tensor.js",
       "sizeBytes": 10664,
-      "hash": "sha256:7e384215abd49c1ff035341d2e3d4f2ea9ca5d7a8655ce8e8f8f0d5a17e2b50d"
+      "hash": "sha256:d5061c28f9c81084a1a203a9b197d5a746ad725b0ae2f11bca8068a76e51f387"
     },
     {
       "path": "src/debug/trace.js",

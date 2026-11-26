@@ -20,7 +20,7 @@ import { detectOverflow } from './loss-scaling.js';
 import { createLoRATrainingRound, validateLoRATrainingRound, validateLoRAContributions, describeLoRATrainingSample } from './lora-training-round.js';
 
 function asWeightTensor(weight, shape, label) {
-  if (!weight) throw new Error(`native_qwen_lora_missing_weight: ${label}.`);
+  if (!weight) throw new Error(`native-qwen-lora-missing-weight: ${label}.`);
   if (isWeightBuffer(weight)) {
     return { ...weight, shape: [...shape], label };
   }
@@ -74,19 +74,19 @@ async function serializeTensor(tensor) {
 
 function validateTensorSnapshot(tensor, snapshot, label) {
   if (snapshot?.dtype !== tensor.dtype || JSON.stringify(snapshot?.shape) !== JSON.stringify(tensor.shape)) {
-    throw new Error(`native_qwen_lora_checkpoint_tensor_mismatch: ${label}.`);
+    throw new Error(`native-qwen-lora-checkpoint-tensor-mismatch: ${label}.`);
   }
   const bytes = decodeBytes(snapshot.bytes);
   const expectedBytes = tensorBytes(tensor.shape, tensor.dtype);
   if (bytes.byteLength !== expectedBytes) {
-    throw new Error(`native_qwen_lora_checkpoint_tensor_size_mismatch: ${label}.`);
+    throw new Error(`native-qwen-lora-checkpoint-tensor-size-mismatch: ${label}.`);
   }
   return bytes;
 }
 
 function createCausalLmObjective(owner) {
   return {
-    name: 'native_qwen_completion_masked_sft',
+    name: 'native-qwen-completion-masked-sft',
     async forward({ batch, tape }) {
       return owner.forward(batch.inputIds, tape);
     },
@@ -129,19 +129,19 @@ export class NativeQwenLoRATrainer {
     }
     const layerIdx = Number(options.layerIdx);
     if (!Number.isInteger(layerIdx) || layerIdx !== config.numLayers - 1) {
-      throw new Error(`native_lora_target_not_supported: layerIdx must be ${config.numLayers - 1}.`);
+      throw new Error(`native-lora-target-not-supported: layerIdx must be ${config.numLayers - 1}.`);
     }
     if (options.module !== 'down_proj') {
-      throw new Error('native_lora_target_not_supported: module must be down_proj.');
+      throw new Error('native-lora-target-not-supported: module must be down_proj.');
     }
     if (config.layerTypes?.[layerIdx] !== 'full_attention' || config.postFeedforwardNorm === true) {
-      throw new Error('native_lora_target_not_supported: target requires a final full-attention layer without post-FFN normalization.');
+      throw new Error('native-lora-target-not-supported: target requires a final full-attention layer without post-FFN normalization.');
     }
     const lmHeadSource = pipeline.weights.get('lm_head')
       || (config.useTiedEmbeddings === true ? pipeline.weights.get('embed') : null);
     const lmHead = asWeightTensor(lmHeadSource, [config.vocabSize, config.hiddenSize], 'native_qwen_lm_head');
     if (lmHead.dtype !== 'q4k' || lmHead.layout !== 'row') {
-      throw new Error('native_lora_target_not_supported: Qwen LM head must be row-wise Q4K [vocab,hidden].');
+      throw new Error('native-lora-target-not-supported: Qwen LM head must be row-wise Q4K [vocab,hidden].');
     }
 
     this.pipeline = pipeline;
@@ -285,7 +285,7 @@ export class NativeQwenLoRATrainer {
       .length;
     if (actualSupervisedTokenCount !== supervisedTokenCount) {
       throw new Error(
-        `native_qwen_lora_supervised_token_count_mismatch: expected ${actualSupervisedTokenCount}, got ${supervisedTokenCount}.`
+        `native-qwen-lora-supervised-token-count-mismatch: expected ${actualSupervisedTokenCount}, got ${supervisedTokenCount}.`
       );
     }
     const targets = createUploadedTensor(
@@ -357,7 +357,7 @@ export class NativeQwenLoRATrainer {
       metadata: {
         ...options.metadata,
         baseManifestHash: computeCanonicalSha256(this.pipeline.manifest),
-        trainingBackend: 'webgpu_native',
+        trainingBackend: 'webgpu-native',
         trainingSurfaces: ['browser', 'node', 'bun'],
         targetLayer: this.layerIdx,
       },
@@ -381,7 +381,7 @@ export class NativeQwenLoRATrainer {
     }
     return {
       schemaVersion: 1,
-      backend: 'webgpu_native',
+      backend: 'webgpu-native',
       baseModelId: this.baseModelId,
       target: { layerIdx: this.layerIdx, module: this.module },
       rank: this.adapter.rank,
@@ -405,7 +405,7 @@ export class NativeQwenLoRATrainer {
     if (this.disposed) throw new Error('NativeQwenLoRATrainer is disposed.');
     if (
       checkpoint?.schemaVersion !== 1
-      || checkpoint.backend !== 'webgpu_native'
+      || checkpoint.backend !== 'webgpu-native'
       || checkpoint.baseModelId !== this.baseModelId
       || checkpoint.target?.layerIdx !== this.layerIdx
       || checkpoint.target?.module !== this.module
@@ -562,7 +562,7 @@ export async function loadNativeQwenTrainingPipeline(modelUrl, options = {}) {
   if (loaded.manifest?.modelId !== 'qwen-3-5-0-8b-q4k-ehaf16') {
     await loaded.pipeline.unload();
     throw new Error(
-      `native_qwen_lora_model_not_supported: expected qwen-3-5-0-8b-q4k-ehaf16, got ${String(loaded.manifest?.modelId)}.`
+      `native-qwen-lora-model-not-supported: expected qwen-3-5-0-8b-q4k-ehaf16, got ${String(loaded.manifest?.modelId)}.`
     );
   }
   return loaded;
@@ -591,7 +591,7 @@ export async function trainNativeQwenSftLoRA(options) {
       ? await trainer.exportAdapter(options.export)
       : null;
     return {
-      backend: 'webgpu_native',
+      backend: 'webgpu-native',
       surfaces: ['browser', 'node', 'bun'],
       baseModelId: trainer.baseModelId,
       target: { layerIdx: trainer.layerIdx, module: trainer.module },

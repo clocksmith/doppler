@@ -40,7 +40,7 @@ import {
     }
   );
   assert.equal(normalized.name, 'ToolingCommandError');
-  assert.equal(normalized.code, 'tooling_error');
+  assert.equal(normalized.code, 'tooling-error');
   assert.equal(normalized.details?.surface, 'node');
   assert.equal(normalized.details?.command, 'verify');
   assert.equal(normalized.details?.suite, 'inference');

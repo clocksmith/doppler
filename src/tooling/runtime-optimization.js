@@ -389,7 +389,7 @@ async function evaluateNeighboringWorkloadGuards({
         passed: false,
         verification: { passed: false, error: summarizeError(error) },
         pairs: [],
-        reason: 'neighbor_verification_failed',
+        reason: 'neighbor-verification-failed',
       });
       continue;
     }
@@ -399,7 +399,7 @@ async function evaluateNeighboringWorkloadGuards({
         passed: false,
         verification,
         pairs: [],
-        reason: 'neighbor_parity_failed',
+        reason: 'neighbor-parity-failed',
       });
       continue;
     }
@@ -456,7 +456,7 @@ async function evaluateNeighboringWorkloadGuards({
       pairs,
       improvementPercent: stats,
       maxRegressionPercent: guard.maxRegressionPercent,
-      reason: passed ? null : 'neighbor_regression_exceeded',
+      reason: passed ? null : 'neighbor-regression-exceeded',
     });
   }
   return {
@@ -501,7 +501,7 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
       passed: false,
       baselineError: baselineVerifyRun.error,
       candidateError: null,
-    }, { completedPairs: 0, pairs: [] }, ['baseline_verification_failed'], 'invalid');
+    }, { completedPairs: 0, pairs: [] }, ['baseline-verification-failed'], 'invalid');
   }
   try {
     assertRunEnvelope(baselineVerifyRun.envelope, 'baseline verification', contract.model.modelId);
@@ -510,7 +510,7 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
       passed: false,
       baselineError: summarizeError(error),
       candidateError: null,
-    }, { completedPairs: 0, pairs: [] }, ['baseline_verification_failed'], 'invalid');
+    }, { completedPairs: 0, pairs: [] }, ['baseline-verification-failed'], 'invalid');
   }
 
   const candidateVerifyRun = await runCommandSafely(
@@ -524,7 +524,7 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
       passed: false,
       baseline: summarizeRun(baselineVerifyRun.envelope),
       candidateError: candidateVerifyRun.error,
-    }, { completedPairs: 0, pairs: [] }, ['candidate_verification_failed']);
+    }, { completedPairs: 0, pairs: [] }, ['candidate-verification-failed']);
   }
   try {
     assertRunEnvelope(candidateVerifyRun.envelope, 'candidate verification', contract.model.modelId);
@@ -533,7 +533,7 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
       passed: false,
       baseline: summarizeRun(baselineVerifyRun.envelope),
       candidateError: summarizeError(error),
-    }, { completedPairs: 0, pairs: [] }, ['candidate_verification_failed']);
+    }, { completedPairs: 0, pairs: [] }, ['candidate-verification-failed']);
   }
 
   const verification = compareVerificationRuns(
@@ -546,7 +546,7 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
       base,
       verification,
       { completedPairs: 0, pairs: [] },
-      ['candidate_parity_failed']
+      ['candidate-parity-failed']
     );
   }
 
@@ -687,24 +687,24 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
   };
   const reasons = [];
   if (improvements.length < contract.measurement.minValidPairs) {
-    reasons.push('insufficient_valid_pairs');
+    reasons.push('insufficient-valid-pairs');
   }
   if (
     improvementStats.median === null
     || improvementStats.median < contract.measurement.minImprovementPercent
   ) {
-    reasons.push('improvement_below_threshold');
+    reasons.push('improvement-below-threshold');
   }
   if (contract.measurement.requirePositiveConfidence) {
     if (
       improvementStats.decisionConfidence === null
       || improvementStats.decisionConfidence.low < contract.measurement.minImprovementPercent
     ) {
-      reasons.push('confidence_interval_below_threshold');
+      reasons.push('confidence-interval-below-threshold');
     }
   }
   if (sequentialStop === 'reject') {
-    reasons.push('sequential_evidence_below_threshold');
+    reasons.push('sequential-evidence-below-threshold');
   }
   if (
     contract.measurement.maxRelativeStdDevPercent !== null
@@ -713,7 +713,7 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
       || candidateStats.relativeStdDevPercent > contract.measurement.maxRelativeStdDevPercent
     )
   ) {
-    reasons.push('candidate_variance_above_threshold');
+    reasons.push('candidate-variance-above-threshold');
   }
   const neighboringWorkloadGuards = reasons.length === 0
     ? await evaluateNeighboringWorkloadGuards({
@@ -723,9 +723,9 @@ export async function evaluateBrowserRuntimeOptimizationCandidate(
       runCommand,
       options,
     })
-    : { passed: true, results: [], skipped: 'primary_candidate_rejected' };
+    : { passed: true, results: [], skipped: 'primary-candidate-rejected' };
   if (!neighboringWorkloadGuards.passed) {
-    reasons.push('neighboring_workload_guard_failed');
+    reasons.push('neighboring-workload-guard-failed');
   }
   const receipt = finalizeRuntimeOptimizationReceipt({
     ...base,

@@ -217,7 +217,7 @@ export async function activateLoRAFromTrainingOutputForPipeline(pipeline, traini
       activated: false,
       adapterName: null,
       source: null,
-      reason: 'no_model_loaded',
+      reason: 'no-model-loaded',
     };
   }
 
@@ -229,7 +229,7 @@ export async function activateLoRAFromTrainingOutputForPipeline(pipeline, traini
       activated: false,
       adapterName: getActiveLoRAName(pipeline),
       source: null,
-      reason: 'no_adapter_candidate',
+      reason: 'no-adapter-candidate',
     };
   }
 
@@ -314,7 +314,7 @@ export async function activateLoRAFromTrainingOutputForPipeline(pipeline, traini
     activated: false,
     adapterName: getActiveLoRAName(pipeline),
     source: null,
-    reason: 'no_adapter_candidate',
+    reason: 'no-adapter-candidate',
   };
 }
 

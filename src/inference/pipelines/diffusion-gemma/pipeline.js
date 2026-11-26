@@ -256,7 +256,7 @@ export class DiffusionGemmaPipeline {
     let prefillTimeMs = 0;
     let decodeTimeMs = 0;
     let prefillTokens = 0;
-    let stopReason = 'max_new_tokens';
+    let stopReason = 'max-new-tokens';
     let stopTokenId = null;
     if (useInternalCore) {
       const prefillStart = performance.now();

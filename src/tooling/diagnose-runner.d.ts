@@ -14,7 +14,7 @@ export interface DiagnoseRunSummary {
 }
 
 export interface DiagnoseCommandResult {
-  mode: 'operator_diff';
+  mode: 'operator-diff';
   baselineProvider: string;
   observedProvider: string;
   baseline: DiagnoseRunSummary;

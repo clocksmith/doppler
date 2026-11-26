@@ -18,7 +18,7 @@ import { checkCapturePrecondition } from '../../src/cli/doppler-cli.js';
     assert.equal(result.surface, 'node');
     assert.equal(
       result.code,
-      'capture_precondition_node_webgpu_unavailable',
+      'capture-precondition-node-webgpu-unavailable',
       'blocker code must be typed for agent tooling consumption'
     );
     assert.equal(typeof result.message, 'string');
@@ -51,7 +51,7 @@ import { checkCapturePrecondition } from '../../src/cli/doppler-cli.js';
 {
   const result = await checkCapturePrecondition('macOS');
   assert.equal(result.ok, false);
-  assert.equal(result.code, 'capture_precondition_unsupported_surface');
+  assert.equal(result.code, 'capture-precondition-unsupported-surface');
   assert.match(result.message, /--surface must be/);
 }
 
@@ -67,7 +67,7 @@ import { checkCapturePrecondition } from '../../src/cli/doppler-cli.js';
     } else {
       assert.equal(result.surface, surface);
       assert.equal(typeof result.code, 'string');
-      assert.ok(result.code.startsWith('capture_precondition_'));
+      assert.ok(result.code.startsWith('capture-precondition-'));
       assert.equal(typeof result.message, 'string');
     }
   }

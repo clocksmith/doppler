@@ -278,7 +278,7 @@ export function resolveShardDeliveryPlan(options = {}) {
       plan.push({
         source,
         enabled,
-        reason: enabled ? 'enabled' : 'cache_disabled',
+        reason: enabled ? 'enabled' : 'cache-disabled',
       });
       continue;
     }
@@ -286,9 +286,9 @@ export function resolveShardDeliveryPlan(options = {}) {
       const enabled = options.p2pEnabled === true && options.p2pTransportAvailable === true;
       let reason = 'enabled';
       if (options.p2pEnabled !== true) {
-        reason = 'p2p_disabled';
+        reason = 'p2p-disabled';
       } else if (options.p2pTransportAvailable !== true) {
-        reason = 'p2p_transport_unconfigured';
+        reason = 'p2p-transport-unconfigured';
       }
       plan.push({ source, enabled, reason });
       continue;
@@ -298,7 +298,7 @@ export function resolveShardDeliveryPlan(options = {}) {
       plan.push({
         source,
         enabled,
-        reason: enabled ? 'enabled' : 'http_disabled',
+        reason: enabled ? 'enabled' : 'http-disabled',
       });
       continue;
     }
@@ -343,7 +343,7 @@ async function executeDeliveryPlan(
       if (step.source === DISTRIBUTION_SOURCE_CACHE) {
         if (!(await (options.store?.shardExists ?? shardExists)(shardIndex))) {
           const cacheMiss = new Error(`Shard ${shardIndex} missing from local cache`);
-          cacheMiss.code = 'cache_miss';
+          cacheMiss.code = 'cache-miss';
           throw cacheMiss;
         }
         const buffer = await (options.store?.loadShard ?? loadShardFromStore)(shardIndex, { verify: false });
@@ -418,7 +418,9 @@ async function executeDeliveryPlan(
       const enabledIndex = enabledSources.findIndex((entry) => entry.source === step.source);
       const isLastEnabled = enabledIndex === enabledSources.length - 1;
       const transitionType = (
-        error?.code === 'cache_miss'
+        error?.code === 'cache-miss'
+        || error?.code === 'p2p-unconfigured'
+        // A p2p transport written against 0.1.x may still throw the legacy spelling.
         || error?.code === 'p2p_unconfigured'
         || p2p.isMiss?.(error) === true
       )

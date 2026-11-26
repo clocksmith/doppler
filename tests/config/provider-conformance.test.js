@@ -52,7 +52,7 @@ function environmentId(suite, laneId) {
 
 function executionReceipt(suite, laneId) {
   return {
-    receiptVersion: 'doppler_provider_receipt_v1',
+    receiptVersion: 'doppler-provider-receipt-v1',
     receiptId: `${suite.id}-${laneId}-execution`,
     source: 'local',
     model: { id: suite.logicalModelId, hash: ARTIFACT_ID },

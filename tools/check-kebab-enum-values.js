@@ -10,7 +10,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { LEGACY_ENUM_VALUE_ALIASES, LEGACY_ENUM_VALUE_FIELDS } from '../src/config/legacy-enum-values.js';
+import {
+  LEGACY_ENUM_VALUE_ALIASES,
+  LEGACY_ENUM_VALUE_FIELDS,
+  LEGACY_OUTCOME_VALUE_FIELDS,
+} from '../src/config/legacy-enum-values.js';
 
 const SNAKE = /^[a-z][a-z0-9]*(_[a-z0-9]+)+$/;
 const CAMEL = /^[a-z]+[A-Z][A-Za-z0-9]*$/;
@@ -44,7 +48,10 @@ export function checkKebabEnumValues({ root, policy }) {
   const violations = [];
   const externalValues = new Set(Object.values(policy.externalValues).flat());
   const legacyLiteralFiles = policy.legacyLiteralAllowedFiles ?? [];
-  const enumFields = new Set([...LEGACY_ENUM_VALUE_FIELDS, ...(policy.extraEnumFields ?? [])]);
+  const enumFields = new Set([
+    ...[...LEGACY_ENUM_VALUE_FIELDS].filter((field) => !LEGACY_OUTCOME_VALUE_FIELDS.has(field)),
+    ...(policy.extraEnumFields ?? []),
+  ]);
   const legacy = LEGACY_ENUM_VALUE_ALIASES;
 
   for (const file of listFiles(root, policy.jsonScopes)) {

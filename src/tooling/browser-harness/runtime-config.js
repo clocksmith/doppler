@@ -119,7 +119,7 @@ async function fetchRuntimeConfig(url, options = {}) {
   const response = await fetch(url, { signal: options.signal });
   if (!response.ok) {
     const error = new Error(`Failed to load runtime config: ${response.status}`);
-    error.code = response.status === 404 ? 'runtime_config_not_found' : 'runtime_config_fetch_failed';
+    error.code = response.status === 404 ? 'runtime-config-not-found' : 'runtime-config-fetch-failed';
     throw error;
   }
   return response.json();
@@ -172,7 +172,7 @@ export async function loadRuntimeConfigFromRef(ref, context) {
     try {
       return await loadRuntimeConfigChain(candidate, context, context.stack ?? []);
     } catch (error) {
-      if (error?.code === 'runtime_config_not_found') {
+      if (error?.code === 'runtime-config-not-found') {
         lastError = error;
         continue;
       }

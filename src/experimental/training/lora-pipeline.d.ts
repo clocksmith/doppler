@@ -124,7 +124,7 @@ export interface CausalLmLoraTrainerResult {
 
 export interface CausalLmLoraTrainerInput {
   schemaVersion: 1;
-  runnerKind: 'causal_lm_lora';
+  runnerKind: 'causal-lm-lora';
   workload: LoadedTrainingWorkload['workload'];
   loadedWorkload: LoadedTrainingWorkload;
   compatibility: ReturnType<typeof getLoraRunnerCompatibility>;

@@ -45,7 +45,7 @@ export function assertP2PPayloadRangeStart(
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} p2p payload rangeStart must be a non-negative integer.`,
       {
-        code: 'p2p_range_start_invalid',
+        code: 'p2p-range-start-invalid',
         rangeStart,
       }
     );
@@ -54,7 +54,7 @@ export function assertP2PPayloadRangeStart(
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} p2p resume range mismatch: expected start ${expectedStart}, got ${rangeStart}.`,
       {
-        code: 'p2p_resume_offset_mismatch',
+        code: 'p2p-resume-offset-mismatch',
         expectedStart,
         rangeStart,
       }
@@ -71,7 +71,7 @@ export function assertP2PTotalSize(shardIndex, totalSize, expectedSize) {
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} p2p totalSize mismatch: expected ${normalizedExpectedSize}, got ${totalSize}.`,
       {
-        code: 'p2p_total_size_mismatch',
+        code: 'p2p-total-size-mismatch',
         expectedSize: normalizedExpectedSize,
         totalSize,
       }
@@ -154,7 +154,7 @@ export async function refreshP2PSessionTokenFromControlPlane(p2pConfig, context,
       `P2P shard ${context?.shardIndex} requires a session token from control plane.`,
       {
         shardIndex: context?.shardIndex ?? null,
-        policyReason: 'session_token_missing_after_refresh',
+        policyReason: 'session-token-missing-after-refresh',
       }
     );
   }
@@ -179,7 +179,7 @@ export async function enforceP2PControlPlanePolicy(p2pConfig, context, nowMs = D
     `P2P shard ${context?.shardIndex} denied by control-plane policy.`,
     {
       shardIndex: context?.shardIndex ?? null,
-      policyReason: decision.reason ?? 'policy_denied_control_plane',
+      policyReason: decision.reason ?? 'policy-denied-control-plane',
       controlPlaneMetadata: decision.metadata ?? null,
     }
   );
@@ -269,7 +269,7 @@ export async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, opt
           expectedSize
         );
       } catch (error) {
-        if (error?.code === 'resume_state_oversize') {
+        if (error?.code === 'resume-state-oversize') {
           await clearPersistedShardState(shardIndex);
           seededResumeOffset = 0;
         } else {
@@ -285,7 +285,7 @@ export async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, opt
         seededResumeOffset
       );
     } catch (error) {
-      if (error?.code === 'resume_state_prefix_mismatch') {
+      if (error?.code === 'resume-state-prefix-mismatch') {
         await clearPersistedShardState(shardIndex);
         seededResumeOffset = 0;
         transferState = await createHttpTransferState(true, shardIndex, algorithm, 0);
@@ -457,7 +457,7 @@ export async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, opt
             startedWithResume
             && options.__resumeRecoveryAttempted !== true
             && options.expectedHash
-            && verificationError?.code === 'hash_mismatch'
+            && verificationError?.code === 'hash-mismatch'
           ) {
             return downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, {
               ...options,
@@ -471,7 +471,8 @@ export async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, opt
       markP2PTransportSuccess(transportState);
       return result;
     } catch (error) {
-      if (typeof error?.code === 'string' && error.code.startsWith('p2p_')) {
+      // Doppler's own codes are p2p-*; a transport written against 0.1.x may still throw p2p_*.
+      if (typeof error?.code === 'string' && /^p2p[-_]/.test(error.code)) {
         if (writeToStore) {
           await clearPersistedShardState(shardIndex);
         }

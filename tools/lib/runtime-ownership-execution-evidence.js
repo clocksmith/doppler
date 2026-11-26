@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue } from '../../src/config/legacy-enum-values.js';
 import { isPlainObject } from '../../src/formats/plain-object.js';
 import { exactKeys, text as requiredText, instant as isoInstant } from './evidence-fields.js';
 import {
@@ -6,7 +7,7 @@ import {
 } from './canonical-json.js';
 
 const EXTERNAL_SCHEMA = 'doppler.runtime-ownership-execution-evidence/v1';
-const DOPPLER_RECEIPT_SCHEMA = 'doppler_provider_receipt_v1';
+const DOPPLER_RECEIPT_SCHEMA = 'doppler-provider-receipt-v1';
 const RESOLUTION_SCHEMA = 'doppler.resolution-identity/v1';
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const ROLES = new Set(['source', 'incumbent']);
@@ -166,7 +167,8 @@ export function validateDopplerRuntimeOwnershipReceipt(receipt, expected = {}) {
       resolution: null,
     };
   }
-  if (receipt.receiptVersion !== DOPPLER_RECEIPT_SCHEMA) {
+  // Receipts recorded before 0.2.0 carry doppler_provider_receipt_v1.
+  if (canonicalizeLegacyEnumValue(receipt.receiptVersion) !== DOPPLER_RECEIPT_SCHEMA) {
     errors.push(`Doppler execution receipt must use ${DOPPLER_RECEIPT_SCHEMA}`);
   }
   requiredText(receipt.receiptId, 'Doppler execution receipt.receiptId', errors);

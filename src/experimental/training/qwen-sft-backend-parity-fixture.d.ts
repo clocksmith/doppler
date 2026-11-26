@@ -11,7 +11,7 @@ export interface QwenSftBackendParityAdapter {
 }
 
 export interface QwenSftBackendParityFixture {
-  artifactType: 'qwen_sft_backend_parity_fixture';
+  artifactType: 'qwen-sft-backend-parity-fixture';
   schemaVersion: 1;
   precisionContract: Record<string, string | number>;
   model: Record<string, number>;

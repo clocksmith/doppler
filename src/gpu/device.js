@@ -198,7 +198,7 @@ function registerDeviceLostHandler(device) {
       hydrateDeviceState();
       lastDeviceLossInfo = {
         message: error?.message ?? String(error),
-        reason: 'device_lost_handler_failed',
+        reason: 'device-lost-handler-failed',
         deviceEpoch,
         timestampMs: Date.now(),
         adapterInfo: kernelCapabilities?.adapterInfo ?? null,

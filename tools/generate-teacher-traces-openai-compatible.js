@@ -132,8 +132,8 @@ function serializeTrace(row, completion, options) {
   const sourceFiles = row.sourceFiles.length > 0 ? row.sourceFiles : options.sourceFiles;
   return JSON.stringify({
     schemaVersion: 1,
-    artifactType: 'teacher_trace',
-    traceFormat: 'doppler_teacher_trace_v1',
+    artifactType: 'teacher-trace',
+    traceFormat: 'doppler-teacher-trace-v1',
     id: row.id,
     teacherModel: options.model,
     teacherModelId: options.model,

@@ -129,7 +129,7 @@ function compareOutputs(contract, expected, output) {
       return { id: check.id, passed: computeCanonicalSha256(actual) === computeCanonicalSha256(target) };
     }
     if (!Array.isArray(actual) || actual.length !== target.length || !actual.every(Number.isFinite)) {
-      return { id: check.id, passed: false, reason: 'incomplete_or_nonfinite_output' };
+      return { id: check.id, passed: false, reason: 'incomplete-or-nonfinite-output' };
     }
     let maxAbsoluteError = 0;
     for (let index = 0; index < target.length; index += 1) {
@@ -140,7 +140,7 @@ function compareOutputs(contract, expected, output) {
 }
 
 function evaluateAttempt(contract, reference, expected, observation) {
-  if (!observation) return { ...expected, passed: false, reason: 'missing_attempt', checks: [] };
+  if (!observation) return { ...expected, passed: false, reason: 'missing-attempt', checks: [] };
   try {
     fields(observation, ['attemptId', 'candidateHash', 'contractHash', 'scopeHash', 'inputHash',
       'status', 'output', 'metrics', 'error'], 'observation');

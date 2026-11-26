@@ -191,8 +191,8 @@ export async function loadCausalLmTextPairSamples(workload, datasetPath, tokeniz
   }
   const tokenizationContract = {
     version: 2,
-    objective: 'completion_only_causal_lm',
-    truncation: 'preserve_completion_head_tail_prompt',
+    objective: 'completion-only-causal-lm',
+    truncation: 'preserve-completion-head-tail-prompt',
     maxLength,
     joinWith,
   };
@@ -271,7 +271,7 @@ export async function evaluateToyLoraModel(workload, model, dataset, layout = nu
   const evalReports = [];
   const evalDatasets = Array.isArray(workload.evalDatasets) ? workload.evalDatasets : [];
   for (const evalDataset of evalDatasets) {
-    if (evalDataset.evalKind !== 'classification' && evalDataset.evalKind !== 'text_generation') {
+    if (evalDataset.evalKind !== 'classification' && evalDataset.evalKind !== 'text-generation') {
       throw new Error(`LoRA eval currently supports classification/text_generation only, got "${evalDataset.evalKind}".`);
     }
     const evalDatasetMaterialized = evalDataset.datasetPath === dataset.absolutePath
@@ -299,7 +299,7 @@ export async function evaluateToyLoraModel(workload, model, dataset, layout = nu
     }
     const metrics = computeEvalMetrics('classification', predictions, labels, {});
     const reportPayload = {
-      artifactType: 'training_eval_report',
+      artifactType: 'training-eval-report',
       schemaVersion: 1,
       generatedAt: new Date().toISOString(),
       workloadId: workload.id,
@@ -388,7 +388,7 @@ export async function exportToyLoraModel(loadedWorkload, layout, model, checkpoi
     ...buildArtifact(loadedWorkload, {
       prefix: 'lora_export',
       id: checkpointId,
-      artifactType: 'lora_adapter_manifest',
+      artifactType: 'lora-adapter-manifest',
       checkpointStep,
       datasetHash,
     }),
@@ -456,7 +456,7 @@ export async function exportCausalLmLoraModel(loadedWorkload, layout, fixture, c
     ...buildArtifact(loadedWorkload, {
       prefix: 'lora_export',
       id: checkpointId,
-      artifactType: 'lora_adapter_manifest',
+      artifactType: 'lora-adapter-manifest',
       checkpointStep,
       datasetHash,
     }),
@@ -534,7 +534,7 @@ export function buildLossQualityClaim(evalDataset, meanLoss, baselineReport) {
   const improved = absoluteImprovement >= minAbsoluteImprovement
     && relativeImprovement >= minRelativeImprovement;
   return {
-    baseline: quality?.baseline || 'base_model',
+    baseline: quality?.baseline || 'base-model',
     metric: 'loss',
     selectionGoal: 'min',
     adapterScore: adapterLoss,
@@ -588,7 +588,7 @@ export async function evaluateCausalLmLoraModel(workload, fixture, dataset, layo
   const evalReports = [];
   const evalDatasets = Array.isArray(workload.evalDatasets) ? workload.evalDatasets : [];
   for (const evalDataset of evalDatasets) {
-    if (evalDataset.evalKind !== 'text_generation') {
+    if (evalDataset.evalKind !== 'text-generation') {
       throw new Error(`Causal-LM LoRA eval supports text_generation only, got "${evalDataset.evalKind}".`);
     }
     const evalDatasetPath = await resolveDatasetPathForLoadedWorkload(evalDataset.datasetPath, {
@@ -608,7 +608,7 @@ export async function evaluateCausalLmLoraModel(workload, fixture, dataset, layo
     const baselineReport = baselineReports[evalDataset.id] || null;
     const qualityClaim = buildLossQualityClaim(evalDataset, meanLoss, baselineReport);
     const reportPayload = {
-      artifactType: 'training_eval_report',
+      artifactType: 'training-eval-report',
       schemaVersion: 1,
       generatedAt: new Date().toISOString(),
       workloadId: workload.id,
@@ -684,7 +684,7 @@ export async function exportProviderCausalLmLoraModel(
     weightsFormat: 'safetensors',
     weightsPath: weightsFilename,
     metadata: {
-      runnerKind: 'causal_lm_text_generation',
+      runnerKind: 'causal-lm-text-generation',
       runnerKey: preflight.runnerKey,
       runnerId: trainerOutput.runnerId || trainerInfo.runnerId,
       trainerId: trainerOutput.trainerId,
@@ -711,7 +711,7 @@ export async function exportProviderCausalLmLoraModel(
     ...buildArtifact(loadedWorkload, {
       prefix: 'lora_export',
       id: checkpointId,
-      artifactType: 'lora_adapter_manifest',
+      artifactType: 'lora-adapter-manifest',
       checkpointStep,
       datasetHash,
     }),

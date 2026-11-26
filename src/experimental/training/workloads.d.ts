@@ -1,21 +1,21 @@
 export type TrainingWorkloadKind = 'lora' | 'distill' | 'ul';
 export type TrainingSurfaceSupport = 'node' | 'browser' | 'both';
 export type TrainingSelectionGoal = 'max' | 'min';
-export type TrainingRowOrder = 'dataset_order' | 'seed_hash_sorted_v1';
+export type TrainingRowOrder = 'dataset-order' | 'seed-hash-sorted-v1';
 export type TrainingEvalKind =
   | 'translation'
-  | 'text_generation'
+  | 'text-generation'
   | 'classification'
   | 'retrieval'
   | 'custom';
 
 export type TrainingAgentEvalCategory =
-  | 'js_patching'
-  | 'wgsl_review'
-  | 'manifest_config_review'
-  | 'reploid_vfs_status_tool_loop'
-  | 'patch_applies'
-  | 'no_hallucinated_files_tools';
+  | 'js-patching'
+  | 'wgsl-review'
+  | 'manifest-config-review'
+  | 'reploid-vfs-status-tool-loop'
+  | 'patch-applies'
+  | 'no-hallucinated-files-tools';
 
 export interface TrainingAgentEvalConfig {
   suiteId: string;

@@ -290,19 +290,19 @@ import assert from 'node:assert/strict';
 
   const withinBudget = checkDrift('normalization', 'f32', { maxAbsDiff: 1e-7, maxRelDiff: 1e-6 });
   assert.equal(withinBudget.withinBudget, true);
-  assert.equal(withinBudget.reason, 'within_tolerance');
+  assert.equal(withinBudget.reason, 'within-tolerance');
 
   const absExceeded = checkDrift('normalization', 'f32', { maxAbsDiff: 1, maxRelDiff: 0 });
   assert.equal(absExceeded.withinBudget, false);
-  assert.equal(absExceeded.reason, 'abs_exceeded');
+  assert.equal(absExceeded.reason, 'abs-exceeded');
 
   const bothExceeded = checkDrift('projection', 'f32', { maxAbsDiff: 1, maxRelDiff: 1 });
   assert.equal(bothExceeded.withinBudget, false);
-  assert.equal(bothExceeded.reason, 'both_exceeded');
+  assert.equal(bothExceeded.reason, 'both-exceeded');
 
   const noPolicy = checkDrift(null, 'f32', { maxAbsDiff: 999 });
   assert.equal(noPolicy.withinBudget, true);
-  assert.equal(noPolicy.reason, 'no_policy');
+  assert.equal(noPolicy.reason, 'no-policy');
 
   const propOk = checkPropagationBound('f32', [
     { maxAbsDiff: 1e-7, propagationWeight: 1.0 },
@@ -315,11 +315,11 @@ import assert from 'node:assert/strict';
     { maxAbsDiff: 1e-2, propagationWeight: 1.0 },
   ]);
   assert.equal(propBad.withinBound, false);
-  assert.equal(propBad.reason, 'accumulated_drift_exceeded');
+  assert.equal(propBad.reason, 'accumulated-drift-exceeded');
 
   const propEmpty = checkPropagationBound('f32', []);
   assert.equal(propEmpty.withinBound, true);
-  assert.equal(propEmpty.reason, 'no_data');
+  assert.equal(propEmpty.reason, 'no-data');
 
   console.log('  drift-policy: ok');
 }

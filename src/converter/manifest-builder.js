@@ -487,7 +487,7 @@ export function resolveDiffusionGemmaInferenceContract(rawConfig, generationConf
     eoiTokenId: readDiffusionGemmaNullableTokenId(rawConfig?.eoi_token_id, 'config.eoi_token_id', modelId),
     imageTokenId: readDiffusionGemmaNullableTokenId(rawConfig?.image_token_id, 'config.image_token_id', modelId),
     selfConditioning: true,
-    decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
+    decoderCacheMode: 'encoder-kv-readonly-canvas-concat',
     router: {
       scaleHiddenStates: true,
       normalizeTopK: true,

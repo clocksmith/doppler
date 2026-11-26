@@ -117,7 +117,7 @@ export async function watchFinalizedCheckpoints(options) {
       await onCheckpoint(markerPath);
       processed.add(markerPath);
       await writeJsonArtifact(manifestPath, {
-        artifactType: 'training_checkpoint_watch_manifest',
+        artifactType: 'training-checkpoint-watch-manifest',
         schemaVersion: 1,
         generatedAt: new Date().toISOString(),
         processedCheckpointMarkers: [...processed].sort((left, right) => left.localeCompare(right)),

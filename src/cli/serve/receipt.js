@@ -123,7 +123,7 @@ function buildServeReceiptBase({
   ));
   const modelId = loadedArtifact?.modelId ?? (registrySource ? registryEntry.modelId : null);
   return {
-    receiptVersion: 'doppler_serve_receipt_v2',
+    receiptVersion: 'doppler-serve-receipt-v2',
     schemaVersion: 2,
     surface: 'serve',
     endpoint: '/v1/chat/completions',

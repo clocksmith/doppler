@@ -108,7 +108,7 @@ await writeFile(workloadPath, JSON.stringify({
       selectionGoal: 'min',
       evalSchedule: 'final',
     }],
-    studentGraphMode: 'causal_lm_lora',
+    studentGraphMode: 'causal-lm-lora',
     temperature: 1,
     alphaKd: 0,
     alphaCe: 1,
@@ -119,7 +119,7 @@ await writeFile(workloadPath, JSON.stringify({
     strictPairContract: false,
     sftLora: {
       datasetFormat: 'text-pairs',
-      taskType: 'text_generation',
+      taskType: 'text-generation',
       maxLength: 128,
       joinWith: '\n',
       adapter: {
@@ -170,14 +170,14 @@ assert.equal(result.kind, 'distill');
 assert.equal(result.stageResults.length, 1);
 assert.equal(result.stageResults[0].trainingStage, 'sft');
 assert.equal(result.stageResults[0].objective, 'sft');
-assert.equal(result.stageResults[0].runnerKind, 'causal_lm_lora');
+assert.equal(result.stageResults[0].runnerKind, 'causal-lm-lora');
 assert.equal(result.stageResults[0].exports.length, 1);
 assert.equal(result.qualityGate.passed, true);
 
 const stageManifest = JSON.parse(await readFile(result.stageResults[0].stageManifestPath, 'utf8'));
-assert.equal(stageManifest.artifactType, 'distill_stage_manifest');
+assert.equal(stageManifest.artifactType, 'distill-stage-manifest');
 assert.equal(stageManifest.trainingStage, 'sft');
-assert.equal(stageManifest.sftLoraRun.preflight.runnerKey, 'gemma4-e2b-it::text-pairs::text_generation');
+assert.equal(stageManifest.sftLoraRun.preflight.runnerKey, 'gemma4-e2b-it::text-pairs::text-generation');
 assert.equal(stageManifest.exports.length, 1);
 
 const adapterManifest = JSON.parse(await readFile(result.stageResults[0].exports[0].manifestPath, 'utf8'));

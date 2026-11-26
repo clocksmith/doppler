@@ -151,16 +151,16 @@ export async function prefillForLoRATraining(inputIds, options = {}) {
     const config = this._state.modelConfig;
     const layerIdx = Number(options.layerIdx);
     if (!Number.isInteger(layerIdx) || layerIdx !== config.numLayers - 1) {
-      throw new Error(`native_lora_target_not_supported: layerIdx must be the final layer (${config.numLayers - 1}).`);
+      throw new Error(`native-lora-target-not-supported: layerIdx must be the final layer (${config.numLayers - 1}).`);
     }
     if (options.module !== 'down_proj') {
-      throw new Error('native_lora_target_not_supported: module must be down_proj.');
+      throw new Error('native-lora-target-not-supported: module must be down_proj.');
     }
     if (config.layerTypes?.[layerIdx] !== 'full_attention') {
-      throw new Error('native_lora_target_not_supported: final layer must be full_attention.');
+      throw new Error('native-lora-target-not-supported: final layer must be full_attention.');
     }
     if (config.postFeedforwardNorm === true) {
-      throw new Error('native_lora_target_not_supported: final-layer post-feedforward normalization is not supported.');
+      throw new Error('native-lora-target-not-supported: final-layer post-feedforward normalization is not supported.');
     }
     if (this._state.lora) {
       throw new Error('native_lora_base_capture_requires_inactive_adapter.');

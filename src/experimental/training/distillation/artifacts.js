@@ -40,7 +40,7 @@ export async function createDistillationRunArtifacts(options) {
     Object.values(layout).map((dirPath) => mkdir(dirPath, { recursive: true }))
   );
   const runContractPayload = {
-    artifactType: 'training_run_contract',
+    artifactType: 'training-run-contract',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     workloadId: workload.id,

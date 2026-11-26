@@ -104,19 +104,19 @@ export function buildDecodeBottleneckDiagnostics(metrics = {}, timing = {}) {
   const hasReadbackSubcomponents = [readbackMapWaitMs, readbackCleanupMs, readbackCopyMs]
     .some((value) => Number.isFinite(value) && value > 0);
   const components = [
-    { id: 'command_record', label: 'command recording', ms: commandRecordMs },
+    { id: 'command-record', label: 'command recording', ms: commandRecordMs },
     {
-      id: 'submit_readback_wait',
+      id: 'submit-readback-wait',
       label: 'submit/readback wait',
       ms: hasReadbackSubcomponents
         ? null
         : effectiveSubmitReadbackWaitMs,
     },
-    { id: 'readback_map_wait', label: 'readback map wait', ms: readbackMapWaitMs },
-    { id: 'readback_cleanup', label: 'readback cleanup', ms: readbackCleanupMs },
-    { id: 'readback_copy', label: 'readback CPU copy', ms: readbackCopyMs },
-    { id: 'submit_readback_unattributed', label: 'submit/readback unattributed', ms: readbackUnattributedMs },
-    { id: 'gpu_compute', label: 'GPU timestamp work', ms: gpuTimestampMs },
+    { id: 'readback-map-wait', label: 'readback map wait', ms: readbackMapWaitMs },
+    { id: 'readback-cleanup', label: 'readback cleanup', ms: readbackCleanupMs },
+    { id: 'readback-copy', label: 'readback CPU copy', ms: readbackCopyMs },
+    { id: 'submit-readback-unattributed', label: 'submit/readback unattributed', ms: readbackUnattributedMs },
+    { id: 'gpu-compute', label: 'GPU timestamp work', ms: gpuTimestampMs },
     { id: 'orchestration', label: 'decode orchestration', ms: orchestrationMs },
     { id: 'unattributed', label: 'unattributed decode wall', ms: residualMs },
   ].filter((component) => Number.isFinite(component.ms) && component.ms > 0);

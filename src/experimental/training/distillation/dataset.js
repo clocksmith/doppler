@@ -290,7 +290,7 @@ export async function buildFrozenSubset(options) {
   const serializedRows = `${subsetRows.map((row) => JSON.stringify(row)).join('\n')}\n`;
   const rowIdsText = `${subsetRows.map((row) => row.row_id).join('\n')}\n`;
   const manifest = {
-    artifactType: 'subset_manifest',
+    artifactType: 'subset-manifest',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     datasetPath: dataset.absolutePath,

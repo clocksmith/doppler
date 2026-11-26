@@ -23,7 +23,7 @@ export async function appendScoreboardRow(scoreboardDir, row, options = {}) {
   const goal = String(options.selectionGoal || row.selectionGoal || 'max').trim();
   const comparable = resolveComparableMetric(row, metric);
   const summary = {
-    artifactType: 'training_scoreboard',
+    artifactType: 'training-scoreboard',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     selectionMetric: metric || null,

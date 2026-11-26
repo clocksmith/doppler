@@ -9,7 +9,7 @@ describe('buildProviderReceiptV1', () => {
       policyMode: 'local-only',
       totalDurationMs: 100,
     });
-    assert.equal(receipt.receiptVersion, 'doppler_provider_receipt_v1');
+    assert.equal(receipt.receiptVersion, 'doppler-provider-receipt-v1');
     assert.ok(typeof receipt.receiptId === 'string');
     assert.ok(receipt.receiptId.length > 0);
   });

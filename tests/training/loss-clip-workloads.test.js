@@ -295,7 +295,7 @@ try {
           },
         },
         lora: {
-          datasetFormat: 'toy_linear_classification_jsonl',
+          datasetFormat: 'toy-linear-classification-jsonl',
           taskType: 'classification',
           adapter: {
             rank: 2,

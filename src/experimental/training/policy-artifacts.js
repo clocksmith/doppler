@@ -19,7 +19,7 @@ export function buildTrainingPolicyUpdate(input) {
     ? input.parentRolloutHashes.map((hash, index) => requireHash(hash, `parentRolloutHashes[${index}]`))
     : [];
   const artifact = {
-    artifactType: 'training_policy_update',
+    artifactType: 'training-policy-update',
     schemaVersion: 1,
     workloadId: requireString(input?.workloadId, 'workloadId'),
     updateId: requireString(input?.updateId, 'updateId'),
@@ -40,7 +40,7 @@ export function buildTrainingPolicyCheckpoint(input) {
     ? input.parentArtifactHashes.map((hash, index) => requireHash(hash, `parentArtifactHashes[${index}]`))
     : [];
   const artifact = {
-    artifactType: 'training_policy_checkpoint',
+    artifactType: 'training-policy-checkpoint',
     schemaVersion: 1,
     workloadId: requireString(input?.workloadId, 'workloadId'),
     checkpointId: requireString(input?.checkpointId, 'checkpointId'),

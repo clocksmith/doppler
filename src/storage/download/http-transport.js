@@ -19,7 +19,7 @@ export function parseContentLengthHeader(response, shardIndex) {
     throw createShardSizeMismatchError(
       `Invalid content-length header for shard ${shardIndex}: ${raw}`,
       {
-        code: 'http_content_length_invalid',
+        code: 'http-content-length-invalid',
         headerValue: raw,
       }
     );
@@ -35,7 +35,7 @@ export function parseContentRangeHeader(response, shardIndex) {
     throw createShardSizeMismatchError(
       `Invalid content-range header for shard ${shardIndex}: ${raw}`,
       {
-        code: 'http_content_range_invalid',
+        code: 'http-content-range-invalid',
         headerValue: raw,
       }
     );
@@ -47,7 +47,7 @@ export function parseContentRangeHeader(response, shardIndex) {
     throw createShardSizeMismatchError(
       `Invalid content-range byte span for shard ${shardIndex}: ${raw}`,
       {
-        code: 'http_content_range_invalid_span',
+        code: 'http-content-range-invalid-span',
         headerValue: raw,
       }
     );
@@ -56,7 +56,7 @@ export function parseContentRangeHeader(response, shardIndex) {
     throw createShardSizeMismatchError(
       `Invalid content-range total size for shard ${shardIndex}: ${raw}`,
       {
-        code: 'http_content_range_invalid_total',
+        code: 'http-content-range-invalid-total',
         headerValue: raw,
       }
     );
@@ -74,7 +74,7 @@ export function assertHttpResponseBoundaryHeaders(response, shardIndex, contentL
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} returned HTTP 206 without content-range header.`,
       {
-        code: 'http_content_range_missing',
+        code: 'http-content-range-missing',
       }
     );
   }
@@ -82,7 +82,7 @@ export function assertHttpResponseBoundaryHeaders(response, shardIndex, contentL
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} returned content-range header with unexpected HTTP ${response.status}.`,
       {
-        code: 'http_content_range_unexpected_status',
+        code: 'http-content-range-unexpected-status',
         status: response.status,
       }
     );
@@ -95,7 +95,7 @@ export function assertHttpResponseBoundaryHeaders(response, shardIndex, contentL
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} content-length/content-range mismatch: content-length=${contentLength}, range-length=${contentRange.length}.`,
       {
-        code: 'http_header_length_mismatch',
+        code: 'http-header-length-mismatch',
         contentLength,
         contentRangeLength: contentRange.length,
       }
@@ -119,7 +119,7 @@ export function assertHttpResumeAlignment(
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} resume response mismatch: expected HTTP 206 with content-range for offset ${resumeOffset}, got HTTP ${response.status}.`,
       {
-        code: 'http_resume_response_mismatch',
+        code: 'http-resume-response-mismatch',
         status: response.status,
         resumeOffset,
       }
@@ -129,7 +129,7 @@ export function assertHttpResumeAlignment(
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} resume content-range start mismatch: expected ${resumeOffset}, got ${contentRange.start}.`,
       {
-        code: 'http_resume_offset_mismatch',
+        code: 'http-resume-offset-mismatch',
         resumeOffset,
         contentRangeStart: contentRange.start,
       }
@@ -143,7 +143,7 @@ export function assertHttpPayloadBoundary(shardIndex, bytesReceived, contentLeng
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} content-length mismatch: expected ${contentLength}, received ${bytesReceived}.`,
       {
-        code: 'http_content_length_mismatch',
+        code: 'http-content-length-mismatch',
         contentLength,
         bytesReceived,
       }
@@ -153,7 +153,7 @@ export function assertHttpPayloadBoundary(shardIndex, bytesReceived, contentLeng
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} content-range mismatch: expected ${contentRange.length} bytes, received ${bytesReceived}.`,
       {
-        code: 'http_content_range_length_mismatch',
+        code: 'http-content-range-length-mismatch',
         contentRangeLength: contentRange.length,
         bytesReceived,
       }
@@ -165,7 +165,7 @@ export function assertHttpPayloadBoundary(shardIndex, bytesReceived, contentLeng
       throw createShardSizeMismatchError(
         `Shard ${shardIndex} content-range total mismatch: expected ${normalizedExpectedSize}, got ${contentRange.total}.`,
         {
-          code: 'http_content_range_total_mismatch',
+          code: 'http-content-range-total-mismatch',
           expectedSize: normalizedExpectedSize,
           contentRangeTotal: contentRange.total,
         }
@@ -220,7 +220,7 @@ export function createHttpShardTransport(store) {
       throw createShardSizeMismatchError(
         `Shard ${shardIndex} stored resume prefix unreadable: ${error.message}`,
         {
-          code: 'resume_state_prefix_mismatch',
+          code: 'resume-state-prefix-mismatch',
           expectedPrefixBytes,
           actualPrefixBytes: hashedBytes,
         }
@@ -230,7 +230,7 @@ export function createHttpShardTransport(store) {
       throw createShardSizeMismatchError(
         `Shard ${shardIndex} stored resume prefix mismatch: expected ${expectedPrefixBytes} bytes, read ${hashedBytes}.`,
         {
-          code: 'resume_state_prefix_mismatch',
+          code: 'resume-state-prefix-mismatch',
           expectedPrefixBytes,
           actualPrefixBytes: hashedBytes,
         }
@@ -251,7 +251,7 @@ export function createHttpShardTransport(store) {
         throw createShardSizeMismatchError(
           `Shard ${shardIndex} stored resume bytes exceed expected size: stored=${resumeOffset}, expected=${normalizedExpected}.`,
           {
-            code: 'resume_state_oversize',
+            code: 'resume-state-oversize',
             storedBytes: resumeOffset,
             expectedSize: normalizedExpected,
           }
@@ -335,7 +335,7 @@ export function createHttpShardTransport(store) {
       error instanceof Error ? { cause: error } : undefined
     );
     wrapped.name = error?.name || 'Error';
-    wrapped.code = 'stream_read_failed';
+    wrapped.code = 'stream-read-failed';
     wrapped.shardIndex = shardIndex;
     wrapped.attempt = attempt;
     wrapped.maxRetries = maxRetries;
@@ -523,7 +523,7 @@ export function createHttpShardTransport(store) {
           options.expectedSize
         );
       } catch (error) {
-        if (writeToStore && error?.code === 'resume_state_oversize') {
+        if (writeToStore && error?.code === 'resume-state-oversize') {
           await clearPersistedShardState(shardIndex);
           resumeOffset = 0;
         } else {
@@ -541,7 +541,7 @@ export function createHttpShardTransport(store) {
         resumeOffset
       );
     } catch (error) {
-      if (writeToStore && error?.code === 'resume_state_prefix_mismatch') {
+      if (writeToStore && error?.code === 'resume-state-prefix-mismatch') {
         await clearPersistedShardState(shardIndex);
         resumeOffset = 0;
         transferState = await createHttpTransferState(
@@ -779,7 +779,7 @@ export function createHttpShardTransport(store) {
           await abortHttpTransferState(transferState);
           throw error;
         }
-        if (typeof error?.code === 'string' && error.code.startsWith('http_')) {
+        if (typeof error?.code === 'string' && error.code.startsWith('http-')) {
           await abortHttpTransferState(transferState);
           throw error;
         }

@@ -2,7 +2,7 @@
   "schema": "doppler.capsule-adapter-policy/v1",
   "legacyAdapterSet": [],
   "legacyQualificationOperation": "generate",
-  "formats": ["peft_safetensors"],
+  "formats": ["peft-safetensors"],
   "maximumAdapters": 1,
   "combination": "single",
   "requiredKernelOperations": ["matmul", "scale", "residual"]

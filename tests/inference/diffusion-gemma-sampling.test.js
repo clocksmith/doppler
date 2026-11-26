@@ -18,7 +18,7 @@ const diffusionGemma = {
   eoiTokenId: null,
   imageTokenId: null,
   selfConditioning: true,
-  decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
+  decoderCacheMode: 'encoder-kv-readonly-canvas-concat',
   router: {
     scaleHiddenStates: true,
     normalizeTopK: true,

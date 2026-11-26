@@ -365,7 +365,7 @@ export async function runInternalCausalLmLoraPipeline(options, layout, compatibi
     const baselineEvalReports = await evaluateCausalLmLoraModel(workload, fixture, dataset, layout, {
       checkpointId: 'base-model',
       checkpointStep: 0,
-      stage: 'base_model',
+      stage: 'base-model',
       configHash: workload.configHash,
       workloadPath: loadedWorkload.absolutePath,
       workloadSha256: loadedWorkload.workloadSha256,
@@ -373,7 +373,7 @@ export async function runInternalCausalLmLoraPipeline(options, layout, compatibi
     for (const report of baselineEvalReports) {
       evalReports.push(report);
       await appendScoreboardRow(layout.scoreboard, {
-        artifactType: 'training_scoreboard',
+        artifactType: 'training-scoreboard',
         schemaVersion: 1,
         generatedAt: new Date().toISOString(),
         checkpointId: report.checkpointId,
@@ -409,7 +409,7 @@ export async function runInternalCausalLmLoraPipeline(options, layout, compatibi
           ...buildArtifact(loadedWorkload, {
             prefix: 'lora_ckpt',
             id: checkpointId,
-            artifactType: 'training_checkpoint',
+            artifactType: 'training-checkpoint',
             datasetPath: dataset.absolutePath,
             datasetHash: dataset.datasetHash,
             checkpointStep: checkpoint.step,
@@ -458,7 +458,7 @@ export async function runInternalCausalLmLoraPipeline(options, layout, compatibi
         for (const report of reports) {
           evalReports.push(report);
           await appendScoreboardRow(layout.scoreboard, {
-            artifactType: 'training_scoreboard',
+            artifactType: 'training-scoreboard',
             schemaVersion: 1,
             generatedAt: new Date().toISOString(),
             checkpointId,
@@ -521,7 +521,7 @@ export async function runInternalCausalLmLoraPipeline(options, layout, compatibi
       ok: true,
       kind: 'lora',
       action: 'run',
-      runnerKind: 'causal_lm_lora',
+      runnerKind: 'causal-lm-lora',
       workloadId: workload.id,
       runRoot: layout.runRoot,
       preflight,

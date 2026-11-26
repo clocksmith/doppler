@@ -117,15 +117,15 @@ export function selectAttentionTier(
     tier = selectKernelRuleValue('attention', 'tier', { canSubgroup, canLarge, canSmall, isDecode });
     if (!reason) {
       if (canSubgroup) {
-        reason = 'subgroup_capable';
+        reason = 'subgroup-capable';
       } else if (canLarge) {
-        reason = 'tiled_large_capable';
+        reason = 'tiled-large-capable';
       } else if (canSmall) {
-        reason = 'tiled_small_capable';
+        reason = 'tiled-small-capable';
       } else if (isDecode) {
-        reason = 'decode_streaming_fallback';
+        reason = 'decode-streaming-fallback';
       } else {
-        reason = 'streaming_fallback';
+        reason = 'streaming-fallback';
       }
     }
     if (tier === 'subgroup' && !loggedAttentionTier) {
@@ -437,7 +437,7 @@ export function resolveAttentionPlan(
       const workgroups = calculateAttentionWorkgroups(adaptiveSelection.tier, seqLen, numHeads, adaptiveVariant);
       logKernelSelectionOnce('attention', {
         variant: adaptiveVariant,
-        reason: `path_override_fallback:${adaptiveSelection.tier}`,
+        reason: `path-override-fallback:${adaptiveSelection.tier}`,
       });
       return {
         tier: adaptiveSelection.tier,
@@ -447,7 +447,7 @@ export function resolveAttentionPlan(
         isDecode,
       };
     }
-    let selectionReason = 'path_override';
+    let selectionReason = 'path-override';
 
     if (!isDecode && variantOverride.startsWith('prefill_streaming') && seqLen <= 64) {
       const adaptivePrefillVariant = variantOverride.endsWith('_f16kv')
@@ -468,7 +468,7 @@ export function resolveAttentionPlan(
         );
         if (validatedAdaptive !== variantOverride) {
           variantOverride = validatedAdaptive;
-          selectionReason = 'path_override_adaptive_prefill';
+          selectionReason = 'path-override-adaptive-prefill';
         }
       } catch {
         // Keep original strict-path variant when adaptive fallback is not valid.

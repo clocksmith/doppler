@@ -107,7 +107,7 @@ function ownerConfirmation(integration) {
 
 function identityReceipt(integration) {
   return {
-    receiptVersion: 'doppler_provider_receipt_v1',
+    receiptVersion: 'doppler-provider-receipt-v1',
     receiptId: `${integration.id}-identity-receipt`,
     source: 'local',
     model: { id: integration.logicalModelId, hash: ARTIFACT_ID },

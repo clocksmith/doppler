@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue, canonicalizeLegacyEnumValues } from './config/legacy-enum-values.js';
 import {
   LORA_RUNNER_BASE_MODEL_REGISTRY,
   LORA_RUNNER_DATASET_FORMAT_REGISTRY,
@@ -53,7 +54,7 @@ export {
   watchLoraCheckpoints,
 };
 
-export const TRAINING_BACKENDS = Object.freeze(['webgpu_native', 'external']);
+export const TRAINING_BACKENDS = Object.freeze(['webgpu-native', 'external']);
 
 export async function bootstrapNativeTrainingHost() {
   const [{ installNodeFileFetchShim }, { bootstrapNodeWebGPU }] = await Promise.all([
@@ -63,7 +64,7 @@ export async function bootstrapNativeTrainingHost() {
   installNodeFileFetchShim();
   const result = await bootstrapNodeWebGPU();
   if (!result.ok) {
-    throw new Error(`native_training_webgpu_bootstrap_failed: ${result.detail || 'no WebGPU provider'}.`);
+    throw new Error(`native-training-webgpu-bootstrap-failed: ${result.detail || 'no WebGPU provider'}.`);
   }
   return result;
 }
@@ -102,31 +103,33 @@ function resolveNativeLoraTarget(pipeline, compatibility) {
   return supported ? Object.freeze({ ...supported }) : null;
 }
 
-export function getTrainingCapabilities(workload) {
+export function getTrainingCapabilities(input) {
+  // Workloads written before 0.2.0 (taskType text_generation, ...) are read throughout 0.x.
+  const workload = canonicalizeLegacyEnumValues(input);
   const compatibility = getLoraRunnerCompatibility(workload);
   const pipeline = getWorkloadPipeline(workload);
   const blockedReasons = [...compatibility.blockedReasons];
   if (workload?.kind !== 'lora') {
-    blockedReasons.push('workload_kind_must_be_lora');
+    blockedReasons.push('workload-kind-must-be-lora');
   }
   if (pipeline.datasetFormat !== 'text-pairs') {
-    blockedReasons.push('dataset_format_must_be_text_pairs');
+    blockedReasons.push('dataset-format-must-be-text-pairs');
   }
-  if (pipeline.taskType !== 'text_generation') {
-    blockedReasons.push('task_type_must_be_text_generation');
+  if (pipeline.taskType !== 'text-generation') {
+    blockedReasons.push('task-type-must-be-text-generation');
   }
 
   const sftLoraSupported = blockedReasons.length === 0;
   const nativeBlockedReasons = [...blockedReasons];
   const nativeTarget = resolveNativeLoraTarget(pipeline, compatibility);
   if (compatibility.observed.requiresExternalTrainer && !nativeTarget) {
-    nativeBlockedReasons.push('native_full_graph_runner_unavailable_for_base_model');
+    nativeBlockedReasons.push('native-full-graph-runner-unavailable-for-base-model');
   }
   const webgpuNativeSupported = nativeBlockedReasons.length === 0;
 
   return Object.freeze({
     schemaVersion: 1,
-    scope: 'completion_masked_sft_lora',
+    scope: 'completion-masked-sft-lora',
     supported: sftLoraSupported,
     operatorSurfaces: Object.freeze(['browser', 'node', 'bun']),
     runnerKey: compatibility.observed.runnerKey,
@@ -136,7 +139,7 @@ export function getTrainingCapabilities(workload) {
     taskType: compatibility.observed.taskType,
     backends: Object.freeze({
       webgpuNative: buildBackendCapability(
-        'webgpu_native',
+        'webgpu-native',
         webgpuNativeSupported,
         nativeBlockedReasons
       ),
@@ -144,7 +147,7 @@ export function getTrainingCapabilities(workload) {
     }),
     adapterExport: Object.freeze({
       format: 'safetensors',
-      manifest: 'rdrr_lora_adapter',
+      manifest: 'rdrr-lora-adapter',
       runtimeLoadable: true,
     }),
     compatibility,
@@ -153,17 +156,19 @@ export function getTrainingCapabilities(workload) {
   });
 }
 
-export function assertTrainingBackend(workload, backend) {
+export function assertTrainingBackend(workload, requestedBackend) {
+  // The legacy spelling webgpu_native is read throughout 0.x.
+  const backend = canonicalizeLegacyEnumValue(requestedBackend);
   if (!TRAINING_BACKENDS.includes(backend)) {
-    throw new Error(`training_backend_invalid: expected one of ${TRAINING_BACKENDS.join(', ')}, got ${String(backend)}.`);
+    throw new Error(`training-backend-invalid: expected one of ${TRAINING_BACKENDS.join(', ')}, got ${String(backend)}.`);
   }
   const capabilities = getTrainingCapabilities(workload);
-  const selected = backend === 'webgpu_native'
+  const selected = backend === 'webgpu-native'
     ? capabilities.backends.webgpuNative
     : capabilities.backends.external;
   if (!selected.supported) {
     throw new Error(
-      `training_backend_not_supported: backend=${backend} runnerKey=${capabilities.runnerKey} `
+      `training-backend-not-supported: backend=${backend} runnerKey=${capabilities.runnerKey} `
       + `blockedReasons=${selected.blockedReasons.join(',')}.`
     );
   }
@@ -178,7 +183,7 @@ export async function trainSftLoRA(options) {
   if (!loadedWorkload?.workload) {
     throw new Error('trainSftLoRA requires options.loadedWorkload.');
   }
-  const backend = options.backend;
+  const backend = canonicalizeLegacyEnumValue(options.backend);
   const capabilities = assertTrainingBackend(loadedWorkload.workload, backend);
 
   const pipeline = getWorkloadPipeline(loadedWorkload.workload);
@@ -186,18 +191,18 @@ export async function trainSftLoRA(options) {
     || Boolean(pipeline.trainer);
   if (backend === 'external' && !externalTrainerConfigured) {
     throw new Error(
-      'external_training_backend_not_configured: provide options.causalLmTrainer or workload.pipeline.trainer.'
+      'external-training-backend-not-configured: provide options.causalLmTrainer or workload.pipeline.trainer.'
     );
   }
-  if (backend === 'webgpu_native' && externalTrainerConfigured) {
+  if (backend === 'webgpu-native' && externalTrainerConfigured) {
     throw new Error(
-      'training_backend_mismatch: webgpu_native cannot be combined with an external trainer configuration.'
+      'training-backend-mismatch: webgpu-native cannot be combined with an external trainer configuration.'
     );
   }
 
-  if (backend === 'webgpu_native' && capabilities.nativeTarget) {
+  if (backend === 'webgpu-native' && capabilities.nativeTarget) {
     if (!options.pipeline) {
-      throw new Error('native_qwen_lora_pipeline_required: provide the loaded Doppler pipeline.');
+      throw new Error('native-qwen-lora-pipeline-required: provide the loaded Doppler pipeline.');
     }
     return trainNativeQwenSftLoRA({
       pipeline: options.pipeline,

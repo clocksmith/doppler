@@ -2,7 +2,7 @@ export const UL_STAGE_VALUES = Object.freeze(['stage1-joint', 'stage2-base']);
 export const UL_TRAINING_SCHEMA_VERSION = 1;
 
 export const DEFAULT_UL_NOISE_SCHEDULE = Object.freeze({
-  type: 'log_snr_linear',
+  type: 'log-snr-linear',
   minLogSNR: -4,
   maxLogSNR: 5,
   steps: 64,

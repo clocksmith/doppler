@@ -55,7 +55,7 @@ function capture(overrides = {}) {
 
 function providerReceipt(overrides = {}) {
   return {
-    receiptVersion: 'doppler_provider_receipt_v1',
+    receiptVersion: 'doppler-provider-receipt-v1',
     receiptId: 'provider-receipt-fixture',
     source: 'local',
     model: { id: 'qwen-3-5-0-8b-q4k-ehaf16', hash: ARTIFACT_ID },

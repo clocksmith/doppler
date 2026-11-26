@@ -24,7 +24,7 @@ const committed = readTranslationArtifactCompetitionReceipt(recorded);
 assert.equal(recorded.lanes[1].laneId, 'selective_f16');
 assert.equal(committed.lanes[1].laneId, 'selective-f16');
 assert.throws(
-  () => readTranslationArtifactCompetitionReceipt({ ...recorded, decision: 'artifact_generation_allowed' }),
+  () => readTranslationArtifactCompetitionReceipt({ ...recorded, decision: 'artifact-generation-allowed' }),
   /receipt hash does not match/
 );
 
@@ -58,10 +58,10 @@ function assertAdmissionCoherent(receipt) {
   if (promotionSubmissionAllowed) assert.equal(artifactComparisonAllowed, true);
   if (artifactComparisonAllowed) assert.equal(artifactGenerationAllowed, true);
   const expectedDecision = promotionSubmissionAllowed
-    ? 'promotion_submission_allowed'
+    ? 'promotion-submission-allowed'
     : artifactComparisonAllowed
-      ? 'artifact_comparison_allowed'
-      : artifactGenerationAllowed ? 'artifact_generation_allowed' : 'blocked';
+      ? 'artifact-comparison-allowed'
+      : artifactGenerationAllowed ? 'artifact-generation-allowed' : 'blocked';
   assert.equal(receipt.decision, expectedDecision);
   assert.equal(artifactGenerationAllowed, receipt.blockers.length === 0,
     'artifact generation is allowed exactly when no blocker remains');
@@ -71,14 +71,14 @@ assertAdmissionCoherent(committed);
 // A source without a selection receipt cannot enter the competition.
 if (handoff.selection.status !== 'selected') {
   assert.equal(committed.admission.artifactGenerationAllowed, false);
-  assert.ok(committed.blockers.includes('gamma_source_not_selected_candidate'));
+  assert.ok(committed.blockers.includes('gamma-source-not-selected-candidate'));
 }
 
 // Failure paths: missing handoff blocks, malformed policy fails fast.
 {
   const absent = evaluateTranslationArtifactCompetition({ policy });
   assert.equal(absent.observedSource, null);
-  assert.ok(absent.blockers.includes('gamma_selected_handoff_absent'));
+  assert.ok(absent.blockers.includes('gamma-selected-handoff-absent'));
   assertAdmissionCoherent(absent);
 
   assert.throws(

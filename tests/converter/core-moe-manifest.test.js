@@ -60,7 +60,7 @@ const BASE_MANIFEST_OPTIONS = {
 
 const DIFFUSION_GEMMA_GENERATION_CONFIG = {
   max_denoising_steps: 48,
-  max_new_tokens: 256,
+  'max_new_tokens': 256,
   t_min: 0.4,
   t_max: 0.8,
   stability_threshold: 1,
@@ -198,7 +198,7 @@ const DIFFUSION_GEMMA_GENERATION_CONFIG = {
       eoiTokenId: 258882,
       imageTokenId: 258880,
       selfConditioning: true,
-      decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
+      decoderCacheMode: 'encoder-kv-readonly-canvas-concat',
       router: {
         scaleHiddenStates: true,
         normalizeTopK: true,

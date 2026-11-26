@@ -312,7 +312,7 @@ export function createDistillTripletObjective(options = {}) {
       const positiveDtype = forwardState.positiveLogits?.dtype;
       const negativeDtype = forwardState.negativeLogits?.dtype;
       if (anchorDtype === undefined || positiveDtype === undefined || negativeDtype === undefined) {
-        throw new Error('distill_triplet: forwardState logits dtype is required for all three branches (anchor/positive/negative)');
+        throw new Error('distill-triplet: forwardState logits dtype is required for all three branches (anchor/positive/negative)');
       }
       return {
         loss,

@@ -90,7 +90,7 @@ const mismatch = negotiateDescriptorShardCache({
 });
 assert.equal(mismatch.ready, false);
 assert.equal(mismatch.missingShards.length, 3);
-assert.equal(mismatch.missingShards[0].reason, 'descriptor_hash_mismatch');
+assert.equal(mismatch.missingShards[0].reason, 'descriptor-hash-mismatch');
 
 const assignment = createDescriptorPeerAssignment({
   descriptorManifest,
@@ -127,7 +127,7 @@ const needsDownload = createDescriptorPeerAssignment({
   requiredVramBytes: 1024,
 });
 assert.equal(needsDownload.assignable, false);
-assert.equal(needsDownload.blockers[0].code, 'descriptor_shards_missing');
+assert.equal(needsDownload.blockers[0].code, 'descriptor-shards-missing');
 assert.equal(needsDownload.requiredDownloads.length, 3);
 
 assert.throws(

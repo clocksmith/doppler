@@ -140,7 +140,7 @@ try {
       assert.equal(failure?.streamedUpload, false);
       assert.equal(
         failure?.deviceLimitFailure?.kind,
-        'gpu_resident_embedding_exceeds_device_limit'
+        'gpu-resident-embedding-exceeds-device-limit'
       );
       assert.equal(failure?.deviceLimitFailure?.maxGpuResidentBytes, 128);
       assert.equal(failure?.deviceLimitFailure?.maxStorageBufferBindingSize, 128);

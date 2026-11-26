@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue } from '../../config/legacy-enum-values.js';
 import { collectRequiredImprovementEvalIds, sortTrainingReports, summarizeQualityClaims } from './report-ranking.js';
 import { readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -282,7 +283,7 @@ export async function runLoraPipeline(options) {
           ...buildArtifact(loadedWorkload, {
             prefix: 'lora_ckpt',
             id: checkpointId,
-            artifactType: 'training_checkpoint',
+            artifactType: 'training-checkpoint',
             datasetHash: dataset.datasetHash,
             checkpointStep: checkpoint.step,
           }),
@@ -326,7 +327,7 @@ export async function runLoraPipeline(options) {
         for (const report of reports) {
           evalReports.push(report);
           await appendScoreboardRow(layout.scoreboard, {
-            artifactType: 'training_scoreboard',
+            artifactType: 'training-scoreboard',
             schemaVersion: 1,
             generatedAt: new Date().toISOString(),
             checkpointId,
@@ -513,7 +514,7 @@ async function loadTrainingEvalReports(rootDir) {
   for (const filePath of files) {
     const raw = await readFile(filePath, 'utf8');
     const report = JSON.parse(raw);
-    if (report?.artifactType === 'training_eval_report') {
+    if (canonicalizeLegacyEnumValue(report?.artifactType) === 'training-eval-report') {
       reports.push({
         ...report,
         reportPath: report.reportPath || filePath,
@@ -528,7 +529,7 @@ export async function compareLoraRun(options) {
   const workload = await loadRunWorkloadForComparison(runRoot);
   const sorted = sortTrainingReports(await loadTrainingEvalReports(join(runRoot, 'eval')), workload);
   const payload = {
-    artifactType: 'training_compare_report',
+    artifactType: 'training-compare-report',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     runRoot,
@@ -579,7 +580,7 @@ export async function qualityGateLoraRun(options) {
   const requiredImprovementEvalIds = collectRequiredImprovementEvalIds(workload);
   if (evalReports.length > 0) {
     checks.push({
-      name: 'eval_reports',
+      name: 'eval-reports',
       path: join(runRoot, 'eval'),
       ok: true,
       count: evalReports.length,
@@ -587,7 +588,7 @@ export async function qualityGateLoraRun(options) {
   }
   if (qualitySummary.count > 0) {
     checks.push({
-      name: 'baseline_quality_claims',
+      name: 'baseline-quality-claims',
       path: join(runRoot, 'eval'),
       ok: qualitySummary.failedRequiredCount === 0,
       ...qualitySummary,
@@ -595,7 +596,7 @@ export async function qualityGateLoraRun(options) {
   }
   if (requiredImprovementEvalIds.length > 0 && qualitySummary.count === 0) {
     checks.push({
-      name: 'required_improvement_claims',
+      name: 'required-improvement-claims',
       path: join(runRoot, 'eval'),
       ok: false,
       requiredEvalDatasetIds: requiredImprovementEvalIds,
@@ -604,7 +605,7 @@ export async function qualityGateLoraRun(options) {
   }
   if (agentEvalSummary.requiredCount > 0) {
     checks.push({
-      name: 'agent_heldout_eval',
+      name: 'agent-heldout-eval',
       path: join(runRoot, 'eval'),
       ok: agentEvalSummary.failedCount === 0,
       ...agentEvalSummary,
@@ -615,7 +616,7 @@ export async function qualityGateLoraRun(options) {
   }
   const passed = checks.every((entry) => entry.ok === true);
   const payload = {
-    artifactType: 'training_quality_gate',
+    artifactType: 'training-quality-gate',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     runRoot,

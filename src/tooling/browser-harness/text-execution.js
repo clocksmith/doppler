@@ -631,7 +631,7 @@ export async function runImageTranscription(pipeline, runtimeConfig, runOverride
   });
   const { phase } = buildGenerationPhaseFromStats(pipeline, durationMs, tokenIds.length);
   return {
-    inputMode: 'image_to_text',
+    inputMode: 'image-to-text',
     prompt: `image ${width}x${height}: ${prompt}`,
     promptInput: {
       prompt,

@@ -154,7 +154,7 @@ export function createUnsupportedWorkloadError(requestedWorkload, context = {}) 
     `Unsupported workload "${requestedWorkload}". Allowed workloads: ${allowedWorkloads.join(', ')}. ` +
     `command="${command}" mode="${mode}" surface="${surface}".`
   );
-  error.code = 'unsupported_workload';
+  error.code = 'unsupported-workload';
   error.requestedWorkload = requestedWorkload;
   error.allowedWorkloads = allowedWorkloads;
   error.command = command;

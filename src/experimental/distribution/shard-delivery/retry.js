@@ -92,7 +92,7 @@ export function assertP2PPayloadBoundary(
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} p2p payload rangeStart must be a non-negative integer for boundary checks.`,
       {
-        code: 'p2p_payload_range_start_invalid',
+        code: 'p2p-payload-range-start-invalid',
         rangeStart,
       }
     );
@@ -101,7 +101,7 @@ export function assertP2PPayloadBoundary(
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} p2p payload size must be a non-negative integer for boundary checks.`,
       {
-        code: 'p2p_payload_size_invalid',
+        code: 'p2p-payload-size-invalid',
         payloadBytes,
       }
     );
@@ -110,7 +110,7 @@ export function assertP2PPayloadBoundary(
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} p2p payload exceeds total size: start=${rangeStart}, bytes=${payloadBytes}, total=${totalSize}.`,
       {
-        code: 'p2p_payload_exceeds_total',
+        code: 'p2p-payload-exceeds-total',
         rangeStart,
         payloadBytes,
         totalSize,
@@ -121,7 +121,7 @@ export function assertP2PPayloadBoundary(
     throw createShardSizeMismatchError(
       `Shard ${shardIndex} p2p payload size mismatch: expected ${totalSize}, got ${payloadBytes}.`,
       {
-        code: 'p2p_payload_size_mismatch',
+        code: 'p2p-payload-size-mismatch',
         payloadBytes,
         totalSize,
       }
@@ -227,7 +227,7 @@ export function enforceP2PSecurityAndAbusePolicy(p2pConfig, state, shardIndex, n
       `P2P shard ${shardIndex} requires a session token.`,
       {
         shardIndex,
-        policyReason: 'session_token_missing',
+        policyReason: 'session-token-missing',
       }
     );
   }
@@ -239,7 +239,7 @@ export function enforceP2PSecurityAndAbusePolicy(p2pConfig, state, shardIndex, n
       `P2P shard ${shardIndex} session token expired.`,
       {
         shardIndex,
-        policyReason: 'session_token_expired',
+        policyReason: 'session-token-expired',
         tokenExpiresAtMs: security.tokenExpiresAtMs,
       }
     );
@@ -254,7 +254,7 @@ export function enforceP2PSecurityAndAbusePolicy(p2pConfig, state, shardIndex, n
       `P2P shard ${shardIndex} transport is quarantined.`,
       {
         shardIndex,
-        policyReason: 'transport_quarantined',
+        policyReason: 'transport-quarantined',
         quarantinedUntilMs: state.quarantinedUntilMs,
       }
     );
@@ -271,7 +271,7 @@ export function enforceP2PSecurityAndAbusePolicy(p2pConfig, state, shardIndex, n
         `P2P shard ${shardIndex} transport rate limit exceeded.`,
         {
           shardIndex,
-          policyReason: 'rate_limited',
+          policyReason: 'rate-limited',
           rateLimitPerMinute: limit,
         }
       );

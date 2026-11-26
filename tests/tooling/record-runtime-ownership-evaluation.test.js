@@ -58,7 +58,7 @@ function externalReceipt(role, overrides = {}) {
 
 function dopplerReceipt() {
   return {
-    receiptVersion: 'doppler_provider_receipt_v1',
+    receiptVersion: 'doppler-provider-receipt-v1',
     receiptId: 'generation-doppler-receipt',
     source: 'local',
     model: {

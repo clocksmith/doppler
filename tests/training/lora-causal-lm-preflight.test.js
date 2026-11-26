@@ -25,7 +25,7 @@ const workload = {
   datasetPath: '/tmp/columbo-causal-lm-preflight.jsonl',
   pipeline: {
     datasetFormat: 'text-pairs',
-    taskType: 'text_generation',
+    taskType: 'text-generation',
     adapter: {
       rank: 8,
       alpha: 16,
@@ -38,7 +38,7 @@ const preflight = await preflightCausalLmLoraWorkload(workload, {
   readFile: async () => datasetText,
 });
 
-assert.equal(preflight.runnerKey, 'gemma4-e2b-it::text-pairs::text_generation');
+assert.equal(preflight.runnerKey, 'gemma4-e2b-it::text-pairs::text-generation');
 assert.equal(preflight.rowCount, 2);
 assert.equal(preflight.firstRowId, 'columbo-row-1');
 assert.equal(preflight.lastRowId, 'columbo-row-2');

@@ -44,7 +44,7 @@ function ownerConfirmation(integration, overrides = {}) {
 
 function identityReceipt(integration, overrides = {}) {
   return {
-    receiptVersion: 'doppler_provider_receipt_v1',
+    receiptVersion: 'doppler-provider-receipt-v1',
     receiptId: `${integration.id}-identity`,
     source: 'local',
     model: { id: integration.logicalModelId, hash: ARTIFACT_ID },

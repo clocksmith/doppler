@@ -97,18 +97,18 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
     if (opts.speculation?.mode === 'lookup') useBatchPath = false;
     if (!useBatchPath) {
       let reason = null;
-      if (replayPrefillDecode) reason = 'replay_prefill_decode';
-      else if (hasCpuWeights) reason = 'cpu_weights';
-      else if (!this._state.useGPU) reason = 'no_gpu';
-      else if (!gpuSamplingAvailable) reason = 'no_gpu_sampling';
-      else if (executionPlan.disableCommandBatching) reason = 'command_batching_disabled';
-      else if (hasSuppressedSamplingTokens) reason = 'sampling_suppression_requires_cpu_logits';
-      else if (typeof opts.logitMaskFn === 'function') reason = 'token_constraint_requires_per_token_logits';
+      if (replayPrefillDecode) reason = 'replay-prefill-decode';
+      else if (hasCpuWeights) reason = 'cpu-weights';
+      else if (!this._state.useGPU) reason = 'no-gpu';
+      else if (!gpuSamplingAvailable) reason = 'no-gpu-sampling';
+      else if (executionPlan.disableCommandBatching) reason = 'command-batching-disabled';
+      else if (hasSuppressedSamplingTokens) reason = 'sampling-suppression-requires-cpu-logits';
+      else if (typeof opts.logitMaskFn === 'function') reason = 'token-constraint-requires-per-token-logits';
       else if (executionPlan.disableMultiTokenDecode) reason = 'multi-token-decode-disabled';
-      else if (executionPlan.batchSize <= 1) reason = 'batch_size_1';
-      else if (this._state.kvCache?.layout === 'bdpa-paged') reason = 'bdpa_paged_layout';
-      else if (this._hasFinitenessFallbackWindow()) reason = 'finiteness_fallback_window';
-      else if (hasLinearLayers) reason = 'linear_attention_layers';
+      else if (executionPlan.batchSize <= 1) reason = 'batch-size-1';
+      else if (this._state.kvCache?.layout === 'bdpa-paged') reason = 'bdpa-paged-layout';
+      else if (this._hasFinitenessFallbackWindow()) reason = 'finiteness-fallback-window';
+      else if (hasLinearLayers) reason = 'linear-attention-layers';
       this._state.stats.decodeMode = replayPrefillDecode
         ? 'replay-prefill'
         : (opts.speculation?.mode === 'self' ? 'self-speculation' : 'single-token');
@@ -167,7 +167,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           const result = await verifySpeculativeTokens(this, generatedIds, proposal, opts, options.signal, stop);
           if (result.accepted < proposal.length) rejectedDraftBlocks++;
           if (rejectedDraftBlocks >= opts.speculation.maxRejectedBlocks) useBatchPath = ordinaryBatchPath;
-          this._state.stats.decodeMode = 'target_verified_lookup';
+          this._state.stats.decodeMode = 'target-verified-lookup';
           this._state.stats.speculationAttempts += proposal.length;
           this._state.stats.speculationAccepted += result.accepted;
           for (const token of result.tokens) {

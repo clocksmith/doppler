@@ -193,7 +193,7 @@ export function aggregateP2PDeliveryObservability(records = [], options = {}) {
   const breaches = [];
   if (availability < targets.minAvailability) {
     breaches.push({
-      id: 'availability_breach',
+      id: 'availability-breach',
       metric: 'availability',
       expected: `>= ${targets.minAvailability}`,
       actual: availability,
@@ -201,7 +201,7 @@ export function aggregateP2PDeliveryObservability(records = [], options = {}) {
   }
   if (p2pHitRate < targets.minP2PHitRate) {
     breaches.push({
-      id: 'p2p_hit_rate_breach',
+      id: 'p2p-hit-rate-breach',
       metric: 'p2pHitRate',
       expected: `>= ${targets.minP2PHitRate}`,
       actual: p2pHitRate,
@@ -209,7 +209,7 @@ export function aggregateP2PDeliveryObservability(records = [], options = {}) {
   }
   if (httpFallbackRate > targets.maxHttpFallbackRate) {
     breaches.push({
-      id: 'http_fallback_rate_breach',
+      id: 'http-fallback-rate-breach',
       metric: 'httpFallbackRate',
       expected: `<= ${targets.maxHttpFallbackRate}`,
       actual: httpFallbackRate,
@@ -217,7 +217,7 @@ export function aggregateP2PDeliveryObservability(records = [], options = {}) {
   }
   if (p95LatencyMs != null && p95LatencyMs > targets.maxP95LatencyMs) {
     breaches.push({
-      id: 'latency_p95_breach',
+      id: 'latency-p95-breach',
       metric: 'p95LatencyMs',
       expected: `<= ${targets.maxP95LatencyMs}`,
       actual: p95LatencyMs,
@@ -259,10 +259,10 @@ export function buildP2PAlertsFromSummary(summary, options = {}) {
   }
 
   const severityByBreach = {
-    availability_breach: 'critical',
-    p2p_hit_rate_breach: 'warning',
-    http_fallback_rate_breach: 'warning',
-    latency_p95_breach: 'warning',
+    'availability-breach': 'critical',
+    'p2p-hit-rate-breach': 'warning',
+    'http-fallback-rate-breach': 'warning',
+    'latency-p95-breach': 'warning',
   };
   const escalatedBreaches = new Set(Array.isArray(options.escalateBreaches)
     ? options.escalateBreaches.map((entry) => asStringOrNull(entry)).filter(Boolean)
@@ -273,7 +273,7 @@ export function buildP2PAlertsFromSummary(summary, options = {}) {
     : [];
 
   return breaches.map((breach) => {
-    const id = asStringOrNull(breach.id) ?? 'unknown_breach';
+    const id = asStringOrNull(breach.id) ?? 'unknown-breach';
     const baseSeverity = severityByBreach[id] ?? 'warning';
     const severity = escalatedBreaches.has(id)
       ? 'critical'

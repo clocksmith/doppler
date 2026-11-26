@@ -118,7 +118,7 @@ function createDiffusionGemmaManifest(branchMode = 'dense-plus-moe') {
 test('DiffusionGemma dense-plus-moe branch keeps dense intermediate width unchanged', () => {
   const manifest = createDiffusionGemmaManifest();
   manifest.inference.diffusionGemma = {
-    decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
+    decoderCacheMode: 'encoder-kv-readonly-canvas-concat',
   };
   const parsed = parseModelConfigFromManifest(manifest);
 
@@ -129,7 +129,7 @@ test('DiffusionGemma dense-plus-moe branch keeps dense intermediate width unchan
   assert.equal(parsed.moeExpertIntermediateSize, 704);
   assert.equal(parsed.numExperts, 128);
   assert.equal(parsed.moeTopK, 8);
-  assert.equal(parsed.diffusionGemma?.decoderCacheMode, 'encoder_kv_readonly_canvas_concat');
+  assert.equal(parsed.diffusionGemma?.decoderCacheMode, 'encoder-kv-readonly-canvas-concat');
 });
 
 test('invalid FFN branch mode fails manifest inference validation', () => {

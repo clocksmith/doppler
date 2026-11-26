@@ -121,7 +121,7 @@ export function normalizeP2PPolicyDecision(value, label = 'p2p control-plane pol
   if (typeof value === 'boolean') {
     return {
       allow: value,
-      reason: value ? null : 'policy_denied',
+      reason: value ? null : 'policy-denied',
       sessionUpdate: null,
       metadata: null,
     };
@@ -185,7 +185,7 @@ export function normalizeP2PPolicyDecision(value, label = 'p2p control-plane pol
 
   return {
     allow,
-    reason: reason ?? (allow ? null : 'policy_denied'),
+    reason: reason ?? (allow ? null : 'policy-denied'),
     sessionUpdate,
     metadata,
   };
@@ -239,7 +239,7 @@ export async function resolveP2PSessionToken(controlPlaneConfig, context = {}) {
     return normalizeControlPlaneSessionUpdate(response, 'p2p control-plane token provider response');
   } catch (error) {
     throw normalizeP2PTransportError(error, {
-      stage: 'control_plane_token_provider',
+      stage: 'control-plane-token-provider',
       shardIndex: context?.shardIndex ?? null,
       attempt: context?.attempt ?? null,
     });
@@ -264,7 +264,7 @@ export async function evaluateP2PPolicyDecision(controlPlaneConfig, context = {}
     return normalizeP2PPolicyDecision(response, 'p2p control-plane policy evaluator response');
   } catch (error) {
     throw normalizeP2PTransportError(error, {
-      stage: 'control_plane_policy_evaluator',
+      stage: 'control-plane-policy-evaluator',
       shardIndex: context?.shardIndex ?? null,
       attempt: context?.attempt ?? null,
     });

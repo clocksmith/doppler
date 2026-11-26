@@ -60,7 +60,7 @@ function normalizePrecisionMode(mode) {
 export function checkDrift(operatorClass, precisionMode, observed) {
   const tolerance = getDriftTolerance(operatorClass, precisionMode);
   if (!tolerance) {
-    return { withinBudget: true, reason: 'no_policy' };
+    return { withinBudget: true, reason: 'no-policy' };
   }
 
   const { maxAbsDiff, maxRelDiff } = tolerance;
@@ -71,14 +71,14 @@ export function checkDrift(operatorClass, precisionMode, observed) {
   const relExceeded = relDiff > maxRelDiff;
 
   if (!absExceeded && !relExceeded) {
-    return { withinBudget: true, reason: 'within_tolerance' };
+    return { withinBudget: true, reason: 'within-tolerance' };
   }
 
   return {
     withinBudget: false,
-    reason: absExceeded && relExceeded ? 'both_exceeded'
-      : absExceeded ? 'abs_exceeded'
-        : 'rel_exceeded',
+    reason: absExceeded && relExceeded ? 'both-exceeded'
+      : absExceeded ? 'abs-exceeded'
+        : 'rel-exceeded',
     tolerance,
     observed: { maxAbsDiff: absDiff, maxRelDiff: relDiff },
   };
@@ -95,7 +95,7 @@ export function checkPropagationBound(precisionMode, layerDrifts) {
   const windowSize = PROPAGATION.windowSize;
 
   if (!layerDrifts || layerDrifts.length === 0) {
-    return { withinBound: true, reason: 'no_data' };
+    return { withinBound: true, reason: 'no-data' };
   }
 
   let accumulated = 0;
@@ -106,7 +106,7 @@ export function checkPropagationBound(precisionMode, layerDrifts) {
   if (accumulated > maxAccumulated) {
     return {
       withinBound: false,
-      reason: 'accumulated_drift_exceeded',
+      reason: 'accumulated-drift-exceeded',
       accumulated,
       limit: maxAccumulated,
     };
@@ -121,7 +121,7 @@ export function checkPropagationBound(precisionMode, layerDrifts) {
       if (olderAvg > 0 && recentAvg / olderAvg > amplificationThreshold) {
         return {
           withinBound: false,
-          reason: 'amplification_detected',
+          reason: 'amplification-detected',
           amplification: recentAvg / olderAvg,
           threshold: amplificationThreshold,
         };
@@ -129,5 +129,5 @@ export function checkPropagationBound(precisionMode, layerDrifts) {
     }
   }
 
-  return { withinBound: true, reason: 'within_bound' };
+  return { withinBound: true, reason: 'within-bound' };
 }

@@ -175,65 +175,65 @@ export async function performIntake({
       };
       blockers.push({
         stage: 'convert',
-        code: error?.code || 'convert_failed',
+        code: error?.code || 'convert-failed',
         message: error?.message || String(error),
       });
     }
   } else {
-    stages.push({ stage: 'convert', status: skipConvert ? 'skipped' : 'not_requested' });
+    stages.push({ stage: 'convert', status: skipConvert ? 'skipped' : 'not-requested' });
   }
 
   if (blockers.length === 0 && manifestPath) {
-    stages.push({ stage: 'manifest_load', status: 'starting' });
+    stages.push({ stage: 'manifest-load', status: 'starting' });
     try {
       const raw = await fsMod.readFile(manifestPath, 'utf8');
       manifest = JSON.parse(raw);
       stages[stages.length - 1] = {
-        stage: 'manifest_load',
+        stage: 'manifest-load',
         status: 'succeeded',
         manifestPath,
         modelId: manifest?.modelId ?? null,
       };
 
-      stages.push({ stage: 'execution_contract_check', status: 'starting' });
+      stages.push({ stage: 'execution-contract-check', status: 'starting' });
       try {
         const facts = extractExecutionContractFacts(manifest);
         const validation = validateExecutionContractFacts(facts);
         stages[stages.length - 1] = {
-          stage: 'execution_contract_check',
+          stage: 'execution-contract-check',
           status: 'succeeded',
           stepCount: facts.steps.length,
           checks: Array.isArray(validation?.checks) ? validation.checks.length : null,
         };
       } catch (error) {
         stages[stages.length - 1] = {
-          stage: 'execution_contract_check',
+          stage: 'execution-contract-check',
           status: 'failed',
           error: error?.message || String(error),
         };
         blockers.push({
-          stage: 'execution_contract_check',
-          code: 'unsupported_op_or_contract_violation',
+          stage: 'execution-contract-check',
+          code: 'unsupported-op-or-contract-violation',
           message: error?.message || String(error),
         });
       }
     } catch (error) {
       stages[stages.length - 1] = {
-        stage: 'manifest_load',
+        stage: 'manifest-load',
         status: 'failed',
         error: error?.message || String(error),
       };
       blockers.push({
-        stage: 'manifest_load',
-        code: 'manifest_unreadable',
+        stage: 'manifest-load',
+        code: 'manifest-unreadable',
         message: error?.message || String(error),
       });
     }
   } else if (blockers.length === 0) {
-    stages.push({ stage: 'manifest_load', status: 'skipped' });
+    stages.push({ stage: 'manifest-load', status: 'skipped' });
     blockers.push({
-      stage: 'manifest_load',
-      code: 'no_manifest_path',
+      stage: 'manifest-load',
+      code: 'no-manifest-path',
       message:
         'intake: no manifest path resolved. Provide --manifest, --model-dir, or a convert-config with output.modelBaseId.',
     });
@@ -349,7 +349,7 @@ export async function checkCapturePrecondition(surface) {
     return {
       ok: false,
       surface,
-      code: 'capture_precondition_node_webgpu_unavailable',
+      code: 'capture-precondition-node-webgpu-unavailable',
       provider: bootstrap.provider ?? null,
       detail: bootstrap.detail ?? null,
       message:
@@ -369,7 +369,7 @@ export async function checkCapturePrecondition(surface) {
       return {
         ok: false,
         surface,
-        code: 'capture_precondition_playwright_missing',
+        code: 'capture-precondition-playwright-missing',
         detail: error?.message ?? null,
         message:
           'bundle: --surface browser requires the `playwright` package. '
@@ -385,7 +385,7 @@ export async function checkCapturePrecondition(surface) {
       return {
         ok: false,
         surface,
-        code: 'capture_precondition_playwright_chromium_missing',
+        code: 'capture-precondition-playwright-chromium-missing',
         detail: error?.message ?? null,
         message:
           'bundle: Playwright is installed but Chromium binaries are missing. '
@@ -398,7 +398,7 @@ export async function checkCapturePrecondition(surface) {
       return {
         ok: false,
         surface,
-        code: 'capture_precondition_playwright_chromium_missing',
+        code: 'capture-precondition-playwright-chromium-missing',
         detail: executablePath ? `executable not found at ${executablePath}` : 'executablePath returned null',
         message:
           'bundle: Playwright Chromium binaries are not installed. '
@@ -411,7 +411,7 @@ export async function checkCapturePrecondition(surface) {
   return {
     ok: false,
     surface,
-    code: 'capture_precondition_unsupported_surface',
+    code: 'capture-precondition-unsupported-surface',
     detail: null,
     message: `bundle: --surface must be 'browser' or 'node', got '${surface}'.`,
   };
@@ -473,7 +473,7 @@ export async function runBundleCommand(parsed, jsonOutput) {
     : path.dirname(manifestPath);
   const modelId = manifest?.modelId ?? null;
   if (!modelId) {
-    blockers.push({ stage: 'bundle', code: 'missing_model_id', message: 'manifest.modelId is required for bundle composition.' });
+    blockers.push({ stage: 'bundle', code: 'missing-model-id', message: 'manifest.modelId is required for bundle composition.' });
     return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
   }
 
@@ -541,7 +541,7 @@ export async function runBundleCommand(parsed, jsonOutput) {
         status: 'failed',
         error: error?.message || String(error),
       };
-      blockers.push({ stage: 'capture', code: 'capture_failed', message: error?.message || String(error) });
+      blockers.push({ stage: 'capture', code: 'capture-failed', message: error?.message || String(error) });
       return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
     }
   } else {
@@ -553,7 +553,7 @@ export async function runBundleCommand(parsed, jsonOutput) {
     if (!preExistingReport || !preExistingTranscript) {
       blockers.push({
         stage: 'capture',
-        code: 'skip_capture_requires_artifacts',
+        code: 'skip-capture-requires-artifacts',
         message: 'bundle: --skip-capture requires existing --reference-report and --reference-transcript paths.',
       });
       return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
@@ -590,7 +590,7 @@ export async function runBundleCommand(parsed, jsonOutput) {
       status: 'failed',
       error: error?.message || String(error),
     };
-    blockers.push({ stage: 'bundle', code: 'bundle_export_failed', message: error?.message || String(error) });
+    blockers.push({ stage: 'bundle', code: 'bundle-export-failed', message: error?.message || String(error) });
     return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
   }
 
@@ -630,7 +630,7 @@ export async function runBundleCommand(parsed, jsonOutput) {
       status: 'failed',
       error: error?.message || String(error),
     };
-    blockers.push({ stage: 'parity', code: 'parity_check_failed', message: error?.message || String(error) });
+    blockers.push({ stage: 'parity', code: 'parity-check-failed', message: error?.message || String(error) });
     return emitBundleSummary({ ok: false, stages, blockers, artifactPaths, jsonOutput, resolvedOut });
   }
 

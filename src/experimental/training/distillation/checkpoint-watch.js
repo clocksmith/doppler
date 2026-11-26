@@ -29,7 +29,7 @@ export async function watchDistillationCheckpoints(options) {
       });
       for (const report of reports) {
         await appendDistillationScoreboardRow(layout, String(marker.stage || 'stage'), {
-          artifactType: 'training_scoreboard',
+          artifactType: 'training-scoreboard',
           schemaVersion: 1,
           generatedAt: new Date().toISOString(),
           stage: marker.stage,

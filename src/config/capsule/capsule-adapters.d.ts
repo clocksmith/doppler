@@ -11,7 +11,7 @@ export interface CapsuleExecutionAdapter {
   readonly schema: 'doppler.capsule-adapter/v1';
   readonly identity: string;
   readonly baseModel: { readonly modelId: string; readonly semanticRoot: string; readonly envelopeDigest: string; readonly artifactClosureDigest: string };
-  readonly format: 'peft_safetensors';
+  readonly format: 'peft-safetensors';
   readonly manifest: Readonly<Record<string, unknown>>;
   readonly artifact: { readonly artifactId: string; readonly role: 'lora-weights'; readonly path: string; readonly hash: string; readonly sizeBytes: number };
 }

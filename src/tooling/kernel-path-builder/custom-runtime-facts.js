@@ -40,7 +40,7 @@ export function buildCustomRuntimeFacts(options = {}) {
       assumptions: {
         registryBypass: true,
         recurrentState: true,
-        projectionDtype: 'f16_or_f32',
+        projectionDtype: 'f16-or-f32',
         recurrentStateDtype: 'f32',
         decodeBatchingConstraint: 'batch-capable',
       },

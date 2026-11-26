@@ -41,7 +41,7 @@ import { runInternalCausalLmLoraPipeline } from './execution.js';
 
 export function buildRunContract(loadedWorkload) {
   return {
-    artifactType: 'training_run_contract',
+    artifactType: 'training-run-contract',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     workloadId: loadedWorkload.workload.id,
@@ -226,7 +226,7 @@ export async function writeProviderEvalReports(context) {
     };
     reports.push(materialized);
     await appendScoreboardRow(context.layout.scoreboard, {
-      artifactType: 'training_scoreboard',
+      artifactType: 'training-scoreboard',
       schemaVersion: 1,
       generatedAt: new Date().toISOString(),
       checkpointId: materialized.checkpointId,
@@ -255,7 +255,7 @@ export async function resolveCausalLmTrainer(loadedWorkload, options = {}) {
   if (typeof options.causalLmTrainer === 'function') {
     return {
       train: options.causalLmTrainer,
-      runnerId: options.causalLmTrainer.runnerId || 'injected_causal_lm_lora_trainer',
+      runnerId: options.causalLmTrainer.runnerId || 'injected-causal-lm-lora-trainer',
       source: 'runLoraPipeline.options.causalLmTrainer',
       exportName: null,
     };
@@ -263,16 +263,16 @@ export async function resolveCausalLmTrainer(loadedWorkload, options = {}) {
   const trainerConfig = getPipelineConfig(loadedWorkload.workload).trainer;
   if (!trainerConfig) {
     throw new Error(
-      'causal_lm_trainer_not_configured: provide runLoraPipeline({ causalLmTrainer }) or lora.trainer.modulePath in the workload.'
+      'causal-lm-trainer-not-configured: provide runLoraPipeline({ causalLmTrainer }) or lora.trainer.modulePath in the workload.'
     );
   }
   const modulePath = String(trainerConfig.modulePath || trainerConfig.path || '').trim();
   if (!modulePath) {
-    throw new Error('causal_lm_trainer_not_configured: lora.trainer.modulePath is required.');
+    throw new Error('causal-lm-trainer-not-configured: lora.trainer.modulePath is required.');
   }
   const exportName = String(trainerConfig.exportName || 'trainCausalLmLora').trim();
   if (!exportName) {
-    throw new Error('causal_lm_trainer_not_configured: lora.trainer.exportName is required.');
+    throw new Error('causal-lm-trainer-not-configured: lora.trainer.exportName is required.');
   }
   const workloadDir = loadedWorkload.absolutePath
     ? dirname(resolve(String(loadedWorkload.absolutePath)))
@@ -283,7 +283,7 @@ export async function resolveCausalLmTrainer(loadedWorkload, options = {}) {
   const trainerModule = await import(pathToFileURL(absoluteModulePath).href);
   const train = trainerModule[exportName];
   if (typeof train !== 'function') {
-    throw new Error(`causal_lm_trainer_not_configured: ${absoluteModulePath} does not export ${exportName}().`);
+    throw new Error(`causal-lm-trainer-not-configured: ${absoluteModulePath} does not export ${exportName}().`);
   }
   return {
     train,
@@ -320,7 +320,7 @@ export async function runProviderCausalLmLoraPipeline(options, compatibility) {
   const trainerInfo = await resolveCausalLmTrainer(loadedWorkload, options);
   const trainerResult = await trainerInfo.train({
     schemaVersion: 1,
-    runnerKind: 'causal_lm_lora',
+    runnerKind: 'causal-lm-lora',
     workload,
     loadedWorkload,
     compatibility,
@@ -341,7 +341,7 @@ export async function runProviderCausalLmLoraPipeline(options, compatibility) {
     ...buildArtifact(loadedWorkload, {
       prefix: 'lora_ckpt',
       id: trainerOutput.checkpointId,
-      artifactType: 'training_checkpoint',
+      artifactType: 'training-checkpoint',
       datasetPath: dataset.absolutePath,
       datasetHash,
       checkpointStep: trainerOutput.checkpointStep,
@@ -396,7 +396,7 @@ export async function runProviderCausalLmLoraPipeline(options, compatibility) {
     ok: true,
     kind: 'lora',
     action: 'run',
-    runnerKind: 'causal_lm_lora',
+    runnerKind: 'causal-lm-lora',
     workloadId: workload.id,
     runRoot: layout.runRoot,
     preflight,

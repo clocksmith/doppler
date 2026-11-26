@@ -14,7 +14,7 @@ export interface QwenAdapterTrainingProgress {
 }
 
 export interface QwenAdapterTrainingState {
-  artifactType: 'qwen_adapter_training_state';
+  artifactType: 'qwen-adapter-training-state';
   schemaVersion: 1;
   parameterNames: string[];
   progress: Required<QwenAdapterTrainingProgress>;

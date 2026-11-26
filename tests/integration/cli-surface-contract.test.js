@@ -490,7 +490,7 @@ await assert.rejects(
   assert.equal(payload.schemaVersion, 1);
   assert.equal(payload.surface, null);
   assert.equal(payload.request, null);
-  assert.equal(payload.error.code, 'tooling_error');
+  assert.equal(payload.error.code, 'tooling-error');
   assert.match(payload.error.message, /command requires --config <path\|url\|json>\./);
 }
 
@@ -629,7 +629,7 @@ await assert.rejects(
   assert.equal(result.code, 1);
   const payload = JSON.parse(result.stdout);
   assert.equal(payload.ok, false);
-  assert.equal(payload.error.code, 'training_surface_downgrade_blocked');
+  assert.equal(payload.error.code, 'training-surface-downgrade-blocked');
   assert.equal(payload.error.details?.surface, 'node');
   assert.equal(payload.error.details?.command, 'lora');
   assert.match(
@@ -657,7 +657,7 @@ await assert.rejects(
   assert.equal(result.code, 1);
   const payload = JSON.parse(result.stdout);
   assert.equal(payload.ok, false);
-  assert.equal(payload.error.code, 'training_surface_downgrade_blocked');
+  assert.equal(payload.error.code, 'training-surface-downgrade-blocked');
   assert.equal(payload.error.details?.surface, 'node');
   assert.equal(payload.error.details?.command, 'distill');
   assert.match(
@@ -686,7 +686,7 @@ await assert.rejects(
   assert.equal(result.code, 1);
   const payload = JSON.parse(result.stdout);
   assert.equal(payload.ok, false);
-  assert.equal(payload.error.code, 'training_surface_downgrade_blocked');
+  assert.equal(payload.error.code, 'training-surface-downgrade-blocked');
   assert.equal(payload.error.details?.surface, 'node');
   assert.equal(payload.error.details?.command, 'bench');
   assert.equal(payload.error.details?.workloadType, 'training');

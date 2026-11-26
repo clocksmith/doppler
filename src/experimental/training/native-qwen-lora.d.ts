@@ -45,7 +45,7 @@ export interface NativeQwenLoRACheckpointTensor {
 
 export interface NativeQwenLoRACheckpoint {
   schemaVersion: 1;
-  backend: 'webgpu_native';
+  backend: 'webgpu-native';
   baseModelId: string;
   target: { layerIdx: number; module: 'down_proj' };
   rank: number;
@@ -116,7 +116,7 @@ export interface NativeQwenSftLoRAOptions extends NativeQwenLoRATrainerOptions {
 }
 
 export declare function trainNativeQwenSftLoRA(options: NativeQwenSftLoRAOptions): Promise<{
-  backend: 'webgpu_native';
+  backend: 'webgpu-native';
   surfaces: ['browser', 'node', 'bun'];
   baseModelId: string;
   target: { layerIdx: number; module: 'down_proj' };

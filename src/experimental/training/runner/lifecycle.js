@@ -54,34 +54,34 @@ export function evaluateTelemetryAlerts(entry, telemetry) {
   const alerts = [];
   const thresholds = telemetry.thresholds || {};
   if (Number.isFinite(thresholds.maxStepTimeMs) && entry.step_time_ms > thresholds.maxStepTimeMs) {
-    alerts.push('max_step_time_ms_exceeded');
+    alerts.push('max-step-time-ms-exceeded');
   }
   if (
     Number.isFinite(thresholds.maxGradientNorm)
     && Number.isFinite(entry.gradient_norm_unclipped)
     && entry.gradient_norm_unclipped > thresholds.maxGradientNorm
   ) {
-    alerts.push('max_gradient_norm_exceeded');
+    alerts.push('max-gradient-norm-exceeded');
   }
   if (Number.isFinite(thresholds.maxNaNCount) && Number.isFinite(entry.nan_count) && entry.nan_count > thresholds.maxNaNCount) {
-    alerts.push('max_nan_count_exceeded');
+    alerts.push('max-nan-count-exceeded');
   }
   if (Number.isFinite(thresholds.maxInfCount) && Number.isFinite(entry.inf_count) && entry.inf_count > thresholds.maxInfCount) {
-    alerts.push('max_inf_count_exceeded');
+    alerts.push('max-inf-count-exceeded');
   }
   if (
     Number.isFinite(thresholds.maxSaturationCount)
     && Number.isFinite(entry.saturation_count)
     && entry.saturation_count > thresholds.maxSaturationCount
   ) {
-    alerts.push('max_saturation_count_exceeded');
+    alerts.push('max-saturation-count-exceeded');
   }
   if (
     Number.isFinite(thresholds.minEffectiveLr)
     && Number.isFinite(entry.effective_lr)
     && entry.effective_lr < thresholds.minEffectiveLr
   ) {
-    alerts.push('min_effective_lr_below_threshold');
+    alerts.push('min-effective-lr-below-threshold');
   }
   return alerts;
 }

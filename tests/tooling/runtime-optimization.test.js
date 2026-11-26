@@ -209,7 +209,7 @@ function responseFor(request, options = {}) {
     },
   });
   assert.equal(receipt.decision.accepted, false);
-  assert.deepEqual(receipt.decision.reasons, ['candidate_parity_failed']);
+  assert.deepEqual(receipt.decision.reasons, ['candidate-parity-failed']);
   assert.equal(benchCalls, 0);
 }
 
@@ -343,7 +343,7 @@ function responseFor(request, options = {}) {
     },
   });
   assert.equal(receipt.decision.accepted, false);
-  assert.ok(receipt.decision.reasons.includes('neighboring_workload_guard_failed'));
+  assert.ok(receipt.decision.reasons.includes('neighboring-workload-guard-failed'));
   assert.equal(receipt.neighboringWorkloadGuards.results[0].passed, false);
 }
 

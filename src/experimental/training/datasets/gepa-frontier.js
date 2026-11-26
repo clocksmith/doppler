@@ -150,8 +150,8 @@ export function buildTeacherTracesFromGepaFrontier(candidates, options = {}) {
       const completion = normalizeTraceOutput(trace, traceIndex, candidate.id);
       rows.push({
         schemaVersion: 1,
-        artifactType: 'teacher_trace',
-        traceFormat: 'doppler_teacher_trace_v1',
+        artifactType: 'teacher-trace',
+        traceFormat: 'doppler-teacher-trace-v1',
         id: `${candidate.id}-trace-${traceIndex + 1}`,
         teacherModel: teacherModelId,
         teacherModelId,

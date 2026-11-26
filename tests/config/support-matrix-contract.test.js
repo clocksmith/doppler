@@ -601,7 +601,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
   await fs.mkdir(tempDir, { recursive: true });
   try {
     await fs.writeFile(receiptPath, `${JSON.stringify({
-      receiptVersion: 'doppler_serve_receipt_v2',
+      receiptVersion: 'doppler-serve-receipt-v2',
       schemaVersion: 2,
       surface: 'serve',
       status: 'pass',
@@ -678,7 +678,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     }), []);
 
     await fs.writeFile(diagnosticReceiptPath, `${JSON.stringify({
-      receiptVersion: 'doppler_serve_receipt_v2',
+      receiptVersion: 'doppler-serve-receipt-v2',
       schemaVersion: 2,
       surface: 'serve',
       status: 'diagnostic',
@@ -727,7 +727,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
           toGPU: true,
           streamedUpload: false,
           deviceLimitFailure: {
-            kind: 'gpu_resident_embedding_exceeds_device_limit',
+            kind: 'gpu-resident-embedding-exceeds-device-limit',
             maxGpuResidentBytes: 134217728,
             maxStorageBufferBindingSize: 134217728,
             maxBufferSize: 4294967295,

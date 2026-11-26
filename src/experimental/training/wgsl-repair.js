@@ -1,32 +1,32 @@
 import { isPlainObject as isObject } from '../../formats/plain-object.js';
 import { sha256Hex } from '../../formats/sha256.js';
 
-export const WGSL_REPAIR_TASK_CONTRACT = 'replacement_only_wgsl_span_v1';
+export const WGSL_REPAIR_TASK_CONTRACT = 'replacement-only-wgsl-span-v1';
 
 export const WGSL_REPAIR_MUTATION_OPERATORS = Object.freeze([
-  'address_space',
-  'attribute_name',
-  'builtin_name',
-  'declared_type',
-  'function_name',
-  'identifier_reference',
-  'missing_semicolon',
-  'numeric_literal_suffix',
-  'storage_access',
+  'address-space',
+  'attribute-name',
+  'builtin-name',
+  'declared-type',
+  'function-name',
+  'identifier-reference',
+  'missing-semicolon',
+  'numeric-literal-suffix',
+  'storage-access',
 ]);
 
 export const VERIFIER_GUIDED_ARTIFACT_TYPES = Object.freeze([
-  'training_rollout_group',
-  'training_reward_vector',
-  'training_policy_update',
-  'training_verifier_report',
-  'training_policy_checkpoint',
-  'training_promotion_decision',
+  'training-rollout-group',
+  'training-reward-vector',
+  'training-policy-update',
+  'training-verifier-report',
+  'training-policy-checkpoint',
+  'training-promotion-decision',
 ]);
 
 const BLOCKING_REWARD_IDS = Object.freeze([
-  'contract_pass',
-  'policy_pass',
+  'contract-pass',
+  'policy-pass',
 ]);
 
 function requireObject(value, label) {
@@ -135,13 +135,13 @@ function buildAttributeMutation(source) {
   const match = firstMatch(source, /@(binding|group|compute|workgroup_size)\b/g);
   if (!match) return null;
   const replacement = `@${match[1]}_broken`;
-  return mutationFromMatch(source, 'attribute_name', match, replacement, match[1]);
+  return mutationFromMatch(source, 'attribute-name', match, replacement, match[1]);
 }
 
 function buildAddressSpaceMutation(source) {
   const match = firstMatch(source, /\b(uniform|storage|workgroup|private)\b/g);
   if (!match) return null;
-  return mutationFromMatch(source, 'address_space', match, `${match[1]}_broken`, match[1]);
+  return mutationFromMatch(source, 'address-space', match, `${match[1]}_broken`, match[1]);
 }
 
 function buildBuiltinMutation(source) {
@@ -149,7 +149,7 @@ function buildBuiltinMutation(source) {
   if (!match) return null;
   return mutationFromMatch(
     source,
-    'builtin_name',
+    'builtin-name',
     match,
     `@builtin(${match[1]}_broken)`,
     match[1]
@@ -159,7 +159,7 @@ function buildBuiltinMutation(source) {
 function buildTypeMutation(source) {
   const match = firstMatch(source, /\b(u32|i32|f32|f16)\b/g);
   if (!match) return null;
-  return mutationFromMatch(source, 'declared_type', match, `${match[1]}_broken`, match[1]);
+  return mutationFromMatch(source, 'declared-type', match, `${match[1]}_broken`, match[1]);
 }
 
 function buildFunctionMutation(source) {
@@ -168,7 +168,7 @@ function buildFunctionMutation(source) {
     /\b(workgroupBarrier|storageBarrier|arrayLength|select|clamp|min|max|dot)\b/g
   );
   if (!match) return null;
-  return mutationFromMatch(source, 'function_name', match, `${match[1]}_broken`, match[1]);
+  return mutationFromMatch(source, 'function-name', match, `${match[1]}_broken`, match[1]);
 }
 
 function buildIdentifierMutation(source) {
@@ -183,7 +183,7 @@ function buildIdentifierMutation(source) {
     if (!use) continue;
     return mutationFromMatch(
       source,
-      'identifier_reference',
+      'identifier-reference',
       use,
       `${name}_broken`,
       name
@@ -203,7 +203,7 @@ function buildSemicolonMutation(source) {
     }
   );
   if (!match) return null;
-  return mutationFromMatch(source, 'missing_semicolon', match, '', 'semicolon');
+  return mutationFromMatch(source, 'missing-semicolon', match, '', 'semicolon');
 }
 
 function buildNumericLiteralMutation(source) {
@@ -211,7 +211,7 @@ function buildNumericLiteralMutation(source) {
   if (!match) return null;
   return mutationFromMatch(
     source,
-    'numeric_literal_suffix',
+    'numeric-literal-suffix',
     match,
     `${match[0].slice(0, -1)}z`,
     match[0]
@@ -221,19 +221,19 @@ function buildNumericLiteralMutation(source) {
 function buildStorageAccessMutation(source) {
   const match = firstMatch(source, /(?<=var<storage,\s*)(read_write|read)(?=>)/g);
   if (!match) return null;
-  return mutationFromMatch(source, 'storage_access', match, `${match[1]}_broken`, match[1]);
+  return mutationFromMatch(source, 'storage-access', match, `${match[1]}_broken`, match[1]);
 }
 
 const MUTATION_BUILDERS = Object.freeze({
-  address_space: buildAddressSpaceMutation,
-  attribute_name: buildAttributeMutation,
-  builtin_name: buildBuiltinMutation,
-  declared_type: buildTypeMutation,
-  function_name: buildFunctionMutation,
-  identifier_reference: buildIdentifierMutation,
-  missing_semicolon: buildSemicolonMutation,
-  numeric_literal_suffix: buildNumericLiteralMutation,
-  storage_access: buildStorageAccessMutation,
+  'address-space': buildAddressSpaceMutation,
+  'attribute-name': buildAttributeMutation,
+  'builtin-name': buildBuiltinMutation,
+  'declared-type': buildTypeMutation,
+  'function-name': buildFunctionMutation,
+  'identifier-reference': buildIdentifierMutation,
+  'missing-semicolon': buildSemicolonMutation,
+  'numeric-literal-suffix': buildNumericLiteralMutation,
+  'storage-access': buildStorageAccessMutation,
 });
 
 export function deriveKernelFamily(sourceId, sourcePath) {
@@ -341,13 +341,13 @@ export function buildWgslRepairTask(sourceRecord, mutation) {
 
 export function parseReplacementOnlyResponse(response) {
   if (typeof response !== 'string') {
-    return { ok: false, replacement: '', violations: ['response_not_string'] };
+    return { ok: false, replacement: '', violations: ['response-not-string'] };
   }
   const violations = [];
-  if (!response.trim()) violations.push('empty_response');
-  if (/```/.test(response)) violations.push('markdown_fence');
+  if (!response.trim()) violations.push('empty-response');
+  if (/```/.test(response)) violations.push('markdown-fence');
   if (/^\s*(?:here(?:'s| is)|explanation:|patch:|diff --git)/i.test(response)) {
-    violations.push('prose_or_diff_wrapper');
+    violations.push('prose-or-diff-wrapper');
   }
   return {
     ok: violations.length === 0,
@@ -395,12 +395,12 @@ export function buildWgslRewardVector(input) {
   const regressionPass = input.regressionPass === true;
   const exactReferenceMatch = input.exactReferenceMatch === true;
   const components = [
-    rewardComponent('contract_pass', 'blocking', contractPass, contractPass ? 1 : 0, input.contractEvidence || null),
-    rewardComponent('policy_pass', 'blocking', policyPass, policyPass ? 1 : 0, input.policyEvidence || null),
-    rewardComponent('compile_pass', 'promotion', compilePass, compilePass ? 1 : 0, input.compileEvidence || null),
-    rewardComponent('regression_pass', 'promotion', regressionPass, regressionPass ? 1 : 0, input.regressionEvidence || null),
+    rewardComponent('contract-pass', 'blocking', contractPass, contractPass ? 1 : 0, input.contractEvidence || null),
+    rewardComponent('policy-pass', 'blocking', policyPass, policyPass ? 1 : 0, input.policyEvidence || null),
+    rewardComponent('compile-pass', 'promotion', compilePass, compilePass ? 1 : 0, input.compileEvidence || null),
+    rewardComponent('regression-pass', 'promotion', regressionPass, regressionPass ? 1 : 0, input.regressionEvidence || null),
     rewardComponent(
-      'exact_reference_match',
+      'exact-reference-match',
       'supporting',
       exactReferenceMatch,
       exactReferenceMatch ? 1 : 0,
@@ -416,14 +416,14 @@ export function buildWgslRewardVector(input) {
       ? 1 + (exactReferenceMatch ? 0.05 : 0)
       : 0;
   return {
-    artifactType: 'training_reward_vector',
+    artifactType: 'training-reward-vector',
     schemaVersion: 1,
     taskId,
     sampleId: requireString(input.sampleId, 'reward input.sampleId'),
     verifierBundleHash: requireHash(input.verifierBundleHash, 'reward input.verifierBundleHash'),
     components,
     reduction: {
-      id: 'wgsl_lexicographic_compile_regression_v1',
+      id: 'wgsl-lexicographic-compile-regression-v1',
       blockingComponentIds: BLOCKING_REWARD_IDS,
       formula: 'blocked ? -1 : (compile_pass && regression_pass ? 1 + 0.05 * exact_reference_match : 0)',
       scalarReward,
@@ -450,7 +450,7 @@ export function computeGroupRelativeAdvantages(rewards, epsilon = 1e-6) {
     standardDeviation,
     epsilon: denominatorFloor,
     zeroVariance,
-    zeroVariancePolicy: 'zero_advantages',
+    zeroVariancePolicy: 'zero-advantages',
     advantages: zeroVariance
       ? values.map(() => 0)
       : values.map((value) => (value - mean) / divisor),
@@ -477,7 +477,7 @@ export function buildTrainingRolloutGroup(input) {
     throw new Error('rollout group input.rolloutPurpose must be training or evaluation.');
   }
   const artifact = {
-    artifactType: 'training_rollout_group',
+    artifactType: 'training-rollout-group',
     schemaVersion: 1,
     workloadId: requireString(input.workloadId, 'rollout group input.workloadId'),
     groupId: requireString(input.groupId, 'rollout group input.groupId'),
@@ -633,13 +633,13 @@ export function deriveReferenceAnchoredDpoPairs(groups, tasks) {
     }
     pairs.push({
       pairId: `${group.groupId}-reference-anchored-dpo`,
-      pairConstruction: 'compiler_qualified_reference_vs_modal_all_fail_rollout_v1',
+      pairConstruction: 'compiler-qualified-reference-vs-modal-all-fail-rollout-v1',
       taskId: group.taskId,
       prompt: task.prompt,
       chosen,
       rejected: rejectedMode.completion,
-      chosenSource: 'compiler_qualified_task_reference',
-      rejectedSource: 'modal_all_fail_on_policy_completion',
+      chosenSource: 'compiler-qualified-task-reference',
+      rejectedSource: 'modal-all-fail-on-policy-completion',
       rejectedSampleId: representative.sampleId,
       rejectedModeCount: rejectedMode.samples.length,
       rolloutPolicyHash: group.policyHash,
@@ -662,7 +662,7 @@ export function buildTrainingPromotionDecision(input) {
   const allPassed = gates.every((gate) => gate.passed);
   const decision = missingEvidence ? 'blocked' : (allPassed ? 'promote' : 'reject');
   const artifact = {
-    artifactType: 'training_promotion_decision',
+    artifactType: 'training-promotion-decision',
     schemaVersion: 1,
     workloadId: requireString(input.workloadId, 'promotion input.workloadId'),
     decisionId: requireString(input.decisionId, 'promotion input.decisionId'),
@@ -691,7 +691,7 @@ function validateCommonArtifact(artifact, expectedType) {
 }
 
 function validateRolloutGroup(artifact) {
-  validateCommonArtifact(artifact, 'training_rollout_group');
+  validateCommonArtifact(artifact, 'training-rollout-group');
   requireString(artifact.groupId, 'training_rollout_group.groupId');
   requireString(artifact.taskId, 'training_rollout_group.taskId');
   requireHash(artifact.datasetHash, 'training_rollout_group.datasetHash');
@@ -737,8 +737,8 @@ function requireTrainingRolloutGroup(group) {
 }
 
 function validateRewardVector(artifact) {
-  if (artifact.artifactType !== 'training_reward_vector' || artifact.schemaVersion !== 1) {
-    throw new Error('training_reward_vector artifact header is invalid.');
+  if (artifact.artifactType !== 'training-reward-vector' || artifact.schemaVersion !== 1) {
+    throw new Error('training-reward-vector artifact header is invalid.');
   }
   requireString(artifact.taskId, 'training_reward_vector.taskId');
   requireString(artifact.sampleId, 'training_reward_vector.sampleId');
@@ -746,7 +746,7 @@ function validateRewardVector(artifact) {
   const components = requireArray(artifact.components, 'training_reward_vector.components', 1);
   const ids = new Set(components.map((component) => requireString(component.id, 'reward component id')));
   for (const id of BLOCKING_REWARD_IDS) {
-    if (!ids.has(id)) throw new Error(`training_reward_vector is missing ${id}.`);
+    if (!ids.has(id)) throw new Error(`training-reward-vector is missing ${id}.`);
   }
   requireObject(artifact.reduction, 'training_reward_vector.reduction');
   requireFinite(artifact.reduction.scalarReward, 'training_reward_vector.reduction.scalarReward');
@@ -754,7 +754,7 @@ function validateRewardVector(artifact) {
 }
 
 function validatePolicyUpdate(artifact) {
-  validateCommonArtifact(artifact, 'training_policy_update');
+  validateCommonArtifact(artifact, 'training-policy-update');
   requireString(artifact.updateId, 'training_policy_update.updateId');
   requireHash(artifact.inputPolicyHash, 'training_policy_update.inputPolicyHash');
   requireHash(artifact.outputPolicyHash, 'training_policy_update.outputPolicyHash');
@@ -766,7 +766,7 @@ function validatePolicyUpdate(artifact) {
 }
 
 function validateVerifierReport(artifact) {
-  validateCommonArtifact(artifact, 'training_verifier_report');
+  validateCommonArtifact(artifact, 'training-verifier-report');
   requireString(artifact.reportId, 'training_verifier_report.reportId');
   requireString(artifact.taskId, 'training_verifier_report.taskId');
   requireString(artifact.sampleId, 'training_verifier_report.sampleId');
@@ -776,7 +776,7 @@ function validateVerifierReport(artifact) {
 }
 
 function validatePolicyCheckpoint(artifact) {
-  validateCommonArtifact(artifact, 'training_policy_checkpoint');
+  validateCommonArtifact(artifact, 'training-policy-checkpoint');
   requireString(artifact.checkpointId, 'training_policy_checkpoint.checkpointId');
   requireHash(artifact.policyHash, 'training_policy_checkpoint.policyHash');
   requireHash(artifact.datasetHash, 'training_policy_checkpoint.datasetHash');
@@ -785,7 +785,7 @@ function validatePolicyCheckpoint(artifact) {
 }
 
 function validatePromotionDecision(artifact) {
-  validateCommonArtifact(artifact, 'training_promotion_decision');
+  validateCommonArtifact(artifact, 'training-promotion-decision');
   requireString(artifact.decisionId, 'training_promotion_decision.decisionId');
   if (!['promote', 'reject', 'blocked'].includes(artifact.decision)) {
     throw new Error('training_promotion_decision.decision must be promote, reject, or blocked.');
@@ -799,21 +799,21 @@ function validatePromotionDecision(artifact) {
 }
 
 const ARTIFACT_VALIDATORS = Object.freeze({
-  training_rollout_group: validateRolloutGroup,
-  training_reward_vector: validateRewardVector,
-  training_policy_update: validatePolicyUpdate,
-  training_verifier_report: validateVerifierReport,
-  training_policy_checkpoint: validatePolicyCheckpoint,
-  training_promotion_decision: validatePromotionDecision,
+  'training-rollout-group': validateRolloutGroup,
+  'training-reward-vector': validateRewardVector,
+  'training-policy-update': validatePolicyUpdate,
+  'training-verifier-report': validateVerifierReport,
+  'training-policy-checkpoint': validatePolicyCheckpoint,
+  'training-promotion-decision': validatePromotionDecision,
 });
 
 export function validateVerifierGuidedArtifact(artifact) {
-  const type = requireString(artifact?.artifactType, 'artifact.artifactType');
+  const type = requireString(artifact?.artifactType, 'artifact.artifactType').replace(/_/g, '-'); // 0.1.x spelled types snake_case
   const validator = ARTIFACT_VALIDATORS[type];
   if (!validator) {
     throw new Error(`Unsupported verifier-guided artifact type: ${type}`);
   }
-  validator(artifact);
+  validator({ ...artifact, artifactType: type });
   return artifact;
 }
 

@@ -17,7 +17,7 @@ function hashStableJson(value) {
 const absent = evaluateTranslationArtifactCompetition({ policy });
 assert.equal(absent.decision, 'blocked');
 assert.equal(absent.admission.artifactGenerationAllowed, false);
-assert.ok(absent.blockers.includes('gamma_selected_handoff_absent'));
+assert.ok(absent.blockers.includes('gamma-selected-handoff-absent'));
 
 const baselineResult = evaluateTranslationArtifactCompetition({
   policy,
@@ -28,7 +28,7 @@ const baselineResult = evaluateTranslationArtifactCompetition({
 });
 assert.equal(baselineResult.decision, 'blocked');
 assert.equal(baselineResult.admission.artifactGenerationAllowed, false);
-assert.ok(baselineResult.blockers.includes('gamma_source_not_selected_candidate'));
+assert.ok(baselineResult.blockers.includes('gamma-source-not-selected-candidate'));
 
 const selectedHandoff = structuredClone(baseline);
 selectedHandoff.contractId = 'gamma.translation.selected-unit.v1';
@@ -75,10 +75,10 @@ const selectedResult = evaluateTranslationArtifactCompetition({
   handoffSha256: selectedHandoffSha256,
   verificationReceipt: verification,
 });
-assert.equal(selectedResult.decision, 'artifact_generation_allowed');
+assert.equal(selectedResult.decision, 'artifact-generation-allowed');
 assert.equal(selectedResult.admission.artifactGenerationAllowed, true);
 assert.equal(selectedResult.admission.artifactComparisonAllowed, false);
 assert.equal(selectedResult.admission.promotionSubmissionAllowed, false);
-assert.deepEqual(selectedResult.blockers, ['artifact_lane_evidence_incomplete']);
+assert.deepEqual(selectedResult.blockers, ['artifact-lane-evidence-incomplete']);
 
 console.log('translation-artifact-competition.test: ok');

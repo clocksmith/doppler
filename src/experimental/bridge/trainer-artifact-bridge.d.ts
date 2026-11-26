@@ -2,8 +2,8 @@ export declare const TRAINER_ARTIFACT_BRIDGE_SCHEMA_ID: 'doppler.trainer-artifac
 export declare const TRAINER_ARTIFACT_IMPORT_PLAN_SCHEMA_ID: 'doppler.trainer-artifact-import-plan/v1';
 export declare const TRAINER_ARTIFACT_PARITY_EVIDENCE_SCHEMA_ID: 'doppler.trainer-artifact-parity-evidence/v1';
 export declare const TRAINER_ARTIFACT_PARITY_RECEIPT_SCHEMA_ID: 'doppler.trainer-artifact-parity-receipt/v1';
-export declare const TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT: 'full_checkpoint';
-export declare const TRAINER_ARTIFACT_KIND_PEFT_ADAPTER: 'peft_adapter';
+export declare const TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT: 'full-checkpoint';
+export declare const TRAINER_ARTIFACT_KIND_PEFT_ADAPTER: 'peft-adapter';
 
 export declare const TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS: readonly string[];
 export declare const COLUMBO_QWEN_ADAPTER_PARITY_CHECKS: readonly string[];
@@ -64,11 +64,11 @@ export interface TrainerArtifactBridgeDescriptor {
   };
   selection: {
     authority: string;
-    status: 'not_selected' | 'selected';
+    status: 'not-selected' | 'selected';
     receipt: string | null;
   };
   parity: {
-    profile: 'translation_full_checkpoint' | 'columbo_qwen_adapter' | 'tinker_peft_browser_adapter';
+    profile: 'translation-full-checkpoint' | 'columbo-qwen-adapter' | 'tinker-peft-browser-adapter';
     requiredChecks: string[];
   };
   claimBoundary: string;

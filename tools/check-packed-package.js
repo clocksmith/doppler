@@ -94,9 +94,10 @@ async function writeImportSmoke(consumerDir, packageJson) {
 async function runTrainingApiSmoke(consumerDir, packageJson) {
   const source = [
     `import { getTrainingCapabilities, TRAINING_BACKENDS } from '${packageJson.name}/training';`,
+    // The legacy taskType spelling text_generation is still read (0.x compatibility rule).
     "const capabilities = getTrainingCapabilities({ kind: 'lora', baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16', pipeline: { datasetFormat: 'text-pairs', taskType: 'text_generation' } });",
     "if (!capabilities.supported || capabilities.backends.webgpuNative.supported || !capabilities.backends.external.supported) throw new Error('training capability contract mismatch');",
-    "if (TRAINING_BACKENDS.join(',') !== 'webgpu_native,external') throw new Error('training backend registry mismatch');",
+    "if (TRAINING_BACKENDS.join(',') !== 'webgpu-native,external') throw new Error('training backend registry mismatch');",
     "console.log('package training API smoke passed');",
     '',
   ].join('\n');

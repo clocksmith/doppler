@@ -20,12 +20,12 @@ const evalDataset = workload.workload.evalDatasets.find(
 );
 assert.ok(evalDataset?.agentEval);
 assert.deepEqual(evalDataset.agentEval.categories, [
-  'js_patching',
-  'wgsl_review',
-  'manifest_config_review',
-  'reploid_vfs_status_tool_loop',
-  'patch_applies',
-  'no_hallucinated_files_tools',
+  'js-patching',
+  'wgsl-review',
+  'manifest-config-review',
+  'reploid-vfs-status-tool-loop',
+  'patch-applies',
+  'no-hallucinated-files-tools',
 ]);
 
 const datasetText = await readFile(evalDataset.datasetPath, 'utf8');
@@ -45,7 +45,7 @@ const directEval = evaluateAgentHeldoutRows(datasetRows, candidates, {
 });
 assert.equal(directEval.passed, true);
 assert.equal(directEval.passRate, 1);
-assert.equal(directEval.categorySummary.patch_applies.passRate, 1);
+assert.equal(directEval.categorySummary['patch-applies'].passRate, 1);
 assert.deepEqual(
   extractFileReferences(candidates[4].completion),
   ['tests/fixtures/training/agent-patch-targets/sample-tool-loop.js']
@@ -86,7 +86,7 @@ try {
   });
   assert.equal(result.status, 0, result.stderr);
   const report = JSON.parse(await readFile(outPath, 'utf8'));
-  assert.equal(report.artifactType, 'training_eval_report');
+  assert.equal(report.artifactType, 'training-eval-report');
   assert.equal(report.evalDatasetId, 'doppler-agent-heldout-suite-tiny-eval');
   assert.equal(report.primaryMetric, 'agent_heldout_pass_rate');
   assert.equal(report.agentEval.passed, true);

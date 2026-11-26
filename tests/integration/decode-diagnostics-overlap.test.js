@@ -17,7 +17,7 @@ const result = buildDecodeBottleneckDiagnostics({
   },
 });
 assert.equal(result.schemaVersion, 2);
-assert.equal(result.dominant.id, 'gpu_compute');
+assert.equal(result.dominant.id, 'gpu-compute');
 assert.equal(result.bottleneckClass, null);
 assert.equal(result.attribution.status, 'unresolved');
 assert.equal(result.componentsMs.commandRecordMs, 80);
@@ -32,7 +32,7 @@ assert.match(result.semantics.shares, /not additive/);
 
 // Partial timestamp totals do not establish a host-only remainder either.
 const partial = buildDecodeBottleneckDiagnostics({ decodeMs: 100, gpu: { decodeRecordMs: 80, decodeReadbackWaitMs: 32, decodeMs: 5 } });
-assert.equal(partial.dominant.id, 'command_record');
+assert.equal(partial.dominant.id, 'command-record');
 assert.equal(partial.bottleneckClass, null);
 assert.equal(partial.componentsMs.submitReadbackSlackMs, null);
 assert.equal(partial.componentsMs.residualMs, null);

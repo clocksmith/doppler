@@ -381,7 +381,7 @@ async function buildDiagnosticCapture(level, buffer, options) {
   if (!snapshot?.ok) {
     return {
       level,
-      error: snapshot?.error ?? 'capture_failed',
+      error: snapshot?.error ?? 'capture-failed',
       shape,
       dtype,
       sample: null,

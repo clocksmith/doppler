@@ -219,14 +219,14 @@ export async function runTrainingBenchSuite(options = {}) {
   }
   if (resolvedStage1Artifact) {
     appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_declared', {
-      dependencyType: 'ul_stage1',
+      dependencyType: 'ul-stage1',
       stage1Artifact: String(resolvedStage1Artifact),
       stage1ArtifactHash: resolvedStage1ArtifactHash,
     });
   }
   if (resolvedStageAArtifact) {
     appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_declared', {
-      dependencyType: 'distill_stage_a',
+      dependencyType: 'distill-stage-a',
       stageAArtifact: String(resolvedStageAArtifact),
       stageAArtifactHash: resolvedStageAArtifactHash,
     });
@@ -391,14 +391,14 @@ export async function runTrainingBenchSuite(options = {}) {
             });
             if (artifactEntry.stageADependency) {
               appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_resolved', {
-                dependencyType: 'distill_stage_a',
+                dependencyType: 'distill-stage-a',
                 runIndex: runIndex + 1,
                 stageADependency: artifactEntry.stageADependency,
               });
             }
             if (artifactEntry.stage1Dependency) {
               appendTimelineEvent(checkpointResumeTimeline, 'resume_dependency_resolved', {
-                dependencyType: 'ul_stage1',
+                dependencyType: 'ul-stage1',
                 runIndex: runIndex + 1,
                 stage1Dependency: artifactEntry.stage1Dependency,
               });

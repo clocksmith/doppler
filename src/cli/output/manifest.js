@@ -262,7 +262,7 @@ export async function runWithAutoSurface(request, runConfig, jsonOutput, policy 
           ? 'Training command auto-surface downgrade is blocked. Re-run with --surface node after fixing Node WebGPU support.'
           : 'Training command auto-surface downgrade is blocked. Re-run with --surface node after fixing Node WebGPU support, or explicitly choose --surface browser.'
       );
-      downgradeError.code = 'training_surface_downgrade_blocked';
+      downgradeError.code = 'training-surface-downgrade-blocked';
       downgradeError.surface = 'node';
       downgradeError.command = request.command;
       downgradeError.workload = request.workload;

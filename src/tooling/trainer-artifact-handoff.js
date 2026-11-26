@@ -85,8 +85,8 @@ async function verifyFileIdentity(file, repositoryRoots) {
     observed.bytes = stat.size;
     observed.sha256 = await sha256File(filePath);
     const errors = [];
-    if (observed.bytes !== file.bytes) errors.push('byte_length_mismatch');
-    if (observed.sha256 !== file.sha256) errors.push('sha256_mismatch');
+    if (observed.bytes !== file.bytes) errors.push('byte-length-mismatch');
+    if (observed.sha256 !== file.sha256) errors.push('sha256-mismatch');
     return {
       id: file.id,
       role: file.role,
@@ -145,26 +145,26 @@ async function verifyRecordedImportReceiptBinding(file, repositoryRoots, fileRes
   const fileResult = fileResults.find((entry) => entry.id === file.id);
   const errors = [];
   if (fileResult?.ok !== true) {
-    errors.push('recorded_import_receipt_file_identity_failed');
+    errors.push('recorded-import-receipt-file-identity-failed');
   } else {
     try {
       const receiptPath = resolveFileIdentityPath(file, repositoryRoots);
       const receipt = JSON.parse(await fs.readFile(receiptPath, 'utf8'));
       if (receipt?.importReceipt?.receiptHash !== file.expectedImportReceiptHash) {
-        errors.push('recorded_import_receipt_hash_binding_mismatch');
+        errors.push('recorded-import-receipt-hash-binding-mismatch');
       }
       if (receipt?.importReceipt?.candidateCompetitionAllowed !== false) {
-        errors.push('recorded_import_receipt_candidate_gate_mismatch');
+        errors.push('recorded-import-receipt-candidate-gate-mismatch');
       }
       if (receipt?.importReceipt?.promotionAllowed !== false) {
-        errors.push('recorded_import_receipt_promotion_gate_mismatch');
+        errors.push('recorded-import-receipt-promotion-gate-mismatch');
       }
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));
     }
   }
   return {
-    id: 'recorded_import_receipt_identity',
+    id: 'recorded-import-receipt-identity',
     ok: errors.length === 0,
     fileIds: [file.id],
     errors,
@@ -198,7 +198,7 @@ async function verifyArchitecture(descriptor, repositoryRoots, fileResults) {
       fields: [],
       errors: descriptor.artifact.kind === TRAINER_ARTIFACT_KIND_PEFT_ADAPTER
         ? []
-        : ['config_file_role_missing'],
+        : ['config-file-role-missing'],
     };
   }
   if (fileResults.find((entry) => entry.id === configFile.id)?.ok !== true) {
@@ -206,7 +206,7 @@ async function verifyArchitecture(descriptor, repositoryRoots, fileResults) {
       ok: false,
       sourceFileId: configFile.id,
       fields: [],
-      errors: ['config_file_identity_failed'],
+      errors: ['config-file-identity-failed'],
     };
   }
   try {
@@ -224,7 +224,7 @@ async function verifyArchitecture(descriptor, repositoryRoots, fileResults) {
       ok: fields.every((entry) => entry.ok),
       sourceFileId: configFile.id,
       fields,
-      errors: fields.filter((entry) => !entry.ok).map((entry) => `architecture_mismatch:${entry.field}`),
+      errors: fields.filter((entry) => !entry.ok).map((entry) => `architecture-mismatch:${entry.field}`),
     };
   } catch (error) {
     return {
@@ -326,7 +326,7 @@ export async function verifyTrainerArtifactHandoff(options = {}) {
   const evaluationIds = descriptor.evaluation.files.map((file) => file.id);
   const conversionErrors = [...architecture.errors];
   if (descriptor.conversion.sourceArtifactSha256 !== descriptor.baseModel.checkpointSha256) {
-    conversionErrors.push('conversion_source_checkpoint_hash_mismatch');
+    conversionErrors.push('conversion-source-checkpoint-hash-mismatch');
   }
   const recordedImportCheck = await verifyRecordedImportReceiptBinding(
     recordedImportReceipt,
@@ -334,15 +334,15 @@ export async function verifyTrainerArtifactHandoff(options = {}) {
     fileResults
   );
   const checks = [
-    groupCheck('source_artifact_byte_identity', fileResults, artifactIds),
-    groupCheck('tokenizer_and_prompt_identity', fileResults, tokenizerIds),
+    groupCheck('source-artifact-byte-identity', fileResults, artifactIds),
+    groupCheck('tokenizer-and-prompt-identity', fileResults, tokenizerIds),
     groupCheck(
-      'architecture_and_conversion_lineage',
+      'architecture-and-conversion-lineage',
       fileResults,
       conversionIds,
       conversionErrors
     ),
-    groupCheck('evaluation_input_identity', fileResults, evaluationIds),
+    groupCheck('evaluation-input-identity', fileResults, evaluationIds),
     ...(recordedImportCheck ? [recordedImportCheck] : []),
   ];
   const identity = artifactIdentity(descriptor);

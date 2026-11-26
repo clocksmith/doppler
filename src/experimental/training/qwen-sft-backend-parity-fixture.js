@@ -76,10 +76,10 @@ export function createQwenSftBackendParityFixture(options = {}) {
     JSON.stringify(prefixRows.map((row) => row.rowId))
   );
   return {
-    artifactType: 'qwen_sft_backend_parity_fixture',
+    artifactType: 'qwen-sft-backend-parity-fixture',
     schemaVersion: 1,
     precisionContract: {
-      frozenWeights: 'f16_rounded_values_promoted_to_f32_compute',
+      frozenWeights: 'f16-rounded-values-promoted-to-f32-compute',
       activations: 'f32',
       gradients: 'f32',
       adapterParameters: 'f32',

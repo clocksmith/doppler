@@ -1,4 +1,4 @@
-import { canonicalizeLegacyEnumValue } from '../../config/legacy-enum-values.js';
+import { canonicalizeLegacyEnumValue, canonicalizeLegacyEnumValues } from '../../config/legacy-enum-values.js';
 import { isPlainObject } from '../../formats/plain-object.js';
 import { sha256Hex } from '../../formats/sha256.js';
 import { stableSortObject } from '../../formats/stable-sort-object.js';
@@ -8,39 +8,39 @@ export const TRAINER_ARTIFACT_IMPORT_PLAN_SCHEMA_ID = 'doppler.trainer-artifact-
 export const TRAINER_ARTIFACT_PARITY_EVIDENCE_SCHEMA_ID = 'doppler.trainer-artifact-parity-evidence/v1';
 export const TRAINER_ARTIFACT_PARITY_RECEIPT_SCHEMA_ID = 'doppler.trainer-artifact-parity-receipt/v1';
 
-export const TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT = 'full_checkpoint';
-export const TRAINER_ARTIFACT_KIND_PEFT_ADAPTER = 'peft_adapter';
+export const TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT = 'full-checkpoint';
+export const TRAINER_ARTIFACT_KIND_PEFT_ADAPTER = 'peft-adapter';
 
 export const TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS = Object.freeze([
-  'source_artifact_byte_identity',
-  'tokenizer_and_prompt_identity',
-  'architecture_and_conversion_lineage',
-  'evaluation_input_identity',
-  'first_token_logits',
-  'selected_tokens',
+  'source-artifact-byte-identity',
+  'tokenizer-and-prompt-identity',
+  'architecture-and-conversion-lineage',
+  'evaluation-input-identity',
+  'first-token-logits',
+  'selected-tokens',
   'completions',
-  'exact_browser_artifact_capability',
+  'exact-browser-artifact-capability',
 ]);
 
 export const COLUMBO_QWEN_ADAPTER_PARITY_CHECKS = Object.freeze([
-  'source_base_vs_converted_base',
-  'reference_converted_base_vs_doppler_base',
-  'source_adapter_vs_converted_adapter',
-  'reference_converted_adapter_vs_doppler_adapter',
-  'browser_capability_evaluation',
+  'source-base-vs-converted-base',
+  'reference-converted-base-vs-doppler-base',
+  'source-adapter-vs-converted-adapter',
+  'reference-converted-adapter-vs-doppler-adapter',
+  'browser-capability-evaluation',
 ]);
 
 export const TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS = Object.freeze([
-  'source_artifact_byte_identity',
-  'tokenizer_and_prompt_identity',
-  'architecture_and_conversion_lineage',
-  'evaluation_input_identity',
-  'tinker_checkpoint_vs_peft_reference',
-  'peft_reference_vs_doppler_f16',
-  'doppler_f16_vs_quantized_browser',
-  'gamma_sealed_task_gain',
-  'gamma_retention_floor',
-  'browser_capability_evaluation',
+  'source-artifact-byte-identity',
+  'tokenizer-and-prompt-identity',
+  'architecture-and-conversion-lineage',
+  'evaluation-input-identity',
+  'tinker-checkpoint-vs-peft-reference',
+  'peft-reference-vs-doppler-f16',
+  'doppler-f16-vs-quantized-browser',
+  'gamma-sealed-task-gain',
+  'gamma-retention-floor',
+  'browser-capability-evaluation',
 ]);
 
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
@@ -59,17 +59,17 @@ const FILE_ROLES_BY_KIND = Object.freeze({
   ]),
 });
 const PARITY_PROFILES = Object.freeze({
-  translation_full_checkpoint: Object.freeze({
+  'translation-full-checkpoint': Object.freeze({
     artifactKind: TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT,
     selectionAuthority: 'clocksmith/gamma',
     requiredChecks: TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS,
   }),
-  columbo_qwen_adapter: Object.freeze({
+  'columbo-qwen-adapter': Object.freeze({
     artifactKind: TRAINER_ARTIFACT_KIND_PEFT_ADAPTER,
     selectionAuthority: 'clocksmith/columbo',
     requiredChecks: COLUMBO_QWEN_ADAPTER_PARITY_CHECKS,
   }),
-  tinker_peft_browser_adapter: Object.freeze({
+  'tinker-peft-browser-adapter': Object.freeze({
     artifactKind: TRAINER_ARTIFACT_KIND_PEFT_ADAPTER,
     selectionAuthority: 'clocksmith/gamma',
     requiredChecks: TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS,
@@ -185,12 +185,12 @@ function normalizeSelection(selection) {
   if (!isPlainObject(selection)) {
     throw new Error('trainer artifact bridge: selection must be an object.');
   }
-  const status = requireText(selection.status, 'selection.status');
-  if (status !== 'not_selected' && status !== 'selected') {
-    throw new Error('trainer artifact bridge: selection.status must be "not_selected" or "selected".');
+  const status = canonicalizeLegacyEnumValue(requireText(selection.status, 'selection.status'));
+  if (status !== 'not-selected' && status !== 'selected') {
+    throw new Error('trainer artifact bridge: selection.status must be "not-selected" or "selected".');
   }
   const receipt = selection.receipt == null ? null : requireText(selection.receipt, 'selection.receipt');
-  if (status === 'not_selected' && receipt !== null) {
+  if (status === 'not-selected' && receipt !== null) {
     throw new Error('trainer artifact bridge: an unselected artifact cannot carry a selection receipt.');
   }
   if (status === 'selected' && receipt === null) {
@@ -235,7 +235,10 @@ function assertArtifactRoles(artifact) {
   }
 }
 
-function normalizeDescriptor(descriptor) {
+function normalizeDescriptor(input) {
+  // Descriptors and Gamma handoffs written before 0.2.0 carry snake_case values;
+  // they are read throughout 0.x and canonicalized to kebab-case here.
+  const descriptor = canonicalizeLegacyEnumValues(input);
   if (!isPlainObject(descriptor)) {
     throw new Error('trainer artifact bridge: descriptor must be an object.');
   }
@@ -277,7 +280,7 @@ function normalizeDescriptor(descriptor) {
   const selection = normalizeSelection(descriptor.selection);
   if (
     (role === 'diagnostic_baseline' || role === 'diagnostic_candidate')
-    && selection.status !== 'not_selected'
+    && selection.status !== 'not-selected'
   ) {
     throw new Error('trainer artifact bridge: a diagnostic artifact cannot be selected.');
   }
@@ -393,7 +396,7 @@ export function normalizeGammaTrainerArtifactHandoff(contract) {
     const qualified = splitQualifiedPath(identity.path, repository);
     return toFileIdentity(id, role, qualified.repository, '', { ...identity, path: qualified.path });
   });
-  const selectionStatus = contract.selection?.status === 'gamma_selected' ? 'selected' : 'not_selected';
+  const selectionStatus = contract.selection?.status === 'gamma_selected' ? 'selected' : 'not-selected';
 
   return normalizeDescriptor({
     schema: TRAINER_ARTIFACT_BRIDGE_SCHEMA_ID,
@@ -435,7 +438,7 @@ export function normalizeGammaTrainerArtifactHandoff(contract) {
       receipt: contract.selection.receipt,
     },
     parity: {
-      profile: 'translation_full_checkpoint',
+      profile: 'translation-full-checkpoint',
       requiredChecks: contract.parity.requiredChecks,
     },
     claimBoundary: contract.claimBoundary,
@@ -518,10 +521,10 @@ export function buildTrainerArtifactParityTemplate(descriptor, verificationRecei
     throw new Error('trainer artifact bridge: parity template requires a passing verification receipt.');
   }
   const identityCheckIds = new Set([
-    'source_artifact_byte_identity',
-    'tokenizer_and_prompt_identity',
-    'architecture_and_conversion_lineage',
-    'evaluation_input_identity',
+    'source-artifact-byte-identity',
+    'tokenizer-and-prompt-identity',
+    'architecture-and-conversion-lineage',
+    'evaluation-input-identity',
   ]);
   return {
     schema: TRAINER_ARTIFACT_PARITY_EVIDENCE_SCHEMA_ID,
@@ -538,49 +541,50 @@ export function buildTrainerArtifactParityTemplate(descriptor, verificationRecei
   };
 }
 
-export function verifyTrainerArtifactParityEvidence(descriptor, verificationReceipt, evidence) {
+export function verifyTrainerArtifactParityEvidence(descriptor, verificationReceipt, evidenceInput) {
+  const evidence = canonicalizeLegacyEnumValues(evidenceInput);
   const normalized = normalizeDescriptor(descriptor);
   if (!verificationReceipt || verificationReceipt.ok !== true) {
     throw new Error('trainer artifact bridge: parity verification requires a passing identity receipt.');
   }
   const blockers = [];
   if (!isPlainObject(evidence) || evidence.schema !== TRAINER_ARTIFACT_PARITY_EVIDENCE_SCHEMA_ID) {
-    blockers.push('invalid_parity_evidence_schema');
+    blockers.push('invalid-parity-evidence-schema');
   }
-  if (evidence?.bridgeId !== normalized.bridgeId) blockers.push('parity_bridge_id_mismatch');
-  if (evidence?.profile !== normalized.parity.profile) blockers.push('parity_profile_mismatch');
+  if (evidence?.bridgeId !== normalized.bridgeId) blockers.push('parity-bridge-id-mismatch');
+  if (evidence?.profile !== normalized.parity.profile) blockers.push('parity-profile-mismatch');
   if (evidence?.artifactIdentitySha256 !== verificationReceipt.artifactIdentitySha256) {
-    blockers.push('parity_artifact_identity_mismatch');
+    blockers.push('parity-artifact-identity-mismatch');
   }
   const checks = Array.isArray(evidence?.checks) ? evidence.checks : [];
   const checkById = new Map();
   for (const check of checks) {
     const id = typeof check?.id === 'string' ? check.id : '';
     if (!id) {
-      blockers.push('parity_check_missing_id');
+      blockers.push('parity-check-missing-id');
       continue;
     }
-    if (checkById.has(id)) blockers.push(`duplicate_parity_check:${id}`);
+    if (checkById.has(id)) blockers.push(`duplicate-parity-check:${id}`);
     checkById.set(id, check);
   }
   for (const id of normalized.parity.requiredChecks) {
     const check = checkById.get(id);
     if (!check) {
-      blockers.push(`missing_parity_check:${id}`);
+      blockers.push(`missing-parity-check:${id}`);
       continue;
     }
-    if (check.status !== 'pass') blockers.push(`parity_check_not_passed:${id}`);
-    if (check.upstreamDecision !== 'pass') blockers.push(`parity_upstream_not_passed:${id}`);
+    if (check.status !== 'pass') blockers.push(`parity-check-not-passed:${id}`);
+    if (check.upstreamDecision !== 'pass') blockers.push(`parity-upstream-not-passed:${id}`);
     if (check.artifactIdentitySha256 !== verificationReceipt.artifactIdentitySha256) {
-      blockers.push(`parity_check_identity_mismatch:${id}`);
+      blockers.push(`parity-check-identity-mismatch:${id}`);
     }
     const evidenceHash = typeof check.evidenceHash === 'string'
       ? check.evidenceHash.replace(/^sha256:/, '').toLowerCase()
       : '';
-    if (!SHA256_PATTERN.test(evidenceHash)) blockers.push(`invalid_parity_evidence_hash:${id}`);
+    if (!SHA256_PATTERN.test(evidenceHash)) blockers.push(`invalid-parity-evidence-hash:${id}`);
   }
   for (const id of checkById.keys()) {
-    if (!normalized.parity.requiredChecks.includes(id)) blockers.push(`unexpected_parity_check:${id}`);
+    if (!normalized.parity.requiredChecks.includes(id)) blockers.push(`unexpected-parity-check:${id}`);
   }
   const core = {
     schema: TRAINER_ARTIFACT_PARITY_RECEIPT_SCHEMA_ID,

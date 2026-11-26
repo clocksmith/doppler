@@ -1,0 +1,4779 @@
+{
+ "schema": "doppler.emitted-enum-values/v1",
+ "generatedBy": "node tools/list-emitted-enum-values.js (classification before the 0.2.0 conversion) plus manual reading of dynamic codes",
+ "rule": "Legacy spellings are read throughout 0.x. Doppler emits only kebab-case. Aliases are removed no earlier than 1.0, and only with at least one minor release of notice.",
+ "convertedCount": 355,
+ "converted": [
+  {
+   "legacy": "abs_exceeded",
+   "kebab": "abs-exceeded",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/policy/drift-policy.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "accumulated_drift_exceeded",
+   "kebab": "accumulated-drift-exceeded",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/policy/drift-policy.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "activation_dtype_drift",
+   "kebab": "activation-dtype-drift",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/tooling/kernel-path-builder/validation.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "address_space",
+   "kebab": "address-space",
+   "fields": [
+    "WGSL_REPAIR_MUTATION_OPERATORS"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "agent_heldout_eval",
+   "kebab": "agent-heldout-eval",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/experimental/training/lora-pipeline.js",
+    "src/experimental/training/operator-command.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "amplification_detected",
+   "kebab": "amplification-detected",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/policy/drift-policy.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "architecture_and_conversion_lineage",
+   "kebab": "architecture-and-conversion-lineage",
+   "fields": [
+    "TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS",
+    "TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS",
+    "call:groupCheck",
+    "identityCheckIds"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js",
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "architecture_mismatch",
+   "kebab": "architecture-mismatch",
+   "fields": [
+    "errors (prefix of architecture-mismatch:<field>)"
+   ],
+   "files": [
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": false
+  },
+  {
+   "legacy": "artifact_comparison_allowed",
+   "kebab": "artifact-comparison-allowed",
+   "fields": [
+    "decision"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "artifact_generation_allowed",
+   "kebab": "artifact-generation-allowed",
+   "fields": [
+    "decision"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "artifact_lane_evidence_incomplete",
+   "kebab": "artifact-lane-evidence-incomplete",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "artifact_lane_selection_not_unique",
+   "kebab": "artifact-lane-selection-not-unique",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "attribute_name",
+   "kebab": "attribute-name",
+   "fields": [
+    "WGSL_REPAIR_MUTATION_OPERATORS"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "availability_breach",
+   "kebab": "availability-breach",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/experimental/distribution/p2p-observability.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "base_model",
+   "kebab": "base-model",
+   "fields": [
+    "baseline",
+    "stage"
+   ],
+   "files": [
+    "src/experimental/training/lora/checkpoint.js",
+    "src/experimental/training/lora/execution.js",
+    "src/experimental/training/lora/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "base_model_not_registered_for_current_lora_runner",
+   "kebab": "base-model-not-registered-for-current-lora-runner",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/lora/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "baseline_quality_claims",
+   "kebab": "baseline-quality-claims",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/experimental/training/lora-pipeline.js",
+    "src/experimental/training/operator-command.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "baseline_verification_failed",
+   "kebab": "baseline-verification-failed",
+   "fields": [
+    "call:rejectedReceipt"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "batch_size_1",
+   "kebab": "batch-size-1",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "bdpa_paged_layout",
+   "kebab": "bdpa-paged-layout",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "benchmark_baseline_load_failed",
+   "kebab": "benchmark-baseline-load-failed",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/cli-output.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "blocked_awaiting_gamma_selection",
+   "kebab": "blocked-awaiting-gamma-selection",
+   "fields": [
+    "policyState"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "bootstrap_check_in",
+   "kebab": "bootstrap-check-in",
+   "fields": [
+    "PERSISTENT_LAUNCH_ERROR_HINTS"
+   ],
+   "files": [
+    "src/tooling/node-browser/transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "both_exceeded",
+   "kebab": "both-exceeded",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/policy/drift-policy.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "both_failed",
+   "kebab": "both-failed",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/client/provider.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "browser_capability_evaluation",
+   "kebab": "browser-capability-evaluation",
+   "fields": [
+    "COLUMBO_QWEN_ADAPTER_PARITY_CHECKS",
+    "TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "builtin_name",
+   "kebab": "builtin-name",
+   "fields": [
+    "WGSL_REPAIR_MUTATION_OPERATORS"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "bundle_export_failed",
+   "kebab": "bundle-export-failed",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "byte_length_mismatch",
+   "kebab": "byte-length-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "cache_disabled",
+   "kebab": "cache-disabled",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/storage/distribution-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "cache_miss",
+   "kebab": "cache-miss",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/distribution-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "canary_excluded",
+   "kebab": "canary-excluded",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/hotswap/runtime.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "canary_selected",
+   "kebab": "canary-selected",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/hotswap/runtime.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "candidate_parity_failed",
+   "kebab": "candidate-parity-failed",
+   "fields": [
+    "call:rejectedReceipt"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "candidate_present",
+   "kebab": "candidate-present",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/experimental/training/operator-agent-eval.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "candidate_unavailable",
+   "kebab": "candidate-unavailable",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/tooling/kernel-path-builder/validation.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "candidate_variance_above_threshold",
+   "kebab": "candidate-variance-above-threshold",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "candidate_verification_failed",
+   "kebab": "candidate-verification-failed",
+   "fields": [
+    "call:rejectedReceipt"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "capability_drift",
+   "kebab": "capability-drift",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/tooling/kernel-path-builder/validation.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "capture_failed",
+   "kebab": "capture-failed",
+   "fields": [
+    "code",
+    "error"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js",
+    "src/inference/pipelines/text/observation/probes.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "capture_precondition_node_webgpu_unavailable",
+   "kebab": "capture-precondition-node-webgpu-unavailable",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "capture_precondition_playwright_chromium_missing",
+   "kebab": "capture-precondition-playwright-chromium-missing",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "capture_precondition_playwright_missing",
+   "kebab": "capture-precondition-playwright-missing",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "capture_precondition_unsupported_surface",
+   "kebab": "capture-precondition-unsupported-surface",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "causal_lm_lora",
+   "kebab": "causal-lm-lora",
+   "fields": [
+    "runnerKind"
+   ],
+   "files": [
+    "src/experimental/training/lora/execution.js",
+    "src/experimental/training/lora/recovery.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "causal_lm_text_generation",
+   "kebab": "causal-lm-text-generation",
+   "fields": [
+    "runnerKind"
+   ],
+   "files": [
+    "src/experimental/training/lora/checkpoint.js",
+    "src/experimental/training/lora/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "causal_lm_text_pairs",
+   "kebab": "causal-lm-text-pairs",
+   "fields": [
+    "datasetKind"
+   ],
+   "files": [
+    "src/experimental/training/lora/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "causal_lm_trainer_not_configured",
+   "kebab": "causal-lm-trainer-not-configured",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/experimental/training/lora/recovery.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "columbo_qwen_adapter",
+   "kebab": "columbo-qwen-adapter",
+   "fields": [
+    "profile"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "command_batching_disabled",
+   "kebab": "command-batching-disabled",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "command_record",
+   "kebab": "command-record",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/tooling/browser-harness/decode-diagnostics.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "competition_policy_not_bound_to_gamma_selected_source",
+   "kebab": "competition-policy-not-bound-to-gamma-selected-source",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "compile_pass",
+   "kebab": "compile-pass",
+   "fields": [
+    "call:rewardComponent"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "compiler_qualified_reference_vs_modal_all_fail_rollout_v1",
+   "kebab": "compiler-qualified-reference-vs-modal-all-fail-rollout-v1",
+   "fields": [
+    "pairConstruction"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "compiler_qualified_task_reference",
+   "kebab": "compiler-qualified-task-reference",
+   "fields": [
+    "chosenSource"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "completion_masked_sft_lora",
+   "kebab": "completion-masked-sft-lora",
+   "fields": [
+    "scope"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "completion_only_causal_lm",
+   "kebab": "completion-only-causal-lm",
+   "fields": [
+    "objective"
+   ],
+   "files": [
+    "src/experimental/training/lora/checkpoint.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "confidence_interval_below_threshold",
+   "kebab": "confidence-interval-below-threshold",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "config_file_identity_failed",
+   "kebab": "config-file-identity-failed",
+   "fields": [
+    "errors"
+   ],
+   "files": [
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "config_file_role_missing",
+   "kebab": "config-file-role-missing",
+   "fields": [
+    "errors"
+   ],
+   "files": [
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "contract_pass",
+   "kebab": "contract-pass",
+   "fields": [
+    "BLOCKING_REWARD_IDS",
+    "call:rewardComponent"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "control_plane_policy_evaluator",
+   "kebab": "control-plane-policy-evaluator",
+   "fields": [
+    "stage"
+   ],
+   "files": [
+    "src/experimental/distribution/p2p-control-plane.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "control_plane_token_provider",
+   "kebab": "control-plane-token-provider",
+   "fields": [
+    "stage"
+   ],
+   "files": [
+    "src/experimental/distribution/p2p-control-plane.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "conversion_source_checkpoint_hash_mismatch",
+   "kebab": "conversion-source-checkpoint-hash-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "convert_failed",
+   "kebab": "convert-failed",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "cpu_weights",
+   "kebab": "cpu-weights",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "custom_runtime_bypass",
+   "kebab": "custom-runtime-bypass",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/tooling/kernel-path-builder/validation.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "dataset_format_must_be_text_pairs",
+   "kebab": "dataset-format-must-be-text-pairs",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "dataset_format_not_supported_by_current_lora_runner",
+   "kebab": "dataset-format-not-supported-by-current-lora-runner",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/lora/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "dataset_order",
+   "kebab": "dataset-order",
+   "fields": [
+    "TRAINING_ROW_ORDERS"
+   ],
+   "files": [
+    "src/experimental/training/workloads.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "declared_type",
+   "kebab": "declared-type",
+   "fields": [
+    "WGSL_REPAIR_MUTATION_OPERATORS"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "decode_streaming_fallback",
+   "kebab": "decode-streaming-fallback",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/attention/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "default_enabled",
+   "kebab": "default-enabled",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/hotswap/runtime.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "descriptor_hash_mismatch",
+   "kebab": "descriptor-hash-mismatch",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/distribution/descriptor-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "descriptor_shards_missing",
+   "kebab": "descriptor-shards-missing",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/experimental/distribution/descriptor-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "device_lost_handler_failed",
+   "kebab": "device-lost-handler-failed",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/device.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "device_unavailable_during_weight_load",
+   "kebab": "device-unavailable-during-weight-load",
+   "fields": [
+    "lifecycleFailure"
+   ],
+   "files": [
+    "src/inference/pipelines/text/loading/load-errors.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "diffusion_gemma_canvas_denoising_phase",
+   "kebab": "diffusion-gemma-canvas-denoising-phase",
+   "fields": [
+    "decodeSemantics"
+   ],
+   "files": [
+    "src/tooling/browser-harness-diffusion-energy-suites.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "diffusion_gemma_encoder_prefill_phase",
+   "kebab": "diffusion-gemma-encoder-prefill-phase",
+   "fields": [
+    "prefillSemantics"
+   ],
+   "files": [
+    "src/tooling/browser-harness-diffusion-energy-suites.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "distill_kd",
+   "kebab": "distill-kd",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/experimental/training/objectives/distill_kd.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "distill_stage_a",
+   "kebab": "distill-stage-a",
+   "fields": [
+    "dependencyType"
+   ],
+   "files": [
+    "src/experimental/training/suite.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "distill_stage_manifest",
+   "kebab": "distill-stage-manifest",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/distillation/stage-a.js",
+    "src/experimental/training/operator-command.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "distill_triplet",
+   "kebab": "distill-triplet",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/experimental/training/objectives/distill_triplet.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "doppler_f16_vs_quantized_browser",
+   "kebab": "doppler-f16-vs-quantized-browser",
+   "fields": [
+    "TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "doppler_provider_receipt_v1",
+   "kebab": "doppler-provider-receipt-v1",
+   "fields": [
+    "receiptVersion"
+   ],
+   "files": [
+    "src/client/receipt.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "doppler_serve_receipt_v2",
+   "kebab": "doppler-serve-receipt-v2",
+   "fields": [
+    "receiptVersion"
+   ],
+   "files": [
+    "src/cli/serve/receipt.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "doppler_teacher_trace_v1",
+   "kebab": "doppler-teacher-trace-v1",
+   "fields": [
+    "traceFormat"
+   ],
+   "files": [
+    "src/experimental/training/datasets/gepa-frontier.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "dtype_mismatch",
+   "kebab": "dtype-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/boundary-evidence.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "duplicate_parity_check",
+   "kebab": "duplicate-parity-check",
+   "fields": [
+    "blockers (prefix of duplicate-parity-check:<id>)"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": false
+  },
+  {
+   "legacy": "empty_response",
+   "kebab": "empty-response",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "encoder_kv_readonly_canvas_concat",
+   "kebab": "encoder-kv-readonly-canvas-concat",
+   "fields": [
+    "decoderCacheMode"
+   ],
+   "files": [
+    "src/converter/manifest-builder.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "eval_reports",
+   "kebab": "eval-reports",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/experimental/training/lora-pipeline.js",
+    "src/experimental/training/operator-command.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "evaluation_input_identity",
+   "kebab": "evaluation-input-identity",
+   "fields": [
+    "TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS",
+    "TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS",
+    "call:groupCheck",
+    "identityCheckIds"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js",
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "exact_browser_artifact_capability",
+   "kebab": "exact-browser-artifact-capability",
+   "fields": [
+    "TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "exact_reference_match",
+   "kebab": "exact-reference-match",
+   "fields": [
+    "call:rewardComponent"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "execution_contract_check",
+   "kebab": "execution-contract-check",
+   "fields": [
+    "stage"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "external_training_backend_not_configured",
+   "kebab": "external-training-backend-not-configured",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "f16_or_f32",
+   "kebab": "f16-or-f32",
+   "fields": [
+    "projectionDtype"
+   ],
+   "files": [
+    "src/tooling/kernel-path-builder/custom-runtime-facts.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "f16_rounded_values_promoted_to_f32_compute",
+   "kebab": "f16-rounded-values-promoted-to-f32-compute",
+   "fields": [
+    "frozenWeights"
+   ],
+   "files": [
+    "src/experimental/training/qwen-sft-backend-parity-fixture.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "file_done",
+   "kebab": "file-done",
+   "fields": [
+    "stage"
+   ],
+   "files": [
+    "src/storage/export.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "file_progress",
+   "kebab": "file-progress",
+   "fields": [
+    "stage"
+   ],
+   "files": [
+    "src/storage/export.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "file_start",
+   "kebab": "file-start",
+   "fields": [
+    "stage"
+   ],
+   "files": [
+    "src/storage/export.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "finiteness_fallback_window",
+   "kebab": "finiteness-fallback-window",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "first_token_logits",
+   "kebab": "first-token-logits",
+   "fields": [
+    "TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "forbidden_term",
+   "kebab": "forbidden-term",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/experimental/training/operator-agent-eval.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "force_enable",
+   "kebab": "force-enable",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/hotswap/runtime.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "full_checkpoint",
+   "kebab": "full-checkpoint",
+   "fields": [
+    "TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "full_tensor_digest_mismatch",
+   "kebab": "full-tensor-digest-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/boundary-evidence.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "function_name",
+   "kebab": "function-name",
+   "fields": [
+    "WGSL_REPAIR_MUTATION_OPERATORS"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gamma_bf16_selection_receipt_absent",
+   "kebab": "gamma-bf16-selection-receipt-absent",
+   "fields": [
+    "blockers (from the competition policy)"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gamma_campaign_blocked",
+   "kebab": "gamma-campaign-blocked",
+   "fields": [
+    "blockers (from the competition policy)"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gamma_retention_floor",
+   "kebab": "gamma-retention-floor",
+   "fields": [
+    "TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gamma_sealed_task_gain",
+   "kebab": "gamma-sealed-task-gain",
+   "fields": [
+    "TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gamma_selected_checkpoint_binding_mismatch",
+   "kebab": "gamma-selected-checkpoint-binding-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gamma_selected_handoff_absent",
+   "kebab": "gamma-selected-handoff-absent",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gamma_selected_handoff_sha256_absent",
+   "kebab": "gamma-selected-handoff-sha256-absent",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gamma_selected_handoff_sha256_mismatch",
+   "kebab": "gamma-selected-handoff-sha256-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gamma_selection_receipt_binding_mismatch",
+   "kebab": "gamma-selection-receipt-binding-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gamma_source_not_selected_candidate",
+   "kebab": "gamma-source-not-selected-candidate",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gamma_source_selection_contract_invalid",
+   "kebab": "gamma-source-selection-contract-invalid",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gpu_compute",
+   "kebab": "gpu-compute",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/tooling/browser-harness/decode-diagnostics.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "gpu_resident_embedding_exceeds_device_limit",
+   "kebab": "gpu-resident-embedding-exceeds-device-limit",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/loader/embedding-limit-preflight.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "hash_mismatch",
+   "kebab": "hash-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-contract.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "hash_missing",
+   "kebab": "hash-missing",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-contract.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "hotswap_disabled",
+   "kebab": "hotswap-disabled",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/hotswap/runtime.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_content_length_invalid",
+   "kebab": "http-content-length-invalid",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_content_length_mismatch",
+   "kebab": "http-content-length-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_content_range_invalid",
+   "kebab": "http-content-range-invalid",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_content_range_invalid_span",
+   "kebab": "http-content-range-invalid-span",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_content_range_invalid_total",
+   "kebab": "http-content-range-invalid-total",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_content_range_length_mismatch",
+   "kebab": "http-content-range-length-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_content_range_missing",
+   "kebab": "http-content-range-missing",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_content_range_total_mismatch",
+   "kebab": "http-content-range-total-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_content_range_unexpected_status",
+   "kebab": "http-content-range-unexpected-status",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_disabled",
+   "kebab": "http-disabled",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/storage/distribution-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_fallback_rate_breach",
+   "kebab": "http-fallback-rate-breach",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/experimental/distribution/p2p-observability.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_header_length_mismatch",
+   "kebab": "http-header-length-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_resume_offset_mismatch",
+   "kebab": "http-resume-offset-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "http_resume_response_mismatch",
+   "kebab": "http-resume-response-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "identifier_reference",
+   "kebab": "identifier-reference",
+   "fields": [
+    "WGSL_REPAIR_MUTATION_OPERATORS"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "image_to_text",
+   "kebab": "image-to-text",
+   "fields": [
+    "inputMode"
+   ],
+   "files": [
+    "src/tooling/browser-harness/text-execution.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "improvement_below_threshold",
+   "kebab": "improvement-below-threshold",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "incomplete_or_nonfinite_output",
+   "kebab": "incomplete-or-nonfinite-output",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/converter/forge-candidate-evaluation.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "injected_causal_lm_lora_trainer",
+   "kebab": "injected-causal-lm-lora-trainer",
+   "fields": [
+    "runnerId"
+   ],
+   "files": [
+    "src/experimental/training/lora/recovery.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "insufficient_valid_pairs",
+   "kebab": "insufficient-valid-pairs",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "insufficient_vram",
+   "kebab": "insufficient-vram",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/experimental/distribution/descriptor-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "invalid_parity_evidence_hash",
+   "kebab": "invalid-parity-evidence-hash",
+   "fields": [
+    "blockers (prefix)"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": false
+  },
+  {
+   "legacy": "invalid_parity_evidence_schema",
+   "kebab": "invalid-parity-evidence-schema",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "js_patching",
+   "kebab": "js-patching",
+   "fields": [
+    "TRAINING_AGENT_EVAL_CATEGORIES"
+   ],
+   "files": [
+    "src/experimental/training/workloads.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "kv_dtype_drift",
+   "kebab": "kv-dtype-drift",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/tooling/kernel-path-builder/validation.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "latency_p95_breach",
+   "kebab": "latency-p95-breach",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/experimental/distribution/p2p-observability.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "layer_override_drift",
+   "kebab": "layer-override-drift",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/tooling/kernel-path-builder/validation.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "linear_attention_layers",
+   "kebab": "linear-attention-layers",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "log_snr_cosine",
+   "kebab": "log-snr-cosine",
+   "fields": [
+    "type (training schedule)"
+   ],
+   "files": [
+    "src/experimental/training/ul_schedule.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "log_snr_linear",
+   "kebab": "log-snr-linear",
+   "fields": [
+    "type"
+   ],
+   "files": [
+    "src/config/schema/training/ul-training.schema.js",
+    "src/experimental/training/ul_schedule.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "lora_adapter_manifest",
+   "kebab": "lora-adapter-manifest",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/lora/checkpoint.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "manifest_config_review",
+   "kebab": "manifest-config-review",
+   "fields": [
+    "TRAINING_AGENT_EVAL_CATEGORIES"
+   ],
+   "files": [
+    "src/experimental/training/workloads.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "manifest_load",
+   "kebab": "manifest-load",
+   "fields": [
+    "stage"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "manifest_unreadable",
+   "kebab": "manifest-unreadable",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "manifest_version_set_mismatch",
+   "kebab": "manifest-version-set-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-contract.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "manifest_version_set_missing",
+   "kebab": "manifest-version-set-missing",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-contract.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "markdown_fence",
+   "kebab": "markdown-fence",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "max_gradient_norm_exceeded",
+   "kebab": "max-gradient-norm-exceeded",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/runner/lifecycle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "max_inf_count_exceeded",
+   "kebab": "max-inf-count-exceeded",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/runner/lifecycle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "max_nan_count_exceeded",
+   "kebab": "max-nan-count-exceeded",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/runner/lifecycle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "max_new_tokens",
+   "kebab": "max-new-tokens",
+   "fields": [
+    "stopReason"
+   ],
+   "files": [
+    "src/inference/pipelines/diffusion-gemma/pipeline.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "max_saturation_count_exceeded",
+   "kebab": "max-saturation-count-exceeded",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/runner/lifecycle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "max_step_time_ms_exceeded",
+   "kebab": "max-step-time-ms-exceeded",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/runner/lifecycle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "min_effective_lr_below_threshold",
+   "kebab": "min-effective-lr-below-threshold",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/runner/lifecycle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "missing_attempt",
+   "kebab": "missing-attempt",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/converter/forge-candidate-evaluation.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "missing_model_id",
+   "kebab": "missing-model-id",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "missing_parity_check",
+   "kebab": "missing-parity-check",
+   "fields": [
+    "blockers (prefix)"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": false
+  },
+  {
+   "legacy": "missing_runtime_boundary",
+   "kebab": "missing-runtime-boundary",
+   "fields": [
+    "reasons"
+   ],
+   "files": [
+    "src/tooling/boundary-evidence.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "missing_sample",
+   "kebab": "missing-sample",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/tooling/boundary-evidence.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "missing_sampling",
+   "kebab": "missing-sampling",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/tooling/kernel-path-builder/validation.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "missing_semicolon",
+   "kebab": "missing-semicolon",
+   "fields": [
+    "WGSL_REPAIR_MUTATION_OPERATORS"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "missing_timeline",
+   "kebab": "missing-timeline",
+   "fields": [
+    "type"
+   ],
+   "files": [
+    "src/tooling/diagnose-runner.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "modal_all_fail_on_policy_completion",
+   "kebab": "modal-all-fail-on-policy-completion",
+   "fields": [
+    "rejectedSource"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "native_full_graph_runner_unavailable_for_base_model",
+   "kebab": "native-full-graph-runner-unavailable-for-base-model",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "native_lora_target_not_supported",
+   "kebab": "native-lora-target-not-supported",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/experimental/training/native-qwen-lora.js",
+    "src/inference/pipelines/text/generator/adapters/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "native_qwen_completion_masked_sft",
+   "kebab": "native-qwen-completion-masked-sft",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/experimental/training/native-qwen-lora.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "native_qwen_lora_checkpoint_tensor_mismatch",
+   "kebab": "native-qwen-lora-checkpoint-tensor-mismatch",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/experimental/training/native-qwen-lora.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "native_qwen_lora_checkpoint_tensor_size_mismatch",
+   "kebab": "native-qwen-lora-checkpoint-tensor-size-mismatch",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/experimental/training/native-qwen-lora.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "native_qwen_lora_missing_weight",
+   "kebab": "native-qwen-lora-missing-weight",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/experimental/training/native-qwen-lora.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "native_qwen_lora_model_not_supported",
+   "kebab": "native-qwen-lora-model-not-supported",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/experimental/training/native-qwen-lora.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "native_qwen_lora_pipeline_required",
+   "kebab": "native-qwen-lora-pipeline-required",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "native_qwen_lora_supervised_token_count_mismatch",
+   "kebab": "native-qwen-lora-supervised-token-count-mismatch",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/experimental/training/native-qwen-lora.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "native_training_webgpu_bootstrap_failed",
+   "kebab": "native-training-webgpu-bootstrap-failed",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "neighbor_parity_failed",
+   "kebab": "neighbor-parity-failed",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "neighbor_regression_exceeded",
+   "kebab": "neighbor-regression-exceeded",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "neighbor_verification_failed",
+   "kebab": "neighbor-verification-failed",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "neighboring_workload_guard_failed",
+   "kebab": "neighboring-workload-guard-failed",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "no_adapter_candidate",
+   "kebab": "no-adapter-candidate",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/client/runtime/lora.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "no_adapter_payload",
+   "kebab": "no-adapter-payload",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "no_data",
+   "kebab": "no-data",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/policy/drift-policy.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "no_gpu",
+   "kebab": "no-gpu",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "no_gpu_sampling",
+   "kebab": "no-gpu-sampling",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "no_hallucinated_files",
+   "kebab": "no-hallucinated-files",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/experimental/training/operator-agent-eval.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "no_hallucinated_files_tools",
+   "kebab": "no-hallucinated-files-tools",
+   "fields": [
+    "TRAINING_AGENT_EVAL_CATEGORIES"
+   ],
+   "files": [
+    "src/experimental/training/workloads.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "no_hallucinated_tools",
+   "kebab": "no-hallucinated-tools",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/experimental/training/operator-agent-eval.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "no_manifest_path",
+   "kebab": "no-manifest-path",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "no_model_loaded",
+   "kebab": "no-model-loaded",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/client/runtime/lora.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "no_policy",
+   "kebab": "no-policy",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/policy/drift-policy.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "not_applicable_training_workload",
+   "kebab": "not-applicable-training-workload",
+   "fields": [
+    "prefillSemantics"
+   ],
+   "files": [
+    "src/tooling/browser-harness/benchmark-execution.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "not_cached",
+   "kebab": "not-cached",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/distribution/descriptor-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "not_requested",
+   "kebab": "not-requested",
+   "fields": [
+    "status"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "not_selected",
+   "kebab": "not-selected",
+   "fields": [
+    "selectionStatus"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "numeric_drift",
+   "kebab": "numeric-drift",
+   "fields": [
+    "type"
+   ],
+   "files": [
+    "src/inference/pipelines/text/observation/operator-events.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "numeric_literal_suffix",
+   "kebab": "numeric-literal-suffix",
+   "fields": [
+    "WGSL_REPAIR_MUTATION_OPERATORS"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "operator_diff",
+   "kebab": "operator-diff",
+   "fields": [
+    "mode"
+   ],
+   "files": [
+    "src/tooling/diagnose-runner.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "opt_in_required",
+   "kebab": "opt-in-required",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/hotswap/runtime.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "opt_in_selected",
+   "kebab": "opt-in-selected",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/hotswap/runtime.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "output_dtype_drift",
+   "kebab": "output-dtype-drift",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/tooling/kernel-path-builder/validation.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "p2p_disabled",
+   "kebab": "p2p-disabled",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/storage/distribution-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "p2p_hit_rate_breach",
+   "kebab": "p2p-hit-rate-breach",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/experimental/distribution/p2p-observability.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "p2p_payload_exceeds_total",
+   "kebab": "p2p-payload-exceeds-total",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/retry.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "p2p_payload_range_start_invalid",
+   "kebab": "p2p-payload-range-start-invalid",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/retry.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "p2p_payload_size_invalid",
+   "kebab": "p2p-payload-size-invalid",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/retry.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "p2p_payload_size_mismatch",
+   "kebab": "p2p-payload-size-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/retry.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "p2p_range_start_invalid",
+   "kebab": "p2p-range-start-invalid",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/receipt.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "p2p_resume_offset_mismatch",
+   "kebab": "p2p-resume-offset-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/receipt.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "p2p_total_size_mismatch",
+   "kebab": "p2p-total-size-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/receipt.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "p2p_transport_unconfigured",
+   "kebab": "p2p-transport-unconfigured",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/storage/distribution-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "parity_artifact_identity_mismatch",
+   "kebab": "parity-artifact-identity-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "parity_bridge_id_mismatch",
+   "kebab": "parity-bridge-id-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "parity_check_failed",
+   "kebab": "parity-check-failed",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "parity_check_identity_mismatch",
+   "kebab": "parity-check-identity-mismatch",
+   "fields": [
+    "blockers (prefix)"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": false
+  },
+  {
+   "legacy": "parity_check_missing_id",
+   "kebab": "parity-check-missing-id",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "parity_check_not_passed",
+   "kebab": "parity-check-not-passed",
+   "fields": [
+    "blockers (prefix)"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": false
+  },
+  {
+   "legacy": "parity_profile_mismatch",
+   "kebab": "parity-profile-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "parity_upstream_not_passed",
+   "kebab": "parity-upstream-not-passed",
+   "fields": [
+    "blockers (prefix)"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": false
+  },
+  {
+   "legacy": "patch_applies",
+   "kebab": "patch-applies",
+   "fields": [
+    "TRAINING_AGENT_EVAL_CATEGORIES",
+    "name"
+   ],
+   "files": [
+    "src/experimental/training/operator-agent-eval.js",
+    "src/experimental/training/workloads.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "path_override",
+   "kebab": "path-override",
+   "fields": [
+    "reason",
+    "selectionReason"
+   ],
+   "files": [
+    "src/gpu/kernels/attention/plan.js",
+    "src/gpu/kernels/matmul-selection.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "path_override_adaptive_fallback",
+   "kebab": "path-override-adaptive-fallback",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/matmul-selection.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "path_override_adaptive_prefill",
+   "kebab": "path-override-adaptive-prefill",
+   "fields": [
+    "selectionReason"
+   ],
+   "files": [
+    "src/gpu/kernels/attention/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "path_override_f16_fallthrough",
+   "kebab": "path-override-f16-fallthrough",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/matmul-selection.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "path_override_fallback",
+   "kebab": "path-override-fallback",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/matmul-selection.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "path_override_quantized_fallthrough",
+   "kebab": "path-override-quantized-fallthrough",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/matmul-selection.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "peer_unavailable",
+   "kebab": "peer-unavailable",
+   "fields": [
+    "policyReason"
+   ],
+   "files": [
+    "src/experimental/distribution/p2p-webrtc-browser.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "peft_adapter",
+   "kebab": "peft-adapter",
+   "fields": [
+    "TRAINER_ARTIFACT_KIND_PEFT_ADAPTER"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "peft_reference_vs_doppler_f16",
+   "kebab": "peft-reference-vs-doppler-f16",
+   "fields": [
+    "TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "peft_safetensors",
+   "kebab": "peft-safetensors",
+   "fields": [
+    "formats, format (adapter execution)"
+   ],
+   "files": [
+    "src/config/capsule-adapters.json"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "performance_evidence_failed",
+   "kebab": "performance-evidence-failed",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/tooling/registered-variant-calibration.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "policy_denied",
+   "kebab": "policy-denied",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/distribution/p2p-control-plane.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "policy_denied_control_plane",
+   "kebab": "policy-denied-control-plane",
+   "fields": [
+    "policyReason"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/receipt.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "policy_pass",
+   "kebab": "policy-pass",
+   "fields": [
+    "BLOCKING_REWARD_IDS",
+    "call:rewardComponent"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "preserve_completion_head_tail_prompt",
+   "kebab": "preserve-completion-head-tail-prompt",
+   "fields": [
+    "truncation"
+   ],
+   "files": [
+    "src/experimental/training/lora/checkpoint.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "primary_candidate_rejected",
+   "kebab": "primary-candidate-rejected",
+   "fields": [
+    "skipped"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "promotion_submission_allowed",
+   "kebab": "promotion-submission-allowed",
+   "fields": [
+    "decision"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "prose_or_diff_wrapper",
+   "kebab": "prose-or-diff-wrapper",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "qwen_adapter_training_state",
+   "kebab": "qwen-adapter-training-state",
+   "fields": [
+    "ARTIFACT_TYPE"
+   ],
+   "files": [
+    "src/experimental/training/qwen-adapter-training-state.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "qwen_sft_backend_parity_fixture",
+   "kebab": "qwen-sft-backend-parity-fixture",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/qwen-sft-backend-parity-fixture.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "rate_limited",
+   "kebab": "rate-limited",
+   "fields": [
+    "policyReason"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/retry.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "rdrr_lora_adapter",
+   "kebab": "rdrr-lora-adapter",
+   "fields": [
+    "manifest"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "readback_cleanup",
+   "kebab": "readback-cleanup",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/tooling/browser-harness/decode-diagnostics.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "readback_copy",
+   "kebab": "readback-copy",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/tooling/browser-harness/decode-diagnostics.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "readback_map_wait",
+   "kebab": "readback-map-wait",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/tooling/browser-harness/decode-diagnostics.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "recorded_import_receipt_candidate_gate_mismatch",
+   "kebab": "recorded-import-receipt-candidate-gate-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "recorded_import_receipt_file_identity_failed",
+   "kebab": "recorded-import-receipt-file-identity-failed",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "recorded_import_receipt_hash_binding_mismatch",
+   "kebab": "recorded-import-receipt-hash-binding-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "recorded_import_receipt_identity",
+   "kebab": "recorded-import-receipt-identity",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "recorded_import_receipt_promotion_gate_mismatch",
+   "kebab": "recorded-import-receipt-promotion-gate-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "reference_converted_adapter_vs_doppler_adapter",
+   "kebab": "reference-converted-adapter-vs-doppler-adapter",
+   "fields": [
+    "COLUMBO_QWEN_ADAPTER_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "reference_converted_base_vs_doppler_base",
+   "kebab": "reference-converted-base-vs-doppler-base",
+   "fields": [
+    "COLUMBO_QWEN_ADAPTER_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "regression_pass",
+   "kebab": "regression-pass",
+   "fields": [
+    "call:rewardComponent"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "rel_exceeded",
+   "kebab": "rel-exceeded",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/policy/drift-policy.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "replacement_only_wgsl_span_v1",
+   "kebab": "replacement-only-wgsl-span-v1",
+   "fields": [
+    "WGSL_REPAIR_TASK_CONTRACT"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "replay_prefill_decode",
+   "kebab": "replay-prefill-decode",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "reploid_vfs_status_tool_loop",
+   "kebab": "reploid-vfs-status-tool-loop",
+   "fields": [
+    "TRAINING_AGENT_EVAL_CATEGORIES"
+   ],
+   "files": [
+    "src/experimental/training/workloads.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "required_improvement_claims",
+   "kebab": "required-improvement-claims",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/experimental/training/lora-pipeline.js",
+    "src/experimental/training/operator-command.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "required_term",
+   "kebab": "required-term",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/experimental/training/operator-agent-eval.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "response_not_string",
+   "kebab": "response-not-string",
+   "fields": [
+    "violations"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "resume_state_oversize",
+   "kebab": "resume-state-oversize",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "resume_state_prefix_mismatch",
+   "kebab": "resume-state-prefix-mismatch",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "runner_combination_not_supported_by_current_lora_runner",
+   "kebab": "runner-combination-not-supported-by-current-lora-runner",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/lora/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "runtime_config_fetch_failed",
+   "kebab": "runtime-config-fetch-failed",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/tooling/browser-harness/runtime-config.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "runtime_config_not_found",
+   "kebab": "runtime-config-not-found",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/tooling/browser-harness/runtime-config.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "sample_tolerance_exceeded",
+   "kebab": "sample-tolerance-exceeded",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/boundary-evidence.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "sampling_suppression_requires_cpu_logits",
+   "kebab": "sampling-suppression-requires-cpu-logits",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "seed_hash_sorted_v1",
+   "kebab": "seed-hash-sorted-v1",
+   "fields": [
+    "TRAINING_ROW_ORDERS"
+   ],
+   "files": [
+    "src/experimental/training/workloads.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "selected_source_identity_bridge_mismatch",
+   "kebab": "selected-source-identity-bridge-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "selected_source_identity_receipt_binding_mismatch",
+   "kebab": "selected-source-identity-receipt-binding-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "selected_source_identity_role_mismatch",
+   "kebab": "selected-source-identity-role-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "selected_source_identity_verification_absent",
+   "kebab": "selected-source-identity-verification-absent",
+   "fields": [
+    "blockers (from the competition policy)"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "selected_source_identity_verification_absent_or_invalid",
+   "kebab": "selected-source-identity-verification-absent-or-invalid",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "selected_source_identity_verification_failed",
+   "kebab": "selected-source-identity-verification-failed",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/translation-artifact-competition.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "selected_tokens",
+   "kebab": "selected-tokens",
+   "fields": [
+    "TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "sequential_evidence_below_threshold",
+   "kebab": "sequential-evidence-below-threshold",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/runtime-optimization.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "session_token_expired",
+   "kebab": "session-token-expired",
+   "fields": [
+    "policyReason"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/retry.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "session_token_missing",
+   "kebab": "session-token-missing",
+   "fields": [
+    "policyReason"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/retry.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "session_token_missing_after_refresh",
+   "kebab": "session-token-missing-after-refresh",
+   "fields": [
+    "policyReason"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/receipt.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "sha256_mismatch",
+   "kebab": "sha256-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "shadow_mode",
+   "kebab": "shadow-mode",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/hotswap/runtime.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "shape_mismatch",
+   "kebab": "shape-mismatch",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/boundary-evidence.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "shard_hash_mismatch",
+   "kebab": "shard-hash-mismatch",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/experimental/distribution/descriptor-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "size_mismatch",
+   "kebab": "size-mismatch",
+   "fields": [
+    "code",
+    "error"
+   ],
+   "files": [
+    "src/debug/tensor.js",
+    "src/storage/download/http-contract.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "skip_capture_requires_artifacts",
+   "kebab": "skip-capture-requires-artifacts",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "source_adapter_vs_converted_adapter",
+   "kebab": "source-adapter-vs-converted-adapter",
+   "fields": [
+    "COLUMBO_QWEN_ADAPTER_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "source_artifact_byte_identity",
+   "kebab": "source-artifact-byte-identity",
+   "fields": [
+    "TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS",
+    "TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS",
+    "call:groupCheck",
+    "identityCheckIds"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js",
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "source_base_vs_converted_base",
+   "kebab": "source-base-vs-converted-base",
+   "fields": [
+    "COLUMBO_QWEN_ADAPTER_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "storage_access",
+   "kebab": "storage-access",
+   "fields": [
+    "WGSL_REPAIR_MUTATION_OPERATORS"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "stream_read_failed",
+   "kebab": "stream-read-failed",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/storage/download/http-transport.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "streaming_fallback",
+   "kebab": "streaming-fallback",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/attention/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "subgroup_capable",
+   "kebab": "subgroup-capable",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/attention/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "submit_readback_unattributed",
+   "kebab": "submit-readback-unattributed",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/tooling/browser-harness/decode-diagnostics.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "submit_readback_wait",
+   "kebab": "submit-readback-wait",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/tooling/browser-harness/decode-diagnostics.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "subset_manifest",
+   "kebab": "subset-manifest",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/distillation/dataset.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "target_verified_lookup",
+   "kebab": "target-verified-lookup",
+   "fields": [
+    "decodeMode"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "task_type_must_be_text_generation",
+   "kebab": "task-type-must-be-text-generation",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "teacher_top_token",
+   "kebab": "teacher-top-token",
+   "fields": [
+    "targetTokenMode"
+   ],
+   "files": [
+    "src/experimental/training/suite/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "teacher_trace",
+   "kebab": "teacher-trace",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/datasets/gepa-frontier.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "text_generation",
+   "kebab": "text-generation",
+   "fields": [
+    "TRAINING_EVAL_KINDS"
+   ],
+   "files": [
+    "src/experimental/training/workloads.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "tiled_large_capable",
+   "kebab": "tiled-large-capable",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/attention/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "tiled_small_capable",
+   "kebab": "tiled-small-capable",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/attention/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "tinker_checkpoint_vs_peft_reference",
+   "kebab": "tinker-checkpoint-vs-peft-reference",
+   "fields": [
+    "TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "tinker_peft_browser_adapter",
+   "kebab": "tinker-peft-browser-adapter",
+   "fields": [
+    "profile"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "token_constraint_requires_per_token_logits",
+   "kebab": "token-constraint-requires-per-token-logits",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/decode/decode-loop.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "tokenizer_and_prompt_identity",
+   "kebab": "tokenizer-and-prompt-identity",
+   "fields": [
+    "TINKER_PEFT_BROWSER_ADAPTER_PARITY_CHECKS",
+    "TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS",
+    "call:groupCheck",
+    "identityCheckIds"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js",
+    "src/tooling/trainer-artifact-handoff.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "tooling_error",
+   "kebab": "tooling-error",
+   "fields": [
+    "TOOLING_ERROR_CODE_FALLBACK"
+   ],
+   "files": [
+    "src/tooling/command-envelope.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "topk_class",
+   "kebab": "topk-class",
+   "fields": [
+    "targetTokenMode"
+   ],
+   "files": [
+    "src/experimental/training/suite/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "toy_linear_classification",
+   "kebab": "toy-linear-classification",
+   "fields": [
+    "datasetKind",
+    "runnerKind"
+   ],
+   "files": [
+    "src/experimental/training/lora/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "toy_linear_classification_jsonl",
+   "kebab": "toy-linear-classification-jsonl",
+   "fields": [
+    "datasetFormat",
+    "registeredDatasetFormats",
+    "supportedDatasetFormat"
+   ],
+   "files": [
+    "src/experimental/training/lora/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_backend_invalid",
+   "kebab": "training-backend-invalid",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_backend_mismatch",
+   "kebab": "training-backend-mismatch",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_backend_not_supported",
+   "kebab": "training-backend-not-supported",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": false
+  },
+  {
+   "legacy": "training_checkpoint",
+   "kebab": "training-checkpoint",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/distillation/stage-a.js",
+    "src/experimental/training/lora-pipeline.js",
+    "src/experimental/training/lora/execution.js",
+    "src/experimental/training/lora/recovery.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_checkpoint_watch_manifest",
+   "kebab": "training-checkpoint-watch-manifest",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/checkpoint-watch.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_compare_report",
+   "kebab": "training-compare-report",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/lora-pipeline.js",
+    "src/experimental/training/operator-command.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_eval_report",
+   "kebab": "training-eval-report",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/distillation/eval.js",
+    "src/experimental/training/lora/checkpoint.js",
+    "src/experimental/training/lora/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_fixture",
+   "kebab": "training-fixture",
+   "fields": [
+    "family"
+   ],
+   "files": [
+    "src/experimental/training/lora/plan.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_policy_checkpoint",
+   "kebab": "training-policy-checkpoint",
+   "fields": [
+    "VERIFIER_GUIDED_ARTIFACT_TYPES",
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/policy-artifacts.js",
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_policy_update",
+   "kebab": "training-policy-update",
+   "fields": [
+    "VERIFIER_GUIDED_ARTIFACT_TYPES",
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/policy-artifacts.js",
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_promotion_decision",
+   "kebab": "training-promotion-decision",
+   "fields": [
+    "VERIFIER_GUIDED_ARTIFACT_TYPES",
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_quality_gate",
+   "kebab": "training-quality-gate",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/lora-pipeline.js",
+    "src/experimental/training/operator-command.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_reward_vector",
+   "kebab": "training-reward-vector",
+   "fields": [
+    "<error-message-code>",
+    "VERIFIER_GUIDED_ARTIFACT_TYPES",
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_rollout_group",
+   "kebab": "training-rollout-group",
+   "fields": [
+    "VERIFIER_GUIDED_ARTIFACT_TYPES",
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_run_contract",
+   "kebab": "training-run-contract",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/distillation/artifacts.js",
+    "src/experimental/training/lora/recovery.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_scoreboard",
+   "kebab": "training-scoreboard",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/distillation/checkpoint-watch.js",
+    "src/experimental/training/distillation/stage-a.js",
+    "src/experimental/training/lora-pipeline.js",
+    "src/experimental/training/lora/execution.js",
+    "src/experimental/training/lora/recovery.js",
+    "src/experimental/training/operator-scoreboard.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_surface_downgrade_blocked",
+   "kebab": "training-surface-downgrade-blocked",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/output/manifest.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_verifier_report",
+   "kebab": "training-verifier-report",
+   "fields": [
+    "VERIFIER_GUIDED_ARTIFACT_TYPES"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "training_workload_lock",
+   "kebab": "training-workload-lock",
+   "fields": [
+    "artifactType"
+   ],
+   "files": [
+    "src/experimental/training/workloads.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "translation_full_checkpoint",
+   "kebab": "translation-full-checkpoint",
+   "fields": [
+    "profile"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "transport_quarantined",
+   "kebab": "transport-quarantined",
+   "fields": [
+    "policyReason"
+   ],
+   "files": [
+    "src/experimental/distribution/shard-delivery/retry.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "ul_stage1",
+   "kebab": "ul-stage1",
+   "fields": [
+    "dependencyType"
+   ],
+   "files": [
+    "src/experimental/training/suite.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "unexpected_parity_check",
+   "kebab": "unexpected-parity-check",
+   "fields": [
+    "blockers (prefix)"
+   ],
+   "files": [
+    "src/experimental/bridge/trainer-artifact-bridge.js"
+   ],
+   "readAlias": false
+  },
+  {
+   "legacy": "unknown_breach",
+   "kebab": "unknown-breach",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/experimental/distribution/p2p-observability.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "unsupported_op_or_contract_violation",
+   "kebab": "unsupported-op-or-contract-violation",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/cli/commands/bundle.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "unsupported_workload",
+   "kebab": "unsupported-workload",
+   "fields": [
+    "code"
+   ],
+   "files": [
+    "src/tooling/browser-harness/request.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "webgpu_native",
+   "kebab": "webgpu-native",
+   "fields": [
+    "TRAINING_BACKENDS",
+    "backend",
+    "trainingBackend"
+   ],
+   "files": [
+    "src/experimental/training/native-qwen-lora.js",
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "wgsl_lexicographic_compile_regression_v1",
+   "kebab": "wgsl-lexicographic-compile-regression-v1",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "wgsl_review",
+   "kebab": "wgsl-review",
+   "fields": [
+    "TRAINING_AGENT_EVAL_CATEGORIES"
+   ],
+   "files": [
+    "src/experimental/training/workloads.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "within_bound",
+   "kebab": "within-bound",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/inference/pipelines/text/policy/drift-policy.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "within_tolerance",
+   "kebab": "within-tolerance",
+   "fields": [
+    "reason",
+    "type"
+   ],
+   "files": [
+    "src/inference/pipelines/text/policy/drift-policy.js",
+    "src/tooling/diagnose-runner.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "workload_kind_must_be_lora",
+   "kebab": "workload-kind-must-be-lora",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/training.js"
+   ],
+   "readAlias": true
+  },
+  {
+   "legacy": "zero_advantages",
+   "kebab": "zero-advantages",
+   "fields": [
+    "zeroVariancePolicy"
+   ],
+   "files": [
+    "src/experimental/training/wgsl-repair.js"
+   ],
+   "readAlias": true
+  }
+ ],
+ "retained": [
+  {
+   "value": "activation_static_qdq",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/gpu/kernels/activation-static-qdq.js"
+   ]
+  },
+  {
+   "value": "affine_dequant",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/formats/tflite/types.js",
+    "src/loader/tensors/source-transform.js",
+    "src/tooling/litert-package-runtime.js"
+   ]
+  },
+  {
+   "value": "attention_output_gate",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/inference/pipelines/text/partitions/resident-pipeline-preparation.js"
+   ]
+  },
+  {
+   "value": "bf16_to_f16_output",
+   "category": "gpuDebugLabels",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/gpu/kernels/cast.js"
+   ]
+  },
+  {
+   "value": "bf16_to_f32_output",
+   "category": "gpuDebugLabels",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/gpu/kernels/cast.js"
+   ]
+  },
+  {
+   "value": "bias_add",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/gpu/kernels/backward/bias_add_backward.js"
+   ]
+  },
+  {
+   "value": "diffusion_gemma",
+   "category": "externalNames",
+   "fields": [
+    "name"
+   ],
+   "files": [
+    "src/tooling/browser-harness-diffusion-energy-suites.js"
+   ]
+  },
+  {
+   "value": "doppler_p2p_shard_request",
+   "category": "wireProtocol",
+   "fields": [
+    "type"
+   ],
+   "files": [
+    "src/experimental/distribution/p2p-webrtc-browser.js"
+   ]
+  },
+  {
+   "value": "down_proj_blocks",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/inference/pipelines/text/moe/gpu-executor.js",
+    "src/loader/experts/expert-loader.js"
+   ]
+  },
+  {
+   "value": "down_proj_scales",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/inference/pipelines/text/moe/gpu-executor.js",
+    "src/loader/experts/expert-loader.js"
+   ]
+  },
+  {
+   "value": "exact_match",
+   "category": "fieldKeys",
+   "fields": [
+    "primaryMetric"
+   ],
+   "files": [
+    "src/experimental/training/operator-eval.js"
+   ]
+  },
+  {
+   "value": "ffn_act",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "stage"
+   ],
+   "files": [
+    "src/inference/pipelines/text/ffn/activation-observation.js",
+    "src/inference/pipelines/text/ffn/paired.js",
+    "src/inference/pipelines/text/generator/adapters/training.js"
+   ]
+  },
+  {
+   "value": "ffn_residual",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/inference/pipelines/text/partitions/resident-pipeline-preparation.js"
+   ]
+  },
+  {
+   "value": "full_attention",
+   "category": "externalNames",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/litert-package-runtime.js",
+    "src/tooling/source-package-profiles.js"
+   ]
+  },
+  {
+   "value": "gate_up_proj_bias",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/inference/pipelines/text/moe/gpu-executor.js",
+    "src/loader/experts/expert-loader.js"
+   ]
+  },
+  {
+   "value": "gate_up_proj_blocks",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/inference/pipelines/text/moe/gpu-executor.js",
+    "src/loader/experts/expert-loader.js"
+   ]
+  },
+  {
+   "value": "gate_up_proj_scales",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/inference/pipelines/text/moe/gpu-executor.js",
+    "src/loader/experts/expert-loader.js"
+   ]
+  },
+  {
+   "value": "gated_delta_recurrent",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/inference/pipelines/text/execution/paired-execution.js"
+   ]
+  },
+  {
+   "value": "gated_short_conv",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/gpu/kernels/gated-short-conv.js"
+   ]
+  },
+  {
+   "value": "inject_gate",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "mode"
+   ],
+   "files": [
+    "src/inference/pipelines/text/hyper-connection/decoder-layer.js"
+   ]
+  },
+  {
+   "value": "invalid_request_error",
+   "category": "externalNames",
+   "fields": [
+    "type"
+   ],
+   "files": [
+    "src/cli/doppler-serve.js"
+   ]
+  },
+  {
+   "value": "kv_cache_store",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/inference/pipelines/text/partitions/resident-pipeline-preparation.js"
+   ]
+  },
+  {
+   "value": "latent_clean_mean",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "latent_clean_std",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "latent_clean_values",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "latent_noise_mean",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "latent_noise_std",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "latent_noise_values",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "latent_noisy_mean",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "latent_noisy_std",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "latent_noisy_values",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "latent_shape",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "linear_attention",
+   "category": "externalNames",
+   "fields": [
+    "<error-message-code>",
+    "call:add"
+   ],
+   "files": [
+    "src/gpu/kernels/linear-attention-core.js",
+    "src/inference/pipelines/text/linear-attention/linear-attention.js",
+    "src/inference/pipelines/text/linear-attention/plan.js",
+    "src/inference/pipelines/text/partitions/resident-pipeline-preparation.js"
+   ]
+  },
+  {
+   "value": "litert_axis_blocked_dequant",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/loader/tensors/source-transform.js",
+    "src/tooling/litert/package.js"
+   ]
+  },
+  {
+   "value": "litert_axis_dequant",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/converter/tensor-transform.js",
+    "src/loader/tensors/source-transform.js",
+    "src/tooling/litert/package.js"
+   ]
+  },
+  {
+   "value": "litert_int4_fused",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/matmul-selection.js"
+   ]
+  },
+  {
+   "value": "litert_rowwise_dequant",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/loader/tensors/source-transform.js"
+   ]
+  },
+  {
+   "value": "lm_head",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/loader/weight-representation-plan.js"
+   ]
+  },
+  {
+   "value": "lm_head_prefill",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/loader/weight-representation-plan.js"
+   ]
+  },
+  {
+   "value": "lm_head_scatter",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/inference/pipelines/text/partitions/resident-pipeline-preparation.js"
+   ]
+  },
+  {
+   "value": "logit_input_scale",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/inference/pipelines/text/partitions/resident-pipeline-preparation.js"
+   ]
+  },
+  {
+   "value": "logit_score",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/converter/parsers/transformer.js"
+   ]
+  },
+  {
+   "value": "logits_finalize",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/inference/pipelines/text/partitions/resident-pipeline-preparation.js"
+   ]
+  },
+  {
+   "value": "low_rank_silu",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "mode"
+   ],
+   "files": [
+    "src/inference/pipelines/text/hyper-connection/decoder-layer.js"
+   ]
+  },
+  {
+   "value": "mix_sigmoid",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "mode"
+   ],
+   "files": [
+    "src/inference/pipelines/text/hyper-connection/decoder-layer.js"
+   ]
+  },
+  {
+   "value": "new_kernel",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "key"
+   ],
+   "files": [
+    "src/config/merge-contract-check.js"
+   ]
+  },
+  {
+   "value": "new_step",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "id"
+   ],
+   "files": [
+    "src/config/merge-contract-check.js"
+   ]
+  },
+  {
+   "value": "old_step",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "remove"
+   ],
+   "files": [
+    "src/config/merge-contract-check.js"
+   ]
+  },
+  {
+   "value": "pixel_shuffle",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/gpu/kernels/backward/pixel_shuffle_backward.js"
+   ]
+  },
+  {
+   "value": "post_feedforward_layernorm_1",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/converter/gemma4/validation.js"
+   ]
+  },
+  {
+   "value": "post_feedforward_layernorm_2",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/converter/gemma4/validation.js"
+   ]
+  },
+  {
+   "value": "pre_feedforward_layernorm_2",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/converter/gemma4/validation.js"
+   ]
+  },
+  {
+   "value": "q_gate_split",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/inference/pipelines/text/partitions/resident-pipeline-preparation.js"
+   ]
+  },
+  {
+   "value": "q4k_fused",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/matmul-selection.js"
+   ]
+  },
+  {
+   "value": "query_scale",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/inference/pipelines/text/partitions/resident-pipeline-preparation.js"
+   ]
+  },
+  {
+   "value": "qwen4_exp",
+   "category": "externalNames",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/converter/qwen4-exp-source.js",
+    "src/formats/qwen4-exp-source-contracts.js"
+   ]
+  },
+  {
+   "value": "residual_rmsnorm_pair",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/gpu/kernels/rmsnorm-pair.js"
+   ]
+  },
+  {
+   "value": "rope_qk",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/inference/pipelines/text/partitions/resident-pipeline-preparation.js"
+   ]
+  },
+  {
+   "value": "safetensors_index",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/client/model-host/source-loading.js",
+    "src/tooling/node-source-runtime.js"
+   ]
+  },
+  {
+   "value": "schedule_step_index",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "siren_f16_v1",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/distribution/descriptor-transport.js"
+   ]
+  },
+  {
+   "value": "sliding_attention",
+   "category": "externalNames",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/tooling/litert-package-runtime.js",
+    "src/tooling/source-package-profiles.js"
+   ]
+  },
+  {
+   "value": "soft_embedding",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/inference/pipelines/text/generator/adapters/diffusion.js"
+   ]
+  },
+  {
+   "value": "split_qkv",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/gpu/kernels/split-dispatch.js"
+   ]
+  },
+  {
+   "value": "split_qkv_rmsnorm_qk",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/gpu/kernels/split-qkv-rmsnorm-qk.js"
+   ]
+  },
+  {
+   "value": "split_qkv_rmsnorm_rope_qk",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "<error-message-code>"
+   ],
+   "files": [
+    "src/gpu/kernels/split-qkv-rmsnorm-rope-qk.js"
+   ]
+  },
+  {
+   "value": "split_weight_buffer",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/gpu/weight-buffer.js"
+   ]
+  },
+  {
+   "value": "stage1_latent_count",
+   "category": "fieldKeys",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/experimental/training/suite/execution.js"
+   ]
+  },
+  {
+   "value": "subgroup_id",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:add"
+   ],
+   "files": [
+    "src/config/wgsl-language-contract.js"
+   ]
+  },
+  {
+   "value": "tensor_range_source",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/loader/tensors/range-backed-weights.js"
+   ]
+  },
+  {
+   "value": "tokenizer_config",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/client/model-host/source-loading.js",
+    "src/tooling/litert-package-runtime.js",
+    "src/tooling/node-source-runtime.js"
+   ]
+  },
+  {
+   "value": "tokenizer_json",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/client/model-host/source-loading.js",
+    "src/tooling/litert-package-runtime.js",
+    "src/tooling/node-source-runtime.js"
+   ]
+  },
+  {
+   "value": "tokenizer_model",
+   "category": "manifestAndDescriptorIdentity",
+   "fields": [
+    "kind"
+   ],
+   "files": [
+    "src/client/model-host/source-loading.js",
+    "src/tooling/litert-package-runtime.js",
+    "src/tooling/node-source-runtime.js"
+   ]
+  },
+  {
+   "value": "w4a16_fused",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "reason"
+   ],
+   "files": [
+    "src/gpu/kernels/matmul-selection.js"
+   ]
+  },
+  {
+   "value": "weight_packed",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/converter/tokenizer-contract.js"
+   ]
+  },
+  {
+   "value": "weight_scale",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/converter/tokenizer-contract.js"
+   ]
+  },
+  {
+   "value": "weight_shape",
+   "category": "opTensorAndKernelIds",
+   "fields": [
+    "call:push"
+   ],
+   "files": [
+    "src/converter/tokenizer-contract.js"
+   ]
+  }
+ ]
+}

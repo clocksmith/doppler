@@ -1,4 +1,4 @@
-export declare const WGSL_REPAIR_TASK_CONTRACT: 'replacement_only_wgsl_span_v1';
+export declare const WGSL_REPAIR_TASK_CONTRACT: 'replacement-only-wgsl-span-v1';
 export declare const WGSL_REPAIR_MUTATION_OPERATORS: readonly string[];
 export declare const VERIFIER_GUIDED_ARTIFACT_TYPES: readonly string[];
 
@@ -69,7 +69,7 @@ export declare function computeGroupRelativeAdvantages(rewards: number[], epsilo
   standardDeviation: number;
   epsilon: number;
   zeroVariance: boolean;
-  zeroVariancePolicy: 'zero_advantages';
+  zeroVariancePolicy: 'zero-advantages';
   advantages: number[];
 };
 export declare function buildTrainingRolloutGroup(input: Record<string, unknown>): Record<string, unknown>;

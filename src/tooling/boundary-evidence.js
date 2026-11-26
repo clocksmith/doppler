@@ -283,7 +283,7 @@ function compareSamples(expected, actual, tolerance) {
     const coordinateKey = JSON.stringify(expectedSample.coordinate);
     const actualSample = actualByCoordinate.get(coordinateKey);
     if (!actualSample) {
-      failures.push({ coordinate: expectedSample.coordinate, reason: 'missing_sample' });
+      failures.push({ coordinate: expectedSample.coordinate, reason: 'missing-sample' });
       continue;
     }
     const absoluteError = Math.abs(actualSample.value - expectedSample.value);
@@ -306,16 +306,16 @@ function compareSamples(expected, actual, tolerance) {
 
 function compareBoundary(expected, actual, tolerance) {
   const reasons = [];
-  if (JSON.stringify(expected.shape) !== JSON.stringify(actual.shape)) reasons.push('shape_mismatch');
-  if (tolerance.requireDtypeMatch && expected.dtype !== actual.dtype) reasons.push('dtype_mismatch');
+  if (JSON.stringify(expected.shape) !== JSON.stringify(actual.shape)) reasons.push('shape-mismatch');
+  if (tolerance.requireDtypeMatch && expected.dtype !== actual.dtype) reasons.push('dtype-mismatch');
   const samples = compareSamples(expected, actual, tolerance);
-  if (samples.failures.length > 0) reasons.push('sample_tolerance_exceeded');
+  if (samples.failures.length > 0) reasons.push('sample-tolerance-exceeded');
   if (
     tolerance.absolute === 0
     && tolerance.relative === 0
     && expected.fullTensorDigest !== actual.fullTensorDigest
   ) {
-    reasons.push('full_tensor_digest_mismatch');
+    reasons.push('full-tensor-digest-mismatch');
   }
   return {
     boundaryId: expected.boundaryId,
@@ -361,7 +361,7 @@ export function compareBoundaryEvidence({
         boundaryId: expected.boundaryId,
         key: boundaryKey(expected),
         passed: false,
-        reasons: ['missing_runtime_boundary'],
+        reasons: ['missing-runtime-boundary'],
       });
       break;
     }

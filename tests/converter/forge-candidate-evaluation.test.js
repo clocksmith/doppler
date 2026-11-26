@@ -62,7 +62,7 @@ const result = evaluateForgeCandidates({ contract, reference, observations });
 assert.deepEqual(result.selectedCandidateHashes, candidates.slice(0, 2).sort());
 assert.equal(result.candidates.find(row => row.candidateHash === candidates[2]).dominatedBy.length, 2);
 assert.equal(result.candidates.find(row => row.candidateHash === candidates[3]).eligible, false);
-assert.ok(result.attempts.some(attempt => attempt.reason === 'missing_attempt'));
+assert.ok(result.attempts.some(attempt => attempt.reason === 'missing-attempt'));
 assert.equal(result.promotionAllowed, false);
 assert.equal(result.claimAllowed, false);
 assert.equal(JSON.stringify({ contract, reference, observations }), before);
@@ -150,7 +150,7 @@ const cancelled = await runForgeCandidateEvaluation({ contract, reference, signa
 assert.equal(calls, 1);
 assert.equal(cancelled.observations[0].status, 'cancelled');
 assert.deepEqual(cancelled.receipt.selectedCandidateHashes, []);
-assert.equal(cancelled.receipt.attempts.filter(row => row.reason === 'missing_attempt').length, schedule.length - 1);
+assert.equal(cancelled.receipt.attempts.filter(row => row.reason === 'missing-attempt').length, schedule.length - 1);
 const ignoredAbort = new AbortController();
 const lateResult = await runForgeCandidateEvaluation({ contract, reference, signal: ignoredAbort.signal,
   runAttempt: async ({ attempt }) => { ignoredAbort.abort(); return observe(attempt); } });

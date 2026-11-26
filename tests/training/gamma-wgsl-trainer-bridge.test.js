@@ -20,7 +20,7 @@ const sftRequest = buildGammaRequest({
       baseModelRef: 'Qwen/Qwen3.5-9B',
       baseModelRevision: 'fixture-revision',
       maxLength: 2048,
-      rowOrder: 'seed_hash_sorted_v1',
+      rowOrder: 'seed-hash-sorted-v1',
     },
   },
   adapter: {
@@ -38,7 +38,7 @@ const sftRequest = buildGammaRequest({
     gradientClipping: { maxNorm: 1 },
   },
 }, '/tmp/wgsl-v12-output');
-assert.equal(sftRequest.training.rowOrder, 'seed_hash_sorted_v1');
+assert.equal(sftRequest.training.rowOrder, 'seed-hash-sorted-v1');
 
 const root = await mkdtemp(join(tmpdir(), 'doppler-gamma-wgsl-'));
 const adapter = join(root, 'adapter');

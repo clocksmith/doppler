@@ -10,7 +10,7 @@ import { resolveUlScheduledLambda } from '../../src/experimental/training/ul_sch
         stage: 'stage1-joint',
         lambda0: 5,
         noiseSchedule: {
-          type: 'log_snr_linear',
+          type: 'log-snr-linear',
           minLogSNR: -2,
           maxLogSNR: 6,
           steps: 5,

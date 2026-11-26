@@ -71,7 +71,7 @@ function runCli(args, options = {}) {
     assert.equal(intakeStage.modelId, 'gemma-3-270m-it-q4k-ehf16-af32');
     const captureStage = summary.stages.find((s) => s.stage === 'capture');
     assert.equal(captureStage?.status, 'skipped');
-    const blocker = summary.blockers.find((b) => b.code === 'skip_capture_requires_artifacts');
+    const blocker = summary.blockers.find((b) => b.code === 'skip-capture-requires-artifacts');
     assert.ok(blocker, 'must record skip_capture_requires_artifacts blocker');
     // intake-report must be emitted even on bundle failure.
     const intakeReport = JSON.parse(readFileSync(path.join(outDir, 'intake-report.json'), 'utf8'));
@@ -89,7 +89,7 @@ function runCli(args, options = {}) {
   assert.equal(result.report.ok, true, 'fixture manifest must pass intake');
   assert.ok(Array.isArray(result.report.stages));
   const stageNames = result.report.stages.map((s) => s.stage);
-  assert.deepEqual(stageNames, ['convert', 'manifest_load', 'execution_contract_check']);
+  assert.deepEqual(stageNames, ['convert', 'manifest-load', 'execution-contract-check']);
   assert.equal(result.manifest?.modelId, 'gemma-3-270m-it-q4k-ehf16-af32');
   assert.equal(path.resolve(result.manifestPath), path.resolve(FIXTURE_MANIFEST));
 }
@@ -98,7 +98,7 @@ function runCli(args, options = {}) {
 {
   const result = await performIntake({});
   assert.equal(result.report.ok, false);
-  const blocker = result.report.blockers.find((b) => b.code === 'no_manifest_path');
+  const blocker = result.report.blockers.find((b) => b.code === 'no-manifest-path');
   assert.ok(blocker, 'must raise no_manifest_path blocker when no manifest is provided');
 }
 

@@ -45,7 +45,7 @@ function sha256Hex(bytes) {
     },
   });
   assert.equal(result.activated, false);
-  assert.equal(result.reason, 'no_model_loaded');
+  assert.equal(result.reason, 'no-model-loaded');
 }
 
 {

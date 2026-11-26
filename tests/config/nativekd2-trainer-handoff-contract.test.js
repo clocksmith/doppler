@@ -8,12 +8,25 @@ import {
   buildTrainerArtifactImportPlan,
   normalizeGammaTrainerArtifactHandoff,
 } from '../../src/experimental/bridge/trainer-artifact-bridge.js';
+import { LEGACY_ENUM_VALUE_ALIASES } from '../../src/config/legacy-enum-values.js';
 import { sha256Hex } from '../../src/formats/sha256.js';
 import { stableSortObject } from '../../src/formats/stable-sort-object.js';
 
 const repoRoot = process.cwd();
 const contractPath = path.join(repoRoot, 'tools/policies/nativekd2-bf16-baseline-handoff.json');
 const contract = JSON.parse(readFileSync(contractPath, 'utf8'));
+
+const LEGACY_BY_CURRENT = new Map(Object.entries(LEGACY_ENUM_VALUE_ALIASES).map(([legacy, current]) => [current, legacy]));
+
+// Rewrites a plan into the spellings the 0.1.x writer used, to recompute a recorded hash.
+function toLegacySpellings(value) {
+  if (typeof value === 'string') return LEGACY_BY_CURRENT.get(value) ?? value;
+  if (Array.isArray(value)) return value.map(toLegacySpellings);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, toLegacySpellings(entry)]));
+  }
+  return value;
+}
 
 function hashStableJson(value) {
   return sha256Hex(JSON.stringify(stableSortObject(value)));
@@ -45,14 +58,14 @@ assert.equal(importHash, contract.importVerification.importReceiptHash);
 assert.equal(receipt.importReceipt.identityReceiptHash, verificationHash);
 
 // Admission in the receipts matches what the bridge derives for this descriptor.
-// The recorded receipts predate the kebab-case format rename and are kept as
-// written: the plan reads the Gamma spelling and emits huggingface-safetensors,
-// and the recorded plan hash is the same plan under the spelling it was hashed with.
+// The recorded receipts predate the kebab-case rename and are kept as written: the
+// plan reads the Gamma spelling and emits kebab-case, and the recorded plan hash is
+// the same plan under the snake_case spellings it was hashed with.
 const plan = buildTrainerArtifactImportPlan(descriptor, receipt.verification);
 assert.equal(contract.sourceCheckpoint.format, 'huggingface_safetensors');
 assert.equal(plan.source.format, 'huggingface-safetensors');
 const { planHash: _planHash, ...planCore } = plan;
-const recordedPlanCore = { ...planCore, source: { ...planCore.source, format: contract.sourceCheckpoint.format } };
+const recordedPlanCore = toLegacySpellings(planCore);
 assert.equal(receipt.importReceipt.importPlanHash, hashStableJson(recordedPlanCore));
 for (const admission of [receipt.verification.admission, receipt.importReceipt]) {
   assert.equal(admission.candidateCompetitionAllowed, plan.admission.candidateCompetitionAllowed);

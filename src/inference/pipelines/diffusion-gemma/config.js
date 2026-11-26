@@ -1,3 +1,5 @@
+import { canonicalizeLegacyEnumValue } from '../../../config/legacy-enum-values.js';
+
 const REQUIRED_POSITIVE_INTEGER_FIELDS = [
   'canvasLength',
   'maxDenoisingSteps',
@@ -120,9 +122,11 @@ export function parseDiffusionGemmaConfig(manifest) {
   if (contract.tMax <= contract.tMin) {
     throw new Error(`${label}.tMax must be greater than tMin.`);
   }
-  if (contract.decoderCacheMode !== 'encoder_kv_readonly_canvas_concat') {
+  // Manifests and conversion configs written before 0.2.0 spell it encoder_kv_readonly_canvas_concat.
+  const decoderCacheMode = canonicalizeLegacyEnumValue(contract.decoderCacheMode);
+  if (decoderCacheMode !== 'encoder-kv-readonly-canvas-concat') {
     throw new Error(
-      `${label}.decoderCacheMode must be "encoder_kv_readonly_canvas_concat".`
+      `${label}.decoderCacheMode must be "encoder-kv-readonly-canvas-concat".`
     );
   }
   if (typeof contract.selfConditioning !== 'boolean') {
@@ -143,7 +147,7 @@ export function parseDiffusionGemmaConfig(manifest) {
     eoiTokenId: readNullableTokenId(contract, 'eoiTokenId', label),
     imageTokenId: readNullableTokenId(contract, 'imageTokenId', label),
     selfConditioning: contract.selfConditioning,
-    decoderCacheMode: contract.decoderCacheMode,
+    decoderCacheMode,
     router: readRouterContract(contract, label),
   };
 }

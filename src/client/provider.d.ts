@@ -138,7 +138,7 @@ export interface ResolutionIdentity {
 }
 
 export interface ProviderReceiptV1 {
-  receiptVersion: 'doppler_provider_receipt_v1';
+  receiptVersion: 'doppler-provider-receipt-v1';
   receiptId: string;
   source: InferenceSource;
   policyMode: string;

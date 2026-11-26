@@ -277,7 +277,7 @@ export function createDopplerProvider(config) {
             model: { id: config.local?.model || localModelHandle?.modelId || '' },
             resolutionUnavailableReason: 'local-execution-failed-before-resolution',
             failure: localFailure,
-            fallbackDecision: { reason: 'both_failed', eligible: true, executed: true, deniedReason: null },
+            fallbackDecision: { reason: 'both-failed', eligible: true, executed: true, deniedReason: null },
             localDurationMs: Date.now() - localStart,
             fallbackDurationMs: Date.now() - cloudStart,
             totalDurationMs: Date.now() - startTime,

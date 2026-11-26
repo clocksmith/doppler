@@ -167,7 +167,7 @@ try {
   );
   const fullDescriptor = baseDescriptor({
     artifact: {
-      kind: 'full_checkpoint',
+      kind: 'full-checkpoint',
       role: 'diagnostic_baseline',
       format: 'huggingface-safetensors',
       repository: 'clocksmith/gamma',
@@ -179,11 +179,11 @@ try {
     evaluation: [evaluationFile],
     selection: {
       authority: 'clocksmith/gamma',
-      status: 'not_selected',
+      status: 'not-selected',
       receipt: null,
     },
     parity: {
-      profile: 'translation_full_checkpoint',
+      profile: 'translation-full-checkpoint',
       requiredChecks: [...TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS],
     },
   });
@@ -233,7 +233,7 @@ try {
     parityTemplate
   );
   assert.equal(blockedParity.decision, 'block');
-  assert.ok(blockedParity.blockers.includes('parity_check_not_passed:first_token_logits'));
+  assert.ok(blockedParity.blockers.includes('parity-check-not-passed:first-token-logits'));
   const passingEvidence = structuredClone(parityTemplate);
   for (const check of passingEvidence.checks) {
     check.status = 'pass';
@@ -255,8 +255,8 @@ try {
   });
   assert.equal(tampered.receipt.ok, false);
   assert.ok(
-    tampered.receipt.checks.find((check) => check.id === 'source_artifact_byte_identity').errors
-      .some((error) => error.includes('sha256_mismatch'))
+    tampered.receipt.checks.find((check) => check.id === 'source-artifact-byte-identity').errors
+      .some((error) => error.includes('sha256-mismatch'))
   );
 
   const adapterRoot = 'generated/adapters/unit';
@@ -334,7 +334,7 @@ try {
   );
   const adapterDescriptor = baseDescriptor({
     artifact: {
-      kind: 'peft_adapter',
+      kind: 'peft-adapter',
       role: 'selected_candidate',
       format: 'peft_safetensors',
       repository: 'clocksmith/columbo',
@@ -381,7 +381,7 @@ try {
   const diagnosticAdapterDescriptor = structuredClone(adapterDescriptor);
   diagnosticAdapterDescriptor.bridgeId = 'bridge.columbo.diagnostic-unit';
   diagnosticAdapterDescriptor.artifact.role = 'diagnostic_candidate';
-  diagnosticAdapterDescriptor.selection.status = 'not_selected';
+  diagnosticAdapterDescriptor.selection.status = 'not-selected';
   diagnosticAdapterDescriptor.selection.receipt = null;
   const diagnosticVerification = await verifyTrainerArtifactHandoff({
     contract: diagnosticAdapterDescriptor,

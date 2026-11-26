@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValues } from '../../src/config/legacy-enum-values.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -33,14 +34,19 @@ assert.equal(receipt.verification.ok, true);
 assert.equal(receipt.verification.bridgeId, descriptor.bridgeId);
 assert.equal(receipt.verification.artifactRole, descriptor.artifact.role);
 
-// The recorded plan is exactly what the bridge rebuilds from descriptor + verification.
+// The recorded plan is what the bridge rebuilds from descriptor + verification. The
+// receipt predates the kebab-case rename and is kept as written; read back, its values
+// canonicalize to exactly the rebuilt plan, and its hash is self-consistent.
 const rebuiltPlan = buildTrainerArtifactImportPlan(receipt.descriptor, receipt.verification);
-assert.deepEqual(receipt.plan, rebuiltPlan);
+const { planHash: recordedPlanHash, ...recordedPlanCore } = receipt.plan;
+const { planHash: _rebuiltPlanHash, ...rebuiltPlanCore } = rebuiltPlan;
+assert.equal(hashStableJson(recordedPlanCore), recordedPlanHash);
+assert.deepEqual(canonicalizeLegacyEnumValues(recordedPlanCore), rebuiltPlanCore);
 
 // The import receipt chains to the plan and verification, and repeats the derived admission.
 const { receiptHash: importHash, ...importCore } = receipt.importReceipt;
 assert.equal(hashStableJson(importCore), importHash);
-assert.equal(receipt.importReceipt.importPlanHash, rebuiltPlan.planHash);
+assert.equal(receipt.importReceipt.importPlanHash, recordedPlanHash);
 assert.equal(receipt.importReceipt.identityReceiptHash, verificationHash);
 assert.equal(receipt.importReceipt.importedIdentity.adapterId, path.posix.basename(descriptor.artifact.rootPath));
 assert.equal(receipt.importReceipt.importedIdentity.baseModel, descriptor.baseModel.modelId);

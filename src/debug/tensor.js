@@ -132,7 +132,7 @@ export const tensor = {
   ) {
     if (a.length !== b.length) {
       log.error('Tensor', `${label}: size mismatch ${a.length} vs ${b.length}`);
-      return { label, match: false, error: 'size_mismatch', maxDiff: 0, maxDiffIdx: 0, avgDiff: 0, mismatchCount: 0, mismatchPercent: '0' };
+      return { label, match: false, error: 'size-mismatch', maxDiff: 0, maxDiffIdx: 0, avgDiff: 0, mismatchCount: 0, mismatchPercent: '0' };
     }
 
     let maxDiff = 0,

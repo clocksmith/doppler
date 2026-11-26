@@ -16,7 +16,7 @@ const { evaluateHotSwapRollout } = await import('../../src/experimental/hotswap/
     { subjectId: 'user-1' }
   );
   assert.equal(decision.allowed, true);
-  assert.equal(decision.reason, 'default_enabled');
+  assert.equal(decision.reason, 'default-enabled');
 }
 
 {
@@ -49,7 +49,7 @@ const { evaluateHotSwapRollout } = await import('../../src/experimental/hotswap/
   );
   assert.strictEqual(decision.allowed, false);
   assert.equal(typeof decision.allowed, 'boolean');
-  assert.equal(decision.reason, 'opt_in_required');
+  assert.equal(decision.reason, 'opt-in-required');
 }
 
 assert.throws(

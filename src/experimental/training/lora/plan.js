@@ -37,21 +37,21 @@ import { f16ToF32Array } from '../../../inference/kv-cache/types.js';
 import { sha256BytesHex, sha256Hex } from '../../../formats/sha256.js';
 
 export const CAUSAL_LM_TEXT_PAIR_RUNNER_KEYS = Object.freeze([
-  'gemma-3-270m-it-f16-af32::text-pairs::text_generation',
-  'gemma-3-270m-it-q4k-ehf16-af32::text-pairs::text_generation',
-  'gemma4-e2b-it::text-pairs::text_generation',
-  'gemma-4-e2b-it-q4k-ehf16-af32::text-pairs::text_generation',
-  'gemma-4-e2b-it-q4k-ehf16-af32-int4ple::text-pairs::text_generation',
-  'qwen-3-5-0-8b-q4k-ehaf16::text-pairs::text_generation',
-  'qwen-3-5-2b-q4k-ehaf16::text-pairs::text_generation',
-  'qwen-3-5-9b-hf-bf16::text-pairs::text_generation',
-  'qwen-3-6-27b-q4k-ehaf16::text-pairs::text_generation',
-  'qwen-3-6-27b-q4k-eaf16::text-pairs::text_generation',
+  'gemma-3-270m-it-f16-af32::text-pairs::text-generation',
+  'gemma-3-270m-it-q4k-ehf16-af32::text-pairs::text-generation',
+  'gemma4-e2b-it::text-pairs::text-generation',
+  'gemma-4-e2b-it-q4k-ehf16-af32::text-pairs::text-generation',
+  'gemma-4-e2b-it-q4k-ehf16-af32-int4ple::text-pairs::text-generation',
+  'qwen-3-5-0-8b-q4k-ehaf16::text-pairs::text-generation',
+  'qwen-3-5-2b-q4k-ehaf16::text-pairs::text-generation',
+  'qwen-3-5-9b-hf-bf16::text-pairs::text-generation',
+  'qwen-3-6-27b-q4k-ehaf16::text-pairs::text-generation',
+  'qwen-3-6-27b-q4k-eaf16::text-pairs::text-generation',
 ]);
 
 export const LORA_RUNNER_SUPPORT_CONTRACT = Object.freeze({
   supportedBaseModelId: 'training-toy',
-  supportedDatasetFormat: 'toy_linear_classification_jsonl',
+  supportedDatasetFormat: 'toy-linear-classification-jsonl',
   registeredBaseModelIds: Object.freeze([
     'training-toy',
     'gemma-3-270m-it-f16-af32',
@@ -66,11 +66,11 @@ export const LORA_RUNNER_SUPPORT_CONTRACT = Object.freeze({
     'qwen-3-6-27b-q4k-eaf16',
   ]),
   registeredDatasetFormats: Object.freeze([
-    'toy_linear_classification_jsonl',
+    'toy-linear-classification-jsonl',
     'text-pairs',
   ]),
   implementedRunnerKeys: Object.freeze([
-    'training-toy::toy_linear_classification_jsonl::classification',
+    'training-toy::toy-linear-classification-jsonl::classification',
     ...CAUSAL_LM_TEXT_PAIR_RUNNER_KEYS,
   ]),
 });
@@ -78,48 +78,48 @@ export const LORA_RUNNER_SUPPORT_CONTRACT = Object.freeze({
 export const LORA_RUNNER_BASE_MODEL_REGISTRY = Object.freeze({
   'training-toy': Object.freeze({
     baseModelId: 'training-toy',
-    family: 'training_fixture',
-    runnerKind: 'toy_linear_classification',
+    family: 'training-fixture',
+    runnerKind: 'toy-linear-classification',
   }),
   'gemma-3-270m-it-f16-af32': Object.freeze({
     baseModelId: 'gemma-3-270m-it-f16-af32',
     modelRef: 'gemma-3-270m-it-f16-af32',
     family: 'gemma3',
-    runnerKind: 'causal_lm_text_generation',
+    runnerKind: 'causal-lm-text-generation',
   }),
   'gemma-3-270m-it-q4k-ehf16-af32': Object.freeze({
     baseModelId: 'gemma-3-270m-it-q4k-ehf16-af32',
     modelRef: 'gemma-3-270m-it-q4k-ehf16-af32',
     family: 'gemma3',
-    runnerKind: 'causal_lm_text_generation',
+    runnerKind: 'causal-lm-text-generation',
     requiresExternalTrainer: true,
   }),
   'gemma4-e2b-it': Object.freeze({
     baseModelId: 'gemma4-e2b-it',
     modelRef: 'gemma-4-e2b-it-q4k-ehf16-af32',
     family: 'gemma4',
-    runnerKind: 'causal_lm_text_generation',
+    runnerKind: 'causal-lm-text-generation',
     requiresExternalTrainer: true,
   }),
   'gemma-4-e2b-it-q4k-ehf16-af32': Object.freeze({
     baseModelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
     modelRef: 'gemma-4-e2b-it-q4k-ehf16-af32',
     family: 'gemma4',
-    runnerKind: 'causal_lm_text_generation',
+    runnerKind: 'causal-lm-text-generation',
     requiresExternalTrainer: true,
   }),
   'gemma-4-e2b-it-q4k-ehf16-af32-int4ple': Object.freeze({
     baseModelId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
     modelRef: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
     family: 'gemma4',
-    runnerKind: 'causal_lm_text_generation',
+    runnerKind: 'causal-lm-text-generation',
     requiresExternalTrainer: true,
   }),
   'qwen-3-5-0-8b-q4k-ehaf16': Object.freeze({
     baseModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
     modelRef: 'qwen-3-5-0-8b-q4k-ehaf16',
     family: 'qwen3',
-    runnerKind: 'causal_lm_text_generation',
+    runnerKind: 'causal-lm-text-generation',
     requiresExternalTrainer: true,
     nativeLoraTargets: Object.freeze([
       Object.freeze({ module: 'down_proj', layer: 'last' }),
@@ -129,40 +129,40 @@ export const LORA_RUNNER_BASE_MODEL_REGISTRY = Object.freeze({
     baseModelId: 'qwen-3-5-2b-q4k-ehaf16',
     modelRef: 'qwen-3-5-2b-q4k-ehaf16',
     family: 'qwen3',
-    runnerKind: 'causal_lm_text_generation',
+    runnerKind: 'causal-lm-text-generation',
     requiresExternalTrainer: true,
   }),
   'qwen-3-5-9b-hf-bf16': Object.freeze({
     baseModelId: 'qwen-3-5-9b-hf-bf16',
     modelRef: 'Qwen/Qwen3.5-9B',
     family: 'qwen3',
-    runnerKind: 'causal_lm_text_generation',
+    runnerKind: 'causal-lm-text-generation',
     requiresExternalTrainer: true,
   }),
   'qwen-3-6-27b-q4k-ehaf16': Object.freeze({
     baseModelId: 'qwen-3-6-27b-q4k-ehaf16',
     modelRef: 'qwen-3-6-27b-q4k-ehaf16',
     family: 'qwen3',
-    runnerKind: 'causal_lm_text_generation',
+    runnerKind: 'causal-lm-text-generation',
     requiresExternalTrainer: true,
   }),
   'qwen-3-6-27b-q4k-eaf16': Object.freeze({
     baseModelId: 'qwen-3-6-27b-q4k-eaf16',
     modelRef: 'qwen-3-6-27b-q4k-eaf16',
     family: 'qwen3',
-    runnerKind: 'causal_lm_text_generation',
+    runnerKind: 'causal-lm-text-generation',
     requiresExternalTrainer: true,
   }),
 });
 
 export const LORA_RUNNER_DATASET_FORMAT_REGISTRY = Object.freeze({
-  toy_linear_classification_jsonl: Object.freeze({
-    datasetFormat: 'toy_linear_classification_jsonl',
-    datasetKind: 'toy_linear_classification',
+  'toy-linear-classification-jsonl': Object.freeze({
+    datasetFormat: 'toy-linear-classification-jsonl',
+    datasetKind: 'toy-linear-classification',
   }),
   'text-pairs': Object.freeze({
     datasetFormat: 'text-pairs',
-    datasetKind: 'causal_lm_text_pairs',
+    datasetKind: 'causal-lm-text-pairs',
   }),
 });
 
@@ -192,9 +192,9 @@ export function getRunnerKey(baseModelId, datasetFormat, taskType) {
 }
 
 export function isCausalLmLoraWorkload(workload, compatibility = getLoraRunnerCompatibility(workload)) {
-  return compatibility.observed.baseModelRunnerKind === 'causal_lm_text_generation'
-    || compatibility.observed.datasetKind === 'causal_lm_text_pairs'
-    || compatibility.observed.taskType === 'text_generation';
+  return compatibility.observed.baseModelRunnerKind === 'causal-lm-text-generation'
+    || compatibility.observed.datasetKind === 'causal-lm-text-pairs'
+    || compatibility.observed.taskType === 'text-generation';
 }
 
 export function getLoraRunnerCompatibility(workload) {
@@ -207,13 +207,13 @@ export function getLoraRunnerCompatibility(workload) {
   const runnerKey = getRunnerKey(baseModelId, datasetFormat, taskType);
   const blockedReasons = [];
   if (!baseModel) {
-    blockedReasons.push('base_model_not_registered_for_current_lora_runner');
+    blockedReasons.push('base-model-not-registered-for-current-lora-runner');
   }
   if (!dataset) {
-    blockedReasons.push('dataset_format_not_supported_by_current_lora_runner');
+    blockedReasons.push('dataset-format-not-supported-by-current-lora-runner');
   }
   if (baseModel && dataset && !LORA_RUNNER_SUPPORT_CONTRACT.implementedRunnerKeys.includes(runnerKey)) {
-    blockedReasons.push('runner_combination_not_supported_by_current_lora_runner');
+    blockedReasons.push('runner-combination-not-supported-by-current-lora-runner');
   }
   return {
     schemaVersion: 1,
@@ -337,7 +337,7 @@ export function normalizeProviderEvalReport(entry, index, context) {
     : (baselineScore === null || loss === null
       ? null
       : {
-        baseline: entry.baseline?.stage || 'base_model',
+        baseline: entry.baseline?.stage || 'base-model',
         metric: 'loss',
         selectionGoal: 'min',
         adapterScore: loss,
@@ -354,7 +354,7 @@ export function normalizeProviderEvalReport(entry, index, context) {
     ? entry.agentEval
     : (isObjectRecord(entry.heldoutGate) ? entry.heldoutGate : null);
   return {
-    artifactType: 'training_eval_report',
+    artifactType: 'training-eval-report',
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     workloadId: context.workload.id,

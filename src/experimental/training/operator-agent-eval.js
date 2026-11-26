@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue } from '../../config/legacy-enum-values.js';
 const FILE_REF_PATTERN = /(?:^|[\s`"'([])([A-Za-z0-9_./-]+\.(?:d\.ts|js|json|jsonl|wgsl|md|html|css|py|zig|toml|yaml|yml|sh))(?:$|[\s`"',):;\]])/g;
 
 const KNOWN_TOOL_NAMES = Object.freeze([
@@ -111,9 +112,9 @@ function mergePolicyArray(row, policy, field) {
 function resolveRowPolicy(row, policy = {}) {
   const rowPolicy = isObjectRecord(row?.agentEval) ? row.agentEval : {};
   return {
-    categories: normalizeStringArray(rowPolicy.categories).length
-      ? normalizeStringArray(rowPolicy.categories)
-      : normalizeStringArray(policy.categories),
+    categories: normalizeCategories(rowPolicy.categories).length
+      ? normalizeCategories(rowPolicy.categories)
+      : normalizeCategories(policy.categories),
     requiredTerms: normalizeStringArray(rowPolicy.requiredTerms),
     forbiddenTerms: normalizeStringArray(rowPolicy.forbiddenTerms),
     requirePatchApplies: rowPolicy.requirePatchApplies === true || policy.requirePatchApplies === true,
@@ -135,7 +136,7 @@ function evaluateTermChecks(text, rowPolicy) {
   for (const term of rowPolicy.requiredTerms) {
     const ok = normalized.includes(term.toLowerCase());
     checks.push({
-      name: 'required_term',
+      name: 'required-term',
       ok,
       term,
       error: ok ? null : `Missing required term "${term}".`,
@@ -144,7 +145,7 @@ function evaluateTermChecks(text, rowPolicy) {
   for (const term of rowPolicy.forbiddenTerms) {
     const ok = !normalized.includes(term.toLowerCase());
     checks.push({
-      name: 'forbidden_term',
+      name: 'forbidden-term',
       ok,
       term,
       error: ok ? null : `Found forbidden term "${term}".`,
@@ -159,7 +160,7 @@ function evaluateFileChecks(text, rowPolicy) {
   const allowed = new Set(rowPolicy.allowedFiles.map((entry) => normalizePathReference(entry)).filter(Boolean));
   const unexpected = refs.filter((ref) => !allowed.has(ref));
   return [{
-    name: 'no_hallucinated_files',
+    name: 'no-hallucinated-files',
     ok: unexpected.length === 0,
     references: refs,
     allowedFiles: [...allowed].sort((left, right) => left.localeCompare(right)),
@@ -174,7 +175,7 @@ function evaluateToolChecks(text, rowPolicy) {
   const allowed = new Set(rowPolicy.allowedTools);
   const unexpected = refs.filter((ref) => !allowed.has(ref));
   return [{
-    name: 'no_hallucinated_tools',
+    name: 'no-hallucinated-tools',
     ok: unexpected.length === 0,
     references: refs,
     allowedTools: [...allowed].sort((left, right) => left.localeCompare(right)),
@@ -188,11 +189,17 @@ function evaluatePatchCheck(rowId, rowPolicy, patchStatuses) {
   const status = isObjectRecord(patchStatuses?.[rowId]) ? patchStatuses[rowId] : null;
   const ok = status?.applies === true;
   return [{
-    name: 'patch_applies',
+    name: 'patch-applies',
     ok,
     status,
     error: ok ? null : (status?.error || 'Patch apply evidence is required.'),
   }];
+}
+
+// Datasets and policies written before 0.2.0 name categories in snake_case; they are
+// read throughout 0.x and reported in kebab-case.
+function normalizeCategories(value) {
+  return normalizeStringArray(value).map((category) => canonicalizeLegacyEnumValue(category));
 }
 
 function buildCategorySummary(rows, requiredCategories) {
@@ -238,13 +245,13 @@ export function evaluateAgentHeldoutRows(datasetRows, candidateRows, options = {
     const checks = [];
     if (!candidate) {
       checks.push({
-        name: 'candidate_present',
+        name: 'candidate-present',
         ok: false,
         error: `No candidate completion found for row "${rowId}".`,
       });
     } else {
       checks.push({
-        name: 'candidate_present',
+        name: 'candidate-present',
         ok: true,
       });
       checks.push(...evaluateTermChecks(completion, rowPolicy));
@@ -262,7 +269,7 @@ export function evaluateAgentHeldoutRows(datasetRows, candidateRows, options = {
 
   const passedCount = rows.filter((row) => row.passed).length;
   const passRate = sourceRows.length === 0 ? 0 : passedCount / sourceRows.length;
-  const requiredCategories = normalizeStringArray(policy.categories);
+  const requiredCategories = normalizeCategories(policy.categories);
   const categorySummary = buildCategorySummary(rows, requiredCategories);
   const missingCategories = requiredCategories.filter((category) => !categorySummary[category]?.total);
   return {

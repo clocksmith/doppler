@@ -59,11 +59,11 @@ try {
     for (const content of ['{invalid', 'null', '[]']) {
       await writeFile(path.join(directory, 'latest.json'), content);
       await assert.rejects(loadBaseline('last', directory), (error) =>
-        error instanceof ToolingCommandError && error.code === 'benchmark_baseline_load_failed'
+        error instanceof ToolingCommandError && error.code === 'benchmark-baseline-load-failed'
           && error.details.baselinePath === path.join(directory, 'latest.json'));
     }
     await assert.rejects(loadBaseline(path.join(directory, 'missing.json'), directory), (error) =>
-      error instanceof ToolingCommandError && error.code === 'benchmark_baseline_load_failed');
+      error instanceof ToolingCommandError && error.code === 'benchmark-baseline-load-failed');
     await writeFile(path.join(directory, 'latest.json'), JSON.stringify(result()));
     assert.deepEqual(await loadBaseline('last', directory), result());
   } finally { await rm(directory, { recursive: true, force: true }); }

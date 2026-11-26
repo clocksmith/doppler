@@ -212,8 +212,8 @@ async function runDiffusionGemmaSuite(options, context) {
   });
   const timingDiagnostics = buildTimingDiagnostics(timing, {
     source: 'doppler',
-    prefillSemantics: 'diffusion_gemma_encoder_prefill_phase',
-    decodeSemantics: 'diffusion_gemma_canvas_denoising_phase',
+    prefillSemantics: 'diffusion-gemma-encoder-prefill-phase',
+    decodeSemantics: 'diffusion-gemma-canvas-denoising-phase',
   });
   const metricsWithContracts = buildSuiteContractMetrics(
     'diffusion',

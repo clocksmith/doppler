@@ -101,7 +101,7 @@ export async function loadBaseline(comparePath, saveDir) {
     return baseline;
   } catch (error) {
     throw new ToolingCommandError(`Comparison baseline could not be loaded from ${resolved}: ${error.message}`, {
-      code: 'benchmark_baseline_load_failed',
+      code: 'benchmark-baseline-load-failed',
       details: { baselinePath: resolved, causeCode: error.code ?? null },
       retryable: false,
       cause: error,

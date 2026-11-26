@@ -185,7 +185,7 @@ function createLoadFailure() {
       toGPU: true,
       streamedUpload: true,
       deviceLimitFailure: {
-        kind: 'gpu_resident_embedding_exceeds_device_limit',
+        kind: 'gpu-resident-embedding-exceeds-device-limit',
         maxGpuResidentBytes: 134217728,
         maxStorageBufferBindingSize: 134217728,
         maxBufferSize: 134217728,
@@ -464,7 +464,7 @@ function createLoadFailure() {
   assert.equal(body.model, mockTextModel.modelId);
   assert.equal(body.choices[0].message.content, 'Hello from Doppler.');
   assert.equal(body.usage.total_tokens, 7);
-  assert.equal(body.doppler_receipt.receiptVersion, 'doppler_serve_receipt_v2');
+  assert.equal(body.doppler_receipt.receiptVersion, 'doppler-serve-receipt-v2');
   assert.equal(body.doppler_receipt.schemaVersion, 2);
   assert.equal(body.doppler_receipt.surface, 'serve');
   assert.equal(body.doppler_receipt.endpoint, '/v1/chat/completions');
@@ -522,7 +522,7 @@ function createLoadFailure() {
   assert.equal(res.state.statusCode, 500);
   const body = parseBody(res);
   assert.ok(body.error.message.includes('loadWeights'));
-  assert.equal(body.doppler_receipt.receiptVersion, 'doppler_serve_receipt_v2');
+  assert.equal(body.doppler_receipt.receiptVersion, 'doppler-serve-receipt-v2');
   assert.equal(body.doppler_receipt.surface, 'serve');
   assert.equal(body.doppler_receipt.status, 'diagnostic');
   assert.equal(body.doppler_receipt.resolutionStatus, 'unavailable');
@@ -544,7 +544,7 @@ function createLoadFailure() {
   assert.equal(body.doppler_receipt.failure.weightLoadFailure.tensorSizeBytes, 805306368);
   assert.equal(
     body.doppler_receipt.failure.weightLoadFailure.deviceLimitFailure.kind,
-    'gpu_resident_embedding_exceeds_device_limit'
+    'gpu-resident-embedding-exceeds-device-limit'
   );
   assert.equal(
     body.doppler_receipt.failure.weightLoadFailure.deviceLimitFailure.maxGpuResidentBytes,

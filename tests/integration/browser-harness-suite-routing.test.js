@@ -88,7 +88,7 @@ await assert.rejects(
     surface: 'node',
   }),
   (error) => {
-    assert.equal(error.code, 'unsupported_workload');
+    assert.equal(error.code, 'unsupported-workload');
     assert.equal(error.requestedWorkload, 'unknown-suite');
     assert.equal(error.command, 'verify');
     assert.equal(error.surface, 'node');
@@ -107,7 +107,7 @@ await assert.rejects(
     surface: 'node',
   }),
   (error) => {
-    assert.equal(error.code, 'unsupported_workload');
+    assert.equal(error.code, 'unsupported-workload');
     assert.equal(error.requestedWorkload, '');
     return true;
   }
@@ -120,7 +120,7 @@ await assert.rejects(
     surface: 'node',
   }),
   (error) => {
-    assert.equal(error.code, 'unsupported_workload');
+    assert.equal(error.code, 'unsupported-workload');
     assert.equal(error.requestedWorkload, '');
     return true;
   }

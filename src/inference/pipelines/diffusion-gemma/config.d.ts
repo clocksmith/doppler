@@ -19,7 +19,7 @@ export interface DiffusionGemmaConfig {
   eoiTokenId: number | null;
   imageTokenId: number | null;
   selfConditioning: boolean;
-  decoderCacheMode: 'encoder_kv_readonly_canvas_concat';
+  decoderCacheMode: 'encoder-kv-readonly-canvas-concat';
   router: DiffusionGemmaRouterContract;
   vocabSize: number;
 }

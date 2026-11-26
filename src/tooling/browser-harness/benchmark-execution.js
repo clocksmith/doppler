@@ -108,7 +108,7 @@ export async function runBenchSuite(options = {}) {
     });
     const timingDiagnostics = buildTimingDiagnostics(timing, {
       source: 'doppler',
-      prefillSemantics: 'not_applicable_training_workload',
+      prefillSemantics: 'not-applicable-training-workload',
     });
     const firstLoad = buildFirstLoadComposition({
       modelLoadMs: timing.modelLoadMs,

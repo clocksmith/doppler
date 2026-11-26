@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue } from '../legacy-enum-values.js';
 import policy from "../capsule-adapters.json" with { type: 'json' };
 import { validateCapsuleAdapterExecution } from './capsule-adapter-policy.js';
 export { validateCapsuleAdapterExecution } from './capsule-adapter-policy.js';
@@ -18,7 +19,8 @@ export function resolveCapsuleAdapterSet(input, { capsule, targetPlan, operation
   assert(entries.length <= declared.maxAdapters && declared.operations.includes(operation), 'adapter operation or count is not declared');
   for (const entry of entries) {
     assert(entry.schema === 'doppler.capsule-adapter/v1' && hash(entry.identity), 'exact adapter identity required');
-    assert(declared.formats.includes(entry.format), 'format outside declared execution policy');
+    // Signed declarations and adapter entries written before 0.2.0 spell the format peft_safetensors.
+    assert(declared.formats.map(canonicalizeLegacyEnumValue).includes(canonicalizeLegacyEnumValue(entry.format)), 'format outside declared execution policy');
     const layout = resolveLoRAFormatLayout(entry.format);
     assert(entry.baseModel?.modelId === capsule.modelId && entry.baseModel.semanticRoot === capsule.semanticRoot
       && entry.baseModel.envelopeDigest === capsule.envelopeDigest && entry.baseModel.artifactClosureDigest === capsule.artifactClosureDigest,

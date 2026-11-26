@@ -1,3 +1,4 @@
+import { canonicalizeLegacyEnumValue } from './legacy-enum-values.js';
 import policy from './lora-layouts.json' with { type: 'json' };
 
 export function resolveLoRAWeightLayout(name = policy.legacyLayout) {
@@ -12,6 +13,8 @@ export function resolveLoRAWeightLayout(name = policy.legacyLayout) {
 }
 
 export function resolveLoRAFormatLayout(format) {
-  if (typeof format !== 'string' || !Object.hasOwn(policy.formats, format)) throw new Error(`Unsupported LoRA weight format: ${String(format)}.`);
-  return resolveLoRAWeightLayout(policy.formats[format]);
+  // Adapters and target plans signed before 0.2.0 declare peft_safetensors; read throughout 0.x.
+  const canonical = canonicalizeLegacyEnumValue(format);
+  if (typeof canonical !== 'string' || !Object.hasOwn(policy.formats, canonical)) throw new Error(`Unsupported LoRA weight format: ${String(format)}.`);
+  return resolveLoRAWeightLayout(policy.formats[canonical]);
 }

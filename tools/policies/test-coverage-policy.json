@@ -35,6 +35,7 @@
         "tests/integration/generation-context-physical.test.js",
         "tests/integration/target-sequence-scoring-physical.test.js",
         "tests/integration/target-sequence-scoring-state-physical.test.js",
+        "tests/integration/emitted-decode-stats-kebab-physical.test.js",
         "tests/integration/training-force-resume-lineage.test.js",
         "tests/integration/training-intent-split.test.js",
         "tests/integration/training-report-lineage.test.js",

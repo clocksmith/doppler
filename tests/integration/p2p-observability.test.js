@@ -61,9 +61,9 @@ assert.ok(Array.isArray(summary.slo.breaches));
 assert.ok(summary.slo.breaches.length >= 2);
 
 const alerts = buildP2PAlertsFromSummary(summary, {
-  escalateBreaches: ['http_fallback_rate_breach'],
+  escalateBreaches: ['http-fallback-rate-breach'],
 });
-assert.ok(alerts.some((entry) => entry.id === 'http_fallback_rate_breach' && entry.severity === 'critical'));
+assert.ok(alerts.some((entry) => entry.id === 'http-fallback-rate-breach' && entry.severity === 'critical'));
 
 const snapshot = buildP2PDashboardSnapshot(records);
 assert.equal(snapshot.summary.totals.records, 2);

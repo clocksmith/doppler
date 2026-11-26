@@ -214,7 +214,7 @@ export async function evaluateDistillationModel(options) {
     const reportPayload = {
       ...buildDistillArtifactBase(loadedWorkload, {
         prefix: 'dst_eval',
-        artifactType: 'training_eval_report',
+        artifactType: 'training-eval-report',
         datasetPath: dataset.absolutePath,
         datasetHash: dataset.canonicalHash,
         stage: stageId,

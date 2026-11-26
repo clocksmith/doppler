@@ -201,7 +201,7 @@ const runtimeKV = {
   const diffusionGemmaCache = createKVCache({
     ...modelConfig,
     diffusionGemma: {
-      decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
+      decoderCacheMode: 'encoder-kv-readonly-canvas-concat',
     },
   }, true, false, runtimeKV);
   assert.ok(diffusionGemmaCache instanceof MixedGeometryKVCache);

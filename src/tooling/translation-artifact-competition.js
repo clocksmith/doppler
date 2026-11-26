@@ -2,7 +2,7 @@ import {
   assertTrainerArtifactCandidateEntry,
   normalizeGammaTrainerArtifactHandoff,
 } from '../experimental/bridge/trainer-artifact-bridge.js';
-import { canonicalizeLegacyEnumValue } from '../config/legacy-enum-values.js';
+import { canonicalizeLegacyEnumValue, canonicalizeLegacyEnumValues } from '../config/legacy-enum-values.js';
 import { isPlainObject } from '../formats/plain-object.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
@@ -65,34 +65,34 @@ function normalizeVerificationReceipt(value) {
 function sourceBindingBlockers({ policy, descriptor, handoffSha256, verificationReceipt }) {
   const blockers = [];
   const source = policy.gammaSource || {};
-  if (policy.state === 'blocked_awaiting_gamma_selection') {
-    blockers.push('competition_policy_not_bound_to_gamma_selected_source');
+  if (canonicalizeLegacyEnumValue(policy.state) === 'blocked-awaiting-gamma-selection') {
+    blockers.push('competition-policy-not-bound-to-gamma-selected-source');
   }
   if (!SHA256_PATTERN.test(String(handoffSha256 || ''))) {
-    blockers.push('gamma_selected_handoff_sha256_absent');
+    blockers.push('gamma-selected-handoff-sha256-absent');
   } else if (source.handoffSha256 !== handoffSha256) {
-    blockers.push('gamma_selected_handoff_sha256_mismatch');
+    blockers.push('gamma-selected-handoff-sha256-mismatch');
   }
   if (source.selectionReceipt !== descriptor.selection.receipt) {
-    blockers.push('gamma_selection_receipt_binding_mismatch');
+    blockers.push('gamma-selection-receipt-binding-mismatch');
   }
   if (source.selectedCheckpointSha256 !== descriptor.baseModel.checkpointSha256) {
-    blockers.push('gamma_selected_checkpoint_binding_mismatch');
+    blockers.push('gamma-selected-checkpoint-binding-mismatch');
   }
   if (!verificationReceipt) {
-    blockers.push('selected_source_identity_verification_absent_or_invalid');
+    blockers.push('selected-source-identity-verification-absent-or-invalid');
   } else {
     if (verificationReceipt.ok !== true) {
-      blockers.push('selected_source_identity_verification_failed');
+      blockers.push('selected-source-identity-verification-failed');
     }
     if (verificationReceipt.bridgeId !== descriptor.bridgeId) {
-      blockers.push('selected_source_identity_bridge_mismatch');
+      blockers.push('selected-source-identity-bridge-mismatch');
     }
     if (verificationReceipt.artifactRole !== 'selected_candidate') {
-      blockers.push('selected_source_identity_role_mismatch');
+      blockers.push('selected-source-identity-role-mismatch');
     }
     if (source.identityVerificationReceiptHash !== verificationReceipt.receiptHash) {
-      blockers.push('selected_source_identity_receipt_binding_mismatch');
+      blockers.push('selected-source-identity-receipt-binding-mismatch');
     }
   }
   return blockers;
@@ -100,19 +100,21 @@ function sourceBindingBlockers({ policy, descriptor, handoffSha256, verification
 
 export function evaluateTranslationArtifactCompetition(options = {}) {
   const policy = requirePolicy(options.policy);
-  const blockers = new Set(Array.isArray(policy.blockers) ? policy.blockers : []);
+  // The policy file is digest-bound and keeps its snake_case spellings; they are read
+  // throughout 0.x and emitted in kebab-case.
+  const blockers = new Set(Array.isArray(policy.blockers) ? policy.blockers.map(canonicalizeLegacyEnumValue) : []);
   let descriptor = null;
   let verificationReceipt = null;
 
   if (!isPlainObject(options.handoff)) {
-    blockers.add('gamma_selected_handoff_absent');
+    blockers.add('gamma-selected-handoff-absent');
   } else {
     try {
       descriptor = normalizeGammaTrainerArtifactHandoff(options.handoff);
       assertTrainerArtifactCandidateEntry(descriptor);
     } catch {
-      blockers.add('gamma_source_not_selected_candidate');
-      blockers.add('gamma_source_selection_contract_invalid');
+      blockers.add('gamma-source-not-selected-candidate');
+      blockers.add('gamma-source-selection-contract-invalid');
     }
   }
 
@@ -136,8 +138,8 @@ export function evaluateTranslationArtifactCompetition(options = {}) {
     (lane) => ['evaluated', 'rejected', 'selected'].includes(lane.status) && lane.artifactReceipt
   );
   const selectedLanes = lanes.filter((lane) => lane.status === 'selected');
-  if (sourceReady && !lanesEvaluated) blockers.add('artifact_lane_evidence_incomplete');
-  if (lanesEvaluated && selectedLanes.length !== 1) blockers.add('artifact_lane_selection_not_unique');
+  if (sourceReady && !lanesEvaluated) blockers.add('artifact-lane-evidence-incomplete');
+  if (lanesEvaluated && selectedLanes.length !== 1) blockers.add('artifact-lane-selection-not-unique');
 
   const artifactGenerationAllowed = sourceReady;
   const artifactComparisonAllowed = sourceReady && lanesEvaluated;
@@ -147,7 +149,7 @@ export function evaluateTranslationArtifactCompetition(options = {}) {
   const receiptCore = {
     schema: TRANSLATION_ARTIFACT_COMPETITION_SCHEMA_ID,
     contractId: policy.contractId,
-    policyState: policy.state,
+    policyState: canonicalizeLegacyEnumValue(policy.state),
     gammaSelectionAuthority: policy.gammaContract?.selectionAuthority ?? null,
     observedSource: descriptor ? {
       bridgeId: descriptor.bridgeId,
@@ -164,11 +166,11 @@ export function evaluateTranslationArtifactCompetition(options = {}) {
       promotionSubmissionAllowed,
     },
     decision: promotionSubmissionAllowed
-      ? 'promotion_submission_allowed'
+      ? 'promotion-submission-allowed'
       : artifactComparisonAllowed
-        ? 'artifact_comparison_allowed'
+        ? 'artifact-comparison-allowed'
         : artifactGenerationAllowed
-          ? 'artifact_generation_allowed'
+          ? 'artifact-generation-allowed'
           : 'blocked',
     blockers: [...blockers].sort(),
   };
@@ -187,7 +189,8 @@ export function readTranslationArtifactCompetitionReceipt(recorded) {
   if (!SHA256_PATTERN.test(String(receiptHash || '')) || hashStableJson(core) !== receiptHash) {
     throw new Error('translation artifact competition: receipt hash does not match the recorded receipt.');
   }
-  return Array.isArray(recorded.lanes)
+  // The recorded receipt keeps its original spelling and hash; the returned copy is kebab-case.
+  return canonicalizeLegacyEnumValues(Array.isArray(recorded.lanes)
     ? { ...recorded, lanes: canonicalizeLanes(recorded.lanes) }
-    : recorded;
+    : recorded);
 }

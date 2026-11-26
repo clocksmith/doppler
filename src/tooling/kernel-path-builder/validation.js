@@ -262,7 +262,7 @@ export function kernelCapabilityFingerprint(steps) {
 export function describePhaseMismatch(phase, candidateSteps, existingSteps) {
   if (phase === 'sampling' && candidateSteps.length > 0 && existingSteps.length === 0) {
     return createMismatchDetail({
-      code: 'missing_sampling',
+      code: 'missing-sampling',
       category: 'sampling',
       label: 'Sampling block is missing from the registry path.',
       repairHint: 'Copy the sampling block from the execution graph into the kernel-path proposal.',
@@ -271,7 +271,7 @@ export function describePhaseMismatch(phase, candidateSteps, existingSteps) {
   }
   if (phase === 'layerOverrides') {
     return createMismatchDetail({
-      code: 'layer_override_drift',
+      code: 'layer-override-drift',
       category: 'layer-overrides',
       label: 'Layer override coverage differs.',
       repairHint: 'Emit explicit layerOverrides for the layers whose decode/prefill steps diverge from the default path.',
@@ -280,7 +280,7 @@ export function describePhaseMismatch(phase, candidateSteps, existingSteps) {
   }
   if (!compareField(kernelCapabilityFingerprint(candidateSteps), kernelCapabilityFingerprint(existingSteps))) {
     return createMismatchDetail({
-      code: 'capability_drift',
+      code: 'capability-drift',
       category: 'capability',
       label: `${phase} kernels assume different device capabilities.`,
       repairHint: 'Choose a registry path whose subgroup and attention-kernel assumptions match the execution graph, or synthesize a new path id for this capability mix.',
@@ -300,7 +300,7 @@ export function diffKernelPathShape(candidate, existing, modelRecord) {
   if (!candidate || !existing) {
     return [
       createMismatchDetail({
-        code: 'candidate_unavailable',
+        code: 'candidate-unavailable',
         category: 'shape',
         label: 'Candidate kernel path is unavailable.',
         repairHint: 'Fix the inline kernel-path synthesis error before comparing against registry paths.',
@@ -310,7 +310,7 @@ export function diffKernelPathShape(candidate, existing, modelRecord) {
   const details = [];
   if (!compareField(candidate.activationDtype, existing.activationDtype)) {
     details.push(createMismatchDetail({
-      code: 'activation_dtype_drift',
+      code: 'activation-dtype-drift',
       category: 'dtype',
       label: 'Activation dtype differs.',
       repairHint: `Set activationDtype to "${candidate.activationDtype}" or choose kernels compatible with "${existing.activationDtype}".`,
@@ -318,7 +318,7 @@ export function diffKernelPathShape(candidate, existing, modelRecord) {
   }
   if (!compareField(candidate.kvDtype, existing.kvDtype)) {
     details.push(createMismatchDetail({
-      code: 'kv_dtype_drift',
+      code: 'kv-dtype-drift',
       category: 'dtype',
       label: 'KV dtype differs.',
       repairHint: `Set kvDtype to "${candidate.kvDtype}" or swap attention kernels to ones compatible with "${existing.kvDtype}".`,
@@ -326,7 +326,7 @@ export function diffKernelPathShape(candidate, existing, modelRecord) {
   }
   if (!compareField(candidate.outputDtype, existing.outputDtype)) {
     details.push(createMismatchDetail({
-      code: 'output_dtype_drift',
+      code: 'output-dtype-drift',
       category: 'dtype',
       label: 'Output dtype differs.',
       repairHint: 'Align outputDtype with the execution graph or remove it when the path inherits activation dtype.',
@@ -345,7 +345,7 @@ export function diffKernelPathShape(candidate, existing, modelRecord) {
     && modelRecord.customRuntimeFacts.some((fact) => fact?.assumptions?.registryBypass === true)
   ) {
     details.push(createMismatchDetail({
-      code: 'custom_runtime_bypass',
+      code: 'custom-runtime-bypass',
       category: 'custom-runtime',
       label: 'Custom runtime layers bypass raw kernel-path lowering.',
       repairHint: 'Keep the proposal partial and preserve the custom runtime facts for the bypassed layers instead of forcing a registry path to claim ownership of them.',

@@ -147,7 +147,7 @@ export async function runDistillationStage(options) {
         const checkpointId = `checkpoint-${padStep(checkpoint.step)}`;
         const checkpointBase = buildDistillArtifactBase(loadedWorkload, {
           prefix: 'dst_ckpt',
-          artifactType: 'training_checkpoint',
+          artifactType: 'training-checkpoint',
           datasetPath: distillDatasetReport.absolutePath,
           datasetHash: canonicalDataset.canonicalHash,
           stage: stageId,
@@ -204,7 +204,7 @@ export async function runDistillationStage(options) {
           model: fixture.model,
           configHash: configBundle.trainingConfigHash,
           parentArtifacts: [{
-            artifactType: 'training_checkpoint',
+            artifactType: 'training-checkpoint',
             path: metadataFile.path,
             checkpointId,
           }],
@@ -212,7 +212,7 @@ export async function runDistillationStage(options) {
         for (const report of reports) {
           evalReports.push(report);
           await appendDistillationScoreboardRow(options.layout, stageId, {
-            artifactType: 'training_scoreboard',
+            artifactType: 'training-scoreboard',
             schemaVersion: 1,
             generatedAt: new Date().toISOString(),
             stage: stageId,
@@ -285,7 +285,7 @@ export async function runDistillationStage(options) {
     const stageManifestPayload = {
       ...buildDistillArtifactBase(loadedWorkload, {
         prefix: 'dst_stage',
-        artifactType: 'distill_stage_manifest',
+        artifactType: 'distill-stage-manifest',
         datasetPath: distillDatasetReport.absolutePath,
         datasetHash: canonicalDataset.canonicalHash,
         stage: stageId,

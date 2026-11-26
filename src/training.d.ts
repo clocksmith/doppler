@@ -63,7 +63,7 @@ export type {
   TrainingWorkloadCapsule,
 } from './experimental/training/workloads.js';
 
-export type TrainingBackend = 'webgpu_native' | 'external';
+export type TrainingBackend = 'webgpu-native' | 'external';
 
 export interface TrainingBackendCapability {
   id: TrainingBackend;
@@ -73,7 +73,7 @@ export interface TrainingBackendCapability {
 
 export interface TrainingCapabilities {
   schemaVersion: 1;
-  scope: 'completion_masked_sft_lora';
+  scope: 'completion-masked-sft-lora';
   supported: boolean;
   operatorSurfaces: readonly ['browser', 'node', 'bun'];
   runnerKey: string;
@@ -87,7 +87,7 @@ export interface TrainingCapabilities {
   }>;
   adapterExport: Readonly<{
     format: 'safetensors';
-    manifest: 'rdrr_lora_adapter';
+    manifest: 'rdrr-lora-adapter';
     runtimeLoadable: true;
   }>;
   compatibility: ReturnType<typeof import('./experimental/training/lora-pipeline.js').getLoraRunnerCompatibility>;

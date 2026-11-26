@@ -56,7 +56,7 @@ const baseOptions = {
 
 const diffusionGemmaGenerationConfig = {
   max_denoising_steps: 48,
-  max_new_tokens: 256,
+  'max_new_tokens': 256,
   t_min: 0.4,
   t_max: 0.8,
   stability_threshold: 1,
@@ -254,7 +254,7 @@ await assert.rejects(
   assert.deepEqual(capturedManifest.inference.diffusionGemma.eosTokenIds, [1, 106, 50]);
   assert.equal(
     capturedManifest.inference.diffusionGemma.decoderCacheMode,
-    'encoder_kv_readonly_canvas_concat'
+    'encoder-kv-readonly-canvas-concat'
   );
 }
 

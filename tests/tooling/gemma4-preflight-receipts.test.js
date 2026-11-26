@@ -124,7 +124,7 @@ const capabilities = {
       tensorName: embeddingName,
       tensorLoadStage: 'gpuResidentEmbeddingLimitPreflight',
       deviceLimitFailure: {
-        kind: 'gpu_resident_embedding_exceeds_device_limit',
+        kind: 'gpu-resident-embedding-exceeds-device-limit',
       },
     },
   };

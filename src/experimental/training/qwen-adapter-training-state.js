@@ -1,8 +1,9 @@
+import { canonicalizeLegacyEnumValue } from '../../config/legacy-enum-values.js';
 import { readBuffer, uploadData } from '../../memory/buffer-pool.js';
 import { sha256BytesHex, sha256Hex } from '../../formats/sha256.js';
 import { stableSortObject } from '../../formats/stable-sort-object.js';
 
-const ARTIFACT_TYPE = 'qwen_adapter_training_state';
+const ARTIFACT_TYPE = 'qwen-adapter-training-state';
 const SCHEMA_VERSION = 1;
 
 function isTensor(value) {
@@ -166,7 +167,7 @@ export async function captureQwenAdapterTrainingState(entries, optimizer, progre
 }
 
 export function validateQwenAdapterTrainingState(payload) {
-  if (payload?.artifactType !== ARTIFACT_TYPE || payload?.schemaVersion !== SCHEMA_VERSION) {
+  if (canonicalizeLegacyEnumValue(payload?.artifactType) !== ARTIFACT_TYPE || payload?.schemaVersion !== SCHEMA_VERSION) {
     throw new Error('Qwen adapter training state artifact contract mismatch.');
   }
   const expectedHash = sha256Hex(stableJson(payloadWithoutHash(payload)));

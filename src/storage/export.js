@@ -55,7 +55,7 @@ export async function exportModelToDirectory(modelId, destinationDir, options = 
       const dstName = sanitizeFilename(srcName);
 
       onProgress?.({
-        stage: 'file_start',
+        stage: 'file-start',
         modelId,
         backend,
         filename: srcName,
@@ -72,7 +72,7 @@ export async function exportModelToDirectory(modelId, destinationDir, options = 
           for await (const chunk of store.readFileRangeStream(srcName, 0, null, { chunkBytes })) {
             await writable.write(chunk);
             written += chunk.byteLength ?? chunk.length ?? 0;
-            onProgress?.({ stage: 'file_progress', modelId, filename: srcName, writtenBytes: written });
+            onProgress?.({ stage: 'file-progress', modelId, filename: srcName, writtenBytes: written });
           }
         } else {
           const ab = await store.readFile(srcName);
@@ -90,7 +90,7 @@ export async function exportModelToDirectory(modelId, destinationDir, options = 
 
       exported += 1;
       onProgress?.({
-        stage: 'file_done',
+        stage: 'file-done',
         modelId,
         backend,
         filename: srcName,

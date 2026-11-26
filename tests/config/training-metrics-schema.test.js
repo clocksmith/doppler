@@ -178,9 +178,9 @@ function makeBaseEntry(overrides = {}) {
 
 {
   const entry = validateTrainingMetricsEntry(makeBaseEntry({
-    telemetry_alerts: ['max_step_time_ms_exceeded'],
+    telemetry_alerts: ['max-step-time-ms-exceeded'],
   }));
-  assert.deepEqual(entry.telemetry_alerts, ['max_step_time_ms_exceeded']);
+  assert.deepEqual(entry.telemetry_alerts, ['max-step-time-ms-exceeded']);
 }
 
 {

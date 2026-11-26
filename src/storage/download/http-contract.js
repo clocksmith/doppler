@@ -134,7 +134,7 @@ export function assertExpectedHash(resultHash, expectedHash, shardIndex) {
       ERROR_CODES.DISTRIBUTION_SHARD_HASH_MISMATCH,
       `Shard ${shardIndex} missing hash result`
     );
-    error.code = 'hash_missing';
+    error.code = 'hash-missing';
     throw error;
   }
   if (resultHash !== expectedHash) {
@@ -142,7 +142,7 @@ export function assertExpectedHash(resultHash, expectedHash, shardIndex) {
       ERROR_CODES.DISTRIBUTION_SHARD_HASH_MISMATCH,
       `Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${resultHash}`
     );
-    error.code = 'hash_mismatch';
+    error.code = 'hash-mismatch';
     error.expectedHash = expectedHash;
     error.actualHash = resultHash;
     throw error;
@@ -159,7 +159,7 @@ export function assertExpectedSize(bytes, expectedSize, shardIndex) {
       ERROR_CODES.DISTRIBUTION_SHARD_SIZE_MISMATCH,
       `Size mismatch for shard ${shardIndex}: expected ${expected}, got ${actual}`
     );
-    error.code = 'size_mismatch';
+    error.code = 'size-mismatch';
     error.expectedSize = expected;
     error.actualSize = actual;
     throw error;
@@ -175,7 +175,7 @@ export function assertExpectedManifestVersionSet(resultVersionSet, expectedVersi
       ERROR_CODES.DISTRIBUTION_SHARD_MANIFEST_VERSION_SET_MISMATCH,
       `Shard ${shardIndex} source "${source}" missing manifestVersionSet while antiRollback.requireManifestVersionSet=true.`
     );
-    error.code = 'manifest_version_set_missing';
+    error.code = 'manifest-version-set-missing';
     error.expectedManifestVersionSet = expected;
     error.actualManifestVersionSet = actual;
     throw error;
@@ -185,7 +185,7 @@ export function assertExpectedManifestVersionSet(resultVersionSet, expectedVersi
       ERROR_CODES.DISTRIBUTION_SHARD_MANIFEST_VERSION_SET_MISMATCH,
       `Shard ${shardIndex} source "${source}" manifestVersionSet mismatch: expected ${expected}, got ${actual}`
     );
-    error.code = 'manifest_version_set_mismatch';
+    error.code = 'manifest-version-set-mismatch';
     error.expectedManifestVersionSet = expected;
     error.actualManifestVersionSet = actual;
     throw error;

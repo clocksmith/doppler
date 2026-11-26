@@ -117,7 +117,7 @@ function resolveMixedGeometrySlidingLayerLayout(modelConfig) {
   if (diffusionGemmaContract == null) {
     return 'ring';
   }
-  if (diffusionGemmaContract.decoderCacheMode === 'encoder_kv_readonly_canvas_concat') {
+  if (diffusionGemmaContract.decoderCacheMode === 'encoder-kv-readonly-canvas-concat') {
     return 'contiguous';
   }
   throw new Error(

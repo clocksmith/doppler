@@ -83,7 +83,7 @@ const DIFFUSION_GEMMA_CONTRACT = Object.freeze({
   eoiTokenId: 258882,
   imageTokenId: 258880,
   selfConditioning: true,
-  decoderCacheMode: 'encoder_kv_readonly_canvas_concat',
+  decoderCacheMode: 'encoder-kv-readonly-canvas-concat',
   router: {
     scaleHiddenStates: true,
     normalizeTopK: true,
@@ -325,8 +325,8 @@ function assertDiffusionGemmaArtifacts(result, expectedSuite) {
   assert.ok(result.timingDiagnostics && typeof result.timingDiagnostics === 'object');
   assert.equal(result.timingDiagnostics.schemaVersion, 1);
   assert.equal(result.timingDiagnostics.source, 'doppler');
-  assert.equal(result.timingDiagnostics.semantics.prefillMs, 'diffusion_gemma_encoder_prefill_phase');
-  assert.equal(result.timingDiagnostics.semantics.decodeMs, 'diffusion_gemma_canvas_denoising_phase');
+  assert.equal(result.timingDiagnostics.semantics.prefillMs, 'diffusion-gemma-encoder-prefill-phase');
+  assert.equal(result.timingDiagnostics.semantics.decodeMs, 'diffusion-gemma-canvas-denoising-phase');
 }
 
 try {
