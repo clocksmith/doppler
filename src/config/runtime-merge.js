@@ -1,5 +1,6 @@
 import { isPlainObject } from '../formats/plain-object.js';
 import { log } from '../debug/index.js';
+import { canonicalizeLegacyEnumValues } from './legacy-enum-values.js';
 
 // Runtime merge helper used by command runners and harness config resolution.
 // Behavior:
@@ -7,8 +8,10 @@ import { log } from '../debug/index.js';
 // - null override: explicit disable/reset
 // - plain objects: deep merge
 // - other values: override replaces base
+// - legacy snake_case enum values in the override are read as kebab-case
 export function mergeRuntimeValues(base, override, _path = '') {
   if (override === undefined) return base;
+  if (_path === '') override = canonicalizeLegacyEnumValues(override);
   if (override === null) return null;
   if (!isPlainObject(base) || !isPlainObject(override)) {
     // Warn when an object is being replaced by a non-object or vice-versa,

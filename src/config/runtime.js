@@ -2,6 +2,7 @@ import { ERROR_CODES, createDopplerError } from '../errors/doppler-error.js';
 import { createDopplerConfig, setKernelThresholds } from './schema/index.js';
 import { validateRuntimeConfig, validateRuntimeOverrides } from './param-validator.js';
 import { isPlainObject } from '../formats/plain-object.js';
+import { canonicalizeLegacyEnumValues } from './legacy-enum-values.js';
 
 let runtimeConfig = createDopplerConfig().runtime;
 const runtimeScopes = [];
@@ -39,6 +40,10 @@ export function resolveRuntimeConfig(overrides) {
   if (!isPlainObject(overrides)) {
     throw createDopplerError(ERROR_CODES.CONFIG_INVALID, 'DopplerConfigError: runtime overrides must be an object when provided.');
   }
+
+  // Runtime configs written before the kebab-case rename are read through the
+  // legacy enum table, so validation and execution only see kebab-case values.
+  overrides = canonicalizeLegacyEnumValues(overrides);
 
   try {
     assertNoDeprecatedRuntimeKeys(overrides);
