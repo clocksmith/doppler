@@ -1,4 +1,0 @@
-adapter webgpu {"vendor":"nvidia","architecture":"ampere","device":"nvidia-tegra-orin-nvgpu-","description":"NVIDIA: 540.4.0 540.4.0.0"} profile dev-insecure-n12-u32 N=2^12 (golden inputs)
-121 passed, 0 failed; dispatches 2104, peak GPU buffers 71.2 MiB
-adapter webgpu {"vendor":"nvidia","architecture":"ampere","device":"nvidia-tegra-orin-nvgpu-","description":"NVIDIA: 540.4.0 540.4.0.0"} profile research-n16-u32 N=2^16
-121 passed, 0 failed; dispatches 3988, peak GPU buffers 1138.3 MiB

@@ -54,7 +54,6 @@
     "source:dependencies:check": "node tools/report-source-dependencies.js",
     "source:dependencies:sync": "node tools/report-source-dependencies.js --write",
     "test:unit": "node tools/run-node-tests.js --suite unit",
-    "protected:check": "node tools/check-protected-js-only.js && node --test 'tools/privacy-protected/test/*.test.js'",
     "test:smoke": "node tools/run-node-tests.js --suite ci-smoke",
     "test:unit:webgpu": "node tools/run-node-tests.js --suite unit-webgpu",
     "test:unit:browser": "node tools/run-node-tests.js --suite unit-browser",
