@@ -90,7 +90,7 @@ async function collectCharterPaths(repoRoot, policy) {
         ? path.posix.join(relativeDirectory, entry.name)
         : entry.name;
       if (entry.isDirectory()) {
-        if (!ignored.has(entry.name)) {
+        if (!entry.name.startsWith('.') && !ignored.has(entry.name)) {
           await visit(path.join(directory, entry.name), relativePath);
         }
         continue;

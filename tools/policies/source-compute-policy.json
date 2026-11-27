@@ -330,16 +330,6 @@
       "reason": "This diagnostic symbol reads or formats tensor evidence and cannot feed a modified tensor back into model execution."
     },
     {
-      "id": "src/experimental/adapters/adapter-manager.js#AdapterManager.#mergeByWeightedSum",
-      "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
-    },
-    {
-      "id": "src/experimental/adapters/adapter-manager.js#AdapterManager.#applyWeight",
-      "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
-    },
-    {
       "id": "src/experimental/adapters/lora-loader.js#loadLoRAWeights",
       "category": "quarantined-experimental",
       "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."

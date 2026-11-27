@@ -284,8 +284,7 @@
         "docs/api/root.md"
       ],
       "entrypoints": [
-        "src/experimental/adapters/lora-loader.js",
-        "src/experimental/adapters/adapter-manager.js"
+        "src/experimental/adapters/lora-loader.js"
       ],
       "notes": "User-visible adapter swap capability that remains outside the canonical quickstart and demo-default proof path."
     },

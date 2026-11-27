@@ -4,8 +4,6 @@
 **/*.md
 debug/reference/
 gpu/kernels/codegen/
-bootstrap.d.ts
-bootstrap.js
 cli/argument-contract.d.ts
 cli/browser-report-output.d.ts
 cli/cli-model-resolution.d.ts
@@ -292,8 +290,6 @@ converter/tokenizer-special-tokens.d.ts
 converter/w8a8-quantizer.d.ts
 debug/perf-guards.d.ts
 debug/pipeline-config.d.ts
-experimental/adapters/adapter-manager.d.ts
-experimental/adapters/adapter-manager.js
 experimental/adapters/adapter-registry.d.ts
 experimental/adapters/adapter-registry.js
 experimental/adapters/artifact-contract.d.ts
@@ -941,8 +937,6 @@ inference/pipelines/vision/support.d.ts
 inference/pipelines/vision/weight-loading.d.ts
 inference/sampling-rng.d.ts
 inference/target-sequence-scoring.d.ts
-inference/test-harness.d.ts
-inference/test-harness.js
 inference/token-sampling.d.ts
 inference/tokenizers/base.d.ts
 inference/tokenizers/behavior-flags.d.ts
@@ -1080,8 +1074,6 @@ storage/verified-piece-direct.d.ts
 storage/verified-piece-gather-lane.d.ts
 storage/verified-piece-gather-worker.d.ts
 storage/verified-piece-timings.d.ts
-sw.d.ts
-sw.js
 tooling-exports.browser.d.ts
 tooling/browser-harness-contract-helpers.d.ts
 tooling/browser-harness-diffusion-energy-suites.d.ts

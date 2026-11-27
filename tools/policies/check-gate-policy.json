@@ -352,7 +352,7 @@
       "inputs": [
         "examples/program-bundles/**",
         "src/tooling/program-bundle*",
-        "src/config/schema/program-bundle*"
+        "src/config/schema/**/program-bundle*"
       ]
     },
     "product:readiness:check": {

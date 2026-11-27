@@ -2,9 +2,6 @@
   "schemaVersion": 4,
   "debtAuthorization": "sha256:ea060d2b41e2b40b824cc34cd45956e882b65049cf23b1cb96fae0fe8deb86ab",
   "facadeDependencies": {
-    "inference/test-harness.js": [
-      "tooling/test-harness.js"
-    ],
     "index.js": [
       "client/doppler-api.js",
       "client/provider.js",
@@ -402,10 +399,7 @@
     }
   },
   "reachability": {
-    "roots": [
-      "bootstrap.js",
-      "sw.js"
-    ],
+    "roots": [],
     "externalRoots": [
       "benchmarks",
       "demo",
@@ -946,7 +940,6 @@
     }
   },
   "facades": [
-    "inference/test-harness.js",
     "index.js",
     "index-browser.js",
     "config/schema/platform/platform.schema.js",

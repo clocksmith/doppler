@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 
+import { float16ToFloat32 } from '../../src/formats/float16.js';
 import { parseSafetensorsHeader } from '../../src/formats/safetensors/types.js';
 
 const PROTOCOL = 'gamma_wgsl_trainer_json_v1';
@@ -14,33 +15,6 @@ const TARGET_MODULES = new Set([
   'up_proj',
   'down_proj',
 ]);
-
-function float16ToFloat32(value) {
-  const sign = (value & 0x8000) << 16;
-  let exponent = (value >>> 10) & 0x1f;
-  let fraction = value & 0x03ff;
-  if (exponent === 0) {
-    if (fraction === 0) {
-      const bits = sign;
-      const view = new DataView(new ArrayBuffer(4));
-      view.setUint32(0, bits, true);
-      return view.getFloat32(0, true);
-    }
-    while ((fraction & 0x0400) === 0) {
-      fraction <<= 1;
-      exponent -= 1;
-    }
-    exponent += 1;
-    fraction &= ~0x0400;
-  } else if (exponent === 31) {
-    exponent = 255;
-  }
-  exponent = exponent + (127 - 15);
-  const bits = sign | (exponent << 23) | (fraction << 13);
-  const view = new DataView(new ArrayBuffer(4));
-  view.setUint32(0, bits, true);
-  return view.getFloat32(0, true);
-}
 
 function readTensorValues(bytes, tensor) {
   const elements = tensor.shape.reduce((product, value) => product * Number(value), 1);

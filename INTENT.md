@@ -20,8 +20,9 @@ Mission and priorities: see [GOALS.md](GOALS.md#current-priorities).
 
 - Model execution runs locally through declared WebGPU implementations; no silent
   CPU or cloud fallback. Browser and Node qualification are separate; Bun remains
-  experimental. The search application must demonstrate that documents and queries
-  stay local, distinguishing permitted model acquisition from input-data egress.
+  experimental. Local execution is not an automatic privacy guarantee; applications
+  must verify that private inputs stay local, distinguishing permitted model
+  acquisition from input-data egress.
 - Model capsules are immutable and cryptographically bound to their conversion source, tokenizer, and target plan.
 - Unsupported device features, precision mismatches, or missing extensions fail closed with explicit receipts.
 - Token generation exposes observable evidence (probabilities, surprisal, top candidates) without altering model weights.
@@ -30,9 +31,10 @@ Mission and priorities: see [GOALS.md](GOALS.md#current-priorities).
   separate conclusions. Missing adopters cannot erase physical evidence;
   adopters cannot substitute for it. Narrow technical support does not require
   an adopter fleet, payment, or completion of the entire capability portfolio.
-- The search application owns initialization, indexing, query cancellation, and
-  disposal. Healthy model sessions and compatible complete indexes survive queries;
-  cancellation does not publish partial indexes or stale results.
+- Host applications own initialization, indexing, query cancellation, and disposal
+  (historical search-starter requirements live in `examples/document-search/ENGINEERING.md`).
+  Healthy model sessions survive queries; cancellation does not publish partial
+  or stale results.
 - Cancellation before submission and cancellation afterward are distinct. After
   submission, suppress successful completion without claiming GPU interruption.
   Cleanup releases owned resources without promising immediate physical reclamation;
@@ -53,12 +55,10 @@ Mission and priorities: see [GOALS.md](GOALS.md#current-priorities).
 - Clean test execution via declared package verification suites (`npm test` and `npm run check:green`, the behavior gate plus input-triggered checks).
 - Objective parity passing against reference model output oracles within declared tolerances.
 - Goal completion matrix recorded in `src/config/goal-completion-matrix.json`.
-- Clean-environment installed local-search acceptance with both real models resident,
-  lifecycle regressions, offline reopening after retaining required assets, and
-  network observations covering import, indexing, queries, logging, workers, and
-  service workers. Local execution is not an automatic privacy guarantee; mocked UI tests and individual
-  model qualification do not substitute for application acceptance. Goal wording
-  alone does not update machine-reported completion or promote a release.
+- Clean-environment application acceptance (including lifecycle regressions,
+  offline reopening, and network observations) stays separate from mocked UI
+  tests and individual model qualification. Goal wording alone does not update
+  machine-reported completion or promote a release.
 
 ## Non-goals
 
