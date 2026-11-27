@@ -36,7 +36,7 @@ Invoke qualified models while preserving execution identity.
 ## Acceptance
 
 - Client contract, provider, and root-facade tests pass.
-- [Standalone adoption acceptance](../../GOALS.md#standalone-adoption-acceptance) (historical search-starter contract: [examples/document-search/ENGINEERING.md](../../examples/document-search/ENGINEERING.md)) requires corruption, reuse, cancellation, and responsive-task tests; requirements are not completion claims.
+- [Standalone adoption acceptance](../../GOALS.md#standalone-adoption-acceptance) requires corruption, reuse, cancellation, and responsive-task tests; requirements are not completion claims.
 - Evidence: [client tests](../../tests/client).
 
 ## Non-goals
