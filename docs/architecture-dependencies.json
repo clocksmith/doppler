@@ -949,20 +949,14 @@
         "src/tooling-exports.js",
         "tools/analyze-hc-origin.js",
         "tools/analyze-hc-origin.test.js",
-        "tools/analyze-input-normalization.js",
         "tools/analyze-layer0-to-24-drift-trace.js",
         "tools/analyze-layer25-prerouter-witness.js",
-        "tools/analyze-numerical-discontinuity.js",
-        "tools/analyze-router-input-drift.js",
         "tools/artifact-identity-inventory.js",
         "tools/audit-execution-routing.js",
         "tools/audit-model-ir-lowerability.js",
-        "tools/audit-tensor-role-closure.js",
         "tools/bench-compute.js",
-        "tools/bench-serve-prefix-reuse.js",
         "tools/bench-text-decode-paths.js",
         "tools/bench-translation-quality.js",
-        "tools/benchmark-artifact-hashing.js",
         "tools/browser-renderer-memory.js",
         "tools/build-document-search-app.js",
         "tools/build-document-search-node-capsules.js",
@@ -975,14 +969,12 @@
         "tools/build-token-selection-evaluation-capsule.js",
         "tools/build-verified-piece-index.js",
         "tools/calibrate-registered-variants.js",
-        "tools/capture-quantized-generation.js",
         "tools/check-adapter-artifact-catalog.js",
         "tools/check-artifact-retention.js",
         "tools/check-browser-import-graph.js",
         "tools/check-bun-product-qualification.js",
         "tools/check-capability-transform-policy.js",
         "tools/check-capsule-runtime-closure.js",
-        "tools/check-capsule-v2.js",
         "tools/check-claim-evidence-contract.js",
         "tools/check-command-surface-contract.js",
         "tools/check-config-single-source.js",
@@ -994,7 +986,6 @@
         "tools/check-evidence-workflow-ownership.js",
         "tools/check-exports-parity.js",
         "tools/check-goal-completion.js",
-        "tools/check-gpu-features.js",
         "tools/check-hf-registry.js",
         "tools/check-inference-boundaries.js",
         "tools/check-installed-capabilities.js",
@@ -1035,7 +1026,6 @@
         "tools/ci-diffusion-contract-gates.js",
         "tools/ci-training-contract-gates.js",
         "tools/close-installed-capsule.js",
-        "tools/collect-numerical-discontinuity.js",
         "tools/compare-document-search-retention.js",
         "tools/compare-embeddings.js",
         "tools/compare-engines.js",
@@ -1046,8 +1036,6 @@
         "tools/compare-ul-runs.js",
         "tools/compile-layer-partition-plan.js",
         "tools/convert-safetensors-node.js",
-        "tools/create-manifest-conversion-postflight.js",
-        "tools/create-manifest-conversion-preflight.js",
         "tools/create-release-to-javascript-receipt.js",
         "tools/demo-contract-smoke.js",
         "tools/demo-hardware-smoke.js",
@@ -1079,18 +1067,13 @@
         "tools/experiments/prepare-f32-prefill-attention.js",
         "tools/export-program-bundle.js",
         "tools/export-w8a8-projection.js",
-        "tools/f16-precision-collapse.js",
         "tools/fixtures/electron-webgpu-main.js",
         "tools/forge-chronos-bolt-capsule.js",
         "tools/forge-model-capsule.js",
         "tools/forge-source-truth-model-ir-v2.js",
-        "tools/gemma3-mobile-binding-check.js",
-        "tools/gemma4-greedy-prompt-compare.js",
-        "tools/generate-activity-previews.js",
         "tools/generate-gemma4-preflight-receipts.js",
         "tools/generate-kernel-uniforms.js",
         "tools/generate-linear-state-kernels.js",
-        "tools/generate-paired-intermediate-kernels.js",
         "tools/generate-program-bundle-schema.js",
         "tools/generate-teacher-traces-openai-compatible.js",
         "tools/generate-wgsl.js",
@@ -1098,7 +1081,6 @@
         "tools/git-file-inventory.js",
         "tools/hash-runtime-ownership-execution-evidence.js",
         "tools/inspect-prefill-logits.js",
-        "tools/inspect-student-forward-parity.js",
         "tools/layer25-wgsl-witness-core.js",
         "tools/layer25-wgsl-witness-core.test.js",
         "tools/lean-execution-contract-config-sweep.js",
@@ -1142,10 +1124,7 @@
         "tools/local-gpu-challengers.js",
         "tools/lora.js",
         "tools/manifoldgguf-harness.js",
-        "tools/materialize-lineage-conversion.js",
-        "tools/materialize-semantic-conversion.js",
         "tools/materialize-source-manifest.js",
-        "tools/measure-capsule-retention.js",
         "tools/measure-capsule-streaming.js",
         "tools/migrate-rdrr-shard-hashes.js",
         "tools/model-atlas/gen.js",
@@ -1159,8 +1138,6 @@
         "tools/p2p-delivery-observability.js",
         "tools/p2p-resilience-drill.js",
         "tools/package-source-closure.js",
-        "tools/patch-execution-graph.js",
-        "tools/pin-safetensors-headers.js",
         "tools/pooled-equal-weights/bind-linear-output-profile.js",
         "tools/pooled-equal-weights/canonical.test.js",
         "tools/pooled-equal-weights/capture-pooled-boundaries.js",
@@ -1195,7 +1172,6 @@
         "tools/pooled-equal-weights/verify-q4_0.js",
         "tools/pooled-equal-weights/verify-rdrr.js",
         "tools/prepare-adapter-evaluation-source.js",
-        "tools/prepare-normalization-control.js",
         "tools/privacy-concrete/shares_client.js",
         "tools/privacy-concrete/shares_evaluator_gpu.js",
         "tools/privacy-concrete/shares_network.js",
@@ -1253,14 +1229,11 @@
         "tools/probes/check-gpu-benchmark-budget.js",
         "tools/product-readiness-evidence.js",
         "tools/profile-installed-capsule.js",
-        "tools/promote-f16-precision-collapse-demo.js",
         "tools/publish-hf-registry-model.js",
         "tools/publish-training-report-ids.js",
         "tools/q4k-projection-oracle.js",
         "tools/qualify-capsule-v0-browser.js",
         "tools/qualify-capsule-v0-node.js",
-        "tools/qualify-chronos-bolt-browser.js",
-        "tools/qualify-chronos-bolt-node.js",
         "tools/qualify-community-lora.js",
         "tools/qualify-document-search-node.js",
         "tools/qualify-document-search-update.js",
@@ -1270,12 +1243,8 @@
         "tools/qualify-installed-reranker-browser.js",
         "tools/qualify-installed-reranker-node.js",
         "tools/qualify-installed-sequence.js",
-        "tools/qualify-quantized-chat.js",
-        "tools/qualify-reploid-quantized-provider.js",
-        "tools/qualify-reranker-browser.js",
         "tools/qualify-reranker-electron.js",
         "tools/qualify-sequence-capsule.js",
-        "tools/qualify-sequence-model-browser.js",
         "tools/qualify-sequence-model.js",
         "tools/qualify-transformersjs-reranker.js",
         "tools/record-bun-product-qualification.js",
@@ -1296,36 +1265,19 @@
         "tools/restore-capsule-baseline.js",
         "tools/retained-release-checkpoint.js",
         "tools/rig-model-capsule.js",
-        "tools/run-adamw-optimizer-oracle.js",
         "tools/run-agent-heldout-eval.js",
         "tools/run-capsule-retention-experiment.js",
         "tools/run-check-gate.js",
         "tools/run-distill-bench.js",
-        "tools/run-f16-matmul-backward-oracle.js",
         "tools/run-flash-next-forced-routing.js",
-        "tools/run-gdn-same-input.js",
-        "tools/run-hc-origin-counterfactual.js",
         "tools/run-layer25-physical-gpu-counterfactual.js",
         "tools/run-node-coverage.js",
         "tools/run-node-test-file.js",
         "tools/run-node-tests.js",
         "tools/run-node-without-network.js",
         "tools/run-program-bundle-reference.js",
-        "tools/run-qwen-full-attention-backward-oracle.js",
-        "tools/run-qwen-full-decoder-backward-oracle.js",
-        "tools/run-qwen-gamma-sft-microstep-parity-oracle.js",
-        "tools/run-qwen-gamma-sft-prefix-parity-oracle.js",
-        "tools/run-qwen-gradient-accumulation-oracle.js",
-        "tools/run-qwen-hybrid-decoder-backward-oracle.js",
-        "tools/run-qwen-hybrid-sft-microstep-oracle.js",
-        "tools/run-qwen-linear-attention-backward-oracle.js",
-        "tools/run-qwen-linear-decoder-backward-oracle.js",
-        "tools/run-qwen-peft-adapter-gpu-upload-oracle.js",
-        "tools/run-qwen-peft-adapter-import-oracle.js",
         "tools/run-registry-verify.js",
-        "tools/run-split-gate-up-lora-oracle.js",
         "tools/run-ul-bench.js",
-        "tools/seal-chronos-bolt-capsule.js",
         "tools/secret-shared/gpu/bench-cpu.js",
         "tools/secret-shared/gpu/bench-gpu.js",
         "tools/secret-shared/gpu/operator-gpu.js",
@@ -1384,15 +1336,9 @@
         "tools/transformers-canonical-qwen35/text_gpu_browser.js",
         "tools/transformers-canonical-qwen35/tjs_model.js",
         "tools/transformers-canonical-qwen35/tjs_model.test.js",
-        "tools/translategemma-4b-doppler-layer0-ref.js",
         "tools/utils/policy-utils.js",
-        "tools/validate-quickstart-cold-path.js",
         "tools/vendor-bench.js",
         "tools/verify-agent-parity.js",
-        "tools/verify-js-capabilities.js",
-        "tools/verify-packed-f16-precision.js",
-        "tools/verify-serve-isolation-eviction.js",
-        "tools/verify-source-acquisition.js",
         "tools/verify-trainer-artifact-handoff.js",
         "tools/verify-training-provenance.js",
         "tools/verify-training-workload-capsules.js",
@@ -1402,7 +1348,6 @@
         "tools/wgsl-variant-generator.js"
       ],
       "eager": [
-        "src/capsule-runtime.js",
         "src/client/doppler-api.js",
         "src/client/doppler-registry.js",
         "src/client/failure-taxonomy.js",
@@ -1610,8 +1555,6 @@
         "src/converter/lineage-lowering-forge.js",
         "src/converter/linear-norm-gate.js",
         "src/converter/manifest-builder.js",
-        "src/converter/manifest-conversion-postflight.js",
-        "src/converter/manifest-conversion-preflight.js",
         "src/converter/model-naming.js",
         "src/converter/model-support-assessment.js",
         "src/converter/parsers/gguf.js",
@@ -1625,13 +1568,10 @@
         "src/converter/retained-source-shards.js",
         "src/converter/rope-config.js",
         "src/converter/safetensors-header-evidence.js",
-        "src/converter/semantic-manifest-lowering.js",
-        "src/converter/source-acquisition.js",
         "src/converter/source-rotary-frequencies.js",
         "src/converter/source-tensor-rules.js",
         "src/converter/source-tokenizer.js",
         "src/converter/source-truth-forge.js",
-        "src/converter/tensor-role-closure.js",
         "src/converter/tensor-transform.js",
         "src/converter/tokenizer-contract.js",
         "src/converter/tokenizer-manifest.js",
@@ -1705,8 +1645,6 @@
         "src/experimental/training/operator-scoreboard.js",
         "src/experimental/training/optimizer.js",
         "src/experimental/training/parameter-groups.js",
-        "src/experimental/training/qwen-peft-adapter-import.js",
-        "src/experimental/training/qwen-sft-backend-parity-fixture.js",
         "src/experimental/training/report-ranking.js",
         "src/experimental/training/runner.js",
         "src/experimental/training/runner/evaluation.js",
@@ -1932,7 +1870,6 @@
         "src/gpu/uniform-cache.js",
         "src/gpu/weight-buffer.js",
         "src/index.js",
-        "src/inference/choice-calibration.js",
         "src/inference/choice-scoring.js",
         "src/inference/decode-buffers.js",
         "src/inference/decode-ring.js",
@@ -2383,7 +2320,6 @@
         "src/tooling/node-webgpu.js",
         "src/tooling/opfs-cache.js",
         "src/tooling/portable-source-path.js",
-        "src/tooling/precision-replay-math.js",
         "src/tooling/production-release.js",
         "src/tooling/program-bundle-parity.js",
         "src/tooling/program-bundle.js",
@@ -7581,6 +7517,11 @@
     "src/config/schema/capsule/target-plan-v2.schema.json",
     "src/converter/capability-transform-resolver.js",
     "src/converter/execution-graph-transforms.js",
+    "src/converter/manifest-conversion-postflight.js",
+    "src/converter/manifest-conversion-preflight.js",
+    "src/converter/semantic-manifest-lowering.js",
+    "src/converter/source-acquisition.js",
+    "src/converter/tensor-role-closure.js",
     "src/gpu/greedy-speculative-frame.js",
     "src/gpu/kernels/attention_decode_subgroup.wgsl",
     "src/gpu/kernels/attention_streaming.wgsl",
@@ -8669,18 +8610,6 @@
       "expression": "new URL(`../../src/inference/pipelines/text/${relative}`, import.meta.url)"
     },
     {
-      "file": "tools/benchmark-artifact-hashing.js",
-      "kind": "dynamic",
-      "line": 38,
-      "expression": "import(pathToFileURL(filename))"
-    },
-    {
-      "file": "tools/capture-quantized-generation.js",
-      "kind": "dynamic",
-      "line": 14,
-      "expression": "import(pathToFileURL(path.join(root, relative)).href)"
-    },
-    {
       "file": "tools/demo-contract-smoke.js",
       "kind": "dynamic",
       "line": 214,
@@ -8747,18 +8676,6 @@
       "expression": "import(pathToFileURL(config.electronEntry).href)"
     },
     {
-      "file": "tools/gemma3-mobile-binding-check.js",
-      "kind": "dynamic",
-      "line": 69,
-      "expression": "import(`${base}/demo/ui/state.js`)"
-    },
-    {
-      "file": "tools/gemma3-mobile-binding-check.js",
-      "kind": "dynamic",
-      "line": 102,
-      "expression": "import(`${base}/src/gpu/device.js`)"
-    },
-    {
       "file": "tools/generation-qualification-scenario.js",
       "kind": "dynamic",
       "line": 18,
@@ -8787,12 +8704,6 @@
       "kind": "dynamic",
       "line": 93,
       "expression": "import(moduleUrl)"
-    },
-    {
-      "file": "tools/measure-capsule-retention.js",
-      "kind": "dynamic",
-      "line": 32,
-      "expression": "import(pathToFileURL(path.join(installedRoot, file)).href)"
     },
     {
       "file": "tools/node-test-file-bootstrap.js",
@@ -8903,24 +8814,6 @@
       "expression": "import(pathToFileURL(path.join(installedRoot, file)).href)"
     },
     {
-      "file": "tools/qualify-quantized-chat.js",
-      "kind": "dynamic",
-      "line": 16,
-      "expression": "import(pathToFileURL(path.join(config.installedPackage, relative)).href)"
-    },
-    {
-      "file": "tools/qualify-reploid-quantized-provider.js",
-      "kind": "dynamic",
-      "line": 15,
-      "expression": "import(pathToFileURL(path.join(root, file)).href)"
-    },
-    {
-      "file": "tools/qualify-reploid-quantized-provider.js",
-      "kind": "dynamic",
-      "line": 24,
-      "expression": "import(pathToFileURL(requireAt.resolve('webgpu')).href)"
-    },
-    {
       "file": "tools/qualify-reranker-electron.js",
       "kind": "dynamic",
       "line": 202,
@@ -8931,12 +8824,6 @@
       "kind": "dynamic",
       "line": 234,
       "expression": "import(pathToFileURL(electronEntry).href)"
-    },
-    {
-      "file": "tools/run-f16-matmul-backward-oracle.js",
-      "kind": "dynamic",
-      "line": 84,
-      "expression": "import(moduleUrl)"
     },
     {
       "file": "tools/run-flash-next-forced-routing.js",
@@ -8975,100 +8862,10 @@
       "expression": "import(fromRoot('tests/integration/flash-next-learned-physical.test.js'))"
     },
     {
-      "file": "tools/run-gdn-same-input.js",
-      "kind": "dynamic",
-      "line": 12,
-      "expression": "import(pathToFileURL(path.join(root,file)).href)"
-    },
-    {
-      "file": "tools/run-hc-origin-counterfactual.js",
-      "kind": "dynamic",
-      "line": 47,
-      "expression": "import(pathToFileURL(path.join(root,'src/memory/buffer-pool.js')).href)"
-    },
-    {
-      "file": "tools/run-hc-origin-counterfactual.js",
-      "kind": "dynamic",
-      "line": 58,
-      "expression": "import(pathToFileURL(path.join(root,'src/memory/buffer-pool.js')).href)"
-    },
-    {
-      "file": "tools/run-hc-origin-counterfactual.js",
-      "kind": "dynamic",
-      "line": 59,
-      "expression": "import(pathToFileURL(path.join(root,'src/gpu/device.js')).href)"
-    },
-    {
-      "file": "tools/run-hc-origin-counterfactual.js",
-      "kind": "dynamic",
-      "line": 76,
-      "expression": "import(pathToFileURL(path.join(root,'tests/helpers/moe-routing-observation-loader.js')).href)"
-    },
-    {
-      "file": "tools/run-hc-origin-counterfactual.js",
-      "kind": "dynamic",
-      "line": 80,
-      "expression": "import(pathToFileURL(path.join(root,'src/memory/buffer-pool.js')).href)"
-    },
-    {
-      "file": "tools/run-hc-origin-counterfactual.js",
-      "kind": "dynamic",
-      "line": 94,
-      "expression": "import(pathToFileURL(path.join(root,'tests/integration/flash-next-learned-physical.test.js')).href)"
-    },
-    {
       "file": "tools/secret-shared/gpu/ring-matvec.js",
       "kind": "dynamic",
       "line": 95,
       "expression": "import(process.env.DOPPLER_NODE_WEBGPU_MODULE || 'webgpu')"
-    },
-    {
-      "file": "tools/validate-quickstart-cold-path.js",
-      "kind": "dynamic",
-      "line": 98,
-      "expression": "import(\n    path.join(REPO_ROOT, 'src/client/doppler-registry.js')\n  )"
-    },
-    {
-      "file": "tools/validate-quickstart-cold-path.js",
-      "kind": "dynamic",
-      "line": 125,
-      "expression": "import(\n    path.join(REPO_ROOT, 'src/client/doppler-registry.js')\n  )"
-    },
-    {
-      "file": "tools/validate-quickstart-cold-path.js",
-      "kind": "dynamic",
-      "line": 148,
-      "expression": "import(\n    path.join(REPO_ROOT, 'src/client/doppler-registry.js')\n  )"
-    },
-    {
-      "file": "tools/validate-quickstart-cold-path.js",
-      "kind": "dynamic",
-      "line": 161,
-      "expression": "import(path.join(REPO_ROOT, 'src/formats/rdrr/manifest.js'))"
-    },
-    {
-      "file": "tools/validate-quickstart-cold-path.js",
-      "kind": "dynamic",
-      "line": 176,
-      "expression": "import(\n    path.join(REPO_ROOT, 'src/client/doppler-registry.js')\n  )"
-    },
-    {
-      "file": "tools/validate-quickstart-cold-path.js",
-      "kind": "dynamic",
-      "line": 179,
-      "expression": "import(path.join(REPO_ROOT, 'src/formats/rdrr/manifest.js'))"
-    },
-    {
-      "file": "tools/validate-quickstart-cold-path.js",
-      "kind": "dynamic",
-      "line": 235,
-      "expression": "import(path.join(REPO_ROOT, 'src/index.js'))"
-    },
-    {
-      "file": "tools/verify-packed-f16-precision.js",
-      "kind": "dynamic",
-      "line": 31,
-      "expression": "import(pathToFileURL(path.resolve(runtimeRoot, relPath)).href)"
     },
     {
       "file": "tools/w8a8-benchmark-scenario.js",
