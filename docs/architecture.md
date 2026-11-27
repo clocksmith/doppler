@@ -501,7 +501,7 @@ When multiple models are loaded, these operations are exposed as DOPPLER primiti
 
 | Operation | DOPPLER Primitive | Orchestrator Decides |
 |-----------|-------------------|-----------------|
-| Logit merging | `mergeMultipleLogits(logitBuffers, vocabSize, weights, temperature)` | Which buffers, what weights |
+| Logit merging | `LogitMergeKernel.mergeMultiple(logitBuffers, vocabSize, config)` | Which buffers, what weights |
 | KV cache sharing | `setSharedPrefix(prompt, options)` / `setSharedPrefixSnapshot(snapshot)` | When to share, which prefix |
 | Sampling | `sample(logits, params)` (or GPU sample kernels when enabled) | Temperature, top-k, top-p |
 | Expert execution | `executeExpert(expertId, prompt, options, overrides)` | Which expert, what prompt |

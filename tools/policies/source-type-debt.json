@@ -990,7 +990,6 @@
     "src/experimental/distribution/shard-delivery/receipt.d.ts": 17,
     "src/experimental/distribution/shard-delivery/retry.d.ts": 23,
     "src/experimental/embeddings/cpu-extraction.d.ts": 3,
-    "src/experimental/hotswap/model-swap.d.ts": 3,
     "src/experimental/training/distillation/student-fixture/execution.d.ts": 13,
     "src/experimental/training/distillation/student-fixture/model.d.ts": 14,
     "src/experimental/training/lora/checkpoint.d.ts": 21,

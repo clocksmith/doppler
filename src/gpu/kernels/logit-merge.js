@@ -237,30 +237,3 @@ function normalizeWeights(weights, expectedCount) {
 
   return weights.map((weight) => weight / sum);
 }
-
-// Singleton instance
-let _instance = null;
-
-
-function getLogitMergeKernel() {
-  if (!_instance) {
-    _instance = new LogitMergeKernel();
-  }
-  return _instance;
-}
-
-
-export async function mergeMultipleLogits(logitBuffers, vocabSize, weights, temperature) {
-  if (!weights) {
-    throw new Error('LogitMerge weights are required.');
-  }
-  if (temperature == null) {
-    throw new Error('LogitMerge temperature is required.');
-  }
-  const kernel = getLogitMergeKernel();
-  return kernel.mergeMultiple(logitBuffers, vocabSize, {
-    strategy: 'weighted',
-    weights,
-    temperature,
-  });
-}

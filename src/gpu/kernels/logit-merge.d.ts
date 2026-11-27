@@ -67,20 +67,3 @@ export declare class LogitMergeKernel {
     config: LogitMergeConfig
   ): Promise<GPUBuffer>;
 }
-
-/**
- * Merge multiple logit buffers.
- * Convenience function that uses the singleton kernel.
- *
- * @param logitBuffers - Array of logit buffers
- * @param vocabSize - Vocabulary size
- * @param weights - Merge weights
- * @param temperature - Temperature scaling
- * @returns Merged logit buffer
- */
-export declare function mergeMultipleLogits(
-  logitBuffers: GPUBuffer[],
-  vocabSize: number,
-  weights: number[],
-  temperature: number
-): Promise<GPUBuffer>;
