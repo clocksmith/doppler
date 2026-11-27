@@ -16,7 +16,7 @@ import { resetActiveExecutionPlan, resolveMaxBatchDecodeTokens, resolveActiveExe
 import { hasLinearAttentionLayers } from "../../linear-attention/linear-attention.js";
 import { createPleBufferCache, prefetchPerLayerRow, getPleHotVocabularyRuntime, hasGpuSplitPerLayerInputEmbeddings, hasRangeBackedPerLayerInputEmbeddings } from "../../per-layer/per-layer-inputs.js";
 import { shouldDisableBatchDecodeAfterShortBatch, resolveHotVocabularyBatchDecodeAvailability, primePleDecodeRuntimeCache, usesReplayPrefillDecode, assertIncrementalDecodeSupport } from "../../policy/generator-decode-policy.js";
-import { assertBatchRetryInPlaceAllowed } from "./batch-retry-policy.js";
+import { assertBatchRetryInPlaceAllowed, assertShortBatchContinuationAllowed } from "./batch-retry-policy.js";
 import { wholeTokenProgramRequested, prepareWholeTokenBatch } from "../whole-token/whole-token-lane.js";
 
 export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
@@ -338,6 +338,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           actualCount: batchResult.actualCount,
           requestedCount: thisBatchSize,
         })) {
+          assertShortBatchContinuationAllowed(this._state, batchResult.actualCount, thisBatchSize);
           useBatchPath = false;
           continue;
         }

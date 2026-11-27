@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   assertBatchRetryInPlaceAllowed,
+  assertShortBatchContinuationAllowed,
   hasUnrewindableDecodeState,
 } from "../../src/inference/pipelines/text/generator/decode/batch-retry-policy.js";
 
@@ -25,4 +26,18 @@ for (const state of [linear, conv]) {
     return true;
   });
 }
+// A short non-stop batch may continue on attention-only models (KV is rewritten by
+// position) but never on recurrent models, whose state ran ahead of the delivered tokens.
+assert.doesNotThrow(() => assertShortBatchContinuationAllowed(attentionOnly, 3, 8));
+assert.doesNotThrow(() => assertShortBatchContinuationAllowed(linear, 8, 8));
+for (const state of [linear, conv]) {
+  assert.throws(() => assertShortBatchContinuationAllowed(state, 3, 8), /cannot be rewound/);
+}
+// The guard above is unreachable today because linear-attention models never get the
+// hot-vocabulary batch (the only producer of short non-stop batches). Pin that rule.
+const { isBatchDecodeEnabled } = await import('../../src/inference/pipelines/text/execution/execution-plan.js');
+const batchFacts = { batchSize: 4, useGPU: true, gpuSamplingAvailable: true, disableMultiTokenDecode: false,
+  disableCommandBatching: false, isBdpaPagedLayout: false, finitenessFallbackWindowOpen: false };
+assert.equal(isBatchDecodeEnabled({ ...batchFacts, hasLinearAttentionLayers: true }), true);
+assert.equal(isBatchDecodeEnabled({ ...batchFacts, hasLinearAttentionLayers: true, hasRangeBackedPerLayerInputs: true }), false);
 console.log('batch-retry-policy.test: ok');
