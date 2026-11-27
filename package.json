@@ -152,7 +152,7 @@
     "support:competition:sync": "node tools/sync-model-competition-scoreboard.js",
     "support:competition:check": "node tools/sync-model-competition-scoreboard.js --check",
     "support:subsystems:sync": "node tools/sync-subsystem-support-matrix.js",
-    "support:subsystems:check": "node tools/check-subsystem-support-contract.js",
+    "support:subsystems:check": "node tools/check-subsystem-support-contract.js && node tools/sync-subsystem-support-matrix.js --check",
     "ci:catalog:check": "npm run registry:sync:scripts:check && npm run model-lanes:check && npm run revocations:check && npm run release-claims:check && npm run support:matrix:check && npm run support:inventory:check && npm run support:competition:check && npm run support:subsystems:check && npm run goals:check && npm run registry:hf:check",
     "artifact:contract:check": "node tools/check-model-artifact-contract.js",
     "product:readiness:report": "node tools/render-product-readiness-report.js",

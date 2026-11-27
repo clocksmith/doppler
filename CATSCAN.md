@@ -41,7 +41,7 @@ Make local AI an ordinary JavaScript dependency. Advance generation and search i
 
 - `npm run check:green` passes: behavior checks plus [input-triggered checks](tools/policies/check-gate-policy.json).
 - Evidence: [goal completion matrix](src/config/goal-completion-matrix.json).
-- Meet [clean-environment search acceptance](GOALS.md#next-product-increment-copy-and-run-local-search); reference apps are not independent adoption or promotion.
+- Meet [standalone adoption acceptance](GOALS.md#standalone-adoption-acceptance) (historical search-starter contract: [examples/document-search/ENGINEERING.md](examples/document-search/ENGINEERING.md)); reference apps are not independent adoption or promotion.
 
 ## Non-goals
 
