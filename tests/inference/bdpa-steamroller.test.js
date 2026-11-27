@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { steamrollerRadixArgsort, generateBDPAData } from '../../src/inference/pipelines/text/bdpa-steamroller.js';
+import { steamrollerRadixArgsort, generateBDPAData } from '../../src/experimental/bdpa/steamroller.js';
 
 const tokens = new Int32Array([5, 7, 5, 9]);
 const sorted = steamrollerRadixArgsort(tokens);

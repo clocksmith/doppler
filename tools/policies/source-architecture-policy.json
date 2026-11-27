@@ -46,9 +46,6 @@
       "experimental/orchestration/energy-row-head-pipeline.js"
     ],
     "inference/pipelines/text/contracts/buffer-types.js": [],
-    "inference/pipelines/text/bdpa-steamroller.js": [
-      "experimental/bdpa/steamroller.js"
-    ],
     "inference/pipelines/text/logits/types.js": [],
     "inference/pipelines/text/logits/cpu.js": [
       "experimental/logits/cpu.js"
@@ -963,7 +960,6 @@
     "inference/pipelines/energy/index.js",
     "inference/pipelines/energy-head/row-head-pipeline.js",
     "inference/pipelines/text/contracts/buffer-types.js",
-    "inference/pipelines/text/bdpa-steamroller.js",
     "inference/pipelines/text/logits/types.js",
     "inference/pipelines/text/logits/cpu.js",
     "inference/pipelines/text/logits/cpu-output.js",

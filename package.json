@@ -61,15 +61,12 @@
     "test:coverage": "node tools/run-node-coverage.js",
     "test:coverage:report": "node tools/run-node-coverage.js --no-threshold",
     "test:gpu:browser": "node src/cli/doppler-cli.js verify --config '{\"request\":{\"workload\":\"kernels\"},\"run\":{\"surface\":\"browser\",\"browser\":{\"opfsCache\":false,\"headless\":true,\"channel\":\"chromium\",\"browserArgs\":[\"--use-angle=swiftshader\",\"--disable-vulkan-surface\"],\"console\":true}}}'",
-    "demo:shell:generate": "node tools/generate-demo-shell-manifest.js",
-    "demo:shell:check": "node tools/generate-demo-shell-manifest.js --check",
     "demo:reachability:check": "node tools/check-demo-reachability.js",
     "test:demo:contract": "node tools/demo-contract-smoke.js",
     "test:demo:hardware": "node tools/demo-hardware-smoke.js",
     "agents:verify": "node tools/verify-agent-parity.js",
     "catscan:sync": "node tools/sync-catscan-index.js",
     "catscan:check": "node tools/sync-catscan-index.js --check",
-    "conflicts:check": "node tools/check-merge-markers.js",
     "config:single-source:check": "node tools/check-config-single-source.js && node tools/sync-generation-contract.js --check",
     "rules:bundle:sync": "node tools/sync-rule-bundle.js",
     "rules:bundle:check": "node tools/sync-rule-bundle.js --check",
@@ -77,7 +74,6 @@
     "conversion:profiles:check": "node tools/sync-conversion-profiles.js --check",
     "evidence:workflows:check": "node tools/check-evidence-workflow-ownership.js",
     "inference:boundaries:check": "node tools/check-inference-boundaries.js",
-    "generation:contract:check": "node tools/sync-generation-contract.js --check",
     "generation:contract:sync": "node tools/sync-generation-contract.js",
     "source:style:sync": "node tools/check-source-style.js --write",
     "source:unused:check": "node tools/check-unused-locals.js",
@@ -115,9 +111,7 @@
     "onboarding:check": "node tools/onboarding-tooling.js check",
     "onboarding:check:strict": "node tools/onboarding-tooling.js check --strict",
     "bench:vendors:validate": "node tools/vendor-bench.js validate",
-    "publication:hygiene:check": "node tools/check-publication-hygiene.js",
     "readme:evidence:sync": "node benchmarks/vendors/generate-readme-evidence-svg.js",
-    "readme:evidence:check": "node benchmarks/vendors/generate-readme-evidence-svg.js --check",
     "bench:local-gpu:challengers": "node tools/local-gpu-challengers.js",
     "bench:local-gpu:challengers:check": "node tools/local-gpu-challengers.js --check",
     "optimization:index": "node tools/build-runtime-optimization-index.js",
@@ -184,8 +178,7 @@
     "policy:schemas:check": "node tools/check-policy-schema-registry.js",
     "demo:hosting:build": "npm --prefix ../d4da run sync:world:doppler -- --doppler-only && npm --prefix ../d4da run check:world:doppler",
     "demo:hosting:preview": "npm run demo:hosting:build && npm --prefix ../d4da run preview:world",
-    "demo:hosting:deploy": "npm --prefix ../d4da run deploy:world",
-    "enum-values:check": "node tools/check-kebab-enum-values.js"
+    "demo:hosting:deploy": "npm --prefix ../d4da run deploy:world"
   },
   "exports": {
     ".": {

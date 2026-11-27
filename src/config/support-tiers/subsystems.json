@@ -305,8 +305,7 @@
         "docs/architecture.md"
       ],
       "entrypoints": [
-        "src/experimental/hotswap/runtime.js",
-        "src/experimental/hotswap/model-swap.js"
+        "src/experimental/hotswap/runtime.js"
       ],
       "notes": "Checked-in experimental runtime machinery, not part of the public package contract."
     },

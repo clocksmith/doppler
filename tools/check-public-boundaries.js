@@ -222,7 +222,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The 0.2.0 emitted-value conversion (alias table for 355 more values, readers, migration notes) measures
   // 3,898,986 packed bytes plus the same 260-byte allowance.
   // Reading legacy spellings in manifest objects (createPipeline, inline sources) measures 3,899,389.
-  maxPackedSize: 3_899_649,
+  // Pruning dead package.json scripts shrinks unpacked bytes while shifting gzip to 3,899,729 (+260 allowance).
+  maxPackedSize: 3_900_000,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.

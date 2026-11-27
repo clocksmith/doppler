@@ -350,16 +350,12 @@ experimental/distribution/shard-delivery/receipt.d.ts
 experimental/distribution/shard-delivery/retry.d.ts
 experimental/embeddings/cpu-extraction.d.ts
 experimental/embeddings/cpu-extraction.js
-experimental/embeddings/sequence-pooling.d.ts
-experimental/embeddings/sequence-pooling.js
 experimental/energy/pipeline.js
 experimental/energy/quintel.d.ts
 experimental/energy/quintel.js
 experimental/energy/types.js
 experimental/hotswap/intent-bundle.d.ts
 experimental/hotswap/manifest.d.ts
-experimental/hotswap/model-swap.d.ts
-experimental/hotswap/model-swap.js
 experimental/hotswap/runtime.d.ts
 experimental/loader/functional-descriptor-loader.d.ts
 experimental/loader/functional-descriptor-loader.js
@@ -776,8 +772,6 @@ inference/pipelines/text/attention/recorded-health.d.ts
 inference/pipelines/text/attention/rmsnorm-fusion-gate.d.ts
 inference/pipelines/text/attention/rope-observation.d.ts
 inference/pipelines/text/attention/types.d.ts
-inference/pipelines/text/bdpa-steamroller.d.ts
-inference/pipelines/text/bdpa-steamroller.js
 inference/pipelines/text/config/normalization.d.ts
 inference/pipelines/text/config/vision-normalizers.d.ts
 inference/pipelines/text/configuration/config-components.d.ts

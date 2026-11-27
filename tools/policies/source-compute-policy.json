@@ -715,11 +715,6 @@
       "reason": "The symbol decodes descriptor-bound embedding source bytes into their declared materialization dtype before GPU dispatch."
     },
     {
-      "id": "src/experimental/embeddings/sequence-pooling.js#poolSequenceTokenEmbeddings",
-      "category": "quarantined-experimental",
-      "reason": "The CPU sequence-pooling reference is isolated under src/experimental and excluded from Capsule Runtime execution."
-    },
-    {
       "id": "src/inference/pipelines/text/generator/decode/decode-mechanics.js#runDecodeLayers",
       "category": "gpu-orchestration",
       "reason": "The method sequences declared layer dispatches and resource releases; indexed writes clear ownership slots rather than tensor values."
