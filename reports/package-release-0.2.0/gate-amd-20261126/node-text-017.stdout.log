@@ -1,0 +1,76 @@
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+[1880.1ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[1880.2ms][Config] Using manifest-first config (source of truth)
+[1884.2ms][Pipeline] Resolved session applied (qwen-3-5-2b-q4k-ehaf16): batchSize=12, stopCheckMode=batch, readbackInterval=32, disableCommandBatching=false
+[1885.0ms][Pipeline] KernelPath: qwen-3-5-2b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[1885.4ms][Pipeline] 24L/2048H/8heads (256dim), kernelPath=qwen-3-5-2b-q4k-ehaf16-execution-inline
+[1885.9ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[2009.2ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[2157.8ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[2158.3ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[2159.5ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=512, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=512
+[2160.6ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-2b-q4k-ehaf16-execution-inline
+[2192.0ms][ShardCache] Custom shard loader configured
+[2192.2ms][Loader] Initializing...
+[2215.9ms][HeapManager] Allocated segment 0: 1024MB
+[2216.1ms][HeapManager] Segmented heap: 1GB per segment
+[2216.1ms][HeapManager] Initialized with strategy: SEGMENTED
+[2216.1ms][Loader] Initialized (f16, subgroups)
+[2216.6ms][Loader] Loading: qwen-3-5-2b-q4k-ehaf16
+[2217.4ms][Loader] [0.0s] Memory (start): | RSS=258.03 MB (heap=61.57 MB/97.36 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[3065.4ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,2048], isWeightBuffer=true
+[3065.9ms][Loader] Layers: 0-23
+[3762.6ms][Loader] Layers: 24 complete (0.70s)
+[3986.0ms][Loader] Complete: 1.94 GB in 1.76s (1.10 GB/s)
+[3987.4ms][Loader] [1.8s] Memory (complete): | RSS=356.21 MB (heap=88.87 MB/122.61 MB, external=1.06 GB, arrayBuffers=1.05 GB) | GPU=1.94 GB (345 active, 0 pooled, peak=1.94 GB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[4017.4ms][Pipeline] Model loaded successfully (2141ms)
+[4051.4ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[4057.4ms][KernelSelect] matmul variant=f16w_f32a reason=default
+[4124.5ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[4245.1ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+[4268.0ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[4274.8ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[4294.0ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+[5014.4ms][Perf] Load: 2141ms | TTFT: 240ms | Prefill: 235ms | Decode: 749ms (31 tokens @ 41.4 tok/s)
+[5017.5ms][ExpertCache] Cache cleared
+[5031.4ms][Pipeline] Unloaded
+{
+ "version": "0.1.7",
+ "mode": "text",
+ "model": "qwen-3-5-2b-q4k-ehaf16",
+ "adapter": {
+  "vendor": "amd",
+  "architecture": "rdna-3",
+  "device": "radeon-8060s-graphics-radv-strix-halo-",
+  "description": "radv: Mesa 26.0.3-1ubuntu1",
+  "subgroupMinSize": 32,
+  "subgroupMaxSize": 64
+ },
+ "provider": "webgpu",
+ "noFallback": {
+  "providerAttempts": [
+   {
+    "providerId": "pre-installed",
+    "ok": false
+   },
+   {
+    "providerId": "webgpu",
+    "ok": true
+   }
+  ],
+  "useGPU": true,
+  "fallbackOrCpuMarkersInStats": [],
+  "pass": true
+ },
+ "tokenCount": 32,
+ "text": "Sunlight contains all colors of the visible spectrum, but when it hits the Earth's atmosphere, shorter blue wavelengths scatter more easily than longer red wave",
+ "timing": {
+  "loadMs": 2148.4674590000004,
+  "generateMs": 993.6130289999996,
+  "firstTokenMs": 243.11357999999973,
+  "decodeTokensPerSec": 42.71561198045246
+ },
+ "decodeMode": "batched_gpu",
+ "batchGuardReason": null,
+ "stopReason": "max-tokens"
+}

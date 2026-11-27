@@ -1,0 +1,19 @@
+start 2026-11-27T00:49:52Z: node scripts/browser-gpu-gate.js $GATE/install-020 $GATE/models/qwen-3-5-2b-q4k-ehaf16 $GATE/models/esm2-017 $GATE/logs/chromium-020.json
+00:49:52 rssMiB=62 availGiB=83 memPsi10=0.00 vramMiB=504 gttMiB=30064 states=SSR
+00:49:55 rssMiB=1348 availGiB=81 memPsi10=0.00 vramMiB=504 gttMiB=31080 states=SSRSSSSSSRS
+00:49:57 rssMiB=1341 availGiB=81 memPsi10=0.00 vramMiB=504 gttMiB=31076 states=SSSSSSSSSRS
+00:49:59 rssMiB=1372 availGiB=81 memPsi10=0.00 vramMiB=504 gttMiB=31076 states=SSSSSSSSSRS
+00:50:01 rssMiB=1350 availGiB=81 memPsi10=0.00 vramMiB=504 gttMiB=31076 states=SSSSSSSSSRS
+00:50:03 rssMiB=1336 availGiB=81 memPsi10=0.00 vramMiB=504 gttMiB=31076 states=SSSSSSSSSSS
+00:50:05 rssMiB=1391 availGiB=81 memPsi10=0.00 vramMiB=504 gttMiB=31151 states=SSSSSSSSSRS
+00:50:08 rssMiB=1382 availGiB=81 memPsi10=0.00 vramMiB=504 gttMiB=31293 states=SSSSSSSSSRS
+00:50:10 rssMiB=1402 availGiB=81 memPsi10=0.00 vramMiB=504 gttMiB=31529 states=SSRSSSSSSRS
+00:50:12 rssMiB=1464 availGiB=81 memPsi10=0.00 vramMiB=504 gttMiB=31865 states=SSSSSSSSSRS
+00:50:14 rssMiB=1407 availGiB=80 memPsi10=0.00 vramMiB=504 gttMiB=32175 states=SSSSSSSSSSS
+00:50:16 rssMiB=1430 availGiB=80 memPsi10=0.00 vramMiB=504 gttMiB=32392 states=SSSSSSSSSRS
+end 2026-11-27T00:50:18Z rc=0 peakTreeRssMiB=1464 sigterm=0
+kernel messages (amdgpu/drm) during the step:
+(none)
+flash-next partition-state events during the step:
+(none)
+processes left from this step: 1

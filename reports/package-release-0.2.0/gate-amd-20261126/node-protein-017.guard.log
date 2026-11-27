@@ -1,0 +1,8 @@
+start 2026-11-27T00:43:42Z: node scripts/node-gate.js $GATE/install-017 protein $GATE/models/esm2-017 $GATE/logs/node-protein-017.json scripts/esm2-t12-35m-ur50d-sequence-reference.json
+00:43:42 rssMiB=64 availGiB=83 memPsi10=0.00 vramMiB=504 gttMiB=30064 states=SSR
+end 2026-11-27T00:43:44Z rc=0 peakTreeRssMiB=64 sigterm=0
+kernel messages (amdgpu/drm) during the step:
+(none)
+flash-next partition-state events during the step:
+(none)
+processes left from this step: 1

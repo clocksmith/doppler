@@ -1,0 +1,16 @@
+== precheck node-text-017 at 2026-11-27T00:33:46Z
+load: 1.49 1.93 2.15 2/1347 1237968
+disk: read 0 MiB/s, write 3 MiB/s (10 s mean)
+no rsync/scp/dd/find/tar/cp/hash process
+io pressure: some avg10=0.00 avg60=0.01 avg300=0.00 total=734954355
+memory pressure: system [avg10=0.00 avg60=0.00] user.slice [avg10=0.00 avg60=0.00]
+MemAvailable GiB over 60 s: 82 83 83 83 83 83 83
+swap: SwapTotal: 8191 MiB SwapFree: 3158 MiB 
+GPU holders: 10506(mutter-x11-fram) 10530(ibus-x11) 17112(node) 9258(gnome-shell) 9909(Xwayland) 
+flash-next: unit MainPID 17110, node pid 17112
+doe-gpu-timing.lock: no exclusive holder
+/dev/kfd holders: none
+standing other-lane processes (idle): 23
+flash-next last partition-state: none in 3 h 
+flash-next cpu:  116 5356656
+PRECHECK PASS node-text-017

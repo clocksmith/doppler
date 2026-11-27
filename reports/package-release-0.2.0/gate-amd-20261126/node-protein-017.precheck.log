@@ -1,0 +1,16 @@
+== precheck node-protein-017 at 2026-11-27T00:42:24Z
+load: 1.45 1.65 1.94 2/1338 1365759
+disk: read 0 MiB/s, write 0 MiB/s (10 s mean)
+no rsync/scp/dd/find/tar/cp/hash process
+io pressure: some avg10=0.00 avg60=0.00 avg300=0.00 total=735082349
+memory pressure: system [avg10=0.00 avg60=0.00] user.slice [avg10=0.00 avg60=0.00]
+MemAvailable GiB over 60 s: 83 83 83 83 83 83 83
+swap: SwapTotal: 8191 MiB SwapFree: 2942 MiB 
+GPU holders: 10506(mutter-x11-fram) 10530(ibus-x11) 17112(node) 9258(gnome-shell) 9909(Xwayland) 
+flash-next: unit MainPID 17110, node pid 17112
+doe-gpu-timing.lock: no exclusive holder
+/dev/kfd holders: none
+standing other-lane processes (idle): 23
+flash-next last partition-state: none in 3 h 
+flash-next cpu:  116 5354880
+PRECHECK PASS node-protein-017

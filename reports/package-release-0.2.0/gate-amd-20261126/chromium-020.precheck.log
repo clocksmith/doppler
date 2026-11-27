@@ -1,0 +1,16 @@
+== precheck chromium-020 at 2026-11-27T00:48:34Z
+load: 2.48 1.84 1.90 2/1360 1479011
+disk: read 0 MiB/s, write 0 MiB/s (10 s mean)
+no rsync/scp/dd/find/tar/cp/hash process
+io pressure: some avg10=0.00 avg60=0.00 avg300=0.00 total=735180897
+memory pressure: system [avg10=0.00 avg60=0.00] user.slice [avg10=0.00 avg60=0.00]
+MemAvailable GiB over 60 s: 83 83 83 83 83 83 83
+swap: SwapTotal: 8191 MiB SwapFree: 2941 MiB 
+GPU holders: 10506(mutter-x11-fram) 10530(ibus-x11) 17112(node) 9258(gnome-shell) 9909(Xwayland) 
+flash-next: unit MainPID 17110, node pid 17112
+doe-gpu-timing.lock: no exclusive holder
+/dev/kfd holders: none
+standing other-lane processes (idle): 23
+flash-next last partition-state: none in 3 h 
+flash-next cpu:  116 5354880
+PRECHECK PASS chromium-020

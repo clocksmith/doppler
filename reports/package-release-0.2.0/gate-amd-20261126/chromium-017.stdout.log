@@ -1,0 +1,32 @@
+{
+ "version": "0.1.7",
+ "browser": "146.0.7680.177",
+ "adapter": {
+  "vendor": "amd",
+  "architecture": "rdna-3",
+  "device": "0x1586",
+  "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+  "isFallbackAdapter": false,
+  "features": 22
+ },
+ "noFallback": {
+  "isFallbackAdapter": false,
+  "useGPU": true,
+  "fallbackOrCpuMarkersInStats": [],
+  "softwareAdapterByName": false,
+  "pass": true
+ },
+ "tokens": 32,
+ "text": "Sunlight contains all colors of the visible spectrum, but when it hits the Earth's atmosphere, shorter blue wavelengths ",
+ "decodeMode": "batched_gpu",
+ "stop": "max-tokens",
+ "alphabet": "amino_acid",
+ "blocked": 0,
+ "timing": {
+  "textLoad": 22284.600000023842,
+  "gen": 1754.4000000953674,
+  "ttft": 1118,
+  "protLoad": 1437.1999999284744,
+  "enc": 135
+ }
+}

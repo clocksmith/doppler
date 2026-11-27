@@ -1,0 +1,13 @@
+== tarball sha256 on the AMD host
+09e9ce2cc27eeacaf3702efc6320882e849d3e0ce027687ebff7f7968e30a0b0  dopplerx-0.1.7.tgz
+a97cb41f02e8957c9cc646ad6ff333972987c5062dbbf3e7301e947190dc97a2  dopplerx-0.2.0-sha256-a97cb41f02e8957c9cc646ad6ff333972987c5062dbbf3e7301e947190dc97a2.tgz
+dopplerx-0.1.7.tgz: OK
+dopplerx-0.2.0-sha256-a97cb41f02e8957c9cc646ad6ff333972987c5062dbbf3e7301e947190dc97a2.tgz: OK
+
+added 7 packages in 1s
+added 2 packages in 863ms
+017 0.1.7 sha512-4oQ3wseowRHzmA/Ekl0AQAg/kuSjqWjJZVO41wEhI1NFSTlciDoA7sO9o0wZYTIMSpJuHQmo98376K7RHvBlzQ== webgpu 0.4.0 doe-gpu 0.4.7 playwright 1.58.2
+
+added 7 packages in 1s
+added 2 packages in 210ms
+020 0.2.0 sha512-6JqPVFXrS+2Q6FFqHfV0QOZtz9hwlGJCPRviE+ElFZEnpUS2qHCq4GVUIFpIv5tELEXhVJrD7x5kIK+sgXHDpQ== webgpu 0.4.0 doe-gpu 0.4.7 playwright 1.58.2

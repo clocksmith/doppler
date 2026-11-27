@@ -1,0 +1,10 @@
+start 2026-11-27T00:39:39Z: node scripts/node-gate.js $GATE/install-020 text $GATE/models/qwen-3-5-2b-q4k-ehaf16 $GATE/logs/node-text-020.json
+00:39:39 rssMiB=2 availGiB=83 memPsi10=0.00 vramMiB=504 gttMiB=30064 states=S
+00:39:41 rssMiB=202 availGiB=82 memPsi10=0.00 vramMiB=504 gttMiB=30064 states=SSR
+00:39:43 rssMiB=366 availGiB=81 memPsi10=0.00 vramMiB=504 gttMiB=31756 states=SSR
+end 2026-11-27T00:39:45Z rc=0 peakTreeRssMiB=366 sigterm=0
+kernel messages (amdgpu/drm) during the step:
+(none)
+flash-next partition-state events during the step:
+(none)
+processes left from this step: 1

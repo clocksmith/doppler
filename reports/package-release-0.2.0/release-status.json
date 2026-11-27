@@ -333,5 +333,13 @@
       "archiveSha256": "1ab392c3dadc554a6fd45e405d578d94263a980204dce34b413ae70c08b5df8c",
       "note": "First candidate; see archive.superseded."
     }
-  ]
+  ],
+  "amdGate": {
+    "evidenceDir": "gate-amd-20261126/",
+    "archiveSha256": "a97cb41f02e8957c9cc646ad6ff333972987c5062dbbf3e7301e947190dc97a2",
+    "ranAtUtc": "2026-11-27T00:33Z/00:50Z",
+    "machine": "the AMD host: Radeon 8060S (Strix Halo, RDNA 3), Mesa 26.0.3 RADV Vulkan",
+    "result": "pass",
+    "summary": "Node (webgpu 0.4.0) and headless Chrome 146 on the hardware AMD adapter, no fallback: 32 greedy tokens identical between 0.2.0 and 0.1.7 and identical to the Apple M3 Metal gate; ESM-2 35M bit-identical between versions, max abs vs PyTorch 4.2e-7 pooled / 7.6e-7 token (tolerance 1e-3). Timings informational (another lane's CPU-only browser job ran on the host)."
+  }
 }
