@@ -21,10 +21,8 @@ roadmap. Retained campaigns are evidence, not mandatory next work.
 
 ### Style guides
 
-**Commit and push to `main`.** Every verified change goes straight to `main`: rebase, push,
-confirm CI is green, fix forward if it goes red. Do not open pull requests; if a direct push
-is refused, open one and merge it immediately yourself, then delete the branch. Never leave a
-PR or branch waiting for review. (Publishing to npm and release tags still need the owner.)
+**Git delivery** follows the [workspace rule](https://github.com/clocksmith/ouroboros/blob/main/deco/AGENTS.md#git-delivery). Publishing to npm and
+creating release tags still need the owner's approval.
 
 Match the check to the risk. Times are from one laptop; CI runs on Linux.
 
