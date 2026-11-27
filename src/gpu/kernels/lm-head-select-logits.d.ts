@@ -16,6 +16,9 @@ export interface LmHeadSelectLogitsF16Result {
   tokenIds: number[];
 }
 
+/** True when the selected-row f16 kernel can read this LM head directly. */
+export declare function supportsLmHeadSelectLogitsF16(lmHead: unknown): boolean;
+
 export declare function runLmHeadSelectLogitsF16(
   inputTensor: Tensor,
   lmHead: WeightBuffer,

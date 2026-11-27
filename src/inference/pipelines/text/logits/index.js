@@ -20,7 +20,7 @@ import { runMatmul } from '../../../../gpu/kernels/matmul.js';
 import { runRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
 import { runScale } from '../../../../gpu/kernels/scale.js';
 import { castF16ToF32, castF32ToF16 } from '../../../../gpu/kernels/cast.js';
-import { runLmHeadSelectLogitsF16 } from '../../../../gpu/kernels/lm-head-select-logits.js';
+import { runLmHeadSelectLogitsF16, supportsLmHeadSelectLogitsF16 } from '../../../../gpu/kernels/lm-head-select-logits.js';
 import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
 import { createLogitsInputTensor, resolveLogitsNormWeight } from './gpu-executor.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
@@ -603,12 +603,13 @@ export async function computeLogits(
       matmulInputOwned = true;
     }
 
-    if (selectedTokenIds && resolveLogitOutputScale(config) === 1) {
-      // A one-token final prefill chunk already has exactly one hidden row;
-      // resolveLmHeadMatmulConfig intentionally skips the redundant row slice.
-      if (matmulRows !== 1) {
-        throw new Error('[Logits] selectedTokenIds requires exactly one hidden row; set lastPositionOnly=true.');
-      }
+    // A one-token final prefill chunk already has exactly one hidden row;
+    // resolveLmHeadMatmulConfig intentionally skips the redundant row slice.
+    // Both the selected-row kernel and the full-matmul gather below read row 0.
+    if (selectedTokenIds && matmulRows !== 1) {
+      throw new Error('[Logits] selectedTokenIds requires exactly one hidden row; set lastPositionOnly=true.');
+    }
+    if (selectedTokenIds && resolveLogitOutputScale(config) === 1 && supportsLmHeadSelectLogitsF16(lmHeadBuffer)) {
       if (lmHeadBias != null) {
         throw new Error('[Logits] selectedTokenIds with LM-head bias requires the full GPU logits path.');
       }

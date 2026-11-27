@@ -59,6 +59,17 @@ function normalizeSelectedTokenIds(tokenIds, vocabSize) {
   return normalized;
 }
 
+// The selected-row kernel reads raw f16 rows. Quantized or otherwise packed heads
+// (q4k, f32, raw GPUBuffers without WeightBuffer metadata) take the full LM-head
+// matmul, which dequantizes in-kernel, and gather the selected logits afterwards.
+export function supportsLmHeadSelectLogitsF16(lmHead) {
+  if (!isWeightBuffer(lmHead)) return false;
+  const resolved = resolveWeightBufferMaterialization(lmHead, 'f16');
+  if (!isWeightBuffer(resolved) || getWeightDtype(resolved) !== 'f16') return false;
+  const layout = getLayout(resolved);
+  return layout === 'row' || layout === 'column';
+}
+
 function resolveLmHeadWeight(lmHead, vocabSize, hiddenSize) {
   if (!isWeightBuffer(lmHead)) {
     throw new Error('[LmHeadSelect] selected-token LM head requires a GPU-resident WeightBuffer.');

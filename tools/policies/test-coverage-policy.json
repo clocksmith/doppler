@@ -23,6 +23,7 @@
         "tests/inference/lfm2-layer-plan-conv-state.test.js",
         "tests/inference/linear-attention-core-gpu-regression.test.js",
         "tests/inference/logits-bias.test.js",
+        "tests/inference/logits-selected-q4k-head-gpu.test.js",
         "tests/inference/logits-output-ownership.test.js",
         "tests/inference/logits-trailing-rows.test.js",
         "tests/inference/logits-paired-physical.test.js",
