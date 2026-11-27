@@ -129,15 +129,7 @@ for example, `src/capsule-runtime.js` and `src/training.js` are root facades.
 
 ### Component Intent
 
-CATSCAN.md files record a component's owner, contracts and invariants. Look up
-the one for the component you change when you need its contract; you don't
-have to read the chain before editing. When code and a charter disagree, decide
-which is right: fix the code if it broke the contract, or move the boundary and
-update the charter in the same commit. Never rewrite a charter to excuse a
-failure.
-
-When you change a charter, component boundary, or the CATSCAN policy inventory,
-run `npm run catscan:check`.
+`CATSCAN.md` charters follow the workspace rule in `../AGENTS.md`. When you change a charter, component boundary, or the CATSCAN policy inventory, run `npm run catscan:check`.
 
 ### Public vs Internal Tooling
 
@@ -198,13 +190,9 @@ the cause of a slowdown. Measure the changed path early and iterate.
 
 ### Intent-First Operations
 
-- Treat Doppler intent as real model/runtime capability and fair benchmark evidence, not README wording.
-- If the user asks what works, produce a scoreboard from current registry entries, manifests, sidecars, reports, and claim indexes before summarizing.
-- Preserve exact model/platform scope: browser-only does not imply Node; named embedding/reranker models come before adjacent generation models.
-- When the user distrusts a Doppler-vs-TJS or vendor benchmark, inspect and fix the harness fairness gates before editing public claims.
-- Fairness output must expose comparable surface, blocked lanes, overridden settings, failed runs, throughput-only rows, model identity, backend identity, and artifact paths.
-- Do not publish win/loss language until the claim-grade gate has mechanically passed.
-- Answer deployment/package status from `package.json`, npm/local package artifacts, source version files, and actual publish/deploy command output.
+- When asked what works, produce a scoreboard from current registry entries, manifests, sidecars, reports, and claim indexes before summarizing; preserve exact model/platform scope (browser-only does not imply Node; named embedding/reranker models come before adjacent generation models).
+- When a Doppler-vs-TJS or vendor benchmark is questioned, fix harness fairness gates before editing claims. Fairness output must expose comparable surface, blocked lanes, overridden settings, failed runs, throughput-only rows, model/backend identities, and artifact paths.
+- Do not publish win/loss language until the claim-grade gate has mechanically passed. Answer deployment/package status from `package.json`, package artifacts, source version files, and actual publish/deploy output.
 
 ### Correctness Regression Discipline
 

@@ -136,36 +136,14 @@ qualified configuration.
 
 #### Search application acceptance
 
-The historical search starter is a reference integration, not the current work
-sequence. Its original signed first-install window expired; installed receipts
-remain scoped to their recorded bytes and environment. Fresh distribution needs
-new metadata and its own acceptance. See the
+The historical search starter is a completed reference integration, not the current work
+sequence. Its original signed first-install window expired; installed receipts remain
+scoped to their recorded bytes and environment, and fresh distribution requires new
+metadata and its own acceptance. The retained integration requirements live in the
 [example](examples/document-search/README.md),
 [controller contract](examples/document-search/ENGINEERING.md), and
 [retained maintenance receipt](artifacts/document-search-maintenance-2026-09-26/README.md).
-
-The retained acceptance requirements are:
-
-- Install public exports outside the checkout without private imports or
-  accidental ancestor dependency resolution.
-- Keep embedding and reranking sessions resident together; reuse unchanged
-  documents and compatible indexes across repeated queries.
-- Coalesce initialization, close partially initialized sessions, preserve the
-  working index when replacement fails, suppress superseded results, and settle
-  disposal during loading or execution.
-- Cancel a query and successfully reuse healthy sessions. Submitted GPU work
-  retains resources until its completion owner settles it.
-- Check real-model results against the frozen reference with both models
-  resident, including compatible index reuse/rejection and offline reopening.
-- Observe application requests and logging to verify that documents and queries
-  remain local; permitted model acquisition does not prove private-input egress.
-- Measure installation, opening, useful results, repeated queries, memory,
-  cancellation, and cleanup separately. Distinguish mocks from physical runs.
-- Bind installed archive, model, tokenizer, implementation, provider, surface,
-  hardware, and driver identities. Browser, Node, Electron, and Bun require
-  separate qualification; storage eviction and unavailable memory remain possible.
-
-These requirements do not authorize another search, model, or provider campaign.
+They do not authorize another search, model, or provider campaign.
 
 ### Artifact and runtime acceptance
 
