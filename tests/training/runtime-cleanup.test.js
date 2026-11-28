@@ -110,6 +110,7 @@ function createFakeDevice(options = {}) {
   let submitCount = 0;
   let writeBufferCount = 0;
   const createdBuffers = [];
+  const errorScopes = [];
 
   const queue = {
     submit(commandBuffers) {
@@ -141,6 +142,7 @@ function createFakeDevice(options = {}) {
     queue,
     features: new Set(),
     limits: {
+      minStorageBufferOffsetAlignment: 256,
       maxStorageBufferBindingSize: 1 << 30,
       maxBufferSize: 1 << 30,
       maxComputeWorkgroupSizeX: 256,
@@ -172,19 +174,27 @@ function createFakeDevice(options = {}) {
         },
       };
     },
-    async createComputePipelineAsync() {
-      return {
-        getBindGroupLayout() {
-          return {};
-        },
-      };
+    createComputePipeline() {
+      return { getBindGroupLayout() { return {}; } };
     },
-    createBuffer({ size, usage }) {
+    async createComputePipelineAsync() {
+      return this.createComputePipeline();
+    },
+    pushErrorScope(type) {
+      errorScopes.push(type);
+    },
+    async popErrorScope() {
+      const scope = errorScopes.pop();
+      assert.ok(scope);
+      return scope === 'validation' && options.validationFailure ? { message: 'bad binding' } : null;
+    },
+    createBuffer({ size, usage, label }) {
       createBufferCount += 1;
       if (options.createBufferThrowAt === createBufferCount) {
         throw new Error(`createBuffer failed at ${createBufferCount}`);
       }
       const buffer = new FakeBuffer({ size, usage });
+      buffer.label = label;
       createdBuffers.push(buffer);
       return buffer;
     },
@@ -726,6 +736,81 @@ configurePerfGuards({
   );
   assertPoolIsClean();
   resetRuntimeState();
+}
+
+// Exercise the dense trainer's public resource contract with an inert GPU.
+// The numerical training check runs separately on hardware.
+{
+  const { createTabGPTTrainer } = await import('../../src/experimental/training/tabgpt-model.js');
+  const config = { B: 1, T: 2, C: 4, NH: 1, V: 8, L: 1, lr: 0.01, warmup: 1, f16: false };
+  const tokens = Uint32Array.of(1, 2);
+  const device = createFakeDevice();
+  for (const invalid of [
+    { C: 3 }, { NH: 3 }, { B: 0 }, { f16: true }, { warmup: -1 },
+    { lr: 1e100 }, { T: 1e9 }, { L: Number.MAX_SAFE_INTEGER },
+  ]) {
+    await assert.rejects(createTabGPTTrainer(device, { ...config, ...invalid }), RangeError);
+  }
+  assert.equal(device.createdBuffers.length, 0);
+  const trainer = await createTabGPTTrainer(device, config);
+  const held = trainer.memory.ownedBufferBytes;
+  assert.ok(held > 0);
+  await assert.rejects(trainer.readParameter('missing'), /Unknown TabGPT parameter/);
+  await assert.rejects(trainer.trainStep(Uint32Array.of(9, 1), tokens), /vocabulary/);
+  await assert.rejects(trainer.trainStep(tokens, Uint32Array.of(1)), /2 token IDs/);
+  assert.equal(trainer.step, 0);
+  const allWeights = new Map();
+  for (const name of trainer.parameterNames) allWeights.set(name, await trainer.readParameter(name));
+  assert.equal(trainer.memory.ownedBufferBytes, held);
+  allWeights.get('wte')[0] = 0.75;
+  const imported = await createTabGPTTrainer(device, config, allWeights);
+  assert.deepEqual(await imported.readParameter('wte'), allWeights.get('wte'));
+  imported.destroy();
+  allWeights.get('wte')[0] = NaN;
+  await assert.rejects(createTabGPTTrainer(device, config, allWeights), /finite FP32 weights for wte/);
+
+  const readback = device.createdBuffers.find(buffer => buffer.label === 'tabgpt.loss-readback');
+  const gate = Promise.withResolvers();
+  readback.mapAsync = () => gate.promise;
+  const ongoing = trainer.trainStep(tokens, tokens);
+  await assert.rejects(trainer.evaluate(tokens, tokens), /busy/);
+  await assert.rejects(trainer.trainStep(tokens, tokens), /busy/);
+  await assert.rejects(trainer.readParameter('wte'), /busy/);
+  assert.throws(() => trainer.destroy(), /outstanding/);
+  gate.resolve();
+  await ongoing;
+  assert.equal(trainer.step, 1);
+  await trainer.evaluate(tokens, tokens);
+  assert.equal(trainer.step, 1);
+
+  // Simulate a lost-device readback after the optimizer was submitted. Its
+  // outcome cannot be recovered by repeating the step on the same instance.
+  readback.mapAsync = async () => { throw new Error('lost device'); };
+  await assert.rejects(trainer.trainStep(tokens, tokens), /lost device/);
+  assert.equal(trainer.step, 1);
+  assert.equal(trainer.memory.ownedBufferBytes, 0);
+  await assert.rejects(trainer.trainStep(tokens, tokens), /destroyed/);
+  trainer.destroy();
+  assert.ok(device.createdBuffers.every(buffer => buffer.destroyed));
+
+  const smallGrid = createFakeDevice();
+  smallGrid.limits.maxComputeWorkgroupsPerDimension = 2;
+  await assert.rejects(createTabGPTTrainer(smallGrid, { ...config, V: 8192 }), /workgroups/);
+  assert.ok(smallGrid.createdBuffers.every(buffer => buffer.destroyed));
+
+  const nonfiniteDevice = createFakeDevice();
+  const nonfinite = await createTabGPTTrainer(nonfiniteDevice, config);
+  const losses = nonfiniteDevice.createdBuffers.find(buffer => buffer.label === 'tabgpt.token-losses');
+  new Float32Array(losses.ensureBytes().buffer).fill(NaN);
+  await assert.rejects(nonfinite.trainStep(tokens, tokens), /nonfinite loss at step 1/);
+  assert.equal(nonfinite.step, 0);
+  assert.equal(nonfinite.memory.ownedBufferBytes, 0);
+
+  for (const options of [{ createBindGroupThrowAt: 3 }, { validationFailure: true }]) {
+    const failingDevice = createFakeDevice(options);
+    await assert.rejects(createTabGPTTrainer(failingDevice, config), /createBindGroup failed|bad binding/);
+    assert.ok(failingDevice.createdBuffers.every(buffer => buffer.destroyed));
+  }
 }
 
 console.log('runtime-cleanup.test: ok');

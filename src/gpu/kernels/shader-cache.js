@@ -148,7 +148,9 @@ export function hasPreseededShaderSource(filename) {
   return shaderSourcePreseeds.has(filename);
 }
 
-export async function loadShaderSource(filename) {
+export async function loadShaderSource(shaderPath) {
+  // Package-root asset literals are also traced by the npm source-closure checker.
+  const filename = shaderPath.replace(/^src\/gpu\/kernels\//u, '');
   const scoped = getScopedShaderSource(filename);
   if (scoped) return scoped.source;
   if (shaderSourceCache.has(filename)) {

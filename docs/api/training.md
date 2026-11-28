@@ -14,9 +14,31 @@ import {
 ```
 
 `dopplerx/training` is the public experimental library for Doppler's
-completion-masked SFT/LoRA engine. Native WebGPU primitives and the bounded
+completion-masked SFT/LoRA engine and its dense FP32 TabGPT trainer. Native WebGPU primitives and the bounded
 Qwen runner are available in browsers, Node, and Bun. The Node entry point also
 exports workload-file and report orchestration APIs.
+
+## Train a small GPT from scratch
+
+`createTabGPTTrainer` trains all weights of the TabGPT causal language model on a caller-supplied WebGPU device. It uses tied input and output embeddings, ten decoder blocks in the 24M configuration, and AdamW. The handle owns its parameters, gradients, and optimizer buffers for the duration of the session.
+
+```js
+import { createTabGPTTrainer } from 'dopplerx/training';
+
+const model = await createTabGPTTrainer(device, {
+  B: 4, T: 128, C: 384, L: 10, NH: 8, V: 16384,
+  lr: 0.0006, warmup: 300, f16: false,
+});
+try {
+  // Each Uint32Array has B * T IDs. Targets contain the next tokens.
+  const trainingLoss = await model.trainStep(inputIds, targetIds);
+  const validationLoss = await model.evaluate(validationIds, validationTargets);
+} finally {
+  model.destroy();
+}
+```
+
+This configuration has 23,994,240 trainable parameters. Each step returns mean cross-entropy over the batch. Await each operation before using the handle again. Use `parameterNames` and `readParameter(name)` to inspect the trained FP32 weights. A new handle starts its optimizer at step zero, including when initialized with the optional map of named weights. [Browser benchmark and reference checks](../../benchmarks/tabgpt/README.md)
 
 ## Capability Gate
 

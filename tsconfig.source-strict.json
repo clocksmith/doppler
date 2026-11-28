@@ -16,6 +16,10 @@
   },
   "include": [],
   "files": [
+    "src/experimental/training/tabgpt-graph.js",
+    "src/experimental/training/tabgpt-matmul.js",
+    "src/experimental/training/tabgpt-model.js",
+    "src/experimental/training/tabgpt-ops.js",
     "src/inference/choice-calibration.js",
     "src/loader/experts/tiered-expert-plan.js",
     "src/memory/buffer-pool/readback.js",

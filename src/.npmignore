@@ -447,6 +447,9 @@ experimental/training/runner/lifecycle.d.ts
 experimental/training/suite.d.ts
 experimental/training/suite/execution.d.ts
 experimental/training/suite/plan.d.ts
+experimental/training/tabgpt-graph.d.ts
+experimental/training/tabgpt-matmul.d.ts
+experimental/training/tabgpt-ops.d.ts
 experimental/training/tensor-factory.d.ts
 experimental/training/ul_dataset.d.ts
 experimental/training/ul_schedule.d.ts

@@ -570,6 +570,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `clipGradients`
   - `compareLoraRun`
   - `createNativeQwenLoRATrainer`
+  - `createTabGPTTrainer`
   - `crossEntropyLoss`
   - `DataLoader`
   - `detectOverflow`
@@ -610,6 +611,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `saveCheckpoint`
   - `serializeLoRASafetensors`
   - `serializeTrainingWorkloadLock`
+  - `TabGPTConfig`
+  - `TabGPTTrainer`
   - `TRAINING_BACKENDS`
   - `TrainingBackend`
   - `TrainingBackendCapability`

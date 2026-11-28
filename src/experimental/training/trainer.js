@@ -263,3 +263,9 @@ export async function trainStep(
     paramGroupMetrics,
   };
 }
+
+// Load this architecture only when a caller starts dense pretraining.
+export async function createTabGPTTrainer(device, configuration, initialWeights) {
+  const model = await import('./tabgpt-model.js');
+  return model.createTabGPTTrainer(device, configuration, initialWeights);
+}

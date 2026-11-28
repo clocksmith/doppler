@@ -1,0 +1,312 @@
+{
+  "reference": "PyTorch CPU autograd, float64 graph, FP32 master weights and Adam moments after each update",
+  "torchVersion": "2.10.0",
+  "parameterSeed": 1337,
+  "config": {
+    "B": 1,
+    "T": 8,
+    "C": 16,
+    "L": 2,
+    "NH": 2,
+    "V": 32,
+    "lr": 0.0006,
+    "warmup": 2,
+    "f16": false
+  },
+  "initialSha256": {
+    "wte": "5e59f2aa4489ed7501d535e3386d40f8bdc9d7caf7157d62580ee0e1b4c1a72c",
+    "h.0.ln1.weight": "9628e545ed3ac074e5a6cbf542a642b62482fbfca9b4cb3ea4743a1874256e37",
+    "h.0.attn.qkv.weight": "1be9d6f8ea7635694f8173ebe9d688948dda3d61f2b72292107ee6f71f71a5e3",
+    "h.0.attn.proj.weight": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+    "h.0.ln2.weight": "9628e545ed3ac074e5a6cbf542a642b62482fbfca9b4cb3ea4743a1874256e37",
+    "h.0.mlp.fc.weight": "62f34337eb89282ae1d49c3d65c2f24e26d1a45ce48a314e90b48a54d8750843",
+    "h.0.mlp.proj.weight": "ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7",
+    "h.1.ln1.weight": "9628e545ed3ac074e5a6cbf542a642b62482fbfca9b4cb3ea4743a1874256e37",
+    "h.1.attn.qkv.weight": "b59ab29c64231e2fb6b387b5c69f2caa600c9e685c31b5151dd68f111f110a11",
+    "h.1.attn.proj.weight": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+    "h.1.ln2.weight": "9628e545ed3ac074e5a6cbf542a642b62482fbfca9b4cb3ea4743a1874256e37",
+    "h.1.mlp.fc.weight": "226b65f239dbf3c27b51279f83ce116a3cce18a90256012040a0628668143bfc",
+    "h.1.mlp.proj.weight": "ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7",
+    "lnf.weight": "9628e545ed3ac074e5a6cbf542a642b62482fbfca9b4cb3ea4743a1874256e37"
+  },
+  "steps": [
+    {
+      "sourceTokens": [
+        1,
+        2,
+        1,
+        3,
+        5,
+        8,
+        13,
+        21,
+        1
+      ],
+      "loss": 3.5637474030149936,
+      "preClipGradientNorm": 2.0979295784547873,
+      "expected": [
+        {
+          "name": "wte",
+          "index": 33,
+          "weight": 0.021228907629847527,
+          "firstMoment": 0.02275526523590088
+        },
+        {
+          "name": "h.0.ln1.weight",
+          "index": 0,
+          "weight": 0.9999970197677612,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.0.attn.qkv.weight",
+          "index": 0,
+          "weight": 0.02941204234957695,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.0.attn.qkv.weight",
+          "index": 16,
+          "weight": 0.009070525877177715,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.0.attn.qkv.weight",
+          "index": 32,
+          "weight": 0.0473821759223938,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.0.attn.proj.weight",
+          "index": 52,
+          "weight": 0.00029999989783391356,
+          "firstMoment": -0.0036514727398753166
+        },
+        {
+          "name": "h.0.ln2.weight",
+          "index": 0,
+          "weight": 0.9999970197677612,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.0.mlp.fc.weight",
+          "index": 0,
+          "weight": -0.0033094307873398066,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.0.mlp.proj.weight",
+          "index": 486,
+          "weight": 0.0002999995485879481,
+          "firstMoment": -0.000659025099594146
+        },
+        {
+          "name": "h.1.ln1.weight",
+          "index": 0,
+          "weight": 0.9999970197677612,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.1.attn.qkv.weight",
+          "index": 0,
+          "weight": 0.013102863915264606,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.1.attn.qkv.weight",
+          "index": 16,
+          "weight": -0.006509395316243172,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.1.attn.qkv.weight",
+          "index": 32,
+          "weight": -0.027239421382546425,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.1.attn.proj.weight",
+          "index": 68,
+          "weight": 0.00029999989783391356,
+          "firstMoment": -0.002961439546197653
+        },
+        {
+          "name": "h.1.ln2.weight",
+          "index": 0,
+          "weight": 0.9999970197677612,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.1.mlp.fc.weight",
+          "index": 0,
+          "weight": -0.002774059772491455,
+          "firstMoment": 0.0
+        },
+        {
+          "name": "h.1.mlp.proj.weight",
+          "index": 577,
+          "weight": -0.00029999951948411763,
+          "firstMoment": 0.0006011114455759525
+        },
+        {
+          "name": "lnf.weight",
+          "index": 12,
+          "weight": 0.9996970295906067,
+          "firstMoment": 0.0009230435243807733
+        }
+      ]
+    },
+    {
+      "sourceTokens": [
+        3,
+        1,
+        4,
+        1,
+        5,
+        9,
+        2,
+        6,
+        5
+      ],
+      "loss": 3.521896836978923,
+      "preClipGradientNorm": 2.3099653565225964,
+      "expected": [
+        {
+          "name": "wte",
+          "index": 18,
+          "weight": -0.018639640882611275,
+          "firstMoment": -0.036561012268066406
+        },
+        {
+          "name": "h.0.ln1.weight",
+          "index": 2,
+          "weight": 1.0004364252090454,
+          "firstMoment": -7.846721018722747e-06
+        },
+        {
+          "name": "h.0.attn.qkv.weight",
+          "index": 439,
+          "weight": 0.036105625331401825,
+          "firstMoment": 4.201780757284723e-05
+        },
+        {
+          "name": "h.0.attn.qkv.weight",
+          "index": 460,
+          "weight": 0.017382949590682983,
+          "firstMoment": -5.200439045438543e-05
+        },
+        {
+          "name": "h.0.attn.qkv.weight",
+          "index": 141,
+          "weight": -0.019639456644654274,
+          "firstMoment": -6.0054517234675586e-05
+        },
+        {
+          "name": "h.0.attn.proj.weight",
+          "index": 52,
+          "weight": 0.0008658284205012023,
+          "firstMoment": -0.005239073187112808
+        },
+        {
+          "name": "h.0.ln2.weight",
+          "index": 1,
+          "weight": 1.0004360675811768,
+          "firstMoment": -1.505822751823871e-06
+        },
+        {
+          "name": "h.0.mlp.fc.weight",
+          "index": 476,
+          "weight": -0.02064620517194271,
+          "firstMoment": 1.601927579031326e-05
+        },
+        {
+          "name": "h.0.mlp.proj.weight",
+          "index": 914,
+          "weight": 0.0008653630502521992,
+          "firstMoment": -0.0008778003975749016
+        },
+        {
+          "name": "h.1.ln1.weight",
+          "index": 9,
+          "weight": 0.9995456337928772,
+          "firstMoment": 1.0446990017953794e-05
+        },
+        {
+          "name": "h.1.attn.qkv.weight",
+          "index": 441,
+          "weight": 0.03343992307782173,
+          "firstMoment": 4.859184264205396e-05
+        },
+        {
+          "name": "h.1.attn.qkv.weight",
+          "index": 461,
+          "weight": -0.005904910154640675,
+          "firstMoment": -4.632836862583645e-05
+        },
+        {
+          "name": "h.1.attn.qkv.weight",
+          "index": 134,
+          "weight": 0.0080786207690835,
+          "firstMoment": -7.453047146555036e-05
+        },
+        {
+          "name": "h.1.attn.proj.weight",
+          "index": 151,
+          "weight": 0.0008774622110649943,
+          "firstMoment": -0.004358319099992514
+        },
+        {
+          "name": "h.1.ln2.weight",
+          "index": 1,
+          "weight": 1.0004360675811768,
+          "firstMoment": -1.62211460974504e-06
+        },
+        {
+          "name": "h.1.mlp.fc.weight",
+          "index": 43,
+          "weight": -0.008791813626885414,
+          "firstMoment": 1.5713188986410387e-05
+        },
+        {
+          "name": "h.1.mlp.proj.weight",
+          "index": 919,
+          "weight": -0.0008325777016580105,
+          "firstMoment": 0.000734838773496449
+        },
+        {
+          "name": "lnf.weight",
+          "index": 9,
+          "weight": 0.9991257190704346,
+          "firstMoment": 0.0014291343977674842
+        }
+      ]
+    }
+  ],
+  "referenceContract": {
+    "upstream": "https://github.com/jbingen/tabgpt/tree/7e0387500f0f64bddf3e68c341508f3f4454cc81/src/engine",
+    "upstreamModelTsSha256": "fe602f327114fc23b436ed0a490feefacdf81ded8236ffcb23d02d800346df85",
+    "upstreamKernelsTsSha256": "90ed34cabb65cb959722adf62e2ac074811f7b7d8768c44f684b377542bf5985",
+    "initialization": "Mulberry32(1337); two uniform draws per Box-Muller normal, std 0.02; projection outputs zero; norm scales one. Initial SHA-256 covers each unpadded row-major little-endian FP32 tensor.",
+    "forward": "Causal lower-triangular attention including the diagonal. RMS eps=1e-5; interleaved RoPE base=10000 before per-head unit RMS Q/K (eps=1e-6); scores scaled by 1/sqrt(head size). Squared ReLU; tied token embedding and output head.",
+    "objective": "Teacher-forced mean natural-log cross entropy over every position; each listed source stream supplies inputs [:-1] and targets [1:].",
+    "optimizer": "Global gradient L2 clip to 1; bias-corrected AdamW beta1=0.9, beta2=0.99, eps=1e-8, decoupled decay=0.01 for every parameter; learning rates 0.0003 then 0.0006. Accumulate both tied embedding gradient paths before clipping.",
+    "weightCoordinates": "For each tensor select the largest magnitude first moment after that update, separately for Q/K/V. Store its index, expected FP32 master weight, and first moment. The browser reads and checks weights at those positions; moments document why each was selected.",
+    "oracleCheck": "Centered finite difference at the largest-magnitude raw gradient of all 14 tensors at each update, perturbation 1e-6; maximum absolute difference from autograd <5e-10.",
+    "tolerance": {
+      "lossAbsolute": 1e-05,
+      "weightAbsolute": 2e-06
+    },
+    "domain": "Small deterministic math fixture; token streams are hand-chosen and separate from the quality benchmark corpus."
+  },
+  "heldOutTokens": [
+    1,
+    1,
+    2,
+    3,
+    5,
+    8,
+    8,
+    13,
+    21
+  ],
+  "heldOutLoss": 3.4101898732893487
+}

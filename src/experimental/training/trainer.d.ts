@@ -87,3 +87,6 @@ export declare function trainStep(
   config: TrainingConfigSchema,
   options?: TrainStepOptions
 ): Promise<TrainStepResult>;
+
+export { createTabGPTTrainer } from './tabgpt-model.js';
+export type { TabGPTConfig, TabGPTTrainer } from './tabgpt-model.js';

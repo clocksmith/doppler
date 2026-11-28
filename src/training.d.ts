@@ -7,12 +7,13 @@ import type {
   TrainingWorkloadCapsule,
 } from './experimental/training/workloads.js';
 
+export type { TabGPTConfig, TabGPTTrainer } from './experimental/training/trainer.js';
 export { AutogradTape, OpType } from './experimental/training/autograd.js';
 export { buildAttentionSoftmaxCache } from './experimental/training/attention-backward.js';
 export { recordAttentionForward } from './experimental/training/attention-forward.js';
 export { LoraAdapter } from './experimental/training/lora.js';
 export { AdamOptimizer } from './experimental/training/optimizer.js';
-export { trainStep } from './experimental/training/trainer.js';
+export { trainStep, createTabGPTTrainer } from './experimental/training/trainer.js';
 export { crossEntropyLoss } from './experimental/training/loss.js';
 export { clipGradients } from './experimental/training/clip.js';
 export { exportLoRAAdapter, serializeLoRASafetensors } from './experimental/training/export.js';

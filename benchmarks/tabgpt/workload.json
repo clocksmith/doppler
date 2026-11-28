@@ -1,0 +1,11 @@
+{
+  "model": { "B": 4, "T": 128, "C": 384, "L": 10, "NH": 8, "V": 16384, "lr": 0.0006, "warmup": 300, "f16": false },
+  "firstBatchSeed": 37,
+  "validationSeeds": [193, 521, 907, 1301],
+  "pairedRepetitions": 3,
+  "warmupSteps": 2,
+  "timedSteps": 30,
+  "lossAbsTolerance": 0.0003,
+  "updateRmsAbsTolerance": 2e-9,
+  "updateRmsRelativeTolerance": 0.02
+}

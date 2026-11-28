@@ -55,6 +55,16 @@
   ],
   "reviews": [
     {
+      "id": "src/experimental/training/tabgpt-model.js#prepare",
+      "category": "gpu-orchestration",
+      "reason": "Indexes the names and binding ranges of parameter and gradient buffers with Map.set. Writes the supplied initial bytes, creates static WebGPU dispatches, and records their routing. No per-step model arithmetic occurs in JavaScript."
+    },
+    {
+      "id": "src/experimental/training/tabgpt-model.js#materializeInitialParameter",
+      "category": "host-input-preprocessing",
+      "reason": "Expands the declared initialization recipe into the same FP32 starting weights as the TabGPT browser trainer before their first upload. It takes no model tensor or readback; all forward, gradient and optimizer calculations execute in WebGPU."
+    },
+    {
       "id": "src/storage/verified-piece-reader.js#createVerifiedPieceReader",
       "category": "artifact-codec-materialization",
       "reason": "Authenticates complete declared artifact pieces against a pinned SHA-256 index and copies unchanged intersecting byte slices into the caller destination without interpreting or transforming model tensor values."
