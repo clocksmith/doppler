@@ -45,7 +45,7 @@ async function initBlake3(requiredAlgorithm = null) {
   };
 }
 
-function bytesToHex(bytes) {
+export function bytesToHex(bytes) {
   return Array.from(bytes)
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');

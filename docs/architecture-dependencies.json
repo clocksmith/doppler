@@ -1178,6 +1178,10 @@
         "tools/privacy-demo/experiment.js",
         "tools/privacy-demo/experiment.test.js",
         "tools/privacy-demo/model.js",
+        "tools/privacy-demo/node_modules/node-seal/dist/index_allows.js",
+        "tools/privacy-demo/node_modules/node-seal/dist/index_throws.js",
+        "tools/privacy-demo/node_modules/node-seal/dist/seal_allows.js",
+        "tools/privacy-demo/node_modules/node-seal/dist/seal_throws.js",
         "tools/privacy-demo/provider.js",
         "tools/privacy-demo/seal-context.js",
         "tools/privacy-demo/wire.js",
@@ -9530,6 +9534,18 @@
       "kind": "asset",
       "line": 9,
       "expression": "new URL(`profiles/${name}.json`, import.meta.url)"
+    },
+    {
+      "file": "tools/privacy-demo/node_modules/node-seal/dist/index_allows.js",
+      "kind": "asset",
+      "line": 4,
+      "expression": "new URL(path, import.meta.url)"
+    },
+    {
+      "file": "tools/privacy-demo/node_modules/node-seal/dist/index_throws.js",
+      "kind": "asset",
+      "line": 4,
+      "expression": "new URL(path, import.meta.url)"
     },
     {
       "file": "tools/profile-installed-capsule.js",

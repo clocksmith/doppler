@@ -5,6 +5,7 @@ import {
 } from '../formats/source-runtime.js';
 import { createSourceStorageContext } from './source-storage-context.js';
 import { computeHash, createStreamingHasher } from './shard-manager.js';
+import { bytesToHex } from './shards/integrity.js';
 import { createOpfsStore } from './backends/opfs-store.js';
 import { normalizeModelId } from './normalize-model-id.js';
 import { isNodeRuntime } from '../storage/runtime-env.js';
@@ -60,12 +61,6 @@ function normalizeOptionalPositiveInteger(value, fallback = 0) {
 
 function toUint8Chunk(value, label) {
   return value instanceof Uint8Array ? value : new Uint8Array(toArrayBuffer(value, label));
-}
-
-function bytesToHex(bytes) {
-  return Array.from(bytes)
-    .map((value) => value.toString(16).padStart(2, '0'))
-    .join('');
 }
 
 function createHttpArtifactFetchError(error, url, offset = null, length = null) {

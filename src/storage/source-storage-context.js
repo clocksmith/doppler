@@ -1,4 +1,5 @@
 import { computeHash, createStreamingHasher } from './shard-manager.js';
+import { bytesToHex } from './shards/integrity.js';
 import { toArrayBuffer } from '../formats/array-buffer.js';
 import { encodeUtf8 } from '../formats/encode-utf8.js';
 import {
@@ -11,12 +12,6 @@ const SOURCE_VERIFY_CHUNK_BYTES = 4 * 1024 * 1024;
 
 function toUint8Chunk(value, label) {
   return value instanceof Uint8Array ? value : new Uint8Array(toArrayBuffer(value, label));
-}
-
-function bytesToHex(bytes) {
-  return Array.from(bytes)
-    .map((value) => value.toString(16).padStart(2, '0'))
-    .join('');
 }
 
 function resolveSourceEntry(index, manifest, shardSources) {
