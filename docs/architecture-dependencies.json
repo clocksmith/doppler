@@ -9364,6 +9364,12 @@
       "expression": "import(pathToFileURL(path.join(root, 'src/gpu/kernels/generated/uniform-writers.js')).href)"
     },
     {
+      "file": "tests/tooling/package-source-closure.test.js",
+      "kind": "asset",
+      "line": 16,
+      "expression": "new URL('../../' + kernelDir, import.meta.url)"
+    },
+    {
       "file": "tests/tooling/program-bundle-paired-closure.test.js",
       "kind": "asset",
       "line": 11,
