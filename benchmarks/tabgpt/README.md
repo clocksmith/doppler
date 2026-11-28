@@ -2,6 +2,18 @@
 
 This development benchmark compares Doppler’s dense trainer with the upstream TabGPT WebGPU trainer. Both start from the same 23,994,240 FP32 parameters on the same physical GPU. Both train on the same 32 batches of 4 × 128 next-token targets. Validation uses four fixed batches from a separate Bokmål validation shard. The benchmark pins the model and data sources to [TabGPT revision 7e03875](https://github.com/jbingen/tabgpt/tree/7e0387500f0f64bddf3e68c341508f3f4454cc81). [Workload configuration](workload.json)
 
+## Apple M3 results
+
+Chrome 158 ran three paired FP32 trials. Across all 96 matched training steps, the largest absolute difference in cross-entropy was below 0.0000005. The two independent PyTorch fixtures and the full-model comparison of all 62 parameter tensors passed. [FP32 measurements and per-tensor checks](../../reports/training/tabgpt-24m-apple-m3/fp32.json)
+
+| Trainer | Training tokens/s | Peak live WebGPU buffers | Held-out loss, start → step 32 |
+| --- | ---: | ---: | ---: |
+| Doppler FP32 (three-trial median) | 3,827 | 601 MiB | 9.87537 → 8.93315 |
+| TabGPT FP32 (three-trial median) | 3,400 | 875 MiB | 9.87537 → 8.93315 |
+| TabGPT mixed precision (one run) | 5,432 | 575 MiB | 9.87535 → 8.93366 |
+
+The throughput measurement covers 30 timed updates per run. Each trajectory processes 16,384 training targets including warmup. Validation covers the same 2,048 held-out targets before and after training. Upstream mixed precision was the fastest configuration measured on this device. [Mixed-precision measurement](../../reports/training/tabgpt-24m-apple-m3/stock-mixed.json)
+
 ## Run
 
 Use a Doppler checkout with its Node dependencies installed, Node 22.13+ with TypeScript stripping, and Chrome with physical WebGPU. Run the following from the checkout root. The scratch directory holds the upstream program, one training shard, one validation shard, and local receipts. No pretrained weights are required.

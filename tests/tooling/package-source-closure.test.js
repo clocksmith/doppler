@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import { loadShaderSource } from '../../src/gpu/kernels/shader-cache.js';
 import { buildPackageSourceClosure, renderReferenceNpmIgnore } from '../../tools/package-source-closure.js';
 
 const packageJson = JSON.parse(await fs.readFile(new URL('../../package.json', import.meta.url)));
@@ -11,6 +12,13 @@ assert(!closure.ignoredSourceFiles.has('tooling/program-bundle-host.js'));
 assert(closure.ignoredReferenceFiles.has('channel-rotation.js'),
   'An unreferenced research oracle must stay outside the installed kernel suite');
 assert.match(renderReferenceNpmIgnore(closure), /channel-rotation\.js/u);
+const kernelDir = 'src/gpu/kernels/training/';
+const kernelUrl = new URL('../../' + kernelDir, import.meta.url);
+for (const name of (await fs.readdir(kernelUrl)).filter(file => /^tabgpt_.*\.wgsl$/u.test(file))) {
+  const resource = kernelDir + name;
+  assert(closure.packageResourceFiles.has(resource), `unpublished training shader: ${resource}`);
+  assert.equal(await loadShaderSource(resource), await fs.readFile(new URL(name, kernelUrl), 'utf8'));
+}
 const resourcePolicy = JSON.parse(await fs.readFile(new URL('../../tools/policies/package-resource-policy.json', import.meta.url)));
 const missingPublishedAncestor = structuredClone(resourcePolicy);
 missingPublishedAncestor.runtimeResources = missingPublishedAncestor.runtimeResources.filter(file => !file.endsWith('/throughput.json'));

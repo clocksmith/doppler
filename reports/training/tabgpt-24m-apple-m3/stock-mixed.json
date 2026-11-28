@@ -1,0 +1,252 @@
+{
+  "developmentBenchmark": true,
+  "browser": "158.0.8127.37",
+  "host": {
+    "platform": "darwin",
+    "osRelease": "25.6.0",
+    "chip": "Apple M3"
+  },
+  "revision": "167ea1439645983e33d5b4668b35ae7678f842c0",
+  "sourceSha256": {
+    "benchmarks/tabgpt/browser.js": "6d7c207f3a9e9b19a67abd7b15f30f2bb5a670d58bbf68110c05d8da052d3274",
+    "benchmarks/tabgpt/prepare-reference.js": "633fb7e801bb0f32500801cc69f8cd45ca00c0906359a0b28e91d046c9442abd",
+    "benchmarks/tabgpt/reference.js": "9e6eea863c4d197d8d948b3ba821409e6c6ba8f6ca2051e9259c8d86f65a77b7",
+    "benchmarks/tabgpt/run.js": "920c83cec8ae4783af46b3651f1c2a3056d1059e26b0547fb40a7e03cdfaec2d",
+    "benchmarks/tabgpt/tiny-oracle.js": "7f9a82f80c3a8c5fc03f189c4f70eefb1695efb4df60bb2968339514820aad86",
+    "benchmarks/tabgpt/tiny-pytorch-odd-oracle.json": "494b961f1b984cc55578f01c3969d91122705a160bf5ba4ef4fad8a0255fbb81",
+    "benchmarks/tabgpt/tiny-pytorch-oracle.json": "7e80d38a8a09cac8899cbed6fee1d31f7b983a3c902b49576c60bd04759b9ca9",
+    "benchmarks/tabgpt/workload.json": "2b4635691c27acdba23226260cdfc5eb2a53db724570bf2ed7c10031923ea7c4",
+    "src/experimental/training/tabgpt-graph.d.ts": "307ed6b812c4dfc31e2122d14f848239f7b05e05662f62cf8213cdb4f2a21248",
+    "src/experimental/training/tabgpt-graph.js": "e074820921a368b2892ffae72e64be12cdf2627f3f651b61c3133daca076954e",
+    "src/experimental/training/tabgpt-matmul.d.ts": "9f5717e65d11cfc49e85c44e8661803b3152601cce0afa0f92fd6be23951d3cf",
+    "src/experimental/training/tabgpt-matmul.js": "fc557c383249afe612daeb253052c21a54e01db58c22a631d30e6c9e90925a7b",
+    "src/experimental/training/tabgpt-model.d.ts": "8665bd15f9c591c06d51bfa2002b72c184329f73cbd8c47afbea15b1655d544c",
+    "src/experimental/training/tabgpt-model.js": "72dbccfef75871462927fb02c5bca669a4c51a62f411bbb583c40ff6896b11d5",
+    "src/experimental/training/tabgpt-ops.d.ts": "f5ba167886d7315bdff3db663f8713d83b91b6e6d80f10b9cf1be0f7d2b3f725",
+    "src/experimental/training/tabgpt-ops.js": "eaf3aeae727fe206a2c521fccddf9debfe844838a2ed82b73caac97cf0de516a",
+    "src/experimental/training/trainer.js": "d0fef82a79b8d80aef14f4b01e9b3d33a1051f0c886e1e7f74159ecbd3db2c6c",
+    "src/gpu/kernels/backward/matmul_transpose_a.wgsl": "1f60e4fc16d07f2d1ac3e335f6068f43cc96f583c5c5b3642da21e15bf3f383f",
+    "src/gpu/kernels/matmul_f32.wgsl": "5996e7d704299f211bbebe1f69ae73b59c03c85b0ee17eddc04d92e44488423c",
+    "src/gpu/kernels/shader-cache.js": "2520a4cbac269fd122987e11bab5a0e777312025b0dcfcfc82151fb8bcd23cc5",
+    "src/gpu/kernels/training/tabgpt_attention.wgsl": "5861b5f757b63d494e0208b7bc719ceb2e321203aeceebae54a5bd8932df5d8e",
+    "src/gpu/kernels/training/tabgpt_elementwise.wgsl": "de0f91aa1d8c838b2bdce4c0dc8450a54907ce010ce163adc4dad841472ae182",
+    "src/gpu/kernels/training/tabgpt_loss.wgsl": "268c9668875a0f06dc7630feca2a0e62ed74bcf900c5a69fc1755ceb0fdfabdb",
+    "src/gpu/kernels/training/tabgpt_matmul_register.wgsl": "f9f327a6303526b49930507284012d6031146fe818aeda1efc6cefc068dd2097",
+    "src/gpu/kernels/training/tabgpt_norm.wgsl": "74db4cbb6e2e1fc361133735493783dd40598ef4c41a49a4966be3c523376096",
+    "src/gpu/kernels/training/tabgpt_optimizer.wgsl": "424d9b72748a32b795c1846ae18885a35c7d19765e7af315682b443382a2968f",
+    "src/training-browser.js": "79952792acdf269fc8536a150164f50dd7aa8752fda1f8989523f5c1ed2fd04c"
+  },
+  "spec": {
+    "model": {
+      "B": 4,
+      "T": 128,
+      "C": 384,
+      "L": 10,
+      "NH": 8,
+      "V": 16384,
+      "lr": 0.0006,
+      "warmup": 300,
+      "f16": false
+    },
+    "firstBatchSeed": 37,
+    "validationSeeds": [
+      193,
+      521,
+      907,
+      1301
+    ],
+    "pairedRepetitions": 3,
+    "warmupSteps": 2,
+    "timedSteps": 30,
+    "lossAbsTolerance": 0.0003,
+    "updateRmsAbsTolerance": 2e-9,
+    "updateRmsRelativeTolerance": 0.02
+  },
+  "runs": {
+    "stock-mixed": {
+      "gpu": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "provenance": {
+        "repository": "https://github.com/jbingen/tabgpt",
+        "revision": "7e0387500f0f64bddf3e68c341508f3f4454cc81",
+        "tokenizer": {
+          "path": "tok16k-g2.json",
+          "sha256": "22d92a1f04999138f02a20157f175144bb1e107d639a957cb9cfb233326f0ad6",
+          "vocabSize": 16384
+        },
+        "modules": {
+          "kernels": {
+            "path": "src/engine/kernels.ts",
+            "sourceSha256": "90ed34cabb65cb959722adf62e2ac074811f7b7d8768c44f684b377542bf5985",
+            "javascriptSha256": "6267575a6906cd274dd10c7817f145c26ea074db84f584b08a998a6d705f3536"
+          },
+          "data": {
+            "path": "src/engine/data.ts",
+            "sourceSha256": "1bf7720ce412cde95c30aa880be97b8b24e884b71322906bf17b50951da76c2d",
+            "javascriptSha256": "4804a81fab6555469721cd86a5deb6de91584d055339dbd2323bbafc50b8ad2b"
+          },
+          "model": {
+            "path": "src/engine/model.ts",
+            "sourceSha256": "fe602f327114fc23b436ed0a490feefacdf81ded8236ffcb23d02d800346df85",
+            "javascriptSha256": "b04f60dc7d6533136472d4d224af356529f2ef7b144ff838f5aa605588d60d1d"
+          }
+        },
+        "splits": {
+          "train": {
+            "path": "public/tokens-nob-g2-000.bin",
+            "sha256": "a728179decc518d8170aa8b8341dba9ec6d548eaeb3e1b9e62ecb3bd35d83f1f",
+            "tokens": 4000000
+          },
+          "val": {
+            "path": "public/tokens-nob-g2-val.bin",
+            "sha256": "f511c2ddf816bee59672934f59902d0a00dc5c73a51ac6140633dcee9cd9e39a",
+            "tokens": 1533045
+          }
+        }
+      },
+      "result": {
+        "numParams": 23994240,
+        "precision": "mixed-f16",
+        "buildMs": 1194.5999999940395,
+        "validationBefore": 9.875346899032593,
+        "validationAfter": 8.933660507202148,
+        "steps": [
+          {
+            "loss": 9.846445333212614,
+            "ms": 84.90000000596046
+          },
+          {
+            "loss": 9.8474149890244,
+            "ms": 74.1000000089407
+          },
+          {
+            "loss": 9.800619648769498,
+            "ms": 75
+          },
+          {
+            "loss": 9.69025032967329,
+            "ms": 74.19999998807907
+          },
+          {
+            "loss": 9.519655568525195,
+            "ms": 75.6000000089407
+          },
+          {
+            "loss": 9.37415848299861,
+            "ms": 74.29999999701977
+          },
+          {
+            "loss": 9.32073114067316,
+            "ms": 75.90000000596046
+          },
+          {
+            "loss": 9.422155365347862,
+            "ms": 76.09999999403954
+          },
+          {
+            "loss": 9.231795713305473,
+            "ms": 77.70000000298023
+          },
+          {
+            "loss": 9.31486203148961,
+            "ms": 77.79999999701977
+          },
+          {
+            "loss": 9.282738098874688,
+            "ms": 79.70000000298023
+          },
+          {
+            "loss": 9.215756690129638,
+            "ms": 79.79999999701977
+          },
+          {
+            "loss": 9.304597105830908,
+            "ms": 81.40000000596046
+          },
+          {
+            "loss": 9.25713811814785,
+            "ms": 82
+          },
+          {
+            "loss": 9.201957004144788,
+            "ms": 85
+          },
+          {
+            "loss": 9.247986052185297,
+            "ms": 86.29999999701977
+          },
+          {
+            "loss": 9.2019886020571,
+            "ms": 89
+          },
+          {
+            "loss": 9.230743044987321,
+            "ms": 90.3999999910593
+          },
+          {
+            "loss": 9.253227265551686,
+            "ms": 91.30000001192093
+          },
+          {
+            "loss": 9.083292592316866,
+            "ms": 97.09999999403954
+          },
+          {
+            "loss": 9.204870030283928,
+            "ms": 100.20000000298023
+          },
+          {
+            "loss": 9.09239667840302,
+            "ms": 105
+          },
+          {
+            "loss": 9.11900152824819,
+            "ms": 107.19999998807907
+          },
+          {
+            "loss": 9.047142645344138,
+            "ms": 108.80000001192093
+          },
+          {
+            "loss": 9.08554332330823,
+            "ms": 112.70000000298023
+          },
+          {
+            "loss": 9.039941227063537,
+            "ms": 116.6000000089407
+          },
+          {
+            "loss": 9.034422183409333,
+            "ms": 120.69999998807907
+          },
+          {
+            "loss": 9.054419560357928,
+            "ms": 121.1000000089407
+          },
+          {
+            "loss": 9.110141446813941,
+            "ms": 120
+          },
+          {
+            "loss": 8.984312534332275,
+            "ms": 116.70000000298023
+          },
+          {
+            "loss": 8.949559334665537,
+            "ms": 115.59999999403954
+          },
+          {
+            "loss": 8.978896647691727,
+            "ms": 114.70000000298023
+          }
+        ],
+        "tokensPerSecond": 5431.592347667041,
+        "peakRequestedGpuBufferBytes": 603045436
+      }
+    }
+  }
+}

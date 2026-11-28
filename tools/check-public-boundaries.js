@@ -95,7 +95,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // measured 2069 on Node 22.20.0/npm 10.9.3.
   // The kebab-case enum migration adds src/config/legacy-enum-values.js, imported by
   // RDRR manifest parsing to read legacy snake_case spellings: measured 2070.
-  maxEntryCount: 2070,
+  // TabGPT full training adds 11 files (npm 10.9.3); preserve the prior margin.
+  maxEntryCount: 2081,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -223,7 +224,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // 3,898,986 packed bytes plus the same 260-byte allowance.
   // Reading legacy spellings in manifest objects (createPipeline, inline sources) measures 3,899,389.
   // Pruning dead package.json scripts shrinks unpacked bytes while shifting gzip to 3,899,729 (+260 allowance).
-  maxPackedSize: 3_900_000,
+  // TabGPT full training adds 13,672 packed bytes (npm 10.9.3); preserve the prior margin.
+  maxPackedSize: 3_913_672,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -321,7 +323,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // DopplerX 0.2.0 (2070 entries) measures 16,436,907 unpacked bytes.
   // The emitted-value conversion measures 16,462,747 unpacked bytes plus the same 2,496-byte allowance.
   // Manifest-object legacy reads measure 16,463,808.
-  maxUnpackedSize: 16_466_304,
+  // TabGPT full training adds 47,439 unpacked bytes (npm 10.9.3); preserve the prior margin.
+  maxUnpackedSize: 16_513_743,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

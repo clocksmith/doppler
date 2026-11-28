@@ -1273,9 +1273,9 @@
     },
     "reports/training": {
       "retentionClass": "frozen-evidence",
-      "files": 131,
-      "bytes": 12802502,
-      "inventoryHash": "sha256:dcd47da98d7e0f91630fa0f79ea427d93e01e0bf6cf98d272c96c91499e4a16b"
+      "files": 133,
+      "bytes": 12881376,
+      "inventoryHash": "sha256:e9ab0e17d5ca581b9075a29a9410c5e0aed2ff86e15f88b211cde16024c69bf8"
     },
     "reports/unfamiliar-model": {
       "retentionClass": "frozen-evidence",

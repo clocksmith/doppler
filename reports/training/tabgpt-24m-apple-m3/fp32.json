@@ -1,0 +1,2144 @@
+{
+  "developmentBenchmark": true,
+  "browser": "158.0.8127.37",
+  "host": {
+    "platform": "darwin",
+    "osRelease": "25.6.0",
+    "chip": "Apple M3"
+  },
+  "revision": "167ea1439645983e33d5b4668b35ae7678f842c0",
+  "sourceSha256": {
+    "benchmarks/tabgpt/browser.js": "6d7c207f3a9e9b19a67abd7b15f30f2bb5a670d58bbf68110c05d8da052d3274",
+    "benchmarks/tabgpt/prepare-reference.js": "633fb7e801bb0f32500801cc69f8cd45ca00c0906359a0b28e91d046c9442abd",
+    "benchmarks/tabgpt/reference.js": "9e6eea863c4d197d8d948b3ba821409e6c6ba8f6ca2051e9259c8d86f65a77b7",
+    "benchmarks/tabgpt/run.js": "920c83cec8ae4783af46b3651f1c2a3056d1059e26b0547fb40a7e03cdfaec2d",
+    "benchmarks/tabgpt/tiny-oracle.js": "7f9a82f80c3a8c5fc03f189c4f70eefb1695efb4df60bb2968339514820aad86",
+    "benchmarks/tabgpt/tiny-pytorch-odd-oracle.json": "494b961f1b984cc55578f01c3969d91122705a160bf5ba4ef4fad8a0255fbb81",
+    "benchmarks/tabgpt/tiny-pytorch-oracle.json": "7e80d38a8a09cac8899cbed6fee1d31f7b983a3c902b49576c60bd04759b9ca9",
+    "benchmarks/tabgpt/workload.json": "2b4635691c27acdba23226260cdfc5eb2a53db724570bf2ed7c10031923ea7c4",
+    "src/experimental/training/tabgpt-graph.d.ts": "307ed6b812c4dfc31e2122d14f848239f7b05e05662f62cf8213cdb4f2a21248",
+    "src/experimental/training/tabgpt-graph.js": "e074820921a368b2892ffae72e64be12cdf2627f3f651b61c3133daca076954e",
+    "src/experimental/training/tabgpt-matmul.d.ts": "9f5717e65d11cfc49e85c44e8661803b3152601cce0afa0f92fd6be23951d3cf",
+    "src/experimental/training/tabgpt-matmul.js": "fc557c383249afe612daeb253052c21a54e01db58c22a631d30e6c9e90925a7b",
+    "src/experimental/training/tabgpt-model.d.ts": "8665bd15f9c591c06d51bfa2002b72c184329f73cbd8c47afbea15b1655d544c",
+    "src/experimental/training/tabgpt-model.js": "72dbccfef75871462927fb02c5bca669a4c51a62f411bbb583c40ff6896b11d5",
+    "src/experimental/training/tabgpt-ops.d.ts": "f5ba167886d7315bdff3db663f8713d83b91b6e6d80f10b9cf1be0f7d2b3f725",
+    "src/experimental/training/tabgpt-ops.js": "eaf3aeae727fe206a2c521fccddf9debfe844838a2ed82b73caac97cf0de516a",
+    "src/experimental/training/trainer.js": "d0fef82a79b8d80aef14f4b01e9b3d33a1051f0c886e1e7f74159ecbd3db2c6c",
+    "src/gpu/kernels/backward/matmul_transpose_a.wgsl": "1f60e4fc16d07f2d1ac3e335f6068f43cc96f583c5c5b3642da21e15bf3f383f",
+    "src/gpu/kernels/matmul_f32.wgsl": "5996e7d704299f211bbebe1f69ae73b59c03c85b0ee17eddc04d92e44488423c",
+    "src/gpu/kernels/shader-cache.js": "2520a4cbac269fd122987e11bab5a0e777312025b0dcfcfc82151fb8bcd23cc5",
+    "src/gpu/kernels/training/tabgpt_attention.wgsl": "5861b5f757b63d494e0208b7bc719ceb2e321203aeceebae54a5bd8932df5d8e",
+    "src/gpu/kernels/training/tabgpt_elementwise.wgsl": "de0f91aa1d8c838b2bdce4c0dc8450a54907ce010ce163adc4dad841472ae182",
+    "src/gpu/kernels/training/tabgpt_loss.wgsl": "268c9668875a0f06dc7630feca2a0e62ed74bcf900c5a69fc1755ceb0fdfabdb",
+    "src/gpu/kernels/training/tabgpt_matmul_register.wgsl": "f9f327a6303526b49930507284012d6031146fe818aeda1efc6cefc068dd2097",
+    "src/gpu/kernels/training/tabgpt_norm.wgsl": "74db4cbb6e2e1fc361133735493783dd40598ef4c41a49a4966be3c523376096",
+    "src/gpu/kernels/training/tabgpt_optimizer.wgsl": "424d9b72748a32b795c1846ae18885a35c7d19765e7af315682b443382a2968f",
+    "src/training-browser.js": "79952792acdf269fc8536a150164f50dd7aa8752fda1f8989523f5c1ed2fd04c"
+  },
+  "spec": {
+    "model": {
+      "B": 4,
+      "T": 128,
+      "C": 384,
+      "L": 10,
+      "NH": 8,
+      "V": 16384,
+      "lr": 0.0006,
+      "warmup": 300,
+      "f16": false
+    },
+    "firstBatchSeed": 37,
+    "validationSeeds": [
+      193,
+      521,
+      907,
+      1301
+    ],
+    "pairedRepetitions": 3,
+    "warmupSteps": 2,
+    "timedSteps": 30,
+    "lossAbsTolerance": 0.0003,
+    "updateRmsAbsTolerance": 2e-9,
+    "updateRmsRelativeTolerance": 0.02
+  },
+  "runs": {
+    "oracle": {
+      "gpu": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "provenance": {
+        "repository": "https://github.com/jbingen/tabgpt",
+        "revision": "7e0387500f0f64bddf3e68c341508f3f4454cc81",
+        "tokenizer": {
+          "path": "tok16k-g2.json",
+          "sha256": "22d92a1f04999138f02a20157f175144bb1e107d639a957cb9cfb233326f0ad6",
+          "vocabSize": 16384
+        },
+        "modules": {
+          "kernels": {
+            "path": "src/engine/kernels.ts",
+            "sourceSha256": "90ed34cabb65cb959722adf62e2ac074811f7b7d8768c44f684b377542bf5985",
+            "javascriptSha256": "6267575a6906cd274dd10c7817f145c26ea074db84f584b08a998a6d705f3536"
+          },
+          "data": {
+            "path": "src/engine/data.ts",
+            "sourceSha256": "1bf7720ce412cde95c30aa880be97b8b24e884b71322906bf17b50951da76c2d",
+            "javascriptSha256": "4804a81fab6555469721cd86a5deb6de91584d055339dbd2323bbafc50b8ad2b"
+          },
+          "model": {
+            "path": "src/engine/model.ts",
+            "sourceSha256": "fe602f327114fc23b436ed0a490feefacdf81ded8236ffcb23d02d800346df85",
+            "javascriptSha256": "b04f60dc7d6533136472d4d224af356529f2ef7b144ff838f5aa605588d60d1d"
+          }
+        },
+        "splits": {
+          "train": {
+            "path": "public/tokens-nob-g2-000.bin",
+            "sha256": "a728179decc518d8170aa8b8341dba9ec6d548eaeb3e1b9e62ecb3bd35d83f1f",
+            "tokens": 4000000
+          },
+          "val": {
+            "path": "public/tokens-nob-g2-val.bin",
+            "sha256": "f511c2ddf816bee59672934f59902d0a00dc5c73a51ac6140633dcee9cd9e39a",
+            "tokens": 1533045
+          }
+        }
+      },
+      "result": {
+        "aligned": {
+          "reference": "PyTorch CPU autograd, float64 graph, FP32 master weights and Adam moments after each update",
+          "torchVersion": "2.10.0",
+          "model": {
+            "B": 1,
+            "T": 8,
+            "C": 16,
+            "L": 2,
+            "NH": 2,
+            "V": 32,
+            "lr": 0.0006,
+            "warmup": 2,
+            "f16": false
+          },
+          "initTensorDigestsChecked": 14,
+          "lossTolerance": 0.00001,
+          "weightTolerance": 0.000002,
+          "steps": [
+            {
+              "loss": 3.56374728679657,
+              "referenceLoss": 3.5637474030149936,
+              "maxWeightError": 5.960464477539063e-8,
+              "worstTensor": "lnf.weight[12]",
+              "largestExpectedUpdate": 0.00030297040939331055,
+              "checkedCoordinates": 18,
+              "pass": true
+            },
+            {
+              "loss": 3.521896630525589,
+              "referenceLoss": 3.521896836978923,
+              "maxWeightError": 5.960464477539063e-8,
+              "worstTensor": "h.1.ln1.weight[9]",
+              "largestExpectedUpdate": 0.0008970927447080612,
+              "checkedCoordinates": 18,
+              "pass": true
+            }
+          ],
+          "evalLoss": 3.410189688205719,
+          "referenceEvalLoss": 3.4101898732893487,
+          "pass": true
+        },
+        "tails": {
+          "reference": "PyTorch CPU autograd, float64 graph, FP32 master weights and Adam moments after each update",
+          "torchVersion": "2.10.0",
+          "model": {
+            "B": 1,
+            "T": 7,
+            "C": 16,
+            "L": 2,
+            "NH": 2,
+            "V": 31,
+            "lr": 0.0006,
+            "warmup": 2,
+            "f16": false
+          },
+          "initTensorDigestsChecked": 14,
+          "lossTolerance": 0.00001,
+          "weightTolerance": 0.000002,
+          "steps": [
+            {
+              "loss": 3.5133496012006487,
+              "referenceLoss": 3.5133497460120005,
+              "maxWeightError": 5.960464477539063e-8,
+              "worstTensor": "lnf.weight[12]",
+              "largestExpectedUpdate": 0.00030297040939331055,
+              "checkedCoordinates": 18,
+              "pass": true
+            },
+            {
+              "loss": 3.454528740474156,
+              "referenceLoss": 3.4545289460471538,
+              "maxWeightError": 9.89530235528946e-10,
+              "worstTensor": "h.0.attn.proj.weight[130]",
+              "largestExpectedUpdate": 0.0009006763575598598,
+              "checkedCoordinates": 18,
+              "pass": true
+            }
+          ],
+          "evalLoss": 3.4018078531537737,
+          "referenceEvalLoss": 3.401808082892106,
+          "pass": true
+        },
+        "pass": true
+      }
+    },
+    "parity": {
+      "gpu": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "provenance": {
+        "repository": "https://github.com/jbingen/tabgpt",
+        "revision": "7e0387500f0f64bddf3e68c341508f3f4454cc81",
+        "tokenizer": {
+          "path": "tok16k-g2.json",
+          "sha256": "22d92a1f04999138f02a20157f175144bb1e107d639a957cb9cfb233326f0ad6",
+          "vocabSize": 16384
+        },
+        "modules": {
+          "kernels": {
+            "path": "src/engine/kernels.ts",
+            "sourceSha256": "90ed34cabb65cb959722adf62e2ac074811f7b7d8768c44f684b377542bf5985",
+            "javascriptSha256": "6267575a6906cd274dd10c7817f145c26ea074db84f584b08a998a6d705f3536"
+          },
+          "data": {
+            "path": "src/engine/data.ts",
+            "sourceSha256": "1bf7720ce412cde95c30aa880be97b8b24e884b71322906bf17b50951da76c2d",
+            "javascriptSha256": "4804a81fab6555469721cd86a5deb6de91584d055339dbd2323bbafc50b8ad2b"
+          },
+          "model": {
+            "path": "src/engine/model.ts",
+            "sourceSha256": "fe602f327114fc23b436ed0a490feefacdf81ded8236ffcb23d02d800346df85",
+            "javascriptSha256": "b04f60dc7d6533136472d4d224af356529f2ef7b144ff838f5aa605588d60d1d"
+          }
+        },
+        "splits": {
+          "train": {
+            "path": "public/tokens-nob-g2-000.bin",
+            "sha256": "a728179decc518d8170aa8b8341dba9ec6d548eaeb3e1b9e62ecb3bd35d83f1f",
+            "tokens": 4000000
+          },
+          "val": {
+            "path": "public/tokens-nob-g2-val.bin",
+            "sha256": "f511c2ddf816bee59672934f59902d0a00dc5c73a51ac6140633dcee9cd9e39a",
+            "tokens": 1533045
+          }
+        }
+      },
+      "result": {
+        "numParams": 23994240,
+        "tensors": 62,
+        "allInitialWeightsIdentical": true,
+        "steps": [
+          {
+            "stockLoss": 9.846474597230554,
+            "nativeLoss": 9.846474597230554,
+            "pass": true,
+            "parameters": {
+              "wte": {
+                "referenceRms": 0.000001772041155299713,
+                "errorRms": 1.559690919592207e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.0.ln1.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.0.attn.qkv.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.0.attn.proj.weight": {
+                "referenceRms": 0.000001999238457401216,
+                "errorRms": 2.895360418664383e-11,
+                "maxAbsError": 6.252818707253027e-9,
+                "pass": true
+              },
+              "h.0.ln2.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.0.mlp.fc.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.0.mlp.proj.weight": {
+                "referenceRms": 0.000001999579445082469,
+                "errorRms": 2.118674540756324e-13,
+                "maxAbsError": 9.094947017729282e-13,
+                "pass": true
+              },
+              "h.1.ln1.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.1.attn.qkv.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.1.attn.proj.weight": {
+                "referenceRms": 0.0000019992560916047914,
+                "errorRms": 3.569525683995466e-11,
+                "maxAbsError": 7.96779886513832e-9,
+                "pass": true
+              },
+              "h.1.ln2.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.1.mlp.fc.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.1.mlp.proj.weight": {
+                "referenceRms": 0.000001999580591076015,
+                "errorRms": 2.1159990205138575e-13,
+                "maxAbsError": 9.094947017729282e-13,
+                "pass": true
+              },
+              "h.2.ln1.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.2.attn.qkv.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.2.attn.proj.weight": {
+                "referenceRms": 0.0000019992943456028878,
+                "errorRms": 2.8965749162765246e-11,
+                "maxAbsError": 8.068646195624751e-9,
+                "pass": true
+              },
+              "h.2.ln2.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.2.mlp.fc.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.2.mlp.proj.weight": {
+                "referenceRms": 0.000001999568300241476,
+                "errorRms": 2.1160032113610957e-13,
+                "maxAbsError": 9.094947017729282e-13,
+                "pass": true
+              },
+              "h.3.ln1.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.3.attn.qkv.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.3.attn.proj.weight": {
+                "referenceRms": 0.0000019992820310489473,
+                "errorRms": 1.4417717020784767e-11,
+                "maxAbsError": 2.093884177156724e-9,
+                "pass": true
+              },
+              "h.3.ln2.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.3.mlp.fc.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.3.mlp.proj.weight": {
+                "referenceRms": 0.0000019995733357615714,
+                "errorRms": 2.114833011511807e-13,
+                "maxAbsError": 9.094947017729282e-13,
+                "pass": true
+              },
+              "h.4.ln1.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.4.attn.qkv.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.4.attn.proj.weight": {
+                "referenceRms": 0.0000019993303754443444,
+                "errorRms": 1.755595608287955e-11,
+                "maxAbsError": 5.653078005707357e-9,
+                "pass": true
+              },
+              "h.4.ln2.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.4.mlp.fc.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.4.mlp.proj.weight": {
+                "referenceRms": 0.000001999579420073684,
+                "errorRms": 2.11751617160851e-13,
+                "maxAbsError": 1.1368683772161603e-12,
+                "pass": true
+              },
+              "h.5.ln1.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.5.attn.qkv.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.5.attn.proj.weight": {
+                "referenceRms": 0.0000019992471865629103,
+                "errorRms": 3.10292564240952e-11,
+                "maxAbsError": 7.203027507785009e-9,
+                "pass": true
+              },
+              "h.5.ln2.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.5.mlp.fc.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.5.mlp.proj.weight": {
+                "referenceRms": 0.0000019995854998434867,
+                "errorRms": 2.1165893627830568e-13,
+                "maxAbsError": 9.094947017729282e-13,
+                "pass": true
+              },
+              "h.6.ln1.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.6.attn.qkv.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.6.attn.proj.weight": {
+                "referenceRms": 0.0000019992253853961623,
+                "errorRms": 3.665346135684277e-11,
+                "maxAbsError": 8.912337534638937e-9,
+                "pass": true
+              },
+              "h.6.ln2.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.6.mlp.fc.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.6.mlp.proj.weight": {
+                "referenceRms": 0.00000199957984082739,
+                "errorRms": 2.118481493249995e-13,
+                "maxAbsError": 9.094947017729282e-13,
+                "pass": true
+              },
+              "h.7.ln1.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.7.attn.qkv.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.7.attn.proj.weight": {
+                "referenceRms": 0.000001999274131270226,
+                "errorRms": 3.6217430874912696e-11,
+                "maxAbsError": 8.311019428219879e-9,
+                "pass": true
+              },
+              "h.7.ln2.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.7.mlp.fc.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.7.mlp.proj.weight": {
+                "referenceRms": 0.0000019995728511654067,
+                "errorRms": 2.1187350204135847e-13,
+                "maxAbsError": 9.094947017729282e-13,
+                "pass": true
+              },
+              "h.8.ln1.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.8.attn.qkv.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.8.attn.proj.weight": {
+                "referenceRms": 0.0000019992386117735603,
+                "errorRms": 3.6082718707894226e-11,
+                "maxAbsError": 1.1711563274729997e-8,
+                "pass": true
+              },
+              "h.8.ln2.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.8.mlp.fc.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.8.mlp.proj.weight": {
+                "referenceRms": 0.0000019995752553289685,
+                "errorRms": 2.1167000811445493e-13,
+                "maxAbsError": 9.094947017729282e-13,
+                "pass": true
+              },
+              "h.9.ln1.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.9.attn.qkv.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.9.attn.proj.weight": {
+                "referenceRms": 0.0000019992691017738524,
+                "errorRms": 5.373893656805346e-11,
+                "maxAbsError": 1.3035645451964228e-8,
+                "pass": true
+              },
+              "h.9.ln2.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.9.mlp.fc.weight": {
+                "referenceRms": 0,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.9.mlp.proj.weight": {
+                "referenceRms": 0.000001999570710100953,
+                "errorRms": 2.117533561619422e-13,
+                "maxAbsError": 9.094947017729282e-13,
+                "pass": true
+              },
+              "lnf.weight": {
+                "referenceRms": 0.0000020264049788162525,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              }
+            }
+          },
+          {
+            "stockLoss": 9.847619702108204,
+            "nativeLoss": 9.847619687207043,
+            "pass": true,
+            "parameters": {
+              "wte": {
+                "referenceRms": 0.0000032140778747226032,
+                "errorRms": 2.218690722316176e-11,
+                "maxAbsError": 7.450580596923828e-9,
+                "pass": true
+              },
+              "h.0.ln1.weight": {
+                "referenceRms": 0.0000016607777007256292,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.0.attn.qkv.weight": {
+                "referenceRms": 0.000001736398093938666,
+                "errorRms": 9.167676934657083e-11,
+                "maxAbsError": 7.450580596923828e-9,
+                "pass": true
+              },
+              "h.0.attn.proj.weight": {
+                "referenceRms": 0.0000028641770851539874,
+                "errorRms": 2.611846175026634e-12,
+                "maxAbsError": 5.443325790110976e-10,
+                "pass": true
+              },
+              "h.0.ln2.weight": {
+                "referenceRms": 0.0000028399713391149523,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.0.mlp.fc.weight": {
+                "referenceRms": 0.0000021333339501109745,
+                "errorRms": 2.1363749744427532e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.0.mlp.proj.weight": {
+                "referenceRms": 0.000002978427377451078,
+                "errorRms": 1.0253280821561832e-12,
+                "maxAbsError": 5.309175321599469e-10,
+                "pass": true
+              },
+              "h.1.ln1.weight": {
+                "referenceRms": 0.0000016563820942556593,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.1.attn.qkv.weight": {
+                "referenceRms": 0.0000017250080427467796,
+                "errorRms": 9.762876110160327e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.1.attn.proj.weight": {
+                "referenceRms": 0.0000028580362369237387,
+                "errorRms": 3.084885160233926e-12,
+                "maxAbsError": 6.871232471894473e-10,
+                "pass": true
+              },
+              "h.1.ln2.weight": {
+                "referenceRms": 0.0000028381333849139117,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.1.mlp.fc.weight": {
+                "referenceRms": 0.000002121554195713483,
+                "errorRms": 2.1687869378217474e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.1.mlp.proj.weight": {
+                "referenceRms": 0.0000029735001478290146,
+                "errorRms": 8.23796669482427e-13,
+                "maxAbsError": 2.2578205971512944e-10,
+                "pass": true
+              },
+              "h.2.ln1.weight": {
+                "referenceRms": 0.0000016496910160406123,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.2.attn.qkv.weight": {
+                "referenceRms": 0.0000017456096929577258,
+                "errorRms": 9.67268176566941e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.2.attn.proj.weight": {
+                "referenceRms": 0.000002877329782352819,
+                "errorRms": 2.120627913953661e-12,
+                "maxAbsError": 2.9882585295126773e-10,
+                "pass": true
+              },
+              "h.2.ln2.weight": {
+                "referenceRms": 0.0000028350935868586517,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.2.mlp.fc.weight": {
+                "referenceRms": 0.0000021201178780723176,
+                "errorRms": 2.119364434387377e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.2.mlp.proj.weight": {
+                "referenceRms": 0.000002972862258292151,
+                "errorRms": 8.678711892198183e-13,
+                "maxAbsError": 1.7985257727559656e-10,
+                "pass": true
+              },
+              "h.3.ln1.weight": {
+                "referenceRms": 0.0000016872864754355588,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.3.attn.qkv.weight": {
+                "referenceRms": 0.0000017287427736932926,
+                "errorRms": 6.735391107585614e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.3.attn.proj.weight": {
+                "referenceRms": 0.000002871807086541592,
+                "errorRms": 1.963285615882655e-12,
+                "maxAbsError": 1.6916601452976465e-10,
+                "pass": true
+              },
+              "h.3.ln2.weight": {
+                "referenceRms": 0.0000028360136978623347,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.3.mlp.fc.weight": {
+                "referenceRms": 0.0000021215955323046545,
+                "errorRms": 2.343870370328313e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.3.mlp.proj.weight": {
+                "referenceRms": 0.0000029719445353769023,
+                "errorRms": 8.456457713784827e-13,
+                "maxAbsError": 1.652153969189385e-10,
+                "pass": true
+              },
+              "h.4.ln1.weight": {
+                "referenceRms": 0.0000016604712785195256,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.4.attn.qkv.weight": {
+                "referenceRms": 0.0000017192963169852522,
+                "errorRms": 7.584210605662468e-11,
+                "maxAbsError": 7.450580596923828e-9,
+                "pass": true
+              },
+              "h.4.attn.proj.weight": {
+                "referenceRms": 0.0000028772683648355167,
+                "errorRms": 2.3999719931375895e-12,
+                "maxAbsError": 2.8899194148834795e-10,
+                "pass": true
+              },
+              "h.4.ln2.weight": {
+                "referenceRms": 0.000002835080533490847,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.4.mlp.fc.weight": {
+                "referenceRms": 0.000002117808883117006,
+                "errorRms": 2.5998359548527844e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.4.mlp.proj.weight": {
+                "referenceRms": 0.000002971780807205341,
+                "errorRms": 8.055738813236568e-13,
+                "maxAbsError": 1.0254552762489766e-10,
+                "pass": true
+              },
+              "h.5.ln1.weight": {
+                "referenceRms": 0.000001702632917204991,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.5.attn.qkv.weight": {
+                "referenceRms": 0.0000017552826479581696,
+                "errorRms": 9.65815012433636e-11,
+                "maxAbsError": 7.450580596923828e-9,
+                "pass": true
+              },
+              "h.5.attn.proj.weight": {
+                "referenceRms": 0.000002888998859965122,
+                "errorRms": 2.233791676215622e-12,
+                "maxAbsError": 2.0327206584624946e-10,
+                "pass": true
+              },
+              "h.5.ln2.weight": {
+                "referenceRms": 0.0000028316911507176646,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.5.mlp.fc.weight": {
+                "referenceRms": 0.000002120630136428414,
+                "errorRms": 2.609752717140552e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.5.mlp.proj.weight": {
+                "referenceRms": 0.000002966408990397331,
+                "errorRms": 1.1333872465958595e-12,
+                "maxAbsError": 5.427409632829949e-10,
+                "pass": true
+              },
+              "h.6.ln1.weight": {
+                "referenceRms": 0.0000016942304645940507,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.6.attn.qkv.weight": {
+                "referenceRms": 0.0000017332009451694817,
+                "errorRms": 1.1259456577660905e-10,
+                "maxAbsError": 7.450580596923828e-9,
+                "pass": true
+              },
+              "h.6.attn.proj.weight": {
+                "referenceRms": 0.000002893054592498255,
+                "errorRms": 2.0924347696657515e-12,
+                "maxAbsError": 2.0440893422346562e-10,
+                "pass": true
+              },
+              "h.6.ln2.weight": {
+                "referenceRms": 0.0000028292461880647766,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.6.mlp.fc.weight": {
+                "referenceRms": 0.0000021127310082444774,
+                "errorRms": 2.394751774793149e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.6.mlp.proj.weight": {
+                "referenceRms": 0.000002966464071530533,
+                "errorRms": 8.920076473018721e-13,
+                "maxAbsError": 1.5211298887152225e-10,
+                "pass": true
+              },
+              "h.7.ln1.weight": {
+                "referenceRms": 0.000001736624696139902,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.7.attn.qkv.weight": {
+                "referenceRms": 0.0000017503230712548222,
+                "errorRms": 1.096182213604947e-10,
+                "maxAbsError": 7.450580596923828e-9,
+                "pass": true
+              },
+              "h.7.attn.proj.weight": {
+                "referenceRms": 0.000002893452141286166,
+                "errorRms": 2.5652823704927307e-12,
+                "maxAbsError": 4.804405762115493e-10,
+                "pass": true
+              },
+              "h.7.ln2.weight": {
+                "referenceRms": 0.0000028316911507176646,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.7.mlp.fc.weight": {
+                "referenceRms": 0.0000021206495641517077,
+                "errorRms": 2.3516201696766384e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.7.mlp.proj.weight": {
+                "referenceRms": 0.000002967870845926674,
+                "errorRms": 9.341543125896565e-13,
+                "maxAbsError": 1.2028067430946976e-10,
+                "pass": true
+              },
+              "h.8.ln1.weight": {
+                "referenceRms": 0.0000016838202258119989,
+                "errorRms": 3.041686791657381e-9,
+                "maxAbsError": 5.960464477539063e-8,
+                "pass": true
+              },
+              "h.8.attn.qkv.weight": {
+                "referenceRms": 0.0000017516773293257224,
+                "errorRms": 1.0370714154409395e-10,
+                "maxAbsError": 7.450580596923828e-9,
+                "pass": true
+              },
+              "h.8.attn.proj.weight": {
+                "referenceRms": 0.0000028830507885501053,
+                "errorRms": 2.0419012561841044e-12,
+                "maxAbsError": 1.736850663291989e-10,
+                "pass": true
+              },
+              "h.8.ln2.weight": {
+                "referenceRms": 0.0000028341601195350637,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.8.mlp.fc.weight": {
+                "referenceRms": 0.0000021271419493067127,
+                "errorRms": 2.4238024863762095e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.8.mlp.proj.weight": {
+                "referenceRms": 0.000002969039068497659,
+                "errorRms": 9.0724934210132e-13,
+                "maxAbsError": 1.2801137927453965e-10,
+                "pass": true
+              },
+              "h.9.ln1.weight": {
+                "referenceRms": 0.0000017048213539054592,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.9.attn.qkv.weight": {
+                "referenceRms": 0.0000017608847258529549,
+                "errorRms": 1.242647418393639e-10,
+                "maxAbsError": 7.450580596923828e-9,
+                "pass": true
+              },
+              "h.9.attn.proj.weight": {
+                "referenceRms": 0.0000028868855252837854,
+                "errorRms": 2.550273679220906e-12,
+                "maxAbsError": 4.733919922728091e-10,
+                "pass": true
+              },
+              "h.9.ln2.weight": {
+                "referenceRms": 0.000002830782707963524,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              },
+              "h.9.mlp.fc.weight": {
+                "referenceRms": 0.000002117498114918239,
+                "errorRms": 2.1607614131841477e-11,
+                "maxAbsError": 3.725290298461914e-9,
+                "pass": true
+              },
+              "h.9.mlp.proj.weight": {
+                "referenceRms": 0.000002967066423617161,
+                "errorRms": 1.1857627252710991e-12,
+                "maxAbsError": 5.513811629498377e-10,
+                "pass": true
+              },
+              "lnf.weight": {
+                "referenceRms": 0.0000038648972718313484,
+                "errorRms": 0,
+                "maxAbsError": 0,
+                "pass": true
+              }
+            }
+          }
+        ],
+        "pass": true
+      }
+    },
+    "stock-1": {
+      "gpu": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "provenance": {
+        "repository": "https://github.com/jbingen/tabgpt",
+        "revision": "7e0387500f0f64bddf3e68c341508f3f4454cc81",
+        "tokenizer": {
+          "path": "tok16k-g2.json",
+          "sha256": "22d92a1f04999138f02a20157f175144bb1e107d639a957cb9cfb233326f0ad6",
+          "vocabSize": 16384
+        },
+        "modules": {
+          "kernels": {
+            "path": "src/engine/kernels.ts",
+            "sourceSha256": "90ed34cabb65cb959722adf62e2ac074811f7b7d8768c44f684b377542bf5985",
+            "javascriptSha256": "6267575a6906cd274dd10c7817f145c26ea074db84f584b08a998a6d705f3536"
+          },
+          "data": {
+            "path": "src/engine/data.ts",
+            "sourceSha256": "1bf7720ce412cde95c30aa880be97b8b24e884b71322906bf17b50951da76c2d",
+            "javascriptSha256": "4804a81fab6555469721cd86a5deb6de91584d055339dbd2323bbafc50b8ad2b"
+          },
+          "model": {
+            "path": "src/engine/model.ts",
+            "sourceSha256": "fe602f327114fc23b436ed0a490feefacdf81ded8236ffcb23d02d800346df85",
+            "javascriptSha256": "b04f60dc7d6533136472d4d224af356529f2ef7b144ff838f5aa605588d60d1d"
+          }
+        },
+        "splits": {
+          "train": {
+            "path": "public/tokens-nob-g2-000.bin",
+            "sha256": "a728179decc518d8170aa8b8341dba9ec6d548eaeb3e1b9e62ecb3bd35d83f1f",
+            "tokens": 4000000
+          },
+          "val": {
+            "path": "public/tokens-nob-g2-val.bin",
+            "sha256": "f511c2ddf816bee59672934f59902d0a00dc5c73a51ac6140633dcee9cd9e39a",
+            "tokens": 1533045
+          }
+        }
+      },
+      "result": {
+        "numParams": 23994240,
+        "precision": "f32",
+        "buildMs": 543,
+        "validationBefore": 9.875372886657715,
+        "validationAfter": 8.933150291442871,
+        "steps": [
+          {
+            "loss": 9.846474597230554,
+            "ms": 134.59999999403954
+          },
+          {
+            "loss": 9.847619702108204,
+            "ms": 118.69999998807907
+          },
+          {
+            "loss": 9.800656206905842,
+            "ms": 121.70000000298023
+          },
+          {
+            "loss": 9.69017693772912,
+            "ms": 123.29999999701977
+          },
+          {
+            "loss": 9.519580100663006,
+            "ms": 127.80000001192093
+          },
+          {
+            "loss": 9.37410928402096,
+            "ms": 130.40000000596046
+          },
+          {
+            "loss": 9.320697062648833,
+            "ms": 132.19999998807907
+          },
+          {
+            "loss": 9.422113181091845,
+            "ms": 137.20000000298023
+          },
+          {
+            "loss": 9.23187892511487,
+            "ms": 143.79999999701977
+          },
+          {
+            "loss": 9.314896338619292,
+            "ms": 151.70000000298023
+          },
+          {
+            "loss": 9.282725443132222,
+            "ms": 152
+          },
+          {
+            "loss": 9.215778591111302,
+            "ms": 159.19999998807907
+          },
+          {
+            "loss": 9.304379520006478,
+            "ms": 163.59999999403954
+          },
+          {
+            "loss": 9.256890221498907,
+            "ms": 168.29999999701977
+          },
+          {
+            "loss": 9.202055985108018,
+            "ms": 171
+          },
+          {
+            "loss": 9.24799773748964,
+            "ms": 170
+          },
+          {
+            "loss": 9.201957871206105,
+            "ms": 167.1000000089407
+          },
+          {
+            "loss": 9.230505658313632,
+            "ms": 163.8999999910593
+          },
+          {
+            "loss": 9.253350905142725,
+            "ms": 163.1000000089407
+          },
+          {
+            "loss": 9.083059089258313,
+            "ms": 163.59999999403954
+          },
+          {
+            "loss": 9.20484818983823,
+            "ms": 158.59999999403954
+          },
+          {
+            "loss": 9.092353420332074,
+            "ms": 153.20000000298023
+          },
+          {
+            "loss": 9.118800307624042,
+            "ms": 152.6000000089407
+          },
+          {
+            "loss": 9.046732753515244,
+            "ms": 151.09999999403954
+          },
+          {
+            "loss": 9.085534580983222,
+            "ms": 148.3999999910593
+          },
+          {
+            "loss": 9.039459697902203,
+            "ms": 147
+          },
+          {
+            "loss": 9.034150127321482,
+            "ms": 141.8999999910593
+          },
+          {
+            "loss": 9.053912370465696,
+            "ms": 143.5
+          },
+          {
+            "loss": 9.109718919731677,
+            "ms": 143.20000000298023
+          },
+          {
+            "loss": 8.983783235773444,
+            "ms": 142
+          },
+          {
+            "loss": 8.949267195537686,
+            "ms": 143
+          },
+          {
+            "loss": 8.977988773025572,
+            "ms": 142.40000000596046
+          }
+        ],
+        "tokensPerSecond": 3431.022158698479,
+        "peakRequestedGpuBufferBytes": 917683260
+      }
+    },
+    "doppler-1": {
+      "gpu": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "provenance": {
+        "repository": "https://github.com/jbingen/tabgpt",
+        "revision": "7e0387500f0f64bddf3e68c341508f3f4454cc81",
+        "tokenizer": {
+          "path": "tok16k-g2.json",
+          "sha256": "22d92a1f04999138f02a20157f175144bb1e107d639a957cb9cfb233326f0ad6",
+          "vocabSize": 16384
+        },
+        "modules": {
+          "kernels": {
+            "path": "src/engine/kernels.ts",
+            "sourceSha256": "90ed34cabb65cb959722adf62e2ac074811f7b7d8768c44f684b377542bf5985",
+            "javascriptSha256": "6267575a6906cd274dd10c7817f145c26ea074db84f584b08a998a6d705f3536"
+          },
+          "data": {
+            "path": "src/engine/data.ts",
+            "sourceSha256": "1bf7720ce412cde95c30aa880be97b8b24e884b71322906bf17b50951da76c2d",
+            "javascriptSha256": "4804a81fab6555469721cd86a5deb6de91584d055339dbd2323bbafc50b8ad2b"
+          },
+          "model": {
+            "path": "src/engine/model.ts",
+            "sourceSha256": "fe602f327114fc23b436ed0a490feefacdf81ded8236ffcb23d02d800346df85",
+            "javascriptSha256": "b04f60dc7d6533136472d4d224af356529f2ef7b144ff838f5aa605588d60d1d"
+          }
+        },
+        "splits": {
+          "train": {
+            "path": "public/tokens-nob-g2-000.bin",
+            "sha256": "a728179decc518d8170aa8b8341dba9ec6d548eaeb3e1b9e62ecb3bd35d83f1f",
+            "tokens": 4000000
+          },
+          "val": {
+            "path": "public/tokens-nob-g2-val.bin",
+            "sha256": "f511c2ddf816bee59672934f59902d0a00dc5c73a51ac6140633dcee9cd9e39a",
+            "tokens": 1533045
+          }
+        }
+      },
+      "result": {
+        "numParams": 23994240,
+        "precision": "f32",
+        "buildMs": 554.7000000029802,
+        "validationBefore": 9.875372970011085,
+        "validationAfter": 8.933150071650743,
+        "steps": [
+          {
+            "loss": 9.846474597230554,
+            "ms": 107.90000000596046
+          },
+          {
+            "loss": 9.847619689069688,
+            "ms": 104
+          },
+          {
+            "loss": 9.800656221807003,
+            "ms": 105.20000000298023
+          },
+          {
+            "loss": 9.69017694145441,
+            "ms": 106.70000000298023
+          },
+          {
+            "loss": 9.5195801127702,
+            "ms": 107.40000000596046
+          },
+          {
+            "loss": 9.374109344556928,
+            "ms": 106.29999999701977
+          },
+          {
+            "loss": 9.320697077549994,
+            "ms": 108.3999999910593
+          },
+          {
+            "loss": 9.422113166190684,
+            "ms": 108.6000000089407
+          },
+          {
+            "loss": 9.231878914870322,
+            "ms": 113.20000000298023
+          },
+          {
+            "loss": 9.314896304160357,
+            "ms": 115.8999999910593
+          },
+          {
+            "loss": 9.28272551111877,
+            "ms": 118.29999999701977
+          },
+          {
+            "loss": 9.215778584592044,
+            "ms": 122
+          },
+          {
+            "loss": 9.30437948834151,
+            "ms": 126.09999999403954
+          },
+          {
+            "loss": 9.256890213117003,
+            "ms": 129.90000000596046
+          },
+          {
+            "loss": 9.20205592084676,
+            "ms": 129.70000000298023
+          },
+          {
+            "loss": 9.24799775145948,
+            "ms": 137.29999999701977
+          },
+          {
+            "loss": 9.201957910321653,
+            "ms": 136.5
+          },
+          {
+            "loss": 9.23050568625331,
+            "ms": 145.59999999403954
+          },
+          {
+            "loss": 9.253350923769176,
+            "ms": 143.1000000089407
+          },
+          {
+            "loss": 9.083059121854603,
+            "ms": 150.29999999701977
+          },
+          {
+            "loss": 9.204848110675812,
+            "ms": 150.90000000596046
+          },
+          {
+            "loss": 9.09235342592001,
+            "ms": 151
+          },
+          {
+            "loss": 9.118800431489944,
+            "ms": 152.3999999910593
+          },
+          {
+            "loss": 9.046732870861888,
+            "ms": 150.40000000596046
+          },
+          {
+            "loss": 9.085534707643092,
+            "ms": 148.3999999910593
+          },
+          {
+            "loss": 9.039459805935621,
+            "ms": 148.70000000298023
+          },
+          {
+            "loss": 9.034150599502027,
+            "ms": 146.69999998807907
+          },
+          {
+            "loss": 9.053912481293082,
+            "ms": 145.3999999910593
+          },
+          {
+            "loss": 9.10971885919571,
+            "ms": 144.1000000089407
+          },
+          {
+            "loss": 8.98378362506628,
+            "ms": 139.29999999701977
+          },
+          {
+            "loss": 8.949267289601266,
+            "ms": 139.09999999403954
+          },
+          {
+            "loss": 8.977989082224667,
+            "ms": 136.8999999910593
+          }
+        ],
+        "tokensPerSecond": 3875.0693779017697,
+        "peakRequestedGpuBufferBytes": 630271540
+      }
+    },
+    "doppler-2": {
+      "gpu": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "provenance": {
+        "repository": "https://github.com/jbingen/tabgpt",
+        "revision": "7e0387500f0f64bddf3e68c341508f3f4454cc81",
+        "tokenizer": {
+          "path": "tok16k-g2.json",
+          "sha256": "22d92a1f04999138f02a20157f175144bb1e107d639a957cb9cfb233326f0ad6",
+          "vocabSize": 16384
+        },
+        "modules": {
+          "kernels": {
+            "path": "src/engine/kernels.ts",
+            "sourceSha256": "90ed34cabb65cb959722adf62e2ac074811f7b7d8768c44f684b377542bf5985",
+            "javascriptSha256": "6267575a6906cd274dd10c7817f145c26ea074db84f584b08a998a6d705f3536"
+          },
+          "data": {
+            "path": "src/engine/data.ts",
+            "sourceSha256": "1bf7720ce412cde95c30aa880be97b8b24e884b71322906bf17b50951da76c2d",
+            "javascriptSha256": "4804a81fab6555469721cd86a5deb6de91584d055339dbd2323bbafc50b8ad2b"
+          },
+          "model": {
+            "path": "src/engine/model.ts",
+            "sourceSha256": "fe602f327114fc23b436ed0a490feefacdf81ded8236ffcb23d02d800346df85",
+            "javascriptSha256": "b04f60dc7d6533136472d4d224af356529f2ef7b144ff838f5aa605588d60d1d"
+          }
+        },
+        "splits": {
+          "train": {
+            "path": "public/tokens-nob-g2-000.bin",
+            "sha256": "a728179decc518d8170aa8b8341dba9ec6d548eaeb3e1b9e62ecb3bd35d83f1f",
+            "tokens": 4000000
+          },
+          "val": {
+            "path": "public/tokens-nob-g2-val.bin",
+            "sha256": "f511c2ddf816bee59672934f59902d0a00dc5c73a51ac6140633dcee9cd9e39a",
+            "tokens": 1533045
+          }
+        }
+      },
+      "result": {
+        "numParams": 23994240,
+        "precision": "f32",
+        "buildMs": 520.9000000059605,
+        "validationBefore": 9.875372970011085,
+        "validationAfter": 8.933150076074526,
+        "steps": [
+          {
+            "loss": 9.846474597230554,
+            "ms": 108
+          },
+          {
+            "loss": 9.847619687207043,
+            "ms": 101.79999999701977
+          },
+          {
+            "loss": 9.800656210631132,
+            "ms": 101.59999999403954
+          },
+          {
+            "loss": 9.69017694145441,
+            "ms": 101.79999999701977
+          },
+          {
+            "loss": 9.51958009134978,
+            "ms": 104.90000000596046
+          },
+          {
+            "loss": 9.374109335243702,
+            "ms": 106.29999999701977
+          },
+          {
+            "loss": 9.320697089657187,
+            "ms": 106
+          },
+          {
+            "loss": 9.422113168984652,
+            "ms": 110.20000000298023
+          },
+          {
+            "loss": 9.231878926046193,
+            "ms": 110.5
+          },
+          {
+            "loss": 9.314896310679615,
+            "ms": 114.30000001192093
+          },
+          {
+            "loss": 9.282725502736866,
+            "ms": 117.29999999701977
+          },
+          {
+            "loss": 9.215778579935431,
+            "ms": 123.29999999701977
+          },
+          {
+            "loss": 9.304379514418542,
+            "ms": 126.90000000596046
+          },
+          {
+            "loss": 9.256890199147165,
+            "ms": 132.20000000298023
+          },
+          {
+            "loss": 9.202055921778083,
+            "ms": 136.79999999701977
+          },
+          {
+            "loss": 9.247997721657157,
+            "ms": 141.70000000298023
+          },
+          {
+            "loss": 9.201957911252975,
+            "ms": 142.70000000298023
+          },
+          {
+            "loss": 9.230505695566535,
+            "ms": 148.70000000298023
+          },
+          {
+            "loss": 9.253350934013724,
+            "ms": 156.79999999701977
+          },
+          {
+            "loss": 9.083059136755764,
+            "ms": 155
+          },
+          {
+            "loss": 9.20484811346978,
+            "ms": 159
+          },
+          {
+            "loss": 9.09235339704901,
+            "ms": 159.09999999403954
+          },
+          {
+            "loss": 9.118800409138203,
+            "ms": 156.5
+          },
+          {
+            "loss": 9.046732863411307,
+            "ms": 156.29999999701977
+          },
+          {
+            "loss": 9.085534695535898,
+            "ms": 151.80000001192093
+          },
+          {
+            "loss": 9.039459821768105,
+            "ms": 151.20000000298023
+          },
+          {
+            "loss": 9.034150565043092,
+            "ms": 150.8999999910593
+          },
+          {
+            "loss": 9.053912477567792,
+            "ms": 148.70000000298023
+          },
+          {
+            "loss": 9.109718881547451,
+            "ms": 147.40000000596046
+          },
+          {
+            "loss": 8.983783651143312,
+            "ms": 137.09999999403954
+          },
+          {
+            "loss": 8.94926732685417,
+            "ms": 138.40000000596046
+          },
+          {
+            "loss": 8.977989075705409,
+            "ms": 139.79999999701977
+          }
+        ],
+        "tokensPerSecond": 3808.3903599950168,
+        "peakRequestedGpuBufferBytes": 630271540
+      }
+    },
+    "stock-2": {
+      "gpu": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "provenance": {
+        "repository": "https://github.com/jbingen/tabgpt",
+        "revision": "7e0387500f0f64bddf3e68c341508f3f4454cc81",
+        "tokenizer": {
+          "path": "tok16k-g2.json",
+          "sha256": "22d92a1f04999138f02a20157f175144bb1e107d639a957cb9cfb233326f0ad6",
+          "vocabSize": 16384
+        },
+        "modules": {
+          "kernels": {
+            "path": "src/engine/kernels.ts",
+            "sourceSha256": "90ed34cabb65cb959722adf62e2ac074811f7b7d8768c44f684b377542bf5985",
+            "javascriptSha256": "6267575a6906cd274dd10c7817f145c26ea074db84f584b08a998a6d705f3536"
+          },
+          "data": {
+            "path": "src/engine/data.ts",
+            "sourceSha256": "1bf7720ce412cde95c30aa880be97b8b24e884b71322906bf17b50951da76c2d",
+            "javascriptSha256": "4804a81fab6555469721cd86a5deb6de91584d055339dbd2323bbafc50b8ad2b"
+          },
+          "model": {
+            "path": "src/engine/model.ts",
+            "sourceSha256": "fe602f327114fc23b436ed0a490feefacdf81ded8236ffcb23d02d800346df85",
+            "javascriptSha256": "b04f60dc7d6533136472d4d224af356529f2ef7b144ff838f5aa605588d60d1d"
+          }
+        },
+        "splits": {
+          "train": {
+            "path": "public/tokens-nob-g2-000.bin",
+            "sha256": "a728179decc518d8170aa8b8341dba9ec6d548eaeb3e1b9e62ecb3bd35d83f1f",
+            "tokens": 4000000
+          },
+          "val": {
+            "path": "public/tokens-nob-g2-val.bin",
+            "sha256": "f511c2ddf816bee59672934f59902d0a00dc5c73a51ac6140633dcee9cd9e39a",
+            "tokens": 1533045
+          }
+        }
+      },
+      "result": {
+        "numParams": 23994240,
+        "precision": "f32",
+        "buildMs": 527.7000000029802,
+        "validationBefore": 9.875372886657715,
+        "validationAfter": 8.933150291442871,
+        "steps": [
+          {
+            "loss": 9.846474597230554,
+            "ms": 132.8999999910593
+          },
+          {
+            "loss": 9.847619702108204,
+            "ms": 115.3999999910593
+          },
+          {
+            "loss": 9.800656206905842,
+            "ms": 116
+          },
+          {
+            "loss": 9.69017693772912,
+            "ms": 117.79999999701977
+          },
+          {
+            "loss": 9.519580100663006,
+            "ms": 117.90000000596046
+          },
+          {
+            "loss": 9.37410928402096,
+            "ms": 119.90000000596046
+          },
+          {
+            "loss": 9.320697062648833,
+            "ms": 120.5
+          },
+          {
+            "loss": 9.422113181091845,
+            "ms": 123.09999999403954
+          },
+          {
+            "loss": 9.23187892511487,
+            "ms": 127.5
+          },
+          {
+            "loss": 9.314896338619292,
+            "ms": 130.8999999910593
+          },
+          {
+            "loss": 9.282725443132222,
+            "ms": 142.90000000596046
+          },
+          {
+            "loss": 9.215778591111302,
+            "ms": 140.70000000298023
+          },
+          {
+            "loss": 9.304379520006478,
+            "ms": 148.5
+          },
+          {
+            "loss": 9.256890221498907,
+            "ms": 156.5
+          },
+          {
+            "loss": 9.202055985108018,
+            "ms": 159.29999999701977
+          },
+          {
+            "loss": 9.24799773748964,
+            "ms": 171.20000000298023
+          },
+          {
+            "loss": 9.201957871206105,
+            "ms": 175.29999999701977
+          },
+          {
+            "loss": 9.230505658313632,
+            "ms": 178.90000000596046
+          },
+          {
+            "loss": 9.253350905142725,
+            "ms": 181.5
+          },
+          {
+            "loss": 9.083059089258313,
+            "ms": 177
+          },
+          {
+            "loss": 9.20484818983823,
+            "ms": 177.70000000298023
+          },
+          {
+            "loss": 9.092353420332074,
+            "ms": 175.90000000596046
+          },
+          {
+            "loss": 9.118800307624042,
+            "ms": 169.5
+          },
+          {
+            "loss": 9.046732753515244,
+            "ms": 163.59999999403954
+          },
+          {
+            "loss": 9.085534580983222,
+            "ms": 163.3999999910593
+          },
+          {
+            "loss": 9.039459697902203,
+            "ms": 158.6000000089407
+          },
+          {
+            "loss": 9.034150127321482,
+            "ms": 157.5
+          },
+          {
+            "loss": 9.053912370465696,
+            "ms": 152.79999999701977
+          },
+          {
+            "loss": 9.109718919731677,
+            "ms": 151.80000001192093
+          },
+          {
+            "loss": 8.983783235773444,
+            "ms": 148.29999999701977
+          },
+          {
+            "loss": 8.949267195537686,
+            "ms": 147.90000000596046
+          },
+          {
+            "loss": 8.977988773025572,
+            "ms": 145.1000000089407
+          }
+        ],
+        "tokensPerSecond": 3400.1106806637895,
+        "peakRequestedGpuBufferBytes": 917683260
+      }
+    },
+    "stock-3": {
+      "gpu": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "provenance": {
+        "repository": "https://github.com/jbingen/tabgpt",
+        "revision": "7e0387500f0f64bddf3e68c341508f3f4454cc81",
+        "tokenizer": {
+          "path": "tok16k-g2.json",
+          "sha256": "22d92a1f04999138f02a20157f175144bb1e107d639a957cb9cfb233326f0ad6",
+          "vocabSize": 16384
+        },
+        "modules": {
+          "kernels": {
+            "path": "src/engine/kernels.ts",
+            "sourceSha256": "90ed34cabb65cb959722adf62e2ac074811f7b7d8768c44f684b377542bf5985",
+            "javascriptSha256": "6267575a6906cd274dd10c7817f145c26ea074db84f584b08a998a6d705f3536"
+          },
+          "data": {
+            "path": "src/engine/data.ts",
+            "sourceSha256": "1bf7720ce412cde95c30aa880be97b8b24e884b71322906bf17b50951da76c2d",
+            "javascriptSha256": "4804a81fab6555469721cd86a5deb6de91584d055339dbd2323bbafc50b8ad2b"
+          },
+          "model": {
+            "path": "src/engine/model.ts",
+            "sourceSha256": "fe602f327114fc23b436ed0a490feefacdf81ded8236ffcb23d02d800346df85",
+            "javascriptSha256": "b04f60dc7d6533136472d4d224af356529f2ef7b144ff838f5aa605588d60d1d"
+          }
+        },
+        "splits": {
+          "train": {
+            "path": "public/tokens-nob-g2-000.bin",
+            "sha256": "a728179decc518d8170aa8b8341dba9ec6d548eaeb3e1b9e62ecb3bd35d83f1f",
+            "tokens": 4000000
+          },
+          "val": {
+            "path": "public/tokens-nob-g2-val.bin",
+            "sha256": "f511c2ddf816bee59672934f59902d0a00dc5c73a51ac6140633dcee9cd9e39a",
+            "tokens": 1533045
+          }
+        }
+      },
+      "result": {
+        "numParams": 23994240,
+        "precision": "f32",
+        "buildMs": 515,
+        "validationBefore": 9.875372886657715,
+        "validationAfter": 8.933150291442871,
+        "steps": [
+          {
+            "loss": 9.846474597230554,
+            "ms": 130.09999999403954
+          },
+          {
+            "loss": 9.847619702108204,
+            "ms": 115.5
+          },
+          {
+            "loss": 9.800656206905842,
+            "ms": 117.40000000596046
+          },
+          {
+            "loss": 9.69017693772912,
+            "ms": 118.19999998807907
+          },
+          {
+            "loss": 9.519580100663006,
+            "ms": 119.40000000596046
+          },
+          {
+            "loss": 9.37410928402096,
+            "ms": 120.90000000596046
+          },
+          {
+            "loss": 9.320697062648833,
+            "ms": 123.09999999403954
+          },
+          {
+            "loss": 9.422113181091845,
+            "ms": 126.5
+          },
+          {
+            "loss": 9.23187892511487,
+            "ms": 127.20000000298023
+          },
+          {
+            "loss": 9.314896338619292,
+            "ms": 132.20000000298023
+          },
+          {
+            "loss": 9.282725443132222,
+            "ms": 136.09999999403954
+          },
+          {
+            "loss": 9.215778591111302,
+            "ms": 142
+          },
+          {
+            "loss": 9.304379520006478,
+            "ms": 145.5
+          },
+          {
+            "loss": 9.256890221498907,
+            "ms": 155.69999998807907
+          },
+          {
+            "loss": 9.202055985108018,
+            "ms": 157
+          },
+          {
+            "loss": 9.24799773748964,
+            "ms": 167.59999999403954
+          },
+          {
+            "loss": 9.201957871206105,
+            "ms": 171.5
+          },
+          {
+            "loss": 9.230505658313632,
+            "ms": 174.79999999701977
+          },
+          {
+            "loss": 9.253350905142725,
+            "ms": 177
+          },
+          {
+            "loss": 9.083059089258313,
+            "ms": 179.40000000596046
+          },
+          {
+            "loss": 9.20484818983823,
+            "ms": 179
+          },
+          {
+            "loss": 9.092353420332074,
+            "ms": 176.29999999701977
+          },
+          {
+            "loss": 9.118800307624042,
+            "ms": 169.8999999910593
+          },
+          {
+            "loss": 9.046732753515244,
+            "ms": 169.5
+          },
+          {
+            "loss": 9.085534580983222,
+            "ms": 166.5
+          },
+          {
+            "loss": 9.039459697902203,
+            "ms": 162.59999999403954
+          },
+          {
+            "loss": 9.034150127321482,
+            "ms": 158.5
+          },
+          {
+            "loss": 9.053912370465696,
+            "ms": 154
+          },
+          {
+            "loss": 9.109718919731677,
+            "ms": 152.19999998807907
+          },
+          {
+            "loss": 8.983783235773444,
+            "ms": 148
+          },
+          {
+            "loss": 8.949267195537686,
+            "ms": 146.40000000596046
+          },
+          {
+            "loss": 8.977988773025572,
+            "ms": 148.40000000596046
+          }
+        ],
+        "tokensPerSecond": 3396.1262934711535,
+        "peakRequestedGpuBufferBytes": 917683260
+      }
+    },
+    "doppler-3": {
+      "gpu": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "provenance": {
+        "repository": "https://github.com/jbingen/tabgpt",
+        "revision": "7e0387500f0f64bddf3e68c341508f3f4454cc81",
+        "tokenizer": {
+          "path": "tok16k-g2.json",
+          "sha256": "22d92a1f04999138f02a20157f175144bb1e107d639a957cb9cfb233326f0ad6",
+          "vocabSize": 16384
+        },
+        "modules": {
+          "kernels": {
+            "path": "src/engine/kernels.ts",
+            "sourceSha256": "90ed34cabb65cb959722adf62e2ac074811f7b7d8768c44f684b377542bf5985",
+            "javascriptSha256": "6267575a6906cd274dd10c7817f145c26ea074db84f584b08a998a6d705f3536"
+          },
+          "data": {
+            "path": "src/engine/data.ts",
+            "sourceSha256": "1bf7720ce412cde95c30aa880be97b8b24e884b71322906bf17b50951da76c2d",
+            "javascriptSha256": "4804a81fab6555469721cd86a5deb6de91584d055339dbd2323bbafc50b8ad2b"
+          },
+          "model": {
+            "path": "src/engine/model.ts",
+            "sourceSha256": "fe602f327114fc23b436ed0a490feefacdf81ded8236ffcb23d02d800346df85",
+            "javascriptSha256": "b04f60dc7d6533136472d4d224af356529f2ef7b144ff838f5aa605588d60d1d"
+          }
+        },
+        "splits": {
+          "train": {
+            "path": "public/tokens-nob-g2-000.bin",
+            "sha256": "a728179decc518d8170aa8b8341dba9ec6d548eaeb3e1b9e62ecb3bd35d83f1f",
+            "tokens": 4000000
+          },
+          "val": {
+            "path": "public/tokens-nob-g2-val.bin",
+            "sha256": "f511c2ddf816bee59672934f59902d0a00dc5c73a51ac6140633dcee9cd9e39a",
+            "tokens": 1533045
+          }
+        }
+      },
+      "result": {
+        "numParams": 23994240,
+        "precision": "f32",
+        "buildMs": 495,
+        "validationBefore": 9.875372970011085,
+        "validationAfter": 8.933150067226961,
+        "steps": [
+          {
+            "loss": 9.846474597230554,
+            "ms": 106.29999999701977
+          },
+          {
+            "loss": 9.847619689069688,
+            "ms": 103.09999999403954
+          },
+          {
+            "loss": 9.800656218081713,
+            "ms": 106.5
+          },
+          {
+            "loss": 9.69017693027854,
+            "ms": 106.40000000596046
+          },
+          {
+            "loss": 9.519580114632845,
+            "ms": 105
+          },
+          {
+            "loss": 9.374109317548573,
+            "ms": 109.09999999403954
+          },
+          {
+            "loss": 9.320697077549994,
+            "ms": 108.09999999403954
+          },
+          {
+            "loss": 9.422113160602748,
+            "ms": 112.40000000596046
+          },
+          {
+            "loss": 9.231878890655935,
+            "ms": 111.5
+          },
+          {
+            "loss": 9.31489629484713,
+            "ms": 113.5
+          },
+          {
+            "loss": 9.282725509256124,
+            "ms": 117.09999999403954
+          },
+          {
+            "loss": 9.215778592973948,
+            "ms": 123.5
+          },
+          {
+            "loss": 9.304379490204155,
+            "ms": 122.20000000298023
+          },
+          {
+            "loss": 9.256890171207488,
+            "ms": 130.90000000596046
+          },
+          {
+            "loss": 9.202055905945599,
+            "ms": 135.09999999403954
+          },
+          {
+            "loss": 9.247997713275254,
+            "ms": 139.40000000596046
+          },
+          {
+            "loss": 9.201957936398685,
+            "ms": 144.5
+          },
+          {
+            "loss": 9.230505715124309,
+            "ms": 147.40000000596046
+          },
+          {
+            "loss": 9.253350947983563,
+            "ms": 151.29999999701977
+          },
+          {
+            "loss": 9.083059092983603,
+            "ms": 152.40000000596046
+          },
+          {
+            "loss": 9.204848114401102,
+            "ms": 154.5
+          },
+          {
+            "loss": 9.0923534296453,
+            "ms": 154.3999999910593
+          },
+          {
+            "loss": 9.118800397962332,
+            "ms": 155.5
+          },
+          {
+            "loss": 9.046732850372791,
+            "ms": 153
+          },
+          {
+            "loss": 9.08553469646722,
+            "ms": 153.5
+          },
+          {
+            "loss": 9.039459805935621,
+            "ms": 149
+          },
+          {
+            "loss": 9.034150614403188,
+            "ms": 148.79999999701977
+          },
+          {
+            "loss": 9.053912498056889,
+            "ms": 144.3999999910593
+          },
+          {
+            "loss": 9.109718835912645,
+            "ms": 143.59999999403954
+          },
+          {
+            "loss": 8.983783622272313,
+            "ms": 140.5
+          },
+          {
+            "loss": 8.949267284013331,
+            "ms": 140
+          },
+          {
+            "loss": 8.977989098988473,
+            "ms": 140.20000000298023
+          }
+        ],
+        "tokensPerSecond": 3826.8928918567954,
+        "peakRequestedGpuBufferBytes": 630271540
+      }
+    }
+  },
+  "agreement": {
+    "trials": [
+      {
+        "maxTrainLossDifference": 4.721805453300476e-7,
+        "maxEvalLossDifference": 2.1979212760925293e-7,
+        "pass": true
+      },
+      {
+        "maxTrainLossDifference": 4.377216100692749e-7,
+        "maxEvalLossDifference": 2.153683453798294e-7,
+        "pass": true
+      },
+      {
+        "maxTrainLossDifference": 4.870817065238953e-7,
+        "maxEvalLossDifference": 2.2421590983867645e-7,
+        "pass": true
+      }
+    ],
+    "pass": true
+  },
+  "medianTokensPerSecond": {
+    "stock": 3400.1106806637895,
+    "doppler": 3826.8928918567954
+  }
+}
